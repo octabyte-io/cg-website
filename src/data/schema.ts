@@ -51,3 +51,21 @@ export const softwareSchema = () => ({
     },
   ],
 });
+
+/** A HowTo for a real, ordered sequence the page shows (design.md: only where it is a real how-to). */
+export const howToSchema = (h: {
+  name: string;
+  description?: string;
+  steps: { name: string; text: string; url?: string }[];
+}) => ({
+  '@type': 'HowTo',
+  name: h.name,
+  ...(h.description ? { description: h.description } : {}),
+  step: h.steps.map((s, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: s.name,
+    text: strip(s.text),
+    ...(s.url ? { url: s.url } : {}),
+  })),
+});

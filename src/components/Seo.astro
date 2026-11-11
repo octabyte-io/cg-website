@@ -7,13 +7,30 @@ interface Props {
   description: string;
   /** Path of the Open Graph image under public/, 1200x630. */
   image?: string;
-  /** Extra JSON-LD objects for this page (FAQPage, BreadcrumbList, Product...). */
+  /** Alt text for the Open Graph image. */
+  imageAlt?: string;
+  /** Extra JSON-LD objects for this page (FAQPage, BreadcrumbList, HowTo...). */
   schema?: Record<string, unknown>[];
   noindex?: boolean;
 }
 
-const { title, description, image = '/og/default.png', schema = [], noindex = false } = Astro.props;
-const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/', site.url).href;
+const {
+  title,
+  description,
+  image = '/og/default.png',
+  imageAlt = 'Cloudgate: deploy apps, databases and AI models to servers and cloud accounts you own',
+  schema = [],
+  noindex = false,
+} = Astro.props;
+
+// build.format 'file' + trailingSlash 'never': pages are served as /x from x.html, and the home page
+// is index.html. Astro.url.pathname can be '/x.html', '/x', '/index.html' or '/index' depending on
+// the route, so normalise all of them to the public URL: '/', or '/x' with no slash and no '.html'.
+const path = Astro.url.pathname
+  .replace(/\.html$/, '')
+  .replace(/(^|\/)index$/, '$1')
+  .replace(/\/+$/, '');
+const canonical = new URL(path || '/', site.url).href;
 const fullTitle = title.includes(site.name) ? title : `${title} | ${site.name}`;
 const imageUrl = new URL(image, site.url).href;
 
@@ -36,29 +53,53 @@ const website = {
   publisher: { '@id': `${site.url}/#organization` },
   inLanguage: 'en',
 };
-const graph = { '@context': 'https://schema.org', '@graph': [organization, website, ...schema] };
+const breadcrumb = schema.find((s) => s['@type'] === 'BreadcrumbList');
+const webpage = noindex
+  ? null
+  : {
+      '@type': 'WebPage',
+      '@id': `${canonical}#webpage`,
+      url: canonical,
+      name: fullTitle,
+      description,
+      isPartOf: { '@id': `${site.url}/#website` },
+      about: { '@id': `${site.url}/#organization` },
+      primaryImageOfPage: { '@type': 'ImageObject', url: imageUrl, width: 1200, height: 630 },
+      inLanguage: 'en',
+      ...(breadcrumb ? { breadcrumb: { '@id': `${canonical}#breadcrumb` } } : {}),
+    };
+const pageSchema = schema.map((s) =>
+  s['@type'] === 'BreadcrumbList' && !s['@id'] ? { '@id': `${canonical}#breadcrumb`, ...s } : s,
+);
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [organization, website, ...(webpage ? [webpage] : []), ...pageSchema],
+};
 ---
 
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
-{noindex && <meta name="robots" content="noindex" />}
+<meta name="color-scheme" content="light dark" />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content={site.name} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:url" content={canonical} />
+{!noindex && <meta property="og:url" content={canonical} />}
 <meta property="og:image" content={imageUrl} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={imageAlt} />
 <meta property="og:locale" content="en_US" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={imageUrl} />
+<meta name="twitter:image:alt" content={imageAlt} />
 
 <link rel="sitemap" href="/sitemap-index.xml" />
-<link rel="alternate" type="text/plain" title="LLM summary" href="/llms.txt" />
+<link rel="alternate" type="text/plain" title="Cloudgate summary for AI assistants" href="/llms.txt" />
+<link rel="alternate" type="text/plain" title="Cloudgate full text for AI assistants" href="/llms-full.txt" />
 
-<script type="application/ld+json" set:html={JSON.stringify(graph)} />
+<script type="application/ld+json" set:html={JSON.stringify(graph).replace(/</g, "\\u003c")} />

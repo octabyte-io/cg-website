@@ -193,7 +193,7 @@ const description =
       <div class="owner">
         <h3>Who owns the instance?</h3>
         <p>
-          The first person to sign up. Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code>
+          The first person to sign up. Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code>{" "}
           when the installer finishes; your account owns the instance and sign-up closes behind
           you. Everyone after that joins by invitation.
         </p>
@@ -232,7 +232,7 @@ const description =
               <p>
                 Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code> and create the first
                 account. Then add the server under Servers and deploy your first app, or
-                <a href={templatesHome}>start from one of the app templates</a>.
+                {" "}<a href={templatesHome}>start from one of the app templates</a>.
               </p>
             </li>
           </ol>
@@ -276,7 +276,7 @@ const description =
           <h3>Upgrading</h3>
           <p>
             Pull the new version and run the install script again with the same
-            <code>CLOUDGATE_PUBLIC_HOST</code>. It migrates the database, rebuilds, restarts both
+            {" "}<code>CLOUDGATE_PUBLIC_HOST</code>. It migrates the database, rebuilds, restarts both
             services, and reads your existing secrets back instead of making new ones.
           </p>
           <pre class="code"><code><span class="k">cd</span> /opt/cloudgate <span class="d">&amp;&amp;</span> <span class="k">git</span> pull
@@ -287,7 +287,7 @@ const description =
           <p>
             Cloudgate backs up the databases and volumes you deploy. Back up Cloudgate on its own:
             the <code>cloudgate</code> PostgreSQL database, the files
-            <code>/etc/default/cloudgate-*</code>, and the folder <code>/etc/cloudgate</code>. Keep
+            {" "}<code>/etc/default/cloudgate-*</code>, and the folder <code>/etc/cloudgate</code>. Keep
             them off the server.
           </p>
           <p class="warn">
@@ -366,10 +366,10 @@ const description =
       </div>
       <p class="more">
         Prices are agreed with each customer, and a 30-day trial key is available. Write to
-        <a href={licenseMail}>{site.support}</a>. If a license ends, your settings are kept and the
+        {" "}<a href={licenseMail}>{site.support}</a>. If a license ends, your settings are kept and the
         licensed features stop; nothing is deleted. See every plan side by side on the
-        <a href="/pricing">Cloudgate pricing page</a>, or what the platform does on the
-        <a href="/features">features page</a>.
+        {" "}<a href="/pricing">Cloudgate pricing page</a>, or what the platform does on the
+        {" "}<a href="/features">features page</a>.
       </p>
     </div>
   </section>

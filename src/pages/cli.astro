@@ -154,7 +154,7 @@ const description =
           <p>
             The first time, it asks which Organization, Project, Environment and Service the folder
             belongs to, and saves that link in <code>.cloudgate/</code> (added to your
-            <code>.gitignore</code>). It waits for any build already running, uploads, then follows
+            {" "}<code>.gitignore</code>). It waits for any build already running, uploads, then follows
             the Deployment log and exits 0 only if the Deployment is done.
           </p>
           <pre class="code"><code><span class="k">cloudgate</span> deploy
@@ -195,7 +195,7 @@ const description =
           <dt>Always left out</dt>
           <dd>
             <code>.git</code>, <code>.cloudgate</code>, and <code>.env</code> files except
-            <code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
+            {" "}<code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
           </dd>
         </div>
         <div>
@@ -213,7 +213,7 @@ const description =
         <p class="lede">
           Every command explains itself with <code>--help</code>. Several take <code>--json</code> for
           scripts, and every one that acts on a Service takes <code>--org</code>,
-          <code>--project</code>, <code>--env</code> and <code>--service</code>.
+          {" "}<code>--project</code>, <code>--env</code> and <code>--service</code>.
         </p>
       </div>
       <div class="groups">
@@ -244,9 +244,9 @@ const description =
         </p>
         <p class="note">
           A CI job cannot answer questions, so name the target with variables or flags. Add
-          <code>--switch-source</code> if the Service used to deploy from git or an image, and
-          <code>--detach --json</code> to queue the Deployment and move on. A key from
-          <code>CLOUDGATE_KEY</code> is never written to disk.
+          {" "}<code>--switch-source</code> if the Service used to deploy from git or an image, and
+          {" "}<code>--detach --json</code> to queue the Deployment and move on. A key from
+          {" "}<code>CLOUDGATE_KEY</code> is never written to disk.
         </p>
       </div>
       <pre class="code"><code><span class="d"># in your CI job</span>

@@ -1,0 +1,4 @@
+Contact: mailto:support@octabyte.io
+Expires: 2027-11-11T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://cloudgate.octabyte.io/.well-known/security.txt

@@ -5,7 +5,7 @@ import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { site, plans, trialDays } from '../data/site';
-import { faqSchema, breadcrumbSchema } from '../data/schema';
+import { faqSchema, breadcrumbSchema, howToSchema } from '../data/schema';
 
 const trail = [{ name: 'Vibe coding', path: '/vibe-coding' }];
 
@@ -84,7 +84,15 @@ const faq = [
   },
 ];
 ---
-<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+<Base title={title} description={description} schema={[
+  howToSchema({
+    name: 'Put an app you built with AI online with Cloudgate',
+    description: 'Three steps in the Cloudgate console: sign up, get a server, press Deploy.',
+    steps: steps.map((s) => ({ name: s.h, text: s.p, url: `${site.url}/vibe-coding#how` })),
+  }),
+  faqSchema(faq),
+  breadcrumbSchema(trail),
+]}>
   <PageHero
     title="Put the app you built with AI online"
     lede="You made something with Lovable, Bolt, Cursor, Claude, v0 or Replit, and now it needs a home on the internet. Cloudgate gives it one, on a server that is yours, with an address you can send to people. No server knowledge needed."
