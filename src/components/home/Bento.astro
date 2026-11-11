@@ -1,0 +1,344 @@
+---
+// What every app gets: tiles of different sizes, each drawn with a small piece of the real product
+// rather than an icon, so the grid shows the thing instead of naming it.
+---
+<div class="bento">
+  <article class="tile t-domain">
+    <div class="art">
+      <div class="urlbar">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4.5 7V5.2a3.5 3.5 0 1 1 7 0V7h.8c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.7a.7.7 0 0 1-.7-.7V7.7c0-.4.3-.7.7-.7h.8Zm1.6 0h3.8V5.2a1.9 1.9 0 1 0-3.8 0V7Z" /></svg>
+        <span>https://shop.example.com</span>
+      </div>
+      <p class="tag live">Certificate issued, renews by itself</p>
+    </div>
+    <h3>Domains and https</h3>
+    <p>Point a domain at your app and Cloudgate gets the TLS certificate. Every app also gets a free address that works straight away.</p>
+  </article>
+
+  <article class="tile t-monitor">
+    <div class="art">
+      <svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+        <path class="area" d="M0 50 L20 46 L40 48 L60 40 L80 44 L100 30 L120 36 L140 28 L160 34 L180 22 L200 30 L220 26 L240 32 L260 18 L280 24 L300 20 L300 70 L0 70 Z" />
+        <path class="line" d="M0 50 L20 46 L40 48 L60 40 L80 44 L100 30 L120 36 L140 28 L160 34 L180 22 L200 30 L220 26 L240 32 L260 18 L280 24 L300 20" />
+      </svg>
+      <div class="checks">
+        <span class="live">Uptime check up</span>
+        <span>Error rate under 5%</span>
+      </div>
+    </div>
+    <h3>Monitoring that needs nothing from the app</h3>
+    <p>Uptime checks, error rates read from the proxy, logs, traces and server alerts, sent to Slack, Discord, Teams, email and more.</p>
+  </article>
+
+  <article class="tile t-db">
+    <div class="art">
+      <ul class="engines">
+        <li>PostgreSQL</li><li>MySQL</li><li>MariaDB</li><li>MongoDB</li><li>Redis</li><li>libSQL</li>
+      </ul>
+      <ol class="timeline" aria-label="Backups">
+        <li></li><li></li><li></li><li></li><li></li><li class="now"></li>
+      </ol>
+    </div>
+    <h3>Databases with backups</h3>
+    <p>Six database engines, backed up on a schedule to any S3-compatible storage, and restored from the console.</p>
+  </article>
+
+  <article class="tile t-build">
+    <div class="art">
+      <pre class="log"><code><span class="d">#1</span> Detected Node.js app
+<span class="d">#2</span> Building with Nixpacks
+<span class="d">#3</span> Image pushed
+<span class="d">#4</span> <span class="s">Deployment done</span></code></pre>
+    </div>
+    <h3>Builds without a Dockerfile</h3>
+    <p>Nixpacks works out how to build most apps. Railpack, buildpacks and your own Dockerfile are there when you want them.</p>
+  </article>
+
+  <article class="tile t-preview">
+    <div class="art">
+      <svg class="branches" viewBox="0 0 260 80" aria-hidden="true">
+        <path class="main" d="M10 60 H250" />
+        <path class="pr" d="M60 60 C 90 60, 90 20, 120 20 H200" />
+        <circle class="dot" cx="60" cy="60" r="6" />
+        <circle class="dot" cx="160" cy="60" r="6" />
+        <circle class="dot pr-dot" cx="200" cy="20" r="6" />
+      </svg>
+      <div class="labels"><span>main</span><span class="pr-label">pull request: its own preview</span></div>
+    </div>
+    <h3>Previews and rollbacks</h3>
+    <p>A preview for every pull request, and a way back to any earlier Deployment when a change goes wrong.</p>
+  </article>
+
+  <article class="tile t-team">
+    <div class="art">
+      <ul class="people">
+        <li><span class="av">AK</span><span>Owner</span></li>
+        <li><span class="av">ML</span><span>Developer</span></li>
+        <li><span class="av bot">AI</span><span>Agent, Operator</span></li>
+      </ul>
+    </div>
+    <h3>Teams and access</h3>
+    <p>Members, roles and grants down to a single Service, and an audit log of who did what. SSO and SCIM on Business.</p>
+  </article>
+  <article class="tile t-ai">
+    <div class="art ai-art">
+      <div class="gw">
+        <span class="gw-node">Your app</span>
+        <span class="gw-wire"></span>
+        <span class="gw-node gw-gate">Gateway, OpenAI-compatible</span>
+        <span class="gw-wire"></span>
+        <span class="gw-node">llama-3 on vLLM, 1 GPU</span>
+      </div>
+      <p class="tag">Token spend counted per model and per calling Agent</p>
+    </div>
+    <h3>AI models on your own GPUs</h3>
+    <p>Serve a model with Ollama, vLLM or llama.cpp on your Server, and call it through Cloudgate's gateway like any OpenAI-compatible API.</p>
+  </article>
+</div>
+
+<style>
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .tile {
+    grid-column: span 2;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+    overflow: hidden;
+  }
+  .t-domain,
+  .t-monitor {
+    grid-column: span 3;
+  }
+  .t-ai {
+    grid-column: span 4;
+  }
+  .gw {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .gw-node {
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .gw-gate {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 24px -8px var(--glow);
+  }
+  .gw-wire {
+    flex: 1 1 1.5rem;
+    min-width: 1.5rem;
+    height: 0;
+    border-top: 2px dashed var(--line-strong);
+  }
+  .tile p {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .art {
+    min-height: 120px;
+    display: grid;
+    align-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+  }
+
+  .urlbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+  .urlbar svg {
+    color: var(--live);
+  }
+  .tag {
+    font-size: var(--text-xs);
+  }
+  .live {
+    color: var(--live);
+  }
+
+  .spark {
+    width: 100%;
+    height: 70px;
+  }
+  .spark .area {
+    fill: var(--brand-tint);
+  }
+  .spark .line {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    color: var(--muted);
+  }
+
+  .engines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .engines li {
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .timeline li {
+    position: relative;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--slice-3);
+  }
+  .timeline li.now {
+    background: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-tint);
+  }
+
+  .log {
+    margin: 0;
+    font-size: var(--text-xs);
+    line-height: 1.8;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+  }
+  .log .d {
+    color: var(--muted);
+  }
+  .log .s {
+    color: var(--live);
+  }
+
+  .branches {
+    width: 100%;
+    height: 80px;
+  }
+  .branches path {
+    fill: none;
+    stroke-width: 2;
+  }
+  .branches .main {
+    stroke: var(--line-strong);
+  }
+  .branches .pr {
+    stroke: var(--brand);
+    stroke-dasharray: 5 6;
+  }
+  .branches .dot {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 2;
+  }
+  .branches .pr-dot {
+    stroke: var(--brand);
+  }
+  .labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+  }
+  .pr-label {
+    color: var(--brand);
+  }
+
+  .people {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .people li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--muted);
+  }
+  .av {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 0.7rem;
+  }
+  .av.bot {
+    border-radius: 8px;
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+
+  @media (max-width: 1000px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tile,
+    .t-domain,
+    .t-monitor,
+    .t-ai {
+      grid-column: span 1;
+    }
+  }
+  @media (max-width: 640px) {
+    .bento {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

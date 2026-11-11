@@ -2,6 +2,9 @@
 import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import HeroPanel from '../components/home/HeroPanel.astro';
+import Lanes from '../components/home/Lanes.astro';
+import Bento from '../components/home/Bento.astro';
+import Mark from '../components/Mark.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { site, plans, addOn, trialDays, deployUrl } from '../data/site';
@@ -77,92 +80,125 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   schema={[softwareSchema(), faqSchema(faq)]}
 >
   <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <h1>Deploy what you and your AI build, on servers you own</h1>
-        <p class="lede">
-          Cloudgate puts apps, databases and AI models on your own server, AWS or Google Cloud, with domains,
-          https, backups and monitoring already set up. Click Deploy in the console, run one command, or let your
-          AI agent do it over MCP.
-        </p>
-        <div class="actions">
-          <a class="btn btn--primary" href={site.signUp}>Start {trialDays}-day free trial</a>
-          <a class="btn btn--ghost" href={templatesHome}>Deploy an app template</a>
-        </div>
-        <p class="aside">
-          Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.
-        </p>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="beam" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <div class="keyhole" aria-hidden="true"><Mark size={92} /></div>
+      <h1>Deploy what you and your AI build, on servers you own</h1>
+      <p class="lede">
+        Cloudgate puts apps, databases and AI models on your own server, AWS or Google Cloud, with domains, https,
+        backups and monitoring already set up. Click Deploy in the console, run one command, or let your AI agent do
+        it over MCP.
+      </p>
+      <div class="actions">
+        <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+        <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
       </div>
-      <HeroPanel />
+      <p class="aside">Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
+      <div class="hero-product">
+        <HeroPanel />
+      </div>
+    </div>
+  </section>
+
+  <section class="ticker" aria-label="What Cloudgate runs and where">
+    <div class="wrap ticker-inner">
+      <p>Runs on</p>
+      <ul>
+        <li>Any Ubuntu server</li><li>AWS</li><li>Google Cloud</li><li>Docker Swarm</li><li>PostgreSQL</li>
+        <li>MySQL</li><li>Redis</li><li>MongoDB</li><li>Ollama</li><li>vLLM</li><li>GitHub</li><li>GitLab</li>
+      </ul>
     </div>
   </section>
 
   <section class="section" aria-labelledby="where">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head center">
         <h2 id="where">One platform, three places to run</h2>
         <p class="lede">
           Each Environment picks where its Services run. Keep production on AWS and staging on a cheap server, or
           start on one server and move later. The Project config stays the same.
         </p>
       </div>
-      <div class="lanes">
-        {lanes.map((lane) => (
-          <article class="lane">
-            <span class:list={['slice', lane.slice]} aria-hidden="true"></span>
-            <h3>{lane.name}</h3>
-            <p>{lane.text}</p>
-            <ul>{lane.runs.map((r) => <li>{r}</li>)}</ul>
-          </article>
-        ))}
-      </div>
-      <p class="more"><a class="text-link" href="/features#where-it-runs">What runs where, in detail</a></p>
+      <Lanes lanes={lanes} />
+      <p class="more center-text"><a class="text-link" href="/features#where-it-runs">What runs where, in detail</a></p>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="vibe">
-    <div class="wrap split">
+  <section class="section band" aria-labelledby="vibe">
+    <div class="wrap split vibe">
       <div class="stack">
         <h2 id="vibe">Built it with AI? Put it online in three steps</h2>
         <p class="lede">
           You don’t need to know what a container is. Cloudgate asks for an account, a server and a click, and gives
           you back a link you can share.
         </p>
+        <ol class="steps">
+          <li>
+            <h3>Sign up</h3>
+            <p>Start the {trialDays}-day free trial. Deploy your own app or pick a ready-made template.</p>
+          </li>
+          <li>
+            <h3>Get a server</h3>
+            <p>Buy one from Cloudgate in a few clicks, or paste one command into a server you already rent.</p>
+          </li>
+          <li>
+            <h3>Press Deploy</h3>
+            <p>Cloudgate builds it, starts it and gives you its address. Add your own domain whenever you’re ready.</p>
+          </li>
+        </ol>
         <p><a class="btn btn--ghost" href="/vibe-coding">Deploying an app you built with AI</a></p>
       </div>
-      <ol class="steps">
-        <li>
-          <h3>Sign up</h3>
-          <p>Start the {trialDays}-day free trial. You can deploy your own app or pick a ready-made template.</p>
-        </li>
-        <li>
-          <h3>Get a server</h3>
-          <p>Buy one from Cloudgate in a few clicks, or paste one command into a server you already rent.</p>
-        </li>
-        <li>
-          <h3>Press Deploy</h3>
-          <p>Cloudgate builds it, starts it and gives you its address. Add your own domain whenever you’re ready.</p>
-        </li>
-      </ol>
+      <div class="browser window" aria-hidden="true">
+        <div class="window-bar">my-recipe-app.203-0-113-24.sslip.io</div>
+        <div class="browser-body">
+          <div class="live-pill"><span class="live">Running</span> Deployed 40 seconds ago</div>
+          <div class="fake-app">
+            <div class="fa-nav"><span></span><span></span><span></span></div>
+            <div class="fa-hero"></div>
+            <div class="fa-cards"><span></span><span></span><span></span></div>
+          </div>
+          <div class="next">Next: add your own domain for https</div>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="agents">
-    <div class="wrap split">
+    <div class="halo halo--right" aria-hidden="true"></div>
+    <div class="wrap split agents">
       <div class="stack">
         <h2 id="agents">Let your AI agent deploy, inside limits you set</h2>
         <p class="lede">
           An Agent in Cloudgate is a member of your Organization with its own key, role and access, so you decide what
           it can touch and see everything it did.
         </p>
+        <dl class="guard">
+          <div><dt>Its own identity</dt><dd>A Reader or Operator role, access to named Projects and Services, and keys that work only at the MCP endpoint.</dd></div>
+          <div><dt>Every call recorded</dt><dd>Each tool call is a row in the audit log, whether Cloudgate allowed it or refused it.</dd></div>
+          <div><dt>Secrets stay secret</dt><dd>Passwords and keys are masked out of every result the agent reads, deployment logs included.</dd></div>
+          <div><dt>Previews that clean up</dt><dd>It can build a branch into a preview that expires on its own, and ask for a Plan without applying it.</dd></div>
+        </dl>
         <p><a class="btn btn--ghost" href="/ai-agents">How Cloudgate works with AI agents</a></p>
       </div>
-      <dl class="facts guard">
-        <div><dt>Its own identity</dt><dd>A Reader or Operator role, access to named Projects and Services, and keys that work only at the MCP endpoint.</dd></div>
-        <div><dt>Every call recorded</dt><dd>Each tool call is a row in the audit log, whether Cloudgate allowed it or refused it.</dd></div>
-        <div><dt>Secrets stay secret</dt><dd>Passwords and keys are masked out of every result the agent reads, deployment logs included.</dd></div>
-        <div><dt>Previews that clean up</dt><dd>It can build a branch into a preview that expires on its own, and ask for a Plan without applying it.</dd></div>
-      </dl>
+      <div class="window term">
+        <div class="window-bar">Your AI agent, connected to Cloudgate over MCP</div>
+        <pre class="code"><code><span class="d">you</span>    The checkout page is broken. Fix it and send me a preview.
+<span class="d">agent</span>  Pushed a fix to <span class="s">fix-checkout</span>. Asking Cloudgate for a preview.
+
+<span class="k">create_preview</span>
+  applicationId <span class="s">"shop-web"</span>  branch <span class="s">"fix-checkout"</span>
+  <span class="d">queued, expires in 60 minutes</span>
+
+<span class="k">read_deployment_log</span>
+  <span class="d">build finished, container healthy</span>
+  <span class="d">DATABASE_URL=</span><span class="s">••••••</span>
+
+<span class="k">get_service_health</span>
+  <span class="d">uptime check up, error rate under threshold</span>
+
+<span class="d">agent</span>  The preview is live. Every call above is in your audit log.</code></pre>
+      </div>
     </div>
   </section>
 
@@ -170,15 +206,14 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     <div class="wrap">
       <div class="section-head">
         <h2 id="included">What every app gets without extra setup</h2>
+        <p class="lede">The parts of running an app in production that usually take a week of setup, ready on day one.</p>
       </div>
-      <dl class="facts">
-        {included.map(([t, d]) => <div><dt>{t}</dt><dd>{d}</dd></div>)}
-      </dl>
+      <Bento />
       <p class="more"><a class="text-link" href="/features">Every Cloudgate feature</a></p>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="templates">
+  <section class="section band" aria-labelledby="templates">
     <div class="wrap">
       <div class="section-head">
         <h2 id="templates">Self-host popular apps in one click</h2>
@@ -192,7 +227,10 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
           <li>
             <a href={templatePageUrl(t.id)}>
               <img src={`/templates/${t.id}.svg`} alt="" width="40" height="40" loading="lazy" decoding="async" />
-              <span>{t.name}</span>
+              <span>
+                <strong>{t.name}</strong>
+                <small>{t.tagline}</small>
+              </span>
             </a>
           </li>
         ))}
@@ -205,32 +243,39 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   </section>
 
   <section class="section" aria-labelledby="price">
-    <div class="wrap split">
-      <div class="stack">
+    <div class="wrap">
+      <div class="section-head center">
         <h2 id="price">Pay for the platform, not a markup on compute</h2>
         <p class="lede">
           Members, Projects and Environments are never counted. Servers you bring are billed by their provider, and
           cloud resources by AWS or Google, straight to you.
         </p>
-        <p><a class="text-link" href="/pricing">Compare plans and see worked examples</a></p>
       </div>
-      <table>
-        <caption class="visually-hidden">Cloudgate plans</caption>
-        <tbody>
-          {plans.map((p) => (
-            <tr>
-              <th scope="row">{p.name}</th>
-              <td><strong>${p.price}</strong> a month</td>
-              <td>{p.blurb}</td>
-            </tr>
-          ))}
-          <tr>
-            <th scope="row">Self-hosted</th>
-            <td><strong>Free</strong></td>
-            <td>Run Cloudgate on your own machine.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="plans">
+        {plans.map((p) => (
+          <article class:list={['plan', { 'plan--featured': p.id === 'business' }]}>
+            <h3>{p.name}</h3>
+            <p class="price"><strong>${p.price}</strong> a month</p>
+            <p class="blurb">{p.blurb}</p>
+            <ul>{p.includes.slice(0, 4).map((i) => <li>{i}</li>)}</ul>
+            <a class:list={['btn', p.id === 'business' ? 'btn--primary' : 'btn--ghost']} href={site.signUp}>Start {trialDays}-day free trial</a>
+          </article>
+        ))}
+        <article class="plan plan--self">
+          <h3>Self-hosted</h3>
+          <p class="price"><strong>Free</strong> under the Elastic License 2.0</p>
+          <p class="blurb">Run Cloudgate on your own machine.</p>
+          <ul>
+            <li>Install on one Ubuntu 24.04 server</li>
+            <li>One Organization, one build at a time per Server</li>
+            <li>Enterprise license adds SSO, SCIM and more</li>
+          </ul>
+          <a class="btn btn--ghost" href="/self-hosted">How self-hosting works</a>
+        </article>
+      </div>
+      <p class="more center-text">
+        Add-on: ${addOn.price} a month for {addOn.what}. <a class="text-link" href="/pricing">Compare plans and see worked examples</a>
+      </p>
     </div>
   </section>
 
@@ -239,99 +284,226 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 </Base>
 
 <style>
+  /* ---- Hero: the beam through the keyhole ---- */
   .hero {
-    padding-block: var(--space-8) var(--space-9);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-8) 0;
   }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-8);
-    align-items: center;
+  .beam {
+    position: absolute;
+    z-index: -1;
+    top: -10%;
+    left: 50%;
+    width: 220px;
+    height: 70%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, var(--beam-a) 30%, var(--beam-b) 55%, var(--beam-c) 75%, transparent);
+    filter: blur(70px);
+    opacity: 0.5;
+    animation: beam-in 1.4s var(--ease) both;
   }
-  .hero-copy {
+  @keyframes beam-in {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) scaleY(0.4);
+    }
+  }
+  .hero-inner {
     display: grid;
+    justify-items: center;
+    text-align: center;
     gap: var(--space-5);
-    justify-items: start;
+  }
+  .keyhole {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 0 80px -10px var(--glow);
   }
   .hero h1 {
-    max-width: 15ch;
-    font-size: var(--text-hero);
+    font-size: clamp(2.7rem, 7vw, 5.6rem);
+    max-width: 16ch;
+    letter-spacing: -0.045em;
+  }
+  .hero .lede {
+    max-width: 60ch;
+  }
+  .hero .actions {
+    justify-content: center;
+  }
+  :global(.btn--lg) {
+    min-height: 52px;
+    padding-inline: 1.5rem;
+    font-size: var(--text-md);
   }
   .aside {
     font-size: var(--text-sm);
     color: var(--muted);
   }
-  @media (max-width: 1020px) {
-    .hero-grid {
-      grid-template-columns: 1fr;
-    }
-    .hero h1 {
-      max-width: 16ch;
-    }
-  }
-
-  .lanes {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: 1px solid var(--line);
-  }
-  .lane {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    padding: var(--space-6) var(--space-6) var(--space-6) 0;
-  }
-  .lane + .lane {
-    border-left: 1px solid var(--line);
-    padding-left: var(--space-6);
-  }
-  .lane .slice {
-    width: 2.2rem;
-    height: 0.5rem;
-    margin-bottom: var(--space-2);
-  }
-  .lane p {
-    color: var(--muted);
-  }
-  .lane ul {
-    margin: var(--space-2) 0 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-  }
-  .lane li {
-    padding-left: var(--space-4);
+  .hero-product {
+    width: 100%;
+    max-width: 980px;
+    margin-top: var(--space-7);
+    text-align: left;
     position: relative;
   }
-  .lane li::before {
+  .hero-product::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0.65em;
-    width: 0.4rem;
-    height: 1px;
-    background: var(--ink);
+    inset: -1px;
+    border-radius: calc(var(--radius-md) + 6px);
+    background: linear-gradient(180deg, var(--beam-b), transparent 60%);
+    opacity: 0.35;
+    z-index: -1;
+    filter: blur(14px);
   }
-  @media (max-width: 860px) {
-    .lanes {
-      grid-template-columns: 1fr;
-    }
-    .lane,
-    .lane + .lane {
-      padding: var(--space-5) 0;
-      border-left: 0;
-    }
-    .lane + .lane {
-      border-top: 1px solid var(--line);
-    }
+  .hero-product :global(.panel) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 -20px 80px -30px var(--glow);
   }
 
+  /* ---- Ticker ---- */
+  .ticker {
+    border-block: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .ticker-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding-block: var(--space-5);
+    overflow: hidden;
+  }
+  .ticker p {
+    flex: none;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .ticker ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    color: var(--ink-2);
+  }
 
+  .center {
+    margin-inline: auto;
+    text-align: center;
+    justify-items: center;
+  }
+  .center-text {
+    text-align: center;
+  }
+  .more {
+    margin-top: var(--space-6);
+  }
+
+  /* ---- Vibe coding: a browser with the app it made ---- */
+  .vibe {
+    align-items: center;
+  }
+  .browser-body {
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+    background: var(--surface);
+  }
+  .live-pill {
+    display: inline-flex;
+    gap: var(--space-3);
+    align-items: center;
+    justify-self: start;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .fake-app {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .fa-nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .fa-nav span {
+    width: 3.5rem;
+    height: 0.5rem;
+    border-radius: 4px;
+    background: var(--line-strong);
+  }
+  .fa-hero {
+    height: 7rem;
+    border-radius: 10px;
+    background: linear-gradient(120deg, var(--slice-1), var(--slice-3));
+    opacity: 0.85;
+  }
+  .fa-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
+  .fa-cards span {
+    height: 3.5rem;
+    border-radius: 8px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+  }
+  .next {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+
+  /* ---- Agents ---- */
+  .halo--right {
+    right: -10%;
+    top: 20%;
+  }
+  .agents {
+    align-items: center;
+  }
   .guard {
+    display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-5) var(--space-6);
+    gap: var(--space-4) var(--space-5);
+    margin: var(--space-2) 0;
+  }
+  .guard div {
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--brand);
+  }
+  .guard dt {
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+  }
+  .guard dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .term .code {
+    border: 0;
+    border-radius: 0;
+    font-size: var(--text-xs);
+    line-height: 1.75;
+    white-space: pre-wrap;
   }
   @media (max-width: 560px) {
     .guard {
@@ -339,83 +511,133 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     }
   }
 
+  /* ---- Templates ---- */
   .logos {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-  }
-  .logos li {
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    gap: var(--space-3);
   }
   .logos a {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-3);
-    min-height: 72px;
-    padding: var(--space-3) var(--space-4);
+    height: 100%;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
     text-decoration: none;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    transition: background-color 160ms var(--ease);
+    transition:
+      border-color 160ms var(--ease),
+      box-shadow 160ms var(--ease);
   }
   .logos a:hover {
-    background: var(--surface);
+    border-color: var(--brand);
+    box-shadow: 0 10px 40px -20px var(--glow);
   }
-  @media (max-width: 720px) {
+  .logos img {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    padding: 4px;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+  .logos span {
+    display: grid;
+    gap: 2px;
+  }
+  .logos strong {
+    font-size: var(--text-sm);
+  }
+  .logos small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+    line-height: 1.45;
+  }
+  @media (max-width: 900px) {
     .logos {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .logos img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
+  @media (max-width: 480px) {
+    .logos {
+      grid-template-columns: 1fr;
+    }
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  /* ---- Plans ---- */
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+  .plan {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .plan--featured {
+    position: relative;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(160deg, var(--beam-b), var(--beam-a) 40%, var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 30px 80px -40px var(--glow);
+  }
+  .plan--self {
+    background: transparent;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .price {
+    color: var(--muted);
     font-size: var(--text-sm);
   }
-  th,
-  td {
-    text-align: left;
-    padding: var(--space-4) var(--space-3) var(--space-4) 0;
-    border-bottom: 1px solid var(--line);
-    vertical-align: baseline;
-  }
-  th {
+  .price strong {
     font-family: var(--font-display);
-    font-size: var(--text-lg);
-    font-weight: 600;
-  }
-  td strong {
-    font-family: var(--font-display);
-    font-size: var(--text-xl);
+    font-size: var(--text-2xl);
     font-weight: 650;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    margin-right: 0.2rem;
   }
-  td:last-child {
+  .blurb {
     color: var(--muted);
   }
-  @media (max-width: 520px) {
-    tr {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      border-bottom: 1px solid var(--line);
-      padding-block: var(--space-3);
-    }
-    th,
-    td {
-      border: 0;
-      padding: var(--space-1) 0;
-    }
-    td:last-child {
-      grid-column: 1 / -1;
+  .plan ul {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-4) 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    font-size: var(--text-sm);
+  }
+  .plan li {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .plan li::before {
+    content: '✓';
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .plan .btn {
+    margin-top: var(--space-3);
+  }
+  @media (max-width: 900px) {
+    .plans {
+      grid-template-columns: 1fr;
     }
   }
 </style>

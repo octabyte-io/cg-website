@@ -4,42 +4,47 @@
 @import '@fontsource-variable/geist-mono';
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --paper: #f6f5f9;
-  --paper-2: #efedf5;
-  --surface: #ffffff;
-  --ink: #17131f;
-  --ink-2: #2e2939;
-  --muted: #5d5870;
-  --line: #e3e0ec;
-  --line-strong: #cbc6da;
-  --brand: #6d57e0;
-  --brand-hi: #5a44cf;
-  --brand-tint: #ece9fc;
-  --on-brand: #ffffff;
-  --live: #13865c;
-  --live-tint: #e2f4ec;
-  --warn: #a15c00;
+  --paper: #0b0912;
+  --paper-2: #120f1c;
+  --surface: #16121f;
+  --ink: #f3f0fc;
+  --ink-2: #d9d3ea;
+  --muted: #a6a0bb;
+  --line: #262138;
+  --line-strong: #3a3352;
+  --brand: #b5b0ff;
+  --brand-hi: #d2cdff;
+  --brand-tint: #1d1833;
+  --on-brand: #0b0912;
+  --live: #4fd6a0;
+  --live-tint: #0f2a20;
+  --warn: #f0b45c;
 
   /* The mark's three slices: full, 75%, 50%. */
-  --slice-1: #6d57e0;
-  --slice-2: #9181e8;
-  --slice-3: #b6abf0;
+  --slice-1: #b5b0ff;
+  --slice-2: #8d84e0;
+  --slice-3: #6a60b8;
 
   /* The one dark band and every code surface stay dark in both themes. */
-  --night: #14111c;
-  --night-2: #1d1928;
-  --night-line: #2f2a3d;
-  --night-ink: #ece9f6;
-  --night-muted: #a39db6;
+  --night: #07060c;
+  --night-2: #100d18;
+  --night-line: #2a2540;
+  --night-ink: #f3f0fc;
+  --night-muted: #a6a0bb;
   --code-key: #c4b9ff;
   --code-str: #8fe0b8;
   --code-dim: #8b84a0;
   --night-brand: #b5b0ff;
-  --night-brand-hi: #cbc7ff;
+  --night-brand-hi: #d2cdff;
   --beam-a: #6d57e0;
   --beam-b: #b5b0ff;
+  --beam-c: #ffc4a3;
+  --glow: rgba(141, 120, 255, 0.35);
+  --grid-line: rgba(181, 176, 255, 0.06);
+  --panel-top: rgba(255, 255, 255, 0.06);
+  --radius-lg: 22px;
 
   --font-display: 'Bricolage Grotesque Variable', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -72,28 +77,55 @@
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0f0d16;
-    --paper-2: #14111d;
-    --surface: #17141f;
-    --ink: #ece9f6;
-    --ink-2: #d4cfe2;
-    --muted: #a7a1b8;
-    --line: #2a2635;
-    --line-strong: #3b3549;
-    --brand: #b5b0ff;
-    --brand-hi: #cbc7ff;
-    --brand-tint: #221d38;
-    --on-brand: #14111c;
-    --live: #4fd6a0;
-    --live-tint: #12271f;
-    --warn: #f0b45c;
-    --slice-1: #b5b0ff;
-    --slice-2: #8d84e0;
-    --slice-3: #6a60b8;
-    --night: #0a0910;
-    --night-2: #15121d;
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --paper: #f7f6fb;
+  --paper-2: #efecf6;
+  --surface: #ffffff;
+  --ink: #15111f;
+  --ink-2: #2e2939;
+  --muted: #5b5670;
+  --line: #e4e0ee;
+  --line-strong: #cdc7dc;
+  --brand: #5a44cf;
+  --brand-hi: #4a35bd;
+  --brand-tint: #ece9fc;
+  --on-brand: #ffffff;
+  --live: #13865c;
+  --live-tint: #e2f4ec;
+  --warn: #a15c00;
+  --slice-1: #6d57e0;
+  --slice-2: #9181e8;
+  --slice-3: #b6abf0;
+  --glow: rgba(109, 87, 224, 0.22);
+  --grid-line: rgba(90, 68, 207, 0.07);
+  --panel-top: rgba(255, 255, 255, 0.9);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --paper: #f7f6fb;
+    --paper-2: #efecf6;
+    --surface: #ffffff;
+    --ink: #15111f;
+    --ink-2: #2e2939;
+    --muted: #5b5670;
+    --line: #e4e0ee;
+    --line-strong: #cdc7dc;
+    --brand: #5a44cf;
+    --brand-hi: #4a35bd;
+    --brand-tint: #ece9fc;
+    --on-brand: #ffffff;
+    --live: #13865c;
+    --live-tint: #e2f4ec;
+    --warn: #a15c00;
+    --slice-1: #6d57e0;
+    --slice-2: #9181e8;
+    --slice-3: #b6abf0;
+    --glow: rgba(109, 87, 224, 0.22);
+    --grid-line: rgba(90, 68, 207, 0.07);
+    --panel-top: rgba(255, 255, 255, 0.9);
   }
 }
 
@@ -204,6 +236,7 @@ pre {
 }
 
 .section {
+  position: relative;
   padding-block: var(--space-9);
   border-top: 1px solid var(--line);
 }
@@ -273,12 +306,16 @@ pre {
 .btn--primary {
   background: var(--brand);
   color: var(--on-brand);
+  font-weight: 600;
+  box-shadow:
+    0 0 0 1px var(--brand-hi) inset,
+    0 8px 30px -8px var(--glow);
 }
 .btn--primary:hover {
   background: var(--brand-hi);
 }
 .btn--ghost {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   border-color: var(--line-strong);
   color: var(--ink);
 }
@@ -503,10 +540,13 @@ pre {
 /* ---- A raised panel: product mock-ups and grouped choices, not feature lists ---- */
 
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(180deg, var(--line-strong), var(--line) 60%) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
   padding: var(--space-6);
+  box-shadow: inset 0 1px 0 var(--panel-top);
 }
 .panel--open {
   background: transparent;
@@ -578,4 +618,79 @@ pre {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---- Rich surfaces (redesign) ---- */
+
+/* A faint blueprint grid that fades out from the top: the backdrop behind every page hero. */
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* A soft halo of the brand colour, placed by the page. */
+.halo {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  width: 60vw;
+  max-width: 900px;
+  aspect-ratio: 2 / 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--glow), transparent);
+  filter: blur(20px);
+}
+
+/* A product window: title bar with three dots, then content. */
+.window {
+  background:
+    linear-gradient(var(--night-2), var(--night-2)) padding-box,
+    linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 var(--panel-top),
+    0 30px 80px -30px var(--glow);
+}
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.65rem var(--space-4);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.window-bar::before {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--line-strong);
+  box-shadow:
+    1rem 0 0 var(--line-strong),
+    2rem 0 0 var(--line-strong);
+  margin-right: 2.2rem;
+}
+
+/* An alternate band of the page, for rhythm between sections. */
+.band {
+  background: var(--paper-2);
+}
+
+.kicker-stat {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }

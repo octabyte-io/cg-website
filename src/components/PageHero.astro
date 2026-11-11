@@ -1,26 +1,65 @@
 ---
-// The top of every inner page: breadcrumbs, the one <h1>, a lede and optional actions.
+// The top of every inner page: breadcrumbs, the one <h1>, a lede and optional actions, over the
+// blueprint grid and a narrow beam, echoing the home page's hero at a smaller scale.
+// An optional `visual` slot sits beside the copy on wide screens.
 import Breadcrumbs from './Breadcrumbs.astro';
 interface Props { title: string; lede: string; trail: { name: string; path: string }[] }
 const { title, lede, trail } = Astro.props;
+const hasVisual = Astro.slots.has('visual');
 ---
-<section class="page-hero">
-  <div class="wrap">
-    <Breadcrumbs trail={trail} />
-    <h1>{title}</h1>
-    <p class="lede">{lede}</p>
-    {Astro.slots.has('default') && <div class="actions slot"><slot /></div>}
+<section class:list={['page-hero', { 'has-visual': hasVisual }]}>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="beam" aria-hidden="true"></div>
+  <div class="wrap inner">
+    <div class="copy">
+      <Breadcrumbs trail={trail} />
+      <h1>{title}</h1>
+      <p class="lede">{lede}</p>
+      {Astro.slots.has('default') && <div class="actions slot"><slot /></div>}
+    </div>
+    {hasVisual && <div class="visual"><slot name="visual" /></div>}
   </div>
 </section>
 <style>
   .page-hero {
-    padding-block: var(--space-8) var(--space-8);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-8);
+    border-bottom: 1px solid var(--line);
+  }
+  .beam {
+    position: absolute;
+    z-index: -1;
+    top: -30%;
+    right: 18%;
+    width: 160px;
+    height: 120%;
+    transform: skewX(-14deg);
+    background: linear-gradient(180deg, transparent, var(--beam-a) 35%, var(--beam-b) 60%, var(--beam-c) 80%, transparent);
+    filter: blur(60px);
+    opacity: 0.35;
+  }
+  .inner {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  .has-visual .inner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
   h1 {
-    max-width: 20ch;
+    max-width: 18ch;
     margin-bottom: var(--space-5);
+    font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+    letter-spacing: -0.04em;
   }
   .slot {
     margin-top: var(--space-6);
+  }
+  @media (max-width: 960px) {
+    .has-visual .inner {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
