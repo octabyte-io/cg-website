@@ -1,0 +1,137 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { breadcrumbSchema } from '../data/schema';
+import { site } from '../data/site';
+import { legal, legalDocs, legalEntity, formatLegalDate } from '../data/legal';
+
+const trail = [{ name: 'Legal', path: '/legal' }];
+const collection = {
+  '@type': 'ItemList',
+  name: 'Cloudgate legal documents',
+  itemListElement: legalDocs.map((d, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: d.name,
+    url: new URL(d.path, site.url).href,
+  })),
+};
+---
+<Base
+  title="Cloudgate legal: terms, privacy, cookies and policies"
+  description="Every Cloudgate legal document in one place: the Terms of Service, Privacy Policy, Acceptable Use Policy, cookie notice, subprocessors list and the DPA summary."
+  schema={[breadcrumbSchema(trail), collection]}
+>
+  <PageHero
+    title="Legal"
+    lede={`The terms, policies and notices for the hosted Cloudgate console and this website, run by ${legal.company}. Self-hosted Cloudgate is covered by the Elastic License 2.0.`}
+    trail={trail}
+  >
+    <p class="updated">
+      Last updated <time datetime={legal.updatedDate}>{formatLegalDate(legal.updatedDate)}</time>
+    </p>
+  </PageHero>
+
+  <section class="section docs-section" aria-labelledby="docs-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="docs-title">Documents</h2>
+        <p class="lede">The Terms of Service are the agreement for using the hosted console. The other documents explain how we handle data and what is allowed.</p>
+      </div>
+      <ul class="docs" data-reveal-stagger>
+        {legalDocs.map((d) => (
+          <li>
+            <a href={d.path} data-spotlight>
+              <h3>{d.name}</h3>
+              <p>{d.summary}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="more-title">
+    <div class="wrap split-2" data-reveal>
+      <div class="prose">
+        <h2 id="more-title">Self-hosted Cloudgate</h2>
+        <p>When you run Cloudgate on your own machine, none of the documents above apply to that install. You use it under the <a href="https://www.elastic.co/licensing/elastic-license">Elastic License 2.0</a>: free to use, self-host and modify, but not to offer to others as a hosted service. Read <a href="/self-hosted">how to self-host Cloudgate</a> or compare the options on the <a href="/pricing">pricing page</a>.</p>
+      </div>
+      <div class="prose">
+        <h2>Contact</h2>
+        <dl class="contact">
+          <div><dt>Company</dt><dd>{legalEntity()}{legal.registeredAddress && <>, {legal.registeredAddress}</>}</dd></div>
+          <div><dt>Legal and privacy</dt><dd><a href={`mailto:${legal.emails.legal}`}>{legal.emails.legal}</a></dd></div>
+          <div><dt>Report abuse</dt><dd><a href={`mailto:${legal.emails.abuse}`}>{legal.emails.abuse}</a>, see the <a href="/acceptable-use#reporting">Acceptable Use Policy</a></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .updated {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .docs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: var(--space-4);
+  }
+  .docs a {
+    display: grid;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .docs a:hover {
+    border-color: var(--line-strong);
+  }
+  .docs h3 {
+    color: var(--brand);
+  }
+  .docs p {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .split-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-7);
+  }
+  .prose h2 {
+    font-size: var(--text-2xl);
+  }
+  .prose a {
+    color: var(--brand);
+  }
+  .contact {
+    margin: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .contact dt {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .contact dd {
+    margin: 0;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 860px) {
+    .split-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,97 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { legal } from '../data/legal';
+
+const mail = (a: string) => `<a href="mailto:${a}">${a}</a>`;
+const co = legal.company;
+
+// Providers named here are the ones the cloudgate repository shows the Hosted instance using:
+// Stripe (ADR-0054), Resend (ADR-0052) and the Bought Server provider (ADR-0071, which names it
+// only in this list). The console's own hosting is not in the repository, so it is a category.
+const rows = [
+  {
+    name: legal.paymentProcessor.name,
+    purpose: 'Payments, subscriptions, invoices and fraud screening',
+    data: 'Name, email address, billing address, tax ID, card details, payment history',
+    who: 'Every paying Organization',
+  },
+  {
+    name: 'Resend',
+    purpose: 'Sending the console’s emails',
+    data: 'Name, email address, email content',
+    who: 'Everyone with an account',
+  },
+  {
+    name: 'Hetzner Online',
+    purpose: 'Provides the machines, backups and storage behind Bought Servers',
+    data: 'Whatever you store or run on a Bought Server',
+    who: 'Only Organizations that buy a Server',
+  },
+  {
+    name: 'Infrastructure provider',
+    purpose: 'Hosts the Cloudgate console and its database',
+    data: 'All account and Organization data held by the console',
+    who: 'Everyone with an account',
+  },
+];
+
+const table = `
+  <div class="table-wrap">
+    <table class="table stack">
+      <thead><tr><th scope="col">Subprocessor</th><th scope="col">What it does for us</th><th scope="col">Personal data involved</th><th scope="col">Whose data</th></tr></thead>
+      <tbody>
+        ${rows.map((r) => `<tr><th scope="row">${r.name}</th><td data-label="What it does for us">${r.purpose}</td><td data-label="Personal data involved">${r.data}</td><td data-label="Whose data">${r.who}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+
+const sections: LegalSection[] = [
+  {
+    id: 'what',
+    title: 'What a subprocessor is',
+    html: `<p>A subprocessor is a company ${co} uses to process personal data while running the hosted Cloudgate console. Each one works under a contract that limits it to the job we give it and requires it to protect the data.</p>`,
+  },
+  {
+    id: 'list',
+    title: 'Current subprocessors',
+    html: `${table}
+      <p class="note">The full list, including the company that hosts the console and the countries each subprocessor uses, is available on request at ${mail(legal.emails.privacy)}.</p>`,
+  },
+  {
+    id: 'not-ours',
+    title: 'Providers you choose are not on this list',
+    html: `
+      <p>Cloudgate deploys to Servers and cloud accounts that you connect, and it can send data to services you set up. Those are your providers, under your own contracts with them, so they are not our subprocessors:</p>
+      <ul>
+        <li>your own servers and their hosting companies;</li>
+        <li>Amazon Web Services and Google Cloud accounts you connect;</li>
+        <li>git providers such as GitHub, GitLab, Bitbucket and Gitea;</li>
+        <li>notification channels such as Slack, Discord, Microsoft Teams or a webhook;</li>
+        <li>the AI provider you set for Cloudgate's own AI features;</li>
+        <li>S3-compatible storage you send backups to.</li>
+      </ul>`,
+  },
+  {
+    id: 'website',
+    title: 'This website',
+    html: `<p>This marketing website is served by GitHub Pages and sets no cookies. GitHub receives visitors' IP addresses and request details to deliver the pages. It handles no data from the console. See our <a href="/privacy">Privacy Policy</a> and <a href="/cookies">cookie notice</a>.</p>`,
+  },
+  {
+    id: 'changes',
+    title: 'When the list changes',
+    html: `<p>We update this page before a new subprocessor starts processing personal data. Customers with a signed <a href="/dpa">Data Processing Addendum</a> can ask to be told by email and may object to a new subprocessor on reasonable data protection grounds. Questions: ${mail(legal.emails.privacy)}.</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate subprocessors: companies that process data for us"
+  description="The companies Octabyte uses to process personal data for the hosted Cloudgate console: payments, email, Bought Servers and hosting, and what each one handles."
+  heading="Subprocessors"
+  lede="The companies that process personal data for us when we run the hosted Cloudgate console, what each one does, and whose data it handles."
+  path="/subprocessors"
+  name="Subprocessors"
+  sections={sections}
+>
+  <p><strong>In short.</strong> We use {legal.paymentProcessor.name} for payments, Resend for email, an infrastructure provider to host the console, and Hetzner for the machines behind Bought Servers. The servers and cloud accounts you connect are your own providers, not ours.</p>
+</Legal>

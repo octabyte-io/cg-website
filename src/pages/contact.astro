@@ -1,0 +1,217 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site, plans } from '../data/site';
+import { breadcrumbSchema, faqSchema } from '../data/schema';
+
+const trail = [{ name: 'Contact', path: '/contact' }];
+const mail = (subject: string) => `mailto:${site.support}?subject=${encodeURIComponent(subject)}`;
+const business = plans.find((p) => p.id === 'business')!;
+
+const routes = [
+  {
+    slice: '',
+    title: 'Support',
+    text: 'Something not working in the console, a Deployment that fails, or a question about how to do something. Tell us your Organization and what you expected to happen.',
+    subject: 'Cloudgate support',
+    cta: 'Email support',
+  },
+  {
+    slice: 'slice--2',
+    title: 'Sales: Business and Enterprise',
+    text: `Questions about the Business plan ($${business.price} a month, with SSO, SCIM and custom roles), an Enterprise deal on the hosted console, or a self-hosted Enterprise license.`,
+    subject: 'Cloudgate Business or Enterprise',
+    cta: 'Email sales',
+  },
+  {
+    slice: 'slice--3',
+    title: 'Access to self-host',
+    text: 'The source repository is private today. Tell us a little about what you plan to run and we will reply with access and the install steps.',
+    subject: 'Access to self-host Cloudgate',
+    cta: 'Ask for access',
+  },
+];
+
+const faq = [
+  {
+    q: 'What is the best way to contact Cloudgate?',
+    a: `Email <a href="${mail('Cloudgate support')}">${site.support}</a>. Every route on this page reaches the same team; the subject line helps us send your message to the right person.`,
+  },
+  {
+    q: 'How do I report a security problem in Cloudgate?',
+    a: `Email ${site.support} with the subject “Security report”, and please do not post it anywhere public. What to include is on <a href="/security#report">the security page</a>.`,
+  },
+  {
+    q: 'Can I get a demo or a trial?',
+    a: 'Every hosted plan starts with a 30-day free trial, so the fastest demo is your own app on your own server. For a self-hosted Enterprise license, a 30-day trial key is available on request.',
+  },
+];
+
+const title = 'Contact Cloudgate: support, sales and security reports';
+const description =
+  'How to reach the Cloudgate team: email support, ask about the Business plan or an Enterprise license, get self-host access, or report a security issue.';
+---
+
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Contact Cloudgate"
+    lede={`Write to ${site.support}. Pick the route below that fits and your email opens with the right subject line, so it reaches the right person.`}
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={mail('Cloudgate support')}>Email {site.support}</a>
+    <a class="btn btn--ghost" href={site.signIn}>Sign in to the console</a>
+    <div class="window mail" slot="visual" aria-hidden="true" data-reveal>
+      <div class="window-bar">New message</div>
+      <dl class="mail-head">
+        <div><dt>To</dt><dd>{site.support}</dd></div>
+        <div><dt>Subject</dt><dd>Cloudgate support</dd></div>
+      </dl>
+      <pre class="mail-body" data-play style="--type-step:260ms"><span class="ln" style="--i:0">Organization: Northwind</span>
+<span class="ln" style="--i:1">Service: api in production</span>
+<span class="ln" style="--i:2">What happened: the Deployment failed at the build step.</span>
+<span class="ln" style="--i:3">What I expected: it to build as it did yesterday.</span></pre>
+    </div>
+  </PageHero>
+
+  <section class="section" aria-labelledby="routes-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="routes-title">Who should you write to?</h2>
+        <p class="lede">
+          One address, three subjects. There is no form on this site: your own email app keeps a copy
+          of what you sent.
+        </p>
+      </div>
+      <div class="routes" data-reveal-stagger="90">
+        {routes.map((r) => (
+          <div class="route panel" data-spotlight>
+            <span class:list={['slice', r.slice]} aria-hidden="true"></span>
+            <h3>{r.title}</h3>
+            <p>{r.text}</p>
+            <a class="btn btn--ghost" href={mail(r.subject)}>{r.cta}</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="security-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="security-title">Found a security problem?</h2>
+        <p class="lede">
+          Please tell us privately before anyone else. Email {site.support} with the subject
+          “Security report”, and do not open a public issue or post about it.
+        </p>
+      </div>
+      <div class="prose" data-reveal data-reveal-delay="120">
+        <p>
+          Include what you found, how to reproduce it, which version you tested, and what an attacker
+          could do with it. The full process, and how we handle reports, is on
+          {' '}<a href="/security#report">Cloudgate's security page</a>.
+        </p>
+        <div class="actions">
+          <a class="btn btn--primary" href={mail('Security report')}>Send a security report</a>
+          <a class="btn btn--ghost" href="/.well-known/security.txt">security.txt</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="console-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="console-title">Looking for the console?</h2>
+        <p class="lede">
+          The hosted console is at {site.console.replace('https://', '')}. Sign in to your
+          Organization, or create an account to start the 30-day free trial.
+        </p>
+      </div>
+      <div class="console-links" data-reveal data-reveal-delay="120">
+        <a class="btn btn--primary" href={site.signUp}>Create an account</a>
+        <a class="btn btn--ghost" href={site.signIn}>Sign in</a>
+        <p class="more">
+          Before you write, these may already answer it: <a href="/pricing">Cloudgate plans and
+          prices</a>, <a href="/features">everything Cloudgate deploys</a>, <a href="/self-hosted">how
+          to self-host Cloudgate</a> and <a href="/ai-agents">connecting an AI agent over MCP</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions about getting in touch" />
+
+  <CtaBand />
+</Base>
+
+<style>
+  .mail {
+    font-size: var(--text-sm);
+  }
+  .mail-head {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--night-line);
+    display: grid;
+    gap: var(--space-2);
+  }
+  .mail-head div {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+  .mail-head dt {
+    color: var(--night-muted);
+  }
+  .mail-head dd {
+    margin: 0;
+    color: var(--night-ink);
+    overflow-wrap: anywhere;
+  }
+  .mail-body {
+    margin: 0;
+    padding: var(--space-4);
+    font-family: var(--font-sans);
+    color: var(--night-ink);
+    white-space: pre-wrap;
+    line-height: 1.7;
+  }
+
+  .routes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .route {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+  .route p {
+    color: var(--muted);
+  }
+  .route .btn {
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+  .prose .actions {
+    margin-top: var(--space-5);
+  }
+  .console-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .console-links .more {
+    flex-basis: 100%;
+    margin-top: var(--space-5);
+  }
+  @media (max-width: 960px) {
+    .routes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

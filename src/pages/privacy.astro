@@ -1,0 +1,189 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { site } from '../data/site';
+import { legal, definedParty } from '../data/legal';
+
+const mail = (a: string) => `<a href="mailto:${a}">${a}</a>`;
+const co = legal.company;
+const consoleHost = new URL(site.console).host;
+const siteHost = new URL(site.url).host;
+
+const sections: LegalSection[] = [
+  {
+    id: 'who-we-are',
+    title: 'Who we are',
+    html: `
+      <p>${definedParty('we')} runs the Cloudgate console at <a href="${site.console}">${consoleHost}</a> (the Hosted instance) and this website, ${siteHost}.${legal.registeredAddress ? ` Our registered address is ${legal.registeredAddress}.` : ''}</p>
+      <p>For your account, billing and this website, we decide how personal data is used, so we are the <strong>controller</strong>. For personal data inside your Organization's Projects, such as data your apps hold or your logs, your Organization decides and we are its <strong>processor</strong>. Our <a href="/dpa">Data Processing Addendum</a> covers that role.</p>`,
+  },
+  {
+    id: 'scope',
+    title: 'What this policy covers',
+    html: `
+      <p>This policy covers the Hosted instance, the Cloudgate command-line tool and MCP endpoint when used with it, the emails we send, and this website.</p>
+      <p>It does not cover a self-hosted Cloudgate install: whoever runs that install controls its data, and Cloudgate sends us nothing from it. It does not cover the apps you deploy, which have their own policies.</p>`,
+  },
+  {
+    id: 'console-data',
+    title: 'What we collect in the console',
+    html: `
+      <h3>Your account</h3>
+      <ul>
+        <li>Your name, email address and password. The password is stored as a hash, never as you typed it.</li>
+        <li>Two-step verification settings, and, if your Organization uses single sign-on, the details your identity provider sends.</li>
+        <li>For each signed-in session: your IP address, your browser's user agent and the session's times. You can see and end your sessions in the console.</li>
+      </ul>
+      <h3>Your Organization</h3>
+      <ul>
+        <li>Organization names, Members and their roles, grants and invitations, Agents, personal keys and agent keys.</li>
+        <li>The audit log: who did what and when, whether it succeeded, and the IP address of the request.</li>
+      </ul>
+      <h3>Billing</h3>
+      <ul>
+        <li>${legal.paymentProcessor.name} collects your card, billing address and any tax ID. We do not see or store your full card number.</li>
+        <li>We store the ${legal.paymentProcessor.name} references for your customer record and subscription, your plan and its state.</li>
+        <li>To allow one Free trial per person and per card, we keep the email addresses and card fingerprints that have had a trial. A card fingerprint identifies a card without revealing its number.</li>
+      </ul>
+      <h3>What you set up</h3>
+      <ul>
+        <li>Server addresses and the SSH keys Cloudgate makes for them, cloud account credentials, git provider connections, notification channels, Project configs, environment variables and secrets.</li>
+        <li>Secrets, keys and credentials are encrypted at rest, and the console and API show only whether a secret is set, never its value.</li>
+      </ul>
+      <h3>What your Services produce</h3>
+      <ul>
+        <li><strong>Deployment logs</strong> are kept for 90 days on the machine that ran the build.</li>
+        <li><strong>Runtime logs</strong> are read from your Servers and cloud accounts when you open them.</li>
+        <li><strong>Access logs</strong> stay on your Servers and are read over SSH when you ask; they are never copied into Cloudgate.</li>
+        <li><strong>Traces</strong> are kept in a store on your own Server.</li>
+        <li><strong>Token spend</strong>: the Gateway records, for each call to an AI model, the model, the Agent that called, the token counts and the times. It never stores prompts or answers. Each call's record is kept for 90 days, then only daily totals remain.</li>
+      </ul>
+      <h3>When you buy a Server</h3>
+      <p>The console suggests a nearby location from your browser's time zone. That is worked out in your browser and never sent to us.</p>
+      <h3>When you contact us</h3>
+      <p>Your messages and the details you give us.</p>`,
+  },
+  {
+    id: 'website-data',
+    title: 'What this website collects',
+    html: `
+      <p><strong>Almost nothing.</strong> ${siteHost} is a static website.</p>
+      <ul>
+        <li>It sets <strong>no cookies</strong> and runs no analytics, advertising or tracking.</li>
+        <li>It loads no third-party scripts. Its fonts and scripts are served from this website.</li>
+        <li>If you choose light or dark with the theme switch, your choice is saved in your browser's local storage as <code>cg-theme</code>. It never leaves your device. See the <a href="/cookies">cookie notice</a>.</li>
+        <li>The website is served by GitHub Pages. Like any web host, GitHub receives your IP address and request details to deliver the pages, under <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</li>
+      </ul>`,
+  },
+  {
+    id: 'purposes',
+    title: 'Why we use it, and our legal bases',
+    html: `
+      <ul>
+        <li><strong>To provide the Service you signed up for</strong> (contract): your account, sign-in, Organizations, Deployments, billing and support.</li>
+        <li><strong>To keep the Service secure and prevent fraud</strong> (legitimate interests): sessions, the audit log, rate limits, one trial per person and per card, and handling abuse reports.</li>
+        <li><strong>To meet our legal duties</strong> (legal obligation): invoices, tax and accounting records, and answering lawful requests.</li>
+        <li><strong>To improve the Service</strong> (legitimate interests): reading your feedback and support requests.</li>
+      </ul>
+      <p>We do not sell personal data, share it for advertising, or use it to profile you. We do not send marketing emails today. If we start, we will ask first or let you opt out, as the law requires.</p>`,
+  },
+  {
+    id: 'emails',
+    title: 'Emails we send',
+    html: `
+      <p>We send only emails about your account and the Service. You cannot opt out of these while you have an account, because they carry information you need:</p>
+      <ul>
+        <li>email confirmation, password resets and invitations to an Organization;</li>
+        <li>invoices, failed payments, the start of a Free trial and a reminder 7 days before it ends;</li>
+        <li>warnings before an Organization lapses or is deleted, and notice of Bought Server price changes;</li>
+        <li>abuse reports about your Organization that need your answer.</li>
+      </ul>
+      <p>Notifications you set up yourself, such as alerts to email, Slack or a webhook, go where you point them.</p>`,
+  },
+  {
+    id: 'sharing',
+    title: 'Who we share it with',
+    html: `
+      <ul>
+        <li><strong>Service providers (subprocessors)</strong> who process data for us under contract: payments, email delivery, the infrastructure the Hosted instance runs on, and the provider of Bought Servers. They are listed on our <a href="/subprocessors">subprocessors page</a>.</li>
+        <li><strong>Services you connect.</strong> When you connect a Server, a cloud account, a git provider, a notification channel or an AI provider, Cloudgate sends them what is needed to do what you ask. Their own terms and policies apply.</li>
+        <li><strong>The law.</strong> We disclose data when the law requires it, or to protect people, the Service or our rights. Where we may, we tell you first.</li>
+        <li><strong>A change of owner.</strong> If ${co}'s business is sold or merged, data may pass to the new owner under this policy.</li>
+      </ul>
+      <p>Our staff who run the Hosted instance see an Organization's account details, such as its plan and state, but not what is inside its Projects. To help inside a Project, they need you to invite them as a Member.</p>`,
+  },
+  {
+    id: 'transfers',
+    title: 'Where it is processed',
+    html: `
+      <p>We and our subprocessors may process personal data outside the country where you live, including in the United States. When personal data leaves the UK or the European Economic Area, we rely on an adequacy decision or on Standard Contractual Clauses (with the UK Addendum where needed), or another safeguard the law allows.</p>
+      <p>The workloads you deploy run where your Servers and cloud accounts are. You choose that.</p>`,
+  },
+  {
+    id: 'retention',
+    title: 'How long we keep it',
+    html: `
+      <ul>
+        <li><strong>Your account</strong> while it exists. To delete your account, email ${mail(legal.emails.privacy)}.</li>
+        <li><strong>A signed-in session</strong> lasts three days and is extended while you use it.</li>
+        <li><strong>Deployment logs and per-call token records</strong>: 90 days.</li>
+        <li><strong>An Organization's data</strong> until you delete the Organization, or 30 days after its plan lapses. Deleting an Organization removes its secrets, keys, cloud credentials, configs and logs.</li>
+        <li><strong>The audit log</strong> is kept after an Organization or account is deleted, so the record of who did what survives. It holds the actor's name, email address and IP address.</li>
+        <li><strong>Free trial history</strong> (email addresses and card fingerprints) is kept after deletion, to allow one trial each.</li>
+        <li><strong>Billing records</strong> as long as tax and accounting law requires.</li>
+      </ul>`,
+  },
+  {
+    id: 'security',
+    title: 'How we protect it',
+    html: `
+      <ul>
+        <li>The Hosted instance is served over HTTPS only, and its session cookie is never sent over plain HTTP.</li>
+        <li>Secrets, SSH keys, tokens, cloud credentials and database passwords are encrypted at rest with AES-256-GCM.</li>
+        <li>Passwords are hashed. Two-step verification and single sign-on are available.</li>
+        <li>Secrets are masked out of what the API returns and out of every result an Agent receives, logs included.</li>
+        <li>Roles and grants limit what each Member and Agent can reach, and the audit log records every change and every Agent call.</li>
+        <li>Our server logs leave out cookies and credentials.</li>
+      </ul>
+      <p>No system is perfectly secure. If we learn of a breach that affects your personal data, we will tell you and the authorities as the law requires.</p>`,
+  },
+  {
+    id: 'rights',
+    title: 'Your rights',
+    html: `
+      <p>Depending on where you live, you have rights over your personal data. You can use many of them in the console: you can update your profile, end sessions, move a Project config into your own git repository, and delete your Organization. For anything else, email ${mail(legal.emails.privacy)}. We may ask you to confirm who you are.</p>
+      <h3>UK and EEA (UK GDPR and GDPR)</h3>
+      <p>You can ask to access, correct, delete or move your data, ask us to restrict or stop using it, and object to processing based on legitimate interests. Where we rely on consent, you can withdraw it. We answer within one month. You can also complain to your data protection authority; in the UK that is the Information Commissioner's Office.</p>
+      <h3>California and other US states</h3>
+      <p>You can ask what personal data we hold and how we use it, and ask us to correct or delete it. We do not sell or share personal data for targeted advertising, so there is nothing to opt out of. We will not treat you differently for using these rights. We answer within 45 days.</p>
+      <h3>Data in your Organization's Projects</h3>
+      <p>If you are a user of an app one of our customers runs, contact that customer. We will help them answer you.</p>`,
+  },
+  {
+    id: 'children',
+    title: 'Children',
+    html: `<p>Cloudgate is for businesses and developers. It is not meant for anyone under 16, and we do not knowingly collect their data. If you think a child has given us data, email ${mail(legal.emails.privacy)} and we will delete it.</p>`,
+  },
+  {
+    id: 'changes',
+    title: 'Changes to this policy',
+    html: `<p>We will update this policy when what we do changes. The date at the top shows the latest version. If a change matters to you, we will tell you by email or in the console before it applies.</p>`,
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    html: `<p>Questions or requests about privacy: ${mail(legal.emails.privacy)}.${legal.registeredAddress ? ` Post: ${legal.legalName}, ${legal.registeredAddress}.` : ''}</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate Privacy Policy: what we collect and your rights"
+  description="How Octabyte handles personal data in the Cloudgate console and this website: what we collect, why, who processes it, how long we keep it, and your rights."
+  heading="Privacy Policy"
+  lede="What personal data the hosted Cloudgate console and this website collect, why we collect it, and what you can ask us to do with it."
+  path="/privacy"
+  name="Privacy Policy"
+  sections={sections}
+>
+  <p><strong>In short.</strong> We collect what we need to run your account, your Organization and your billing, and we never sell it. Secrets are encrypted and masked. Your apps' data stays on your own Servers and cloud accounts. This website sets no cookies and runs no analytics. You can ask us to see, correct or delete your data at <a href={`mailto:${legal.emails.privacy}`}>{legal.emails.privacy}</a>.</p>
+</Legal>

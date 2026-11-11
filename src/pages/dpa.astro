@@ -1,0 +1,93 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { legal } from '../data/legal';
+
+const co = legal.company;
+const signMail = `mailto:${legal.emails.privacy}?subject=${encodeURIComponent('Cloudgate DPA')}`;
+
+const sections: LegalSection[] = [
+  {
+    id: 'roles',
+    title: 'Who does what',
+    html: `
+      <ul>
+        <li><strong>You are the controller</strong> of the personal data in your Organization's Projects: data your apps hold, your logs, your environment variables and the details of your Members.</li>
+        <li><strong>${co} is your processor.</strong> We process that data only to run the hosted Cloudgate console for you.</li>
+        <li>For your account and billing details, ${co} is a controller in its own right, as our <a href="/privacy">Privacy Policy</a> explains.</li>
+      </ul>`,
+  },
+  {
+    id: 'instructions',
+    title: 'We act only on your instructions',
+    html: `<p>We process personal data only as you instruct: through the console, the API, the command-line tool, your Agents, the <a href="/terms">Terms of Service</a> and the signed addendum. If the law makes us do something else, we tell you first unless the law forbids it. If we think an instruction breaks data protection law, we tell you.</p>`,
+  },
+  {
+    id: 'confidentiality',
+    title: 'Confidentiality',
+    html: `<p>Everyone at ${co} who can reach your personal data is bound to keep it confidential. Our staff see an Organization's account details, not what is inside its Projects, unless you invite them in as a Member.</p>`,
+  },
+  {
+    id: 'security',
+    title: 'Security measures',
+    html: `
+      <ul>
+        <li>HTTPS for every connection to the console, and session cookies sent only over HTTPS.</li>
+        <li>Secrets, keys, tokens and credentials encrypted at rest with AES-256-GCM, and never shown back in full.</li>
+        <li>Secrets masked out of every result an Agent receives.</li>
+        <li>Roles and grants that limit each Member and Agent to what they need.</li>
+        <li>An audit log of every change and every Agent call.</li>
+        <li>Separation between Organizations on every request.</li>
+      </ul>
+      <p>The signed addendum lists these measures in full.</p>`,
+  },
+  {
+    id: 'subprocessors',
+    title: 'Subprocessors',
+    html: `<p>You allow us to use the subprocessors on our <a href="/subprocessors">subprocessors page</a>. Each one is bound by terms that protect data at least as well as this addendum. We tell you before adding or replacing one, and you may object on reasonable data protection grounds. If we cannot resolve the objection, you may end the affected service.</p>`,
+  },
+  {
+    id: 'assistance',
+    title: 'Helping you meet your duties',
+    html: `<p>We help you answer requests from people exercising their data protection rights, and, where needed, with data protection impact assessments and consulting a supervisory authority. Much of this you can do yourself in the console. If a request reaches us directly, we pass it to you.</p>`,
+  },
+  {
+    id: 'breach',
+    title: 'Personal data breaches',
+    html: `<p>If we become aware of a breach affecting personal data we process for you, we tell you <strong>without undue delay</strong>. We give you what we know about it, what we are doing about it, and what you need to meet your own duty to notify. We keep you updated as we learn more.</p>`,
+  },
+  {
+    id: 'deletion',
+    title: 'Deletion and return of data',
+    html: `
+      <p>When your Organization is deleted, or 30 days after its plan lapses, we delete its secrets, keys, cloud credentials, configs and logs from the console. Before that you can take your settings with you, and the data on your own Servers and in your own cloud accounts is never touched.</p>
+      <p>We keep only what the law requires us to keep, such as billing records, and the audit log as our Privacy Policy describes.</p>`,
+  },
+  {
+    id: 'audits',
+    title: 'Audits',
+    html: `<p>On request, we give you the information you reasonably need to show that we meet this addendum. Where that is not enough, we allow a reasonable audit, on reasonable notice, at most once a year unless a regulator requires more or after a breach, and under confidentiality.</p>`,
+  },
+  {
+    id: 'transfers',
+    title: 'International transfers',
+    html: `<p>Where personal data leaves the UK or the European Economic Area, the signed addendum includes the EU Standard Contractual Clauses and the UK International Data Transfer Addendum, unless another lawful safeguard applies.</p>`,
+  },
+  {
+    id: 'sign',
+    title: 'How to sign',
+    html: `<p>The signed addendum is available to customers on Business and Enterprise. If you are on Starter and need one, ask anyway. Email <a href="${signMail}">${legal.emails.privacy}</a> with your Organization's name and the legal name of your company, and we will send it for signature.</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate Data Processing Addendum (DPA) for customers"
+  description="Summary of the Cloudgate Data Processing Addendum: you are the controller, Octabyte is your processor, with security, breach notice and transfers. Ask to sign."
+  heading="Data Processing Addendum"
+  lede="How Octabyte processes personal data for you as your processor when you use the hosted Cloudgate console, and how to get the addendum signed."
+  path="/dpa"
+  name="Data Processing Addendum"
+  sections={sections}
+>
+  <p><strong>In short.</strong> For data inside your Projects, you are the controller and {co} is your processor. We act only on your instructions, keep it confidential and secure, use only listed subprocessors, tell you about a breach without undue delay, delete it when you leave, and use Standard Contractual Clauses for transfers. This page summarises the addendum; <a href={signMail}>email us to sign it</a>.</p>
+</Legal>

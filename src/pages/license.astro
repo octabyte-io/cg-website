@@ -1,0 +1,343 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { breadcrumbSchema, faqSchema } from '../data/schema';
+
+const trail = [{ name: 'License', path: '/license' }];
+const elv2 = 'https://www.elastic.co/licensing/elastic-license';
+const askMail = `mailto:${site.support}?subject=${encodeURIComponent('Question about the Cloudgate license')}`;
+const licenseMail = `mailto:${site.support}?subject=${encodeURIComponent('Cloudgate Enterprise license')}`;
+
+const cases = [
+  { what: 'Self-host Cloudgate to deploy your own or your company’s apps', ok: 'yes', note: 'Free, on as many servers as you like.' },
+  { what: 'Use it at work, in a business that makes money', ok: 'yes', note: 'Commercial use is allowed. What you sell is your product, not Cloudgate.' },
+  { what: 'Read and change the code for your own use', ok: 'yes', note: 'Mark modified copies with a notice that you changed them.' },
+  { what: 'Share a copy with someone else', ok: 'yes', note: 'They must get the license terms with it, and the notices must stay.' },
+  { what: 'Sell Cloudgate to others as a hosted or managed deployment service', ok: 'no', note: 'The one use the license rules out.' },
+  { what: 'Remove or work around the license-key checks to unlock paid features', ok: 'no', note: 'Buy an Enterprise license instead.' },
+  { what: 'Something in between, such as an agency giving clients console access', ok: 'ask', note: 'Write to us before you build on it.' },
+];
+
+const faq = [
+  {
+    q: 'Is Cloudgate open source?',
+    a: 'No. Cloudgate is source-available under the Elastic License 2.0 (ELv2). You can use, self-host and modify it for free, but the license limits offering it to others as a hosted service, so it is not an open-source license as the Open Source Initiative defines one.',
+  },
+  {
+    q: 'Can I use Cloudgate for free in my company?',
+    a: 'Yes. Any person or business may use and self-host Cloudgate for free, including for commercial work. The free version holds one Organization and runs one build at a time per Server; an Enterprise license adds the rest.',
+  },
+  {
+    q: 'Can I offer Cloudgate as a service to my customers?',
+    a: `Not as a hosted or managed service that gives them a substantial set of Cloudgate’s features. Deploying your own product with Cloudgate is fine. If you are unsure where your case falls, <a href="${askMail}">ask us</a>.`,
+  },
+  {
+    q: 'Can I modify Cloudgate?',
+    a: 'Yes. You may change it and use your changed copy. If you pass a modified copy on, it must say prominently that you modified it, and the license and copyright notices must stay in place.',
+  },
+  {
+    q: 'What happens if I break the license?',
+    a: 'Your license ends. Under ELv2, if you stop within 30 days of being notified, it is reinstated as if it had never ended; a second violation after that ends it for good.',
+  },
+  {
+    q: 'Do I need a license to use the hosted console?',
+    a: `No. The hosted console is a service you subscribe to, with its own plans. The license on this page is about running the Cloudgate software yourself. See <a href="/pricing">the hosted plans and prices</a>.`,
+  },
+];
+
+const title = 'Cloudgate license: the Elastic License 2.0 in plain English';
+const description =
+  'What the Elastic License 2.0 lets you do with Cloudgate: use, self-host and modify it free, commercially too, and its limits on hosted services and keys.';
+---
+
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Cloudgate's license in plain English"
+    lede="Cloudgate is source-available under the Elastic License 2.0. You may use it, self-host it and change it for free, for commercial work too. You may not sell it to others as a hosted service, or get around its license keys."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={elv2}>Read the official ELv2 text</a>
+    <a class="btn btn--ghost" href="/self-hosted">Self-host Cloudgate</a>
+    <div class="window doc" slot="visual" aria-hidden="true" data-reveal>
+      <div class="window-bar">LICENSE</div>
+      <div class="doc-body">
+        <p class="doc-title">Elastic License 2.0</p>
+        <p class="doc-h">Limitations</p>
+        <ul class="doc-lims" data-reveal-stagger="140">
+          <li><span class="lim-n">1</span>No offering it to third parties as a hosted or managed service.</li>
+          <li><span class="lim-n">2</span>No moving, disabling or circumventing the license key functionality.</li>
+          <li><span class="lim-n">3</span>No altering, removing or obscuring licensing, copyright or other notices.</li>
+        </ul>
+      </div>
+    </div>
+  </PageHero>
+
+  <section class="section" aria-labelledby="can-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="can-title">What can you do with Cloudgate?</h2>
+        <p class="lede">
+          The license grants a free, worldwide right to use, copy, share and change the software,
+          subject to three limits.
+        </p>
+      </div>
+      <div class="two" data-reveal-stagger="90">
+        <div class="side panel" data-spotlight>
+          <h3>You can</h3>
+          <ul class="ticks ticks--yes">
+            <li>Use Cloudgate, for free, as a person or a business.</li>
+            <li>Self-host it on your own servers, on as many as you like.</li>
+            <li>Use it commercially, to run the apps your business sells.</li>
+            <li>Read the source and modify it.</li>
+            <li>Share copies, with the license terms included.</li>
+          </ul>
+        </div>
+        <div class="side side--no">
+          <h3>You can't</h3>
+          <ul class="ticks ticks--no">
+            <li>Offer Cloudgate to third parties as a hosted or managed service that gives them a substantial set of its features.</li>
+            <li>Move, change, disable or get around the license-key checks, or remove the features they protect.</li>
+            <li>Remove or hide the license, copyright or other notices.</li>
+          </ul>
+          <p class="side-note">
+            Paid features such as SSO, SCIM, custom roles, forward auth, white-labelling, parallel
+            builds and more than one Organization come with <a href={licenseMail}>an Enterprise
+            license</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="cases-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="cases-title">Is my use allowed?</h2>
+        <p class="lede">The common cases, answered. The license text is the authority; this summary is not.</p>
+      </div>
+      <ul class="cases" data-reveal-stagger="60">
+        {cases.map((c) => (
+          <li class={`case case--${c.ok}`}>
+            <span class="verdict">{c.ok === 'yes' ? 'Yes' : c.ok === 'no' ? 'No' : 'Ask us'}</span>
+            <div>
+              <p class="case-what">{c.what}</p>
+              <p class="case-note">{c.note}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="more-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="more-title">What else is in the license?</h2>
+        <p class="lede">It is short. Three more parts are worth knowing.</p>
+      </div>
+      <dl class="facts one" data-reveal-stagger>
+        <div>
+          <dt>Patents</dt>
+          <dd>
+            You get a license to any patents the licensor can license that the software uses. It ends
+            if you or your company claim in writing that the software infringes a patent.
+          </dd>
+        </div>
+        <div>
+          <dt>Termination</dt>
+          <dd>
+            Using it against the terms ends your license. Stop within 30 days of a notice and it is
+            reinstated; a later violation ends it for good.
+          </dd>
+        </div>
+        <div>
+          <dt>No warranty</dt>
+          <dd>As far as the law allows, the software comes as is, with no warranty and no liability.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <Faq items={faq} title="License questions people ask" />
+
+  <section class="section section--tight" aria-labelledby="next-title">
+    <div class="wrap">
+      <h2 id="next-title" class="next-title">Where to go next</h2>
+      <p class="more">
+        Read <a href={elv2}>the full Elastic License 2.0 text</a>, see <a href="/self-hosted">what it
+        takes to self-host Cloudgate</a>, compare <a href="/pricing">the hosted plans with
+        self-hosting</a>, or read <a href="/about">why Cloudgate exists</a>. Questions:
+        {' '}<a href={askMail}>{site.support}</a>.
+      </p>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .doc-body {
+    padding: var(--space-5);
+    color: var(--night-ink);
+    font-size: var(--text-sm);
+  }
+  .doc-title {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    margin: 0 0 var(--space-4);
+  }
+  .doc-h {
+    color: var(--night-muted);
+    margin: 0 0 var(--space-3);
+  }
+  .doc-lims {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .doc-lims li {
+    display: grid;
+    grid-template-columns: 1.6rem minmax(0, 1fr);
+    gap: var(--space-2);
+    line-height: 1.5;
+  }
+  .lim-n {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    border: 1px solid var(--night-line);
+    color: var(--night-brand);
+    font-size: var(--text-xs);
+  }
+
+  .two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+    align-items: start;
+  }
+  .side h3 {
+    margin-bottom: var(--space-4);
+  }
+  .side--no {
+    padding: var(--space-6);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+  .side-note {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .ticks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .ticks li {
+    position: relative;
+    padding-left: 1.6rem;
+    color: var(--ink-2);
+  }
+  .ticks--yes li::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 0.45em;
+    width: 0.75rem;
+    height: 0.4rem;
+    border-left: 2px solid var(--live);
+    border-bottom: 2px solid var(--live);
+    transform: rotate(-45deg);
+  }
+  .ticks--no li::before {
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 0.75em;
+    width: 0.8rem;
+    height: 2px;
+    background: var(--warn);
+  }
+
+  .cases {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .case {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--line);
+  }
+  .verdict {
+    justify-self: start;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .case--yes .verdict {
+    color: var(--live);
+    background: var(--live-tint);
+  }
+  .case--no .verdict {
+    color: var(--warn);
+  }
+  .case--ask .verdict {
+    color: var(--brand);
+    background: var(--brand-tint);
+  }
+  .case-what {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .case-note {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .facts.one {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  .next-title {
+    font-size: var(--text-xl);
+  }
+  .next-title + .more {
+    margin-top: var(--space-4);
+  }
+
+  @media (max-width: 860px) {
+    .two {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 520px) {
+    .case {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+    .side--no {
+      padding: var(--space-5);
+    }
+  }
+</style>

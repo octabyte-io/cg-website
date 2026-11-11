@@ -1,0 +1,134 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { legal } from '../data/legal';
+
+const mail = (a: string) => `<a href="mailto:${a}">${a}</a>`;
+const co = legal.company;
+
+const sections: LegalSection[] = [
+  {
+    id: 'scope',
+    title: 'Who and what this covers',
+    html: `
+      <p>This policy applies to everyone who uses the hosted Cloudgate console, including every Member and Agent of an Organization. It covers the console, the command-line tool, the MCP endpoint, the Gateway, Bought Servers, and anything you deploy or manage through Cloudgate.</p>
+      <p>It is part of our <a href="/terms">Terms of Service</a>. An Organization is responsible for what its Members and Agents do.</p>`,
+  },
+  {
+    id: 'illegal',
+    title: 'Nothing illegal or harmful',
+    html: `
+      <p>Do not use Cloudgate to store, run, publish or send anything that:</p>
+      <ul>
+        <li>is illegal where you are, where your users are, or where it is hosted;</li>
+        <li>sexually exploits or endangers children;</li>
+        <li>promotes or incites violence, terrorism or hatred against people;</li>
+        <li>harasses, threatens or defames someone, or publishes their private data without a right to;</li>
+        <li>infringes someone's copyright, trademark or other rights;</li>
+        <li>processes personal data without a lawful basis.</li>
+      </ul>`,
+  },
+  {
+    id: 'malware',
+    title: 'No malware, phishing or fraud',
+    html: `
+      <ul>
+        <li>Do not host or spread viruses, ransomware, spyware, botnet controllers or other malicious code.</li>
+        <li>Do not run phishing pages, or sites that pretend to be another person, company or service.</li>
+        <li>Do not use Cloudgate for scams, fraud or illegal gambling.</li>
+      </ul>`,
+  },
+  {
+    id: 'spam',
+    title: 'No spam',
+    html: `
+      <ul>
+        <li>Do not send bulk or commercial messages to people who did not ask for them.</li>
+        <li>Do not fake sender details or hide where a message came from.</li>
+        <li>Do not run open mail relays or open proxies.</li>
+      </ul>`,
+  },
+  {
+    id: 'attacks',
+    title: 'No attacks or network abuse',
+    html: `
+      <ul>
+        <li>Do not launch or take part in denial-of-service attacks.</li>
+        <li>Do not scan, probe or test networks, IP addresses or systems that are not yours without permission.</li>
+        <li>Do not try to get into accounts, systems or data you are not allowed to reach.</li>
+        <li>Do not send traffic with forged source addresses, or run open reflectors that can be used to amplify attacks.</li>
+      </ul>`,
+  },
+  {
+    id: 'bought-servers',
+    title: 'Extra rules for Bought Servers',
+    html: `
+      <p>A Bought Server runs in ${co}'s account with its provider, so abuse on it affects us and every other customer. On a Bought Server:</p>
+      <ul>
+        <li><strong>No cryptocurrency mining</strong>, including mining, farming and plotting.</li>
+        <li>No use that breaks the infrastructure provider's own rules, which forbid the abuses on this page.</li>
+        <li>Keep the machine's software up to date and its services secure, so it cannot be taken over and used for abuse.</li>
+      </ul>`,
+  },
+  {
+    id: 'agents',
+    title: 'Agents, the MCP endpoint and the Gateway',
+    html: `
+      <ul>
+        <li>Do not use an Agent, or an agent key, to reach anything outside the grant your Organization gave it.</li>
+        <li>Do not share agent keys outside the people and tools that need them, and remove keys you no longer use.</li>
+        <li>Do not try to get around the MCP endpoint's rate limits or the Gateway's metering, for example by calling an AI model in a way that skips the Gateway to hide token spend.</li>
+        <li>Do not use AI models you run through Cloudgate to produce content this policy forbids.</li>
+        <li>Follow the terms of any outside AI provider you set for Cloudgate's own AI features.</li>
+      </ul>`,
+  },
+  {
+    id: 'limits',
+    title: 'No getting around limits or security',
+    html: `
+      <ul>
+        <li>Do not get around your plan's counts, or open several Organizations, accounts or cards to get more than one Free trial.</li>
+        <li>Do not try to reach another Organization's data, or break the separation between Organizations.</li>
+        <li>Do not test the Hosted instance for security weaknesses without our written permission. If you find one, report it to ${mail(legal.emails.support)} and give us time to fix it.</li>
+        <li>Do not overload the Service on purpose, or use it in a way that harms its stability for others.</li>
+        <li>Do not resell access to the Hosted instance unless we agree in writing.</li>
+      </ul>`,
+  },
+  {
+    id: 'reporting',
+    title: 'How to report abuse',
+    html: `
+      <p>Email ${mail(legal.emails.abuse)} with:</p>
+      <ul>
+        <li>what is happening, and when it started;</li>
+        <li>the address, domain or IP address involved;</li>
+        <li>any evidence, such as log lines or message headers;</li>
+        <li>how we can reach you.</li>
+      </ul>
+      <p>We read every report. We may share it, without your contact details unless you agree, with the Organization concerned so that it can fix the problem.</p>`,
+  },
+  {
+    id: 'enforcement',
+    title: 'What we do about abuse',
+    html: `
+      <ul>
+        <li>When we receive a report about an Organization, we send it to the Organization's owners and admins and ask for an answer <strong>within 24 hours</strong>: what caused it and what they did to stop it.</li>
+        <li>If there is no answer, or the abuse goes on, we may <strong>suspend the Organization</strong>. A suspended Organization gets no new work from Cloudgate. Its Bought Servers are deleted 7 days later unless the suspension is lifted.</li>
+        <li>For serious or urgent abuse, we may act at once, without waiting, and we may power off a Bought Server.</li>
+        <li>We may close accounts that break this policy, and we report illegal content to the authorities where the law requires.</li>
+      </ul>
+      <p>We may update this policy. The date at the top shows the latest version.</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate Acceptable Use Policy: what is not allowed"
+  description="What is not allowed on the hosted Cloudgate console, Bought Servers, Agents and the Gateway: no illegal content, malware, spam or attacks. How to report abuse."
+  heading="Acceptable Use Policy"
+  lede="The rules for using the hosted Cloudgate console, Bought Servers, Agents and the Gateway, and how to report abuse to us."
+  path="/acceptable-use"
+  name="Acceptable Use Policy"
+  sections={sections}
+>
+  <p><strong>In short.</strong> Use Cloudgate for lawful work. No illegal content, malware, phishing, spam or attacks, no crypto mining on Bought Servers, and no getting around limits or anyone's security. Report abuse to <a href={`mailto:${legal.emails.abuse}`}>{legal.emails.abuse}</a>. We ask the Organization concerned to answer within 24 hours and may suspend it.</p>
+</Legal>

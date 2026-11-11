@@ -1,0 +1,74 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { site } from '../data/site';
+import { legal } from '../data/legal';
+
+const mail = (a: string) => `<a href="mailto:${a}">${a}</a>`;
+const consoleHost = new URL(site.console).host;
+const siteHost = new URL(site.url).host;
+
+const sections: LegalSection[] = [
+  {
+    id: 'website',
+    title: 'This website sets no cookies',
+    html: `
+      <p>${siteHost} is a static website. It sets <strong>no cookies</strong>, runs no analytics or advertising, and loads no third-party scripts, so there is nothing to accept or refuse and no cookie banner.</p>
+      <p>It stores one thing, and only if you use the theme switch in the header:</p>
+      <div class="table-wrap">
+        <table class="table stack">
+          <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">What it does</th><th scope="col">How long</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>cg-theme</code></th><td data-label="Kind">Local storage</td><td data-label="What it does">Remembers whether you chose light or dark.</td><td data-label="How long">Until you clear it</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Local storage stays in your browser and is never sent to us.</p>`,
+  },
+  {
+    id: 'console',
+    title: 'The console uses only necessary cookies',
+    html: `
+      <p>The Cloudgate console at <a href="${site.console}">${consoleHost}</a> uses cookies only to sign you in and keep you signed in. They are strictly necessary: the console cannot work without them, so the law does not ask for your consent to them.</p>
+      <div class="table-wrap">
+        <table class="table stack">
+          <thead><tr><th scope="col">Name</th><th scope="col">What it does</th><th scope="col">How long</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>__Secure-better-auth.session_token</code></th><td data-label="What it does">Keeps you signed in.</td><td data-label="How long">Three days, extended while you use the console</td></tr>
+            <tr><th scope="row"><code>__Secure-better-auth.two_factor</code></th><td data-label="What it does">Holds a sign-in that is waiting for your two-step verification code.</td><td data-label="How long">Only while that sign-in is in progress</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Both are <code>HttpOnly</code> (page scripts cannot read them), <code>Secure</code> (sent only over HTTPS) and <code>SameSite=Lax</code> (not sent with requests other sites start in the background). They carry no tracking or advertising data.</p>
+      <p>The console also uses your browser's local storage for display choices: your light or dark theme, and whether its side panel and bottom dock are open. These never leave your browser.</p>`,
+  },
+  {
+    id: 'no-tracking',
+    title: 'No analytics or advertising cookies',
+    html: `<p>Neither this website nor the console uses analytics, advertising, social media or other tracking cookies. If that ever changes, we will update this notice first and ask for your consent where the law requires it.</p>`,
+  },
+  {
+    id: 'control',
+    title: 'How to remove them',
+    html: `
+      <p>You can delete cookies and local storage in your browser's settings at any time. Deleting the console's session cookie signs you out. Deleting <code>cg-theme</code> makes this website follow your system's light or dark setting again.</p>
+      <p>The apps you deploy with Cloudgate may set their own cookies. Those belong to the app, not to Cloudgate.</p>`,
+  },
+  {
+    id: 'contact',
+    title: 'Changes and contact',
+    html: `<p>We will update this notice if the cookies we use change. Questions: ${mail(legal.emails.privacy)}. For everything else about personal data, read our <a href="/privacy">Privacy Policy</a>.</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate cookie notice: no cookies on this website"
+  description="This website sets no cookies and runs no analytics. The hosted Cloudgate console uses only the strictly necessary cookies that keep you signed in, named here."
+  heading="Cookie notice"
+  lede="Which cookies Cloudgate uses, and why there is no cookie banner: this website sets none, and the console uses only the ones that keep you signed in."
+  path="/cookies"
+  name="Cookie notice"
+  sections={sections}
+>
+  <p><strong>In short.</strong> This website sets no cookies and tracks nothing; it only remembers your light or dark choice in your own browser. The console sets two strictly necessary cookies to sign you in. Neither uses analytics or advertising cookies.</p>
+</Legal>

@@ -40,6 +40,13 @@ ${planLines}
 - [Cloudgate CLI](${site.url}/cli): install, log in and deploy a folder from the terminal or CI
 - [Pricing](${site.url}/pricing): Starter and Business plans, the Add-on, the free trial and worked examples
 - [Self-host Cloudgate](${site.url}/self-hosted): server requirements, what the installer sets up, and the Elastic License 2.0
+- [Compare Cloudgate](${site.url}/compare): how Cloudgate differs from Heroku, Vercel, Render and Coolify, with one page each
+- [About](${site.url}/about): what Cloudgate is, who makes it and why
+- [Security](${site.url}/security): how agent keys, secrets, roles and the audit log protect you, and how to report a vulnerability
+- [License](${site.url}/license): the Elastic License 2.0 in plain English
+- [Changelog](${site.url}/changelog): what has shipped
+- [Contact](${site.url}/contact): support, sales and security contacts
+- [Legal](${site.url}/legal): terms of service, privacy policy, acceptable use, cookies, subprocessors and the DPA
 
 ## Optional
 

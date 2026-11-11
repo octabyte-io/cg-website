@@ -6,7 +6,21 @@ import { templatesHome } from '../data/template-links';
 // llms-full.txt: the whole site as plain text, so an AI assistant can read every page in one request.
 // Each page is rendered from its own source with the Container API and its <main> turned into text,
 // so this file never drifts from what the pages say.
-const pages = import.meta.glob<{ default: any }>(['./*.astro', '!./404.astro'], { eager: true });
+// Legal documents are linked from llms.txt but left out here: they are long and not about the product.
+const pages = import.meta.glob<{ default: any }>(
+  [
+    './*.astro',
+    './compare/*.astro',
+    '!./404.astro',
+    '!./terms.astro',
+    '!./privacy.astro',
+    '!./acceptable-use.astro',
+    '!./cookies.astro',
+    '!./subprocessors.astro',
+    '!./dpa.astro',
+  ],
+  { eager: true },
+);
 
 // The order assistants read the site in; a page not listed here is appended at the end.
 const order = ['index', 'vibe-coding', 'ai-agents', 'features', 'cli', 'pricing', 'self-hosted'];

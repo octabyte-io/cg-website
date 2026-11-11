@@ -1,0 +1,184 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site, plans } from '../data/site';
+import { faqSchema, breadcrumbSchema } from '../data/schema';
+import { competitors, cloudgateRow, rowLabels, type RowKey } from '../data/compare';
+
+const trail = [{ name: 'Compare', path: '/compare' }];
+const keys: RowKey[] = ['runs', 'owns', 'pricing', 'mcp', 'selfHost', 'previews'];
+const [starter, business] = plans;
+
+const faq = [
+  {
+    q: 'What is Cloudgate an alternative to?',
+    a: 'To platforms that run your apps on their own infrastructure, such as Heroku, Vercel and Render, and to self-hosted platforms such as Coolify. Cloudgate deploys to servers and cloud accounts you own, from a hosted console or one you run yourself.',
+  },
+  {
+    q: 'What makes Cloudgate different from other deployment platforms?',
+    a: 'Three things together: your apps run on your own Servers, AWS or Google Cloud; the hosted price is flat and counts Servers and Cloud Environments, not apps or members; and AI agents connect over MCP as members with their own role, grant, keys and audit trail.',
+  },
+  {
+    q: 'Is Cloudgate cheaper than Heroku, Vercel or Render?',
+    a: `It depends on how much you run. Cloudgate’s hosted plans are $${starter.price} or $${business.price} a month, and you pay your server or cloud provider for the machines. Many apps on a few servers usually cost less than a price per app; one small app may not. Self-hosting Cloudgate is free.`,
+  },
+  {
+    q: 'Is Cloudgate open source?',
+    a: 'No. It is source-available under the Elastic License 2.0: free to use, self-host and modify, but not to offer to others as a hosted service. Read <a href="/license">the license in plain English</a>.',
+  },
+];
+
+const title = 'Compare Cloudgate with Heroku, Vercel, Render and Coolify';
+const description =
+  'How Cloudgate compares with Heroku, Vercel, Render and Coolify: where apps run, who owns the servers, pricing, self-hosting, previews and AI agent access.';
+---
+
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Compare Cloudgate with other deployment platforms"
+    lede="Most platforms run your app on their machines. Cloudgate runs it on yours: your own Servers, your AWS account or your Google Cloud project. Here is how that plays out against the platforms people ask about."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href="#all-title">See the table</a>
+    <a class="btn btn--ghost" href="/features">What Cloudgate does</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="pick-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="pick-title">Which comparison are you after?</h2>
+        <p class="lede">Each page starts with a short answer, then the detail, then when the other one is the better pick.</p>
+      </div>
+      <ul class="picks" data-reveal-stagger="80">
+        {competitors.map((c, i) => (
+          <li>
+            <a href={`/compare/${c.id}`} class="pick" data-spotlight>
+              <span class:list={['slice', { 'slice--2': i % 3 === 1, 'slice--3': i % 3 === 2 }]} aria-hidden="true"></span>
+              <strong>Cloudgate vs {c.name}</strong>
+              <span class="sum">{c.summary}</span>
+              <span class="ans">{c.answer[0]}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="all-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="all-title">Cloudgate, Heroku, Vercel, Render and Coolify side by side</h2>
+        <p class="lede">
+          The other platforms are described in general terms that rarely change. Check their own
+          sites for current prices and limits.
+        </p>
+      </div>
+      <div class="table-wrap" role="region" aria-labelledby="all-title" tabindex="0" data-reveal>
+        <table class="table all">
+          <thead>
+            <tr>
+              <td></td>
+              <th scope="col" class="col-us">Cloudgate</th>
+              {competitors.map((c) => <th scope="col"><a href={`/compare/${c.id}`}>{c.name}</a></th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {keys.map((k) => (
+              <tr>
+                <th scope="row">{rowLabels[k]}</th>
+                <td class="col-us">{cloudgateRow[k]}</td>
+                {competitors.map((c) => <td>{c.row[k]}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="more">
+        The table scrolls sideways on a small screen. For the full picture read
+        {' '}<a href="/pricing">Cloudgate’s plans and prices</a>, how to
+        {' '}<a href="/self-hosted">self-host Cloudgate for free</a>, and
+        {' '}<a href="/ai-agents">how AI agents deploy over MCP</a>.
+      </p>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions about choosing a platform" />
+
+  <CtaBand
+    title="See it on your own server"
+    text={`Start the 30-day free trial on the hosted console, connect a server you already have or buy one from us, and deploy. Or ask us for access to self-host. Questions? Write to ${site.support}.`}
+  />
+</Base>
+
+<style>
+  .picks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .pick {
+    display: grid;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-6);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .pick:hover {
+    border-color: var(--line-strong);
+  }
+  .pick strong {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    letter-spacing: -0.02em;
+  }
+  .sum {
+    color: var(--muted);
+  }
+  .ans {
+    color: var(--ink-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+  }
+  .all {
+    min-width: 980px;
+  }
+  .all thead th {
+    width: 15%;
+    vertical-align: bottom;
+  }
+  .all thead th a {
+    color: var(--ink);
+  }
+  .all tbody th[scope='row'] {
+    width: 14%;
+  }
+  .all thead th.col-us {
+    width: 20%;
+    box-shadow: inset 0 3px 0 var(--brand);
+    color: var(--brand);
+  }
+  .all .col-us {
+    background: color-mix(in srgb, var(--brand-tint) 45%, transparent);
+    color: var(--ink);
+  }
+  @media (max-width: 760px) {
+    .picks {
+      grid-template-columns: 1fr;
+    }
+    .pick {
+      padding: var(--space-5);
+    }
+  }
+</style>

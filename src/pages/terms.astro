@@ -1,0 +1,244 @@
+---
+import Legal from '../layouts/Legal.astro';
+import type { LegalSection } from '../layouts/Legal.astro';
+import { site, plans, addOn, trialDays } from '../data/site';
+import { legal, definedParty, governingLawText } from '../data/legal';
+
+const mail = (a: string) => `<a href="mailto:${a}">${a}</a>`;
+const [starter, business] = plans;
+const consoleHost = new URL(site.console).host;
+
+const sections: LegalSection[] = [
+  {
+    id: 'about',
+    title: 'About these terms',
+    html: `
+      <p>These Terms of Service ("Terms") are an agreement between you and ${definedParty('we', 'us')}. They cover the Cloudgate console we run at <a href="${site.console}">${consoleHost}</a>, called the Hosted instance, and the Cloudgate command-line tool and MCP endpoint when you use them with it. Together we call these "the Service".</p>
+      <p>"You" means the person who creates an account and, where you act for a company or other body, that body as well. If you accept these Terms for a company, you confirm you may bind it.</p>
+      <p>You accept these Terms when you create an account, start a Free trial or use the Service. If you do not agree, do not use the Service.</p>
+      <p>These Terms include our <a href="/acceptable-use">Acceptable Use Policy</a>. Our <a href="/privacy">Privacy Policy</a> explains how we handle personal data, and our <a href="/dpa">Data Processing Addendum</a> applies when we process personal data for you.</p>`,
+  },
+  {
+    id: 'self-hosted',
+    title: 'Self-hosted Cloudgate is licensed separately',
+    html: `
+      <p>These Terms do not apply when you run Cloudgate on your own machine. Self-hosted use is governed by the <a href="https://www.elastic.co/licensing/elastic-license">Elastic License 2.0</a>, which lets you use, self-host and modify Cloudgate for free but not offer it to others as a hosted or managed service.</p>
+      <p>An Enterprise license for a self-hosted install is sold under its own written agreement. See <a href="/self-hosted">how to self-host Cloudgate</a> for what the free version and an Enterprise license include.</p>`,
+  },
+  {
+    id: 'accounts',
+    title: 'Your account',
+    html: `
+      <ul>
+        <li>Give us accurate details and keep them up to date. We ask you to confirm your email address.</li>
+        <li>An account is for one person. Do not share your password, personal keys or sign-in codes.</li>
+        <li>Keep your credentials safe. We recommend two-step verification. A personal key acts as you, with everything you can do.</li>
+        <li>You are responsible for what happens under your account. Tell us at once at ${mail(legal.emails.support)} if you think someone else has used it.</li>
+        <li>You must be old enough to form a binding contract where you live, and at least 16.</li>
+      </ul>`,
+  },
+  {
+    id: 'organizations',
+    title: 'Organizations and Members',
+    html: `
+      <p>Everything in Cloudgate belongs to an Organization. A plan is held by an Organization, and the people and Agents who work in it are its Members.</p>
+      <ul>
+        <li>Owners and admins of an Organization decide who is a Member, which role each Member has, and which Projects, Environments and Services each Member may reach.</li>
+        <li>The Organization is responsible for what its Members do in it, and for making sure they follow these Terms.</li>
+        <li>On Business, an Organization can pay for other Organizations it makes (Attached Organizations). They share its plan and its counts, and they lapse when it stops paying for them.</li>
+      </ul>`,
+  },
+  {
+    id: 'plans',
+    title: 'Plans, Add-ons and the Free trial',
+    html: `
+      <p>The Hosted instance is sold as monthly plans, priced in US dollars on our <a href="/pricing">pricing page</a>. Today they are ${starter.name} at $${starter.price} a month and ${business.name} at $${business.price} a month. An Add-on costs $${addOn.price} a month and adds ${addOn.what}. Enterprise terms are agreed with us in writing.</p>
+      <h3>The Free trial</h3>
+      <ul>
+        <li>Both plans start with a ${trialDays}-day Free trial. A card is needed to start it.</li>
+        <li>Each Organization, each person (by email address) and each card can have one trial. To enforce this we keep a record of the email addresses and card fingerprints that have had one.</li>
+        <li><strong>When the trial ends, it turns into a paid plan and we charge your card</strong> for the plan and Add-ons you hold on that day, then monthly after that, unless you cancel before it ends.</li>
+        <li>If you cancel during the trial, or remove your card, the trial ends on its last day with no charge and the Organization lapses.</li>
+        <li>A Bought Server is never free during the trial. It is charged when you buy it.</li>
+      </ul>
+      <h3>Counts</h3>
+      <p>Each plan includes a number of Servers and Cloud Environments. When a count is full, only the next one you try to add is refused. Nothing already running is switched off.</p>`,
+  },
+  {
+    id: 'billing',
+    title: 'Billing, payment and taxes',
+    html: `
+      <ul>
+        <li>Payments are handled by ${legal.paymentProcessor.name}. By subscribing you authorise us, through ${legal.paymentProcessor.name}, to charge your payment method each month, in advance, until you cancel.</li>
+        <li>Moving up to a dearer plan takes effect at once and is charged for the rest of the month. Moving down takes effect at the end of the paid month.</li>
+        <li>Prices do not include taxes unless we say so. You are responsible for any sales tax, VAT or similar tax that applies, and we will add it to your invoice where the law requires.</li>
+        <li>If a payment fails, ${legal.paymentProcessor.name} retries it for about two weeks and we email the Organization's owners and admins. If it still fails, the Organization lapses (see <a href="#suspension">section 14</a>).</li>
+        <li>We may change our prices. We will give you at least 30 days' notice by email before a new price applies to you, and you may cancel before it does.</li>
+      </ul>`,
+  },
+  {
+    id: 'cancellation',
+    title: 'Cancellation and refunds',
+    html: `
+      <p>You can cancel at any time in the console's Billing page. Your plan keeps working until the end of the month you have paid for, then the Organization lapses.</p>
+      <p>Fees you have paid are not refunded, in whole or in part, except:</p>
+      <ul>
+        <li>when we cannot create or change a Bought Server you paid for, we give back the whole payment;</li>
+        <li>when you delete a Bought Server, turn its backups off or move it to a smaller size, we credit the unused part to your next invoice, not as cash;</li>
+        <li>where the law where you live gives you a right to a refund.</li>
+      </ul>`,
+  },
+  {
+    id: 'your-infrastructure',
+    title: 'Your Servers, your cloud accounts and their bills',
+    html: `
+      <p>Cloudgate builds and runs your Services on Servers and cloud accounts that you connect. We do not provide those machines or accounts, except Bought Servers (<a href="#bought-servers">section 9</a>).</p>
+      <ul>
+        <li><strong>Their bills are yours.</strong> Your server provider, Amazon Web Services and Google Cloud bill you directly for what runs there, including resources Cloudgate creates for you. Our plans do not include those costs.</li>
+        <li><strong>Their terms apply to you.</strong> You must follow the terms of every provider you connect.</li>
+        <li><strong>You give us access.</strong> When you connect a Server or a cloud account, you allow Cloudgate to sign in to it and to create, change and delete resources there as you and your Members ask.</li>
+        <li><strong>You keep it safe.</strong> You are responsible for the security, updates and backups of your own machines and accounts, and for keeping copies of data that matters to you.</li>
+        <li>Deleting something in Cloudgate removes what Cloudgate made for it. An existing database you connected is used as it is and left in place when you delete it from Cloudgate.</li>
+      </ul>`,
+  },
+  {
+    id: 'bought-servers',
+    title: 'Bought Servers',
+    html: `
+      <p>On the Hosted instance you can buy a Server from Cloudgate. We buy the machine from an infrastructure provider in our own account and set it up as a Server of your Organization. You pay us, not the provider.</p>
+      <ul>
+        <li>A Bought Server, its backups and its extra storage are billed monthly in advance on your plan's invoice, at the price shown before you buy.</li>
+        <li>If the provider raises the price of running servers, we may raise yours by the same proportion with 30 days' notice by email. You may delete the Server before the new price starts. Price cuts apply at once.</li>
+        <li>Turning backups off deletes every backup at once. Extra storage can grow but not shrink. Changing size powers the machine off while it changes.</li>
+        <li><strong>A Bought Server is deleted, with its data and backups, when it stops being paid for:</strong> 7 days after a payment for it fails unless paid by then, when the Organization lapses, or 7 days after we suspend the Organization unless the suspension is lifted. We email the owners and admins first.</li>
+        <li>Deleting a Bought Server in Cloudgate deletes the machine, its backups and its storage. It cannot be kept outside Cloudgate.</li>
+        <li>Our <a href="/acceptable-use">Acceptable Use Policy</a> applies with particular force to Bought Servers, because they run in our account.</li>
+      </ul>`,
+  },
+  {
+    id: 'agents',
+    title: 'Agents act on your behalf',
+    html: `
+      <p>An Agent is a Member of your Organization that is not a person, such as an AI coding assistant connected over the MCP endpoint. You choose its role, the Projects, Environments and Services it may reach, and who holds its agent keys.</p>
+      <ul>
+        <li><strong>An Agent acts for your Organization.</strong> What an Agent does within the role and grant you set is treated as done by your Organization, and you are responsible for it as you are for any other Member.</li>
+        <li>Keep agent keys as safe as passwords, and remove an Agent or its key when you no longer need it.</li>
+        <li>Every Agent call is recorded in your audit log. Agents are limited in how often they may call, and some actions, such as applying a Plan, are never open to them.</li>
+        <li>AI models you run on your Servers, and the AI provider you set for Cloudgate's own AI features, are your choice. Calls to an outside AI provider go to that provider under its terms.</li>
+      </ul>`,
+  },
+  {
+    id: 'your-content',
+    title: 'Your content stays yours',
+    html: `
+      <p>"Your content" means everything you or your Members put into the Service or run through it: code, files, Project configs, environment variables, secrets, data in your Services, and logs.</p>
+      <ul>
+        <li>You own your content. We claim no rights in it beyond what we need to run the Service for you.</li>
+        <li>You allow us to store, copy, transmit and process your content only to provide, secure and support the Service, as you instruct, or where the law requires.</li>
+        <li>You confirm you have the rights you need for your content and that it does not break the law or our <a href="/acceptable-use">Acceptable Use Policy</a>.</li>
+        <li>Our staff do not look inside your Projects. Support inside a Project means you invite us as a Member.</li>
+        <li>Apps from the template catalogue are made by others and come with their own licences. You are responsible for following them.</li>
+        <li>If you send us ideas or feedback, we may use them without owing you anything.</li>
+      </ul>`,
+  },
+  {
+    id: 'acceptable-use',
+    title: 'Acceptable use',
+    html: `
+      <p>You must follow our <a href="/acceptable-use">Acceptable Use Policy</a>. It forms part of these Terms. In short: nothing illegal, no malware, spam or attacks, no crypto mining on Bought Servers, and no getting around limits or another person's security.</p>`,
+  },
+  {
+    id: 'our-service',
+    title: 'Availability and changes to the Service',
+    html: `
+      <ul>
+        <li>We work to keep the Service available, but we do not promise it will be uninterrupted or free of errors. <strong>There is no service level agreement unless we agree one with you in writing.</strong></li>
+        <li>Your Services run on your Servers and cloud accounts, so they keep running if the console is briefly unavailable. Work that needs the console, such as new Deployments, waits until it is back.</li>
+        <li>We may change, add or remove features. If we remove a feature you pay for in a way that matters, we will tell you first and you may cancel.</li>
+        <li>Some parts are early or in beta, such as pre-release versions of the command-line tool. They are provided as they are.</li>
+      </ul>`,
+  },
+  {
+    id: 'suspension',
+    title: 'Suspension and termination',
+    html: `
+      <h3>If your plan lapses</h3>
+      <p>An Organization lapses when its plan ends: a cancellation reaching the end of the paid month, a Free trial ending without a card, or a payment that still fails after the retries. A lapsed Organization is frozen. Cloudgate starts no new work for it (no Deployments, Cron service runs, backups or Uptime checks), but leaves what is already running on your Servers and cloud accounts alone. Paying again lifts it.</p>
+      <h3>If we suspend your Organization</h3>
+      <p>We may suspend an Organization, or close an account, if we reasonably believe it breaks these Terms or the Acceptable Use Policy, puts the Service, other customers or third parties at risk, is used for fraud, or if the law requires it. Where we can, we tell you why first and give you a chance to fix it. A suspended Organization is frozen in the same way, and only we can lift a suspension.</p>
+      <h3>If you leave</h3>
+      <p>You can stop at any time by cancelling your plan or deleting your Organization in the console.</p>`,
+  },
+  {
+    id: 'after-termination',
+    title: 'Your data after your plan ends',
+    html: `
+      <ul>
+        <li><strong>30 days to take it with you.</strong> A lapsed Organization is deleted 30 days after it lapses, and we email its owners and admins 7 days before. Until then you can still sign in, read your Project configs, copy your settings and remove your Services from your own cloud accounts.</li>
+        <li><strong>What deletion removes.</strong> Deleting an Organization removes its secrets, keys, cloud credentials, configs and logs from Cloudgate.</li>
+        <li><strong>What it leaves.</strong> It does not touch anything on your own Servers or in your own cloud accounts: your apps, databases and backups there stay yours. Bought Servers are the exception (<a href="#bought-servers">section 9</a>).</li>
+        <li>A suspension pauses the 30-day clock, so a suspended Organization is not deleted for being suspended.</li>
+        <li>We keep the audit log, billing records and trial history after deletion, as our <a href="/privacy">Privacy Policy</a> explains.</li>
+      </ul>`,
+  },
+  {
+    id: 'warranties',
+    title: 'Disclaimer of warranties',
+    html: `
+      <p>Apart from what these Terms say expressly, the Service is provided "as is" and "as available". To the extent the law allows, we disclaim all other warranties, express or implied, including merchantability, fitness for a particular purpose, and non-infringement. We do not promise that the Service will meet your needs or that it will be secure or free of errors at all times.</p>
+      <p>Nothing in these Terms takes away rights you have as a consumer that the law says cannot be taken away.</p>`,
+  },
+  {
+    id: 'liability',
+    title: 'Limitation of liability',
+    html: `
+      <ul>
+        <li>To the extent the law allows, neither of us is liable to the other for indirect or consequential loss, or for loss of profits, revenue, business, goodwill or data, however it arises.</li>
+        <li>To the extent the law allows, our total liability to you for all claims about the Service is limited to the fees you paid us for the Service in the 12 months before the event that gave rise to the claim.</li>
+        <li>We are not liable for your Servers, your cloud accounts or their providers, for what your Members or Agents do, or for losses you could have avoided by keeping your own backups.</li>
+        <li>Nothing in these Terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot be limited by law.</li>
+      </ul>`,
+  },
+  {
+    id: 'indemnity',
+    title: 'Indemnity',
+    html: `
+      <p>If a third party brings a claim against us because of your content, your Services, what your Members or Agents did, or your breach of these Terms or the Acceptable Use Policy, you will defend us against it and pay the costs and damages that result, including reasonable legal fees. We will tell you about the claim promptly and let you control its defence, and we will not settle it in your name without your agreement.</p>`,
+  },
+  {
+    id: 'changes',
+    title: 'Changes to these terms',
+    html: `
+      <p>We may update these Terms. The date at the top of this page shows the latest version. If a change matters to you, we will tell you by email or in the console at least 30 days before it takes effect, unless the change is needed sooner by law or for security. If you do not agree to a change, you may cancel before it takes effect. Using the Service after that means you accept it.</p>`,
+  },
+  {
+    id: 'law',
+    title: 'Governing law and general terms',
+    html: `
+      <p>${governingLawText()} If you are a consumer, you also keep the protection of the mandatory laws of the country where you live.</p>
+      <ul>
+        <li>You may not transfer these Terms without our written agreement. We may transfer them to a company that takes over the Service.</li>
+        <li>Neither of us is liable for delays or failures caused by events beyond reasonable control.</li>
+        <li>If part of these Terms cannot be enforced, the rest still applies. Not enforcing a right straight away does not waive it.</li>
+        <li>These Terms, with the policies they name and any order or agreement we sign with you, are the whole agreement between us about the Service. If a signed agreement says something different, it wins.</li>
+      </ul>`,
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    html: `
+      <p>Questions about these Terms: ${mail(legal.emails.legal)}.${legal.registeredAddress ? ` Post: ${legal.legalName}, ${legal.registeredAddress}.` : ''}</p>`,
+  },
+];
+---
+<Legal
+  title="Cloudgate Terms of Service: the hosted console agreement"
+  description="The terms for using the hosted Cloudgate console: accounts, Organizations, plans and the free trial, billing, Bought Servers, Agents, your data and liability."
+  heading="Terms of Service"
+  lede="The agreement between you and Octabyte for using Cloudgate's hosted console. Self-hosted Cloudgate is covered by the Elastic License 2.0 instead."
+  path="/terms"
+  name="Terms of Service"
+  sections={sections}
+>
+  <p><strong>The short version.</strong> You pay monthly for a plan, after a {trialDays}-day trial that needs a card and turns into a paid plan unless you cancel. Your apps run on your own Servers and cloud accounts, so their bills and data stay yours. You are responsible for what your Members and Agents do. Cancel any time; you then have 30 days to take your settings with you. The numbered sections below are the full terms and take priority over this summary.</p>
+</Legal>

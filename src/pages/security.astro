@@ -1,0 +1,412 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { breadcrumbSchema, faqSchema } from '../data/schema';
+
+const trail = [{ name: 'Security', path: '/security' }];
+const reportMail = `mailto:${site.support}?subject=${encodeURIComponent('Security report')}`;
+
+const faq = [
+  {
+    q: 'How do I report a security vulnerability in Cloudgate?',
+    a: `Email <a href="${reportMail}">${site.support}</a> with the subject “Security report”. Please do not open a public issue or post about it. Include what you found, how to reproduce it, the version you tested and what an attacker could do with it.`,
+  },
+  {
+    q: 'Where do my apps and data run?',
+    a: 'On your own Servers, or in your own AWS or Google Cloud account. On the hosted console, no customer Service may run on the machine Cloudgate itself runs on, so your workloads stay on infrastructure you own.',
+  },
+  {
+    q: 'Are my secrets encrypted?',
+    a: 'Yes. Environment variables, SSH keys, tokens and database passwords are encrypted at rest with AES-256-GCM, and API responses show only whether a secret is set, never its value.',
+  },
+  {
+    q: 'Can an AI agent read my secrets through Cloudgate?',
+    a: 'Not the ones Cloudgate stores. Every result an Agent gets, logs included, passes through a mask that replaces stored secrets with ••••••. A value a build prints that Cloudgate never stored, or one shorter than six characters, is not masked, so keep both in mind.',
+  },
+  {
+    q: 'Can Cloudgate staff see inside my Projects?',
+    a: 'On the hosted console, the people who run it see each Organization’s account facts (plan, owner, counts), never its Services, variables, logs or shells, and cannot sign in as you. Helping inside a Project means you invite them as a member. What they do to an Organization is in its own audit log.',
+  },
+  {
+    q: 'Does Cloudgate have a security certification such as SOC 2?',
+    a: `This site makes no claim to a certification. If your review needs answers to a security questionnaire, write to <a href="/contact">the Cloudgate team</a> and we will tell you what we can.`,
+  },
+];
+
+const title = 'Cloudgate security: how we protect your apps and data';
+const description =
+  'How Cloudgate keeps apps safe: workloads on your own servers, encrypted secrets, roles and grants, an audit log, scoped AI agent keys, and how to report a bug.';
+---
+
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Security at Cloudgate"
+    lede="Your apps run on servers and cloud accounts you own. Cloudgate keeps the keys to reach them encrypted, lets each person and each AI agent do only what you grant, and writes down every call an agent makes."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href="#report">Report a vulnerability</a>
+    <a class="btn btn--ghost" href="#agents-title">How agents are kept in bounds</a>
+    <div class="window audit" slot="visual" aria-hidden="true" data-reveal>
+      <div class="window-bar">Audit log for the agent deploy-bot</div>
+      <ol class="rows" data-play>
+        <li class="ln" style="--i:0"><span class="tool">read_deployment_log</span><span class="ok">succeeded</span></li>
+        <li class="ln" style="--i:1"><span class="tool">deploy_service</span><span class="ok">succeeded</span></li>
+        <li class="ln" style="--i:2"><span class="tool">get_service</span><span class="no">refused: grant</span></li>
+        <li class="ln" style="--i:3"><span class="tool">create_preview</span><span class="no">refused: rate-limit</span></li>
+      </ol>
+      <pre class="code masked"><code><span class="d">build</span>  connecting to <span class="k">DATABASE_URL</span>=<span class="s">••••••</span>
+<span class="d">build</span>  STRIPE_KEY=<span class="s">••••••</span> loaded</code></pre>
+    </div>
+  </PageHero>
+
+  <section class="section" aria-labelledby="where-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="where-title">Where do your apps run?</h2>
+        <p class="lede">
+          On infrastructure you own. Cloudgate deploys to your Servers over SSH and into your own AWS
+          or Google Cloud account; your apps and their data are not on a shared platform of ours.
+        </p>
+      </div>
+      <dl class="facts one" data-reveal-stagger>
+        <div>
+          <dt>Nothing of yours runs beside Cloudgate</dt>
+          <dd>
+            On the hosted console, the machine Cloudgate runs on is refused to every Organization, so
+            no customer Service can be placed there.
+          </dd>
+        </div>
+        <div>
+          <dt>Cloud access you can read first</dt>
+          <dd>
+            In AWS and Google Cloud, Cloudgate acts through a role you create from its setup template
+            or script, which you can read before you run it. What it makes carries Cloudgate's own
+            mark, and every change goes through a Plan you can read first.
+          </dd>
+        </div>
+        <div>
+          <dt>Builds in your own cloud</dt>
+          <dd>
+            On the hosted console, a cloud Service builds in its own account's build service
+            (CodeBuild or Cloud Build). The source goes up without its <code>.git</code> folder, so no
+            git token leaves Cloudgate, and a private registry password reaches the build only through
+            the cloud's secret store and is deleted when the build ends.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="secrets-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="secrets-title">How are secrets protected?</h2>
+        <p class="lede">
+          Encrypted when stored, absent from what Cloudgate sends back, and never shown to the people
+          and agents that only need to know one is set.
+        </p>
+      </div>
+      <dl class="facts one" data-reveal-stagger>
+        <div>
+          <dt>Encrypted at rest with AES-256-GCM</dt>
+          <dd>
+            Environment variables, SSH keys, git and cloud tokens, notification credentials and
+            database passwords are stored encrypted, with a key kept outside the database.
+          </dd>
+        </div>
+        <div>
+          <dt>Presence, not values</dt>
+          <dd>
+            API responses replace a secret with whether it is set. The CLI sets a variable by name and
+            never prints one back, and a template's generated passwords never appear in its Plan.
+          </dd>
+        </div>
+        <div>
+          <dt>Wired, not copied</dt>
+          <dd>
+            A wired variable such as <code>DATABASE_URL: pg-1.url</code> is filled in at deploy time
+            and never saved as a value.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="access-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="access-title">Who can do what?</h2>
+        <p class="lede">
+          Every member of an Organization has a role, and reaches only the Projects, Environments and
+          Services granted to them.
+        </p>
+      </div>
+      <div class="tiles" data-reveal-stagger="80">
+        <div class="tile" data-spotlight>
+          <h3>Roles and grants</h3>
+          <p>Members, roles and grants per Project, Environment and Service, with custom roles on Business.</p>
+        </div>
+        <div class="tile" data-spotlight>
+          <h3>SSO and SCIM</h3>
+          <p>On the Business plan: SSO sign-in for domains your Organization has proven with DNS, and SCIM provisioning.</p>
+        </div>
+        <div class="tile" data-spotlight>
+          <h3>Two-step verification</h3>
+          <p>Each person can turn on an authenticator app, with backup codes, from their account settings.</p>
+        </div>
+        <div class="tile" data-spotlight>
+          <h3>Keys that end</h3>
+          <p>Personal keys expire after 90 days by default, and creating or deleting keys needs a signed-in console session, so deleting one really revokes it.</p>
+        </div>
+        <div class="tile" data-spotlight>
+          <h3>An audit log</h3>
+          <p>What members and agents change is recorded in the Organization's audit log.</p>
+        </div>
+        <div class="tile" data-spotlight>
+          <h3>A guarded front door</h3>
+          <p>The hosted console is https only with a Secure session cookie, and sign-up asks for a Cloudflare Turnstile check.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="agents-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="agents-title">How are AI agents kept in bounds?</h2>
+        <p class="lede">
+          An AI agent never acts as you. It gets its own Agent: a member with its own role, grant and
+          keys, which you can suspend at any moment.
+        </p>
+        <a class="text-link" href="/ai-agents">How AI agents connect to Cloudgate over MCP</a>
+      </div>
+      <dl class="facts one" data-reveal-stagger>
+        <div>
+          <dt>Scoped keys</dt>
+          <dd>
+            An agent key works only at the MCP endpoint and the AI model Gateway. A personal key is
+            refused there, and an agent key is refused everywhere else.
+          </dd>
+        </div>
+        <div>
+          <dt>Every call recorded</dt>
+          <dd>
+            Each call is one audit row with its outcome, allowed or refused, and the reason for a
+            refusal.
+          </dd>
+        </div>
+        <div>
+          <dt>Secrets masked out of every result</dt>
+          <dd>
+            Logs included, every result passes through a mask that replaces stored secrets with
+            <code>••••••</code>.
+          </dd>
+        </div>
+        <div>
+          <dt>Rate limits</dt>
+          <dd>120 reads and 10 writes a minute per Agent. A call over budget is refused and recorded.</dd>
+        </div>
+        <div>
+          <dt>Things an agent never does</dt>
+          <dd>
+            Apply a Plan, change or silence an alert, or hold the owner or admin role. Requests from a
+            browser are refused outright.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="self-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="self-title">Self-hosting? Read this first</h2>
+        <p class="lede">
+          On your own install, some of this is your job. We would rather say so plainly.
+        </p>
+      </div>
+      <ul class="cautions" data-reveal-stagger>
+        <li>
+          <strong>A fresh install serves plain http.</strong> Until you put it behind https, use an
+          SSH tunnel or a private network to reach the console.
+        </li>
+        <li>
+          <strong>A database's external port is public.</strong> Docker's own rules come before the
+          host firewall, so a published port is reachable from the internet. Leave it empty unless
+          you mean that.
+        </li>
+        <li>
+          <strong>Keep it upgraded.</strong> Security fixes go into the latest release; re-running the
+          installer upgrades in place. See <a href="/self-hosted">how to self-host and upgrade
+          Cloudgate</a>.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band" id="report" aria-labelledby="report-title">
+    <div class="wrap report">
+      <div data-reveal>
+        <h2 id="report-title">How do I report a vulnerability?</h2>
+        <p class="lede">
+          Email <a href={reportMail}>{site.support}</a> with the subject “Security report”. Please do
+          not open a public issue or post about it until a fix is out.
+        </p>
+        <div class="actions">
+          <a class="btn btn--primary" href={reportMail}>Send a security report</a>
+          <a class="btn btn--ghost" href="/.well-known/security.txt">Read our security.txt</a>
+        </div>
+      </div>
+      <div class="report-side panel" data-reveal data-reveal-delay="120">
+        <h3>What to include</h3>
+        <ol class="steps">
+          <li><p>What you found, and where.</p></li>
+          <li><p>How to reproduce it, step by step.</p></li>
+          <li><p>Which version or install you tested: the hosted console or a self-hosted one.</p></li>
+          <li><p>What an attacker could do with it.</p></li>
+        </ol>
+        <h3>What happens next</h3>
+        <p>
+          We aim to acknowledge a report within a few working days and to keep you updated until it is
+          fixed. Please give us reasonable time to release a fix before you disclose it. If you would
+          like, we are happy to credit you in the release notes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Security questions people ask" />
+
+  <CtaBand
+    title="Deploy on infrastructure you own"
+    text="Start the 30-day free trial, connect your own server or cloud account, and keep your apps and data where you can see them."
+  />
+</Base>
+
+<style>
+  .audit {
+    font-size: var(--text-sm);
+  }
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    display: grid;
+    gap: var(--space-2);
+  }
+  .rows li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--night-line);
+  }
+  .tool {
+    font-family: var(--font-mono);
+    color: var(--night-ink);
+  }
+  .ok {
+    color: var(--code-str);
+  }
+  .no {
+    color: var(--code-key);
+  }
+  .masked {
+    border: 0;
+    border-top: 1px solid var(--night-line);
+    border-radius: 0;
+    font-size: var(--text-xs);
+  }
+
+  .facts.one {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  .split .text-link {
+    justify-self: start;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .tile {
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .tile h3 {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-2);
+  }
+  .tile p {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .cautions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .cautions li {
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--warn);
+    color: var(--ink-2);
+  }
+  .cautions strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .report {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .report h2 {
+    margin-bottom: var(--space-4);
+  }
+  .report .actions {
+    margin-top: var(--space-5);
+  }
+  .report-side {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .report-side h3 {
+    font-size: var(--text-lg);
+  }
+  .report-side .steps {
+    gap: var(--space-2);
+  }
+  .report-side p {
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 960px) {
+    .tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 860px) {
+    .report {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+  @media (max-width: 560px) {
+    .tiles {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

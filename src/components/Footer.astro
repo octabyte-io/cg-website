@@ -24,6 +24,17 @@ const columns = [
     ],
   },
   {
+    title: 'Company',
+    links: [
+      { href: '/about', label: 'About Cloudgate' },
+      { href: '/compare', label: 'Compare Cloudgate' },
+      { href: '/changelog', label: 'Changelog' },
+      { href: '/security', label: 'Security' },
+      { href: '/license', label: 'License' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
+  {
     title: 'Elsewhere',
     links: [
       // The source link appears on its own once site.sourceUrl is set (the repository is private today).
@@ -34,6 +45,15 @@ const columns = [
       { href: '/llms.txt', label: 'llms.txt for AI assistants' },
     ],
   },
+];
+const legalLinks = [
+  { href: '/legal', label: 'Legal' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/acceptable-use', label: 'Acceptable use' },
+  { href: '/cookies', label: 'Cookies' },
+  { href: '/subprocessors', label: 'Subprocessors' },
+  { href: '/dpa', label: 'DPA' },
 ];
 const year = new Date().getFullYear();
 ---
@@ -50,8 +70,13 @@ const year = new Date().getFullYear();
       </nav>
     ))}
   </div>
-  <div class="wrap legal">
-    <p>© {year} {site.company.name}. Cloudgate is source-available under the Elastic License 2.0.</p>
+  <div class="wrap">
+    <div class="legal">
+      <p>© {year} {site.company.name}. Cloudgate is source-available under the <a href="/license">Elastic License 2.0</a>.</p>
+      <nav aria-label="Legal">
+        <ul>{legalLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+      </nav>
+    </div>
   </div>
 </footer>
 
@@ -63,7 +88,7 @@ const year = new Date().getFullYear();
   }
   .grid {
     display: grid;
-    grid-template-columns: 1.4fr repeat(3, 1fr);
+    grid-template-columns: 1.4fr repeat(4, 1fr);
     gap: var(--space-7);
   }
   .brand {
@@ -106,9 +131,27 @@ const year = new Date().getFullYear();
     margin-top: var(--space-8);
     color: var(--muted);
   }
-  .legal p {
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
     padding-top: var(--space-5);
     border-top: 1px solid var(--line);
+  }
+  .legal p {
+    margin: 0;
+  }
+  .legal ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+  }
+  .legal a {
+    color: var(--muted);
+  }
+  .legal a:hover {
+    color: var(--ink);
   }
   @media (max-width: 860px) {
     .grid {
