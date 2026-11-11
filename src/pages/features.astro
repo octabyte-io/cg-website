@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Mark from '../components/Mark.astro';
 import { site } from '../data/site';
 import { faqSchema, breadcrumbSchema } from '../data/schema';
 
@@ -196,6 +197,12 @@ const faq = [
     a: 'On the Hosted instance every plan includes deploys, databases, domains, backups, previews, monitoring and Agents. SSO, SCIM, custom roles and forward auth are in the Business plan. See <a href="/pricing">Cloudgate pricing</a>.',
   },
 ];
+// How each topic is laid out, so the long run of topics does not read as one repeated block.
+// 'side': heading and a drawing on the left, the list on the right. 'wide': heading and drawing
+// across the top, the list in columns under it.
+const layoutOf: Record<string, 'side' | 'wide'> = { services: 'wide', monitoring: 'wide', paid: 'wide' };
+// Side topics alternate which side the heading sits on.
+const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
 ---
 <Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
   <PageHero
@@ -205,6 +212,34 @@ const faq = [
   >
     <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
     <a class="btn btn--ghost" href={templatesHome}>Deploy a template</a>
+    <div slot="visual" class="hero-map panel" aria-hidden="true">
+      <div class="hm-col">
+        <p class="hm-label">Ways in</p>
+        <span class="hm-node"><span class="slice"></span>Console</span>
+        <span class="hm-node"><span class="slice slice--2"></span>AI agent</span>
+        <span class="hm-node"><span class="slice slice--3"></span>Terminal</span>
+      </div>
+      <svg class="hm-wires" viewBox="0 0 60 180" preserveAspectRatio="none">
+        <path class="w1" d="M0 52 C 32 52, 28 112, 60 112" />
+        <path class="w2" d="M0 112 H60" />
+        <path class="w3" d="M0 172 C 32 172, 28 112, 60 112" />
+      </svg>
+      <div class="hm-gate">
+        <Mark size={44} />
+        <span>Cloudgate</span>
+      </div>
+      <svg class="hm-wires" viewBox="0 0 60 180" preserveAspectRatio="none">
+        <path class="w1" d="M0 112 C 32 112, 28 52, 60 52" />
+        <path class="w2" d="M0 112 H60" />
+        <path class="w3" d="M0 112 C 32 112, 28 172, 60 172" />
+      </svg>
+      <div class="hm-col">
+        <p class="hm-label">Where it runs</p>
+        <span class="hm-node"><span class="slice"></span>Your Server</span>
+        <span class="hm-node"><span class="slice slice--2"></span>AWS</span>
+        <span class="hm-node"><span class="slice slice--3"></span>Google Cloud</span>
+      </div>
+    </div>
   </PageHero>
 
   <nav class="jump wrap" aria-label="On this page">
@@ -225,22 +260,42 @@ const faq = [
           Projects, under the same roles and grants.
         </p>
       </div>
-      <dl class="facts">
-        <div>
+      <dl class="bento">
+        <div class="tile s2">
+          <div class="art" aria-hidden="true">
+            <ol class="mini-wiz">
+              <li class="ok">Get a Server</li>
+              <li class="ok">Press Deploy</li>
+              <li class="cur"><span>Open the address</span><span class="live">Running</span></li>
+            </ol>
+          </div>
           <dt class="lane-dt"><span class="slice" aria-hidden="true"></span>The console</dt>
           <dd>
             The web console for everything, including the get started steps that take someone new
             from sign-up to a live app: get a Server, press Deploy, open the address.
           </dd>
         </div>
-        <div>
+        <div class="tile s2">
+          <div class="art night" aria-hidden="true">
+            <pre class="mini-code"><span class="d">you</span>   Ship the fix to staging.
+<span class="k">deploy_service</span>
+<span class="d">→ queued, then</span> <span class="s">done</span>
+<span class="k">get_service_health</span>
+<span class="d">→</span> <span class="s">up</span></pre>
+          </div>
           <dt class="lane-dt"><span class="slice slice--2" aria-hidden="true"></span>Your AI agent</dt>
           <dd>
             Claude Code, Cursor or any MCP client, as an Agent with its own role, grant and keys.
             It deploys, opens previews and reads logs and health. <a href="/ai-agents">How agents deploy over MCP</a>.
           </dd>
         </div>
-        <div>
+        <div class="tile s2">
+          <div class="art night" aria-hidden="true">
+            <pre class="mini-code"><span class="d">$</span> cloudgate deploy
+<span class="d">  skipping .env and .git</span>
+<span class="d">  Deployment</span> <span class="s">done</span>
+<span class="d">$</span> cloudgate logs</pre>
+          </div>
           <dt class="lane-dt"><span class="slice slice--3" aria-hidden="true"></span>Your terminal</dt>
           <dd>
             The <code>cloudgate</code> CLI on npm: <code>cloudgate deploy</code> uploads the
@@ -248,14 +303,38 @@ const faq = [
             Then <code>status</code>, <code>logs</code> and <code>vars set</code>. <a href="/cli">The Cloudgate CLI</a>.
           </dd>
         </div>
-        <div>
+        <div class="tile s2">
+          <div class="art" aria-hidden="true">
+            <ul class="chips">
+              <li>GitHub</li><li>GitLab</li><li>Bitbucket</li><li>Gitea</li><li>any git URL</li><li>Docker image</li><li>uploaded files</li>
+            </ul>
+          </div>
           <dt>Git, images and uploads</dt>
           <dd>
             Build from GitHub, GitLab, Bitbucket, Gitea or any git URL, with push-to-deploy
             through webhooks. Or run a Docker image, or uploaded files.
           </dd>
         </div>
-        <div>
+        <div class="tile s4 t-plan">
+          <div class="art plan-art" aria-hidden="true">
+            <div class="plan-file">
+              <p class="pf-name">cloudgate.yaml</p>
+              <pre class="mini-code"><span class="k">services:</span>
+  <span class="k">web:</span>
+    type: web
+  <span class="k">pg-1:</span>
+    type: postgres</pre>
+            </div>
+            <div class="plan-out">
+              <p class="pf-name">Plan</p>
+              <ul>
+                <li class="add">create <code>pg-1</code></li>
+                <li class="chg">change <code>web</code></li>
+                <li class="del">destroy <code>old-worker</code></li>
+              </ul>
+              <span class="apply">Apply</span>
+            </div>
+          </div>
           <dt>Project config with Plan and Apply</dt>
           <dd>
             One <code>cloudgate.yaml</code> describes a Project's Services, kept in your
@@ -263,7 +342,12 @@ const faq = [
             or destroy, and nothing happens until you Apply it.
           </dd>
         </div>
-        <div>
+        <div class="tile s6 t-templates">
+          <div class="art logos" aria-hidden="true">
+            {['wordpress', 'n8n', 'ghost', 'plausible', 'vaultwarden', 'nextcloud', 'mattermost', 'uptime-kuma'].map((id) => (
+              <span class="logo"><img src={`/templates/${id}.svg`} alt="" width="32" height="32" loading="lazy" decoding="async" /></span>
+            ))}
+          </div>
           <dt>Templates</dt>
           <dd>
             Ready-made apps, from WordPress to n8n, each one a Project config. <a href={templatesHome}>Browse the app templates</a>.
@@ -273,7 +357,7 @@ const faq = [
     </div>
   </section>
 
-  <section class="section" aria-labelledby="where-it-runs">
+  <section class="section band" aria-labelledby="where-it-runs">
     <div class="wrap">
       <div class="section-head">
         <h2 id="where-it-runs">Where do my apps run?</h2>
@@ -283,9 +367,18 @@ const faq = [
           places.
         </p>
       </div>
+      <div class="fan" aria-hidden="true">
+        <span class="fan-gate"><Mark size={36} /><span>One Project config</span></span>
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
+          <path class="w1" d="M600 0 C 600 50, 200 40, 200 90" />
+          <path class="w2" d="M600 0 L 600 90" />
+          <path class="w3" d="M600 0 C 600 50, 1000 40, 1000 90" />
+        </svg>
+      </div>
       <div class="places">
-        <article>
+        <article class="panel place p1">
           <h3><span class="slice" aria-hidden="true"></span>Your Server</h3>
+          <ul class="chips" aria-hidden="true"><li>Ubuntu over SSH</li><li>Docker Swarm</li><li>Traefik</li><li>Let's Encrypt</li></ul>
           <p>
             Any Ubuntu machine Cloudgate reaches over SSH, or the machine Cloudgate itself runs on.
             A Setup run installs Docker Swarm and Traefik, and Domains get Let's Encrypt
@@ -297,7 +390,7 @@ const faq = [
             It is billed monthly in advance on the same invoice, at the price shown before you buy.
           </p>
         </article>
-        <article>
+        <article class="panel place p2">
           <h3><span class="slice slice--2" aria-hidden="true"></span>AWS</h3>
           <dl class="map">
             <div><dt>web, worker, web-private, cron</dt><dd>ECS (Fargate)</dd></div>
@@ -307,7 +400,7 @@ const faq = [
             <div><dt>Compose stack</dt><dd>Its own Stack VM</dd></div>
           </dl>
         </article>
-        <article>
+        <article class="panel place p3">
           <h3><span class="slice slice--3" aria-hidden="true"></span>Google Cloud</h3>
           <dl class="map">
             <div><dt>web</dt><dd>Cloud Run</dd></div>
@@ -339,14 +432,132 @@ const faq = [
     </div>
   </section>
 
-  {running.map((r) => (
-    <section class="topic" aria-labelledby={r.id}>
+  {running.map((r, n) => {
+    const wide = layoutOf[r.id] === 'wide';
+    return (
+    <section class:list={['topic', `topic--${r.id}`, { band: n % 2 === 0, 'topic--wide': wide, 'topic--flip': flipped.has(r.id) }]} aria-labelledby={r.id}>
       <div class="wrap topic-grid">
         <div class="topic-head">
           <h2 id={r.id}>{r.h}</h2>
           <p>{r.lede}</p>
+          <div class="topic-art" aria-hidden="true">
+            {r.id === 'builds' && (
+              <div class="window term">
+                <div class="window-bar">Build log, Deployment of web</div>
+                <pre class="code"><span class="d">#1</span> Detected Node.js app
+<span class="d">#2</span> Building with Nixpacks
+<span class="d">#3</span> Image pushed
+<span class="d">#4</span> <span class="s">Deployment done</span></pre>
+              </div>
+            )}
+            {r.id === 'services' && (
+              <div class="env">
+                <p class="env-name">Project shop, Environment production</p>
+                <div class="env-svcs">
+                  <span class="svc"><span class="slice"></span>web</span>
+                  <span class="svc"><span class="slice"></span>worker</span>
+                  <span class="svc"><span class="slice"></span>cron</span>
+                  <span class="svc"><span class="slice slice--2"></span>pg-1</span>
+                  <span class="svc"><span class="slice slice--2"></span>bucket</span>
+                  <span class="svc"><span class="slice slice--3"></span>llama</span>
+                </div>
+              </div>
+            )}
+            {r.id === 'databases' && (
+              <div class="art">
+                <div class="wired">
+                  <span class="node">web</span>
+                  <span class="wire"><span>DATABASE_URL: pg-1.url</span></span>
+                  <span class="node gate">pg-1</span>
+                </div>
+                <ul class="chips"><li>PostgreSQL</li><li>MySQL</li><li>MariaDB</li><li>MongoDB</li><li>Redis</li><li>libSQL</li></ul>
+              </div>
+            )}
+            {r.id === 'ai-models' && (
+              <div class="art">
+                <div class="wired">
+                  <span class="node">caller Agent</span>
+                  <span class="wire"></span>
+                  <span class="node gate">Gateway</span>
+                  <span class="wire"></span>
+                  <span class="node">vLLM, 1 GPU</span>
+                </div>
+                <p class="tag">OpenAI-compatible, spend counted per caller</p>
+              </div>
+            )}
+            {r.id === 'domains' && (
+              <div class="art">
+                <div class="urlbar">
+                  <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M4.5 7V5.2a3.5 3.5 0 1 1 7 0V7h.8c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.7a.7.7 0 0 1-.7-.7V7.7c0-.4.3-.7.7-.7h.8Zm1.6 0h3.8V5.2a1.9 1.9 0 1 0-3.8 0V7Z" /></svg>
+                  <span>https://shop.example.com</span>
+                </div>
+                <p class="tag live">Certificate issued, renews by itself</p>
+              </div>
+            )}
+            {r.id === 'backups' && (
+              <div class="art">
+                <ol class="timeline"><li></li><li></li><li></li><li></li><li></li><li class="now"></li></ol>
+                <p class="tag">pg-1 and its volume, to your S3-compatible storage</p>
+              </div>
+            )}
+            {r.id === 'previews' && (
+              <div class="art">
+                <svg class="branches" viewBox="0 0 260 80">
+                  <path class="main" d="M10 60 H250" />
+                  <path class="pr" d="M60 60 C 90 60, 90 20, 120 20 H200" />
+                  <circle class="dot" cx="60" cy="60" r="6" />
+                  <circle class="dot back" cx="160" cy="60" r="6" />
+                  <circle class="dot pr-dot" cx="200" cy="20" r="6" />
+                </svg>
+                <div class="labels"><span>main, roll back to any dot</span><span class="pr-label">preview</span></div>
+              </div>
+            )}
+            {r.id === 'monitoring' && (
+              <div class="window ui health">
+                <div class="window-bar">Health, web</div>
+                <div class="health-body">
+                  <div class="h-chart">
+                    <p class="h-label">Error rate, 5xx per Domain</p>
+                    <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+                      <path class="thr" d="M0 22 H300" />
+                      <path class="area" d="M0 70 L30 66 L60 68 L90 60 L120 64 L150 40 L170 18 L190 30 L210 58 L240 64 L270 62 L300 66 L300 80 L0 80 Z" />
+                      <path class="line" d="M0 70 L30 66 L60 68 L90 60 L120 64 L150 40 L170 18 L190 30 L210 58 L240 64 L270 62 L300 66" />
+                    </svg>
+                    <p class="h-thr">Your threshold</p>
+                  </div>
+                  <ul class="h-list">
+                    <li><span class="live">Uptime check up</span></li>
+                    <li><span>CPU 41%</span><span class="muted">threshold 85%</span></li>
+                    <li class="inc"><span>Incident closed</span><span class="muted">error rate back under threshold</span></li>
+                  </ul>
+                </div>
+              </div>
+            )}
+            {r.id === 'notifications' && (
+              <ul class="chips big">
+                <li>Slack</li><li>Discord</li><li>Microsoft Teams</li><li>Telegram</li><li>Mattermost</li><li>Lark</li><li>Email</li><li>Resend</li><li>ntfy</li><li>Gotify</li><li>Pushover</li><li>Webhook</li>
+              </ul>
+            )}
+            {r.id === 'variables' && (
+              <div class="window term">
+                <div class="window-bar">Variables, web</div>
+                <pre class="code"><span class="k">NODE_ENV</span>       production
+<span class="k">DATABASE_URL</span>   <span class="s">pg-1.url</span>  <span class="d">wired</span>
+<span class="k">STRIPE_KEY</span>     <span class="d">set, hidden</span></pre>
+              </div>
+            )}
+            {r.id === 'access' && (
+              <div class="art">
+                <ul class="people">
+                  <li><span class="av">AK</span><span>Owner</span><span class="muted">everything</span></li>
+                  <li><span class="av">ML</span><span>Developer</span><span class="muted">Project shop</span></li>
+                  <li><span class="av bot">AI</span><span>Agent, Operator</span><span class="muted">staging only</span></li>
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
-        <dl class="facts">
+        <dl class:list={['items', { 'items--plans': r.id === 'paid', 'items--kinds': r.id === 'services' }]}>
           {r.items.map((i) => (
             <div>
               <dt>{i.t}</dt>
@@ -356,7 +567,8 @@ const faq = [
         </dl>
       </div>
     </section>
-  ))}
+    );
+  })}
 
   <section class="section" aria-labelledby="next">
     <div class="wrap">
@@ -364,10 +576,10 @@ const faq = [
         <h2 id="next">Where to go from here</h2>
       </div>
       <ul class="next">
-        <li><a href="/pricing">Compare plans and what each counts</a></li>
-        <li><a href="/vibe-coding">Put an app you built with AI online</a></li>
-        <li><a href="/ai-agents">Let AI agents deploy with guard rails</a></li>
-        <li><a href={templatesHome}>Deploy a ready-made app template</a></li>
+        <li><a href="/pricing"><span class="slice" aria-hidden="true"></span>Compare plans and what each counts</a></li>
+        <li><a href="/vibe-coding"><span class="slice slice--2" aria-hidden="true"></span>Put an app you built with AI online</a></li>
+        <li><a href="/ai-agents"><span class="slice slice--3" aria-hidden="true"></span>Let AI agents deploy with guard rails</a></li>
+        <li><a href={templatesHome}><span class="slice" aria-hidden="true"></span>Deploy a ready-made app template</a></li>
       </ul>
     </div>
   </section>
@@ -378,49 +590,409 @@ const faq = [
 </Base>
 
 <style>
+  /* ---- Windows ---- */
+  .window.ui {
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+  }
+  .window.term .window-bar {
+    border-bottom-color: var(--night-line);
+    color: var(--night-muted);
+  }
+  .window.term .window-bar::before {
+    background: var(--night-line);
+    box-shadow:
+      1rem 0 0 var(--night-line),
+      2rem 0 0 var(--night-line);
+  }
+  .window.term .code {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+  }
+  .window-bar {
+    white-space: nowrap;
+  }
+
+  /* ---- Hero map: ways in, the gate, where it runs ---- */
+  .hero-map {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem auto 2.5rem minmax(0, 1fr);
+    align-items: start;
+    padding: var(--space-5);
+  }
+  .hm-col {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .hm-label {
+    height: 1.5rem;
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+  .hm-node {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 3rem;
+    padding: 0 var(--space-3);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .hm-wires {
+    width: 100%;
+    height: 11.25rem;
+  }
+  .hm-wires path {
+    fill: none;
+    stroke-width: 2;
+    stroke-dasharray: 5 6;
+    vector-effect: non-scaling-stroke;
+  }
+  .w1 {
+    stroke: var(--slice-1);
+  }
+  .w2 {
+    stroke: var(--slice-2);
+  }
+  .w3 {
+    stroke: var(--slice-3);
+  }
+  .hm-gate {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--space-2);
+    margin-top: 4.5rem;
+    padding: var(--space-4) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--brand);
+    background: var(--surface);
+    box-shadow: 0 0 50px -10px var(--glow);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-sm);
+  }
+
+  /* ---- Jump list ---- */
   .jump {
-    padding-bottom: var(--space-6);
+    padding-block: var(--space-5);
   }
   .jump ul {
     list-style: none;
     margin: 0;
-    padding: var(--space-3) 0 0;
-    border-top: 1px solid var(--line);
+    padding: 0;
     display: flex;
     flex-wrap: wrap;
-    column-gap: var(--space-5);
-    max-width: 960px;
+    gap: var(--space-2);
   }
   .jump a {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    color: var(--muted);
+    padding: 0 var(--space-4);
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
     font-size: var(--text-sm);
-    text-decoration-color: var(--line-strong);
+    text-decoration: none;
   }
   .jump a:hover {
+    border-color: var(--brand);
     color: var(--ink);
-    text-decoration-color: currentColor;
   }
 
+  /* ---- Bento ---- */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+  }
+  .tile {
+    grid-column: span 2;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+    min-width: 0;
+  }
+  .s4 {
+    grid-column: span 4;
+  }
+  .s6 {
+    grid-column: span 6;
+  }
+  .tile dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-1);
+  }
+  .tile dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
   .lane-dt {
     display: flex;
     align-items: center;
     gap: var(--space-3);
   }
+  .art {
+    min-height: 128px;
+    display: grid;
+    align-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+    min-width: 0;
+  }
+  .art.night {
+    background: var(--night);
+    border-color: var(--night-line);
+  }
+  .mini-code {
+    margin: 0;
+    font-size: var(--text-xs);
+    line-height: 1.7;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+  }
+  .night .mini-code {
+    color: var(--night-ink);
+  }
+  .mini-code .k {
+    color: var(--brand);
+  }
+  .night .mini-code .k {
+    color: var(--code-key);
+  }
+  .mini-code .s {
+    color: var(--live);
+  }
+  .night .mini-code .s {
+    color: var(--code-str);
+  }
+  .mini-code .d {
+    color: var(--muted);
+  }
+  .night .mini-code .d {
+    color: var(--code-dim);
+  }
+  .mini-wiz {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .mini-wiz li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .mini-wiz .ok::after {
+    content: '✓';
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .mini-wiz .cur {
+    border-color: var(--brand);
+  }
+  .chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+  }
+  .chips li {
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .chips.big {
+    font-size: var(--text-sm);
+    gap: var(--space-2);
+  }
+  .chips.big li {
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+  }
+  .plan-art {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .plan-file,
+  .plan-out {
+    padding: var(--space-3);
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+  .pf-name {
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .plan-out ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-1);
+    font-family: var(--font-mono);
+  }
+  .plan-out li::before {
+    display: inline-block;
+    width: 1.2em;
+    font-weight: 700;
+  }
+  .plan-out .add::before {
+    content: '+';
+    color: var(--live);
+  }
+  .plan-out .chg::before {
+    content: '~';
+    color: var(--brand);
+  }
+  .plan-out .del::before {
+    content: '-';
+    color: var(--warn);
+  }
+  .plan-out code {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  .apply {
+    justify-self: start;
+    margin-top: var(--space-2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    background: var(--brand);
+    color: var(--on-brand);
+    font-weight: 600;
+  }
+  .t-templates {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--space-6);
+    align-items: center;
+  }
+  .t-templates .art {
+    grid-row: span 2;
+    margin: 0;
+    min-height: 0;
+  }
+  .t-templates dt {
+    align-self: end;
+  }
+  .t-templates dd {
+    align-self: start;
+  }
+  .logos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+  }
+  .logo img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+  }
 
+  /* ---- Where it runs ---- */
+  .fan {
+    display: grid;
+    justify-items: center;
+  }
+  .fan-gate {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    box-shadow: 0 0 50px -10px var(--glow);
+    font-family: var(--font-display);
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+  }
+  .fan svg {
+    width: 100%;
+    height: 70px;
+  }
+  .fan path {
+    fill: none;
+    stroke-width: 2;
+    stroke-dasharray: 6 8;
+    vector-effect: non-scaling-stroke;
+  }
   .places {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-7);
+    gap: var(--space-5);
   }
-  .places article {
-    border-top: 1px solid var(--line);
-    padding-top: var(--space-4);
+  .place {
     display: grid;
     gap: var(--space-4);
     align-content: start;
+    position: relative;
+    overflow: hidden;
+  }
+  .place::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--slice-1);
+  }
+  .p2::before {
+    background: var(--slice-2);
+  }
+  .p3::before {
+    background: var(--slice-3);
   }
   .places h3 {
     display: flex;
@@ -443,8 +1015,11 @@ const faq = [
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-3);
-    padding-block: var(--space-2);
+    padding-block: var(--space-3);
     border-bottom: 1px solid var(--line);
+  }
+  .map > div:last-child {
+    border-bottom: 0;
   }
   .map dt {
     font-size: var(--text-sm);
@@ -459,63 +1034,409 @@ const faq = [
     margin-top: var(--space-7);
   }
 
+  /* ---- Running it: one band per topic ---- */
   .running-intro {
-    padding-bottom: var(--space-5);
+    padding-bottom: var(--space-6);
   }
   .running-intro .section-head {
     margin-bottom: 0;
   }
   .topic {
-    padding-block: var(--space-7);
+    padding-block: var(--space-8);
+    border-top: 1px solid var(--line);
   }
   .topic-grid {
     display: grid;
-    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-    gap: var(--space-7);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-8);
     align-items: start;
-  }
-  .topic-grid > * {
-    border-top: 1px solid var(--line-strong);
-    padding-top: var(--space-5);
-  }
-  .topic-grid > .facts {
-    border-top: none;
-    padding-top: 0;
   }
   .topic-head {
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-4);
     position: sticky;
     top: 6rem;
+    min-width: 0;
   }
   .topic-head h2 {
     font-size: var(--text-2xl);
   }
-  .topic-head p {
+  .topic-head > p {
     color: var(--muted);
   }
-  .topic .facts {
-    gap: var(--space-5) var(--space-6);
+  .topic-art:empty {
+    display: none;
   }
-  .topic .facts dt {
+  .topic-art {
+    margin-top: var(--space-2);
+    min-width: 0;
+  }
+  .topic-art .art {
+    margin: 0;
+  }
+  .items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-6);
+    margin: 0;
+  }
+  .items > div {
+    border-top: 1px solid var(--line-strong);
+    padding-top: var(--space-4);
+  }
+  .items dt {
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: var(--text-md);
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-2);
+  }
+  .items dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
   }
 
+  .topic--flip .topic-grid {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .topic--flip .topic-head {
+    order: 2;
+  }
+
+  /* Wide topics: heading and drawing across the top, items in columns under it. */
+  .topic--wide .topic-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  .topic--wide .topic-head {
+    position: static;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: var(--space-8);
+    align-items: start;
+  }
+  .topic--wide .topic-head > h2,
+  .topic--wide .topic-head > p {
+    grid-column: 1;
+  }
+  .topic--wide .topic-art {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+  }
+  .topic--wide .items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .items--kinds {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .items--kinds > div {
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .items--kinds dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--brand);
+  }
+  .items--plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: var(--space-5);
+  }
+  .items--plans > div {
+    padding: var(--space-6);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .items--plans > div:first-child {
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(160deg, var(--beam-b), var(--beam-a) 40%, var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 30px 80px -40px var(--glow);
+  }
+  .items--plans > div:last-child {
+    background: transparent;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .items--plans dt {
+    font-size: var(--text-xl);
+  }
+  .topic--paid .topic-art {
+    display: none;
+  }
+  .topic--paid .topic-head {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 760px;
+  }
+
+  /* Topic drawings */
+  .env {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--line-strong);
+    display: grid;
+    gap: var(--space-3);
+  }
+  .env-name {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+  .env-svcs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .svc {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+  .wired {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .node {
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .node.gate {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 24px -8px var(--glow);
+  }
+  .wire {
+    flex: 1 1 2rem;
+    min-width: 2rem;
+    height: 0;
+    border-top: 2px dashed var(--line-strong);
+    position: relative;
+  }
+  .wire span {
+    position: absolute;
+    left: 50%;
+    bottom: 0.3rem;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .topic--databases .wired {
+    padding-top: 1.2rem;
+  }
+  .topic--databases .wire {
+    flex-basis: 11rem;
+  }
+  .tag {
+    color: var(--muted);
+  }
+  .tag.live,
+  .live {
+    color: var(--live);
+  }
+  .urlbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+  .urlbar svg {
+    color: var(--live);
+    flex: none;
+  }
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .timeline li {
+    position: relative;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--slice-3);
+  }
+  .timeline li.now {
+    background: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-tint);
+  }
+  .branches {
+    width: 100%;
+    height: 80px;
+  }
+  .branches path {
+    fill: none;
+    stroke-width: 2;
+  }
+  .branches .main {
+    stroke: var(--line-strong);
+  }
+  .branches .pr {
+    stroke: var(--brand);
+    stroke-dasharray: 5 6;
+  }
+  .branches .dot {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 2;
+  }
+  .branches .back {
+    stroke: var(--slice-2);
+  }
+  .branches .pr-dot {
+    stroke: var(--brand);
+  }
+  .labels {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    color: var(--muted);
+  }
+  .pr-label {
+    color: var(--brand);
+  }
+  .health-body {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: var(--space-5);
+    padding: var(--space-5);
+    font-size: var(--text-xs);
+  }
+  .h-chart {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .h-label {
+    color: var(--muted);
+  }
+  .h-chart svg {
+    width: 100%;
+    height: 90px;
+  }
+  .h-chart .area {
+    fill: var(--brand-tint);
+  }
+  .h-chart .line {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .h-chart .thr {
+    stroke: var(--warn);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+    vector-effect: non-scaling-stroke;
+  }
+  .h-thr {
+    color: var(--warn);
+    text-align: right;
+  }
+  .h-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    align-content: center;
+    gap: var(--space-3);
+  }
+  .h-list li {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-2) var(--space-3);
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .h-list .inc {
+    border-left: 3px solid var(--warn);
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .people {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .people li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .av {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 0.7rem;
+  }
+  .av.bot {
+    border-radius: 8px;
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+
+  /* ---- Next ---- */
   .next {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 var(--space-7);
-  }
-  .next li {
-    border-top: 1px solid var(--line);
+    gap: var(--space-3) var(--space-5);
   }
   .next a {
     display: flex;
     align-items: center;
-    min-height: 56px;
+    gap: var(--space-3);
+    min-height: 64px;
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: 600;
@@ -523,23 +1444,101 @@ const faq = [
     text-decoration: none;
   }
   .next a:hover {
+    border-color: var(--brand);
     color: var(--brand);
   }
 
+  @media (max-width: 1000px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tile,
+    .s4 {
+      grid-column: span 1;
+    }
+    .t-plan,
+    .s6 {
+      grid-column: 1 / -1;
+    }
+    .items--kinds {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
   @media (max-width: 900px) {
     .places {
       grid-template-columns: 1fr;
-      gap: var(--space-6);
     }
-    .topic-grid {
+    .fan {
+      display: none;
+    }
+    .topic-grid,
+    .topic--wide .topic-head {
       grid-template-columns: 1fr;
       gap: var(--space-5);
+    }
+    .topic--wide .topic-art {
+      grid-column: 1;
+      grid-row: auto;
     }
     .topic-head {
       position: static;
     }
+    .topic--flip .topic-grid {
+      grid-template-columns: 1fr;
+    }
+    .topic--flip .topic-head {
+      order: 0;
+    }
+    .topic--wide .items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .next {
       grid-template-columns: 1fr;
+    }
+    .t-templates {
+      grid-template-columns: 1fr;
+      row-gap: var(--space-3);
+    }
+    .t-templates .art {
+      grid-row: auto;
+      margin-bottom: var(--space-2);
+    }
+  }
+  @media (max-width: 640px) {
+    .bento,
+    .items,
+    .topic--wide .items,
+    .items--kinds,
+    .items--plans {
+      grid-template-columns: 1fr !important;
+    }
+    .plan-art,
+    .health-body {
+      grid-template-columns: 1fr;
+    }
+    .hero-map {
+      grid-template-columns: minmax(0, 1fr) 1.25rem auto 1.25rem minmax(0, 1fr);
+      padding: var(--space-4) var(--space-3);
+    }
+    .hm-node {
+      padding: 0 var(--space-2);
+      font-size: var(--text-xs);
+      gap: 0.4rem;
+    }
+    .hm-node .slice {
+      width: 0.45rem;
+      height: 0.8rem;
+    }
+    .hm-gate {
+      padding: var(--space-3) var(--space-2);
+      font-size: var(--text-xs);
+    }
+    .env-svcs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .topic--databases .wire {
+      flex-basis: 100%;
+      margin-block: 1.2rem 0.4rem;
     }
   }
 </style>
