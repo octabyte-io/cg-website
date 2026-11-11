@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" description="This page does not exist. Find Cloudgate's features, templates and pricing from here." noindex>
+  <section class="wrap nf">
+    <h1>This page is not here</h1>
+    <p class="lede">The address may have changed. These are the pages most people look for.</p>
+    <ul>
+      <li><a href="/">Cloudgate home</a></li>
+      <li><a href="/templates">Deploy an app template</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/ai-agents">Cloudgate for AI agents</a></li>
+    </ul>
+  </section>
+</Base>
+<style>
+  .nf { padding-block: var(--space-9); display: grid; gap: var(--space-5); }
+  ul { display: grid; gap: var(--space-2); padding-left: 1.2rem; }
+</style>

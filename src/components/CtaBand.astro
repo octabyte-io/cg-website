@@ -1,0 +1,63 @@
+---
+// The page's one dark band: a closing call to action.
+import { site, trialDays } from '../data/site';
+interface Props { title?: string; text?: string }
+const {
+  title = 'Put your next app online today',
+  text = `Every plan starts with a ${trialDays}-day free trial. Bring a server, buy one from us, or connect AWS or Google Cloud.`,
+} = Astro.props;
+---
+<section class="band" aria-labelledby="cta-title">
+  <div class="beam" aria-hidden="true"></div>
+  <div class="wrap inner">
+    <h2 id="cta-title">{title}</h2>
+    <p>{text}</p>
+    <div class="actions">
+      <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+      <a class="btn btn--on-night" href="/templates">Deploy a template</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    overflow: hidden;
+    background: var(--night);
+    color: var(--night-ink);
+    padding-block: var(--space-9);
+    isolation: isolate;
+  }
+  /* A narrow beam through the keyhole of the mark: the page's one dramatic moment. */
+  .beam {
+    position: absolute;
+    inset: -20% auto -20% 62%;
+    width: 140px;
+    background: linear-gradient(180deg, transparent, var(--beam-a) 45%, var(--beam-b) 55%, transparent);
+    filter: blur(48px);
+    opacity: 0.55;
+    transform: skewX(-12deg);
+    z-index: -1;
+  }
+  .inner {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  h2 {
+    color: var(--night-ink);
+    max-width: 16ch;
+  }
+  p {
+    color: var(--night-muted);
+    font-size: var(--text-lg);
+    max-width: 52ch;
+  }
+  .band :global(.btn--primary) {
+    background: var(--night-brand);
+    color: var(--night);
+  }
+  .band :global(.btn--primary:hover) {
+    background: var(--night-brand-hi);
+  }
+</style>

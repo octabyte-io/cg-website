@@ -1,0 +1,27 @@
+---
+// The top of every inner page: breadcrumbs, the one <h1>, a lede and optional actions.
+import Breadcrumbs from './Breadcrumbs.astro';
+interface Props { title: string; lede: string; trail: { name: string; path: string }[] }
+const { title, lede, trail } = Astro.props;
+---
+<section class="page-hero">
+  <div class="wrap">
+    <Breadcrumbs trail={trail} />
+    <h1>{title}</h1>
+    <p class="lede">{lede}</p>
+    {Astro.slots.has('default') && <div class="actions slot"><slot /></div>}
+  </div>
+</section>
+<style>
+  .page-hero {
+    padding-block: var(--space-8) var(--space-8);
+  }
+  h1 {
+    font-size: clamp(2.3rem, 5.2vw, 4rem);
+    max-width: 20ch;
+    margin-bottom: var(--space-5);
+  }
+  .slot {
+    margin-top: var(--space-6);
+  }
+</style>

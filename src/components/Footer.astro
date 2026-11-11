@@ -1,0 +1,116 @@
+---
+import Mark from './Mark.astro';
+import { site } from '../data/site';
+
+const columns = [
+  {
+    title: 'Product',
+    links: [
+      { href: '/features', label: 'Features' },
+      { href: '/ai-agents', label: 'Cloudgate for AI agents' },
+      { href: '/vibe-coding', label: 'Deploy an app you built with AI' },
+      { href: '/templates', label: 'App templates' },
+      { href: '/cli', label: 'Command-line tool' },
+    ],
+  },
+  {
+    title: 'Run it',
+    links: [
+      { href: '/pricing', label: 'Pricing' },
+      { href: '/self-hosted', label: 'Self-host Cloudgate' },
+      { href: site.getStarted, label: 'Get started in the console' },
+      { href: site.signIn, label: 'Sign in' },
+    ],
+  },
+  {
+    title: 'Elsewhere',
+    links: [
+      { href: site.templatesRepo, label: 'Template catalogue on GitHub' },
+      { href: site.npm, label: 'CLI on npm' },
+      { href: `mailto:${site.support}`, label: site.support },
+      { href: '/llms.txt', label: 'llms.txt for AI assistants' },
+    ],
+  },
+];
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="wrap grid">
+    <div class="about">
+      <a class="brand" href="/" aria-label="Cloudgate home"><Mark size={40} /><span>Cloudgate</span></a>
+      <p>Deploy apps, databases and AI models to servers and cloud accounts you own. Made by {site.company.name}.</p>
+    </div>
+    {columns.map((col) => (
+      <nav aria-label={col.title}>
+        <h2>{col.title}</h2>
+        <ul>{col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+      </nav>
+    ))}
+  </div>
+  <div class="wrap legal">
+    <p>© {year} {site.company.name}. Cloudgate is source-available under the Elastic License 2.0.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: var(--space-8) var(--space-6);
+    font-size: var(--text-sm);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-7);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+  }
+  .about p {
+    color: var(--muted);
+    max-width: 34ch;
+  }
+  h2 {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+    margin-bottom: var(--space-3);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  ul a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  ul a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .legal {
+    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .about {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

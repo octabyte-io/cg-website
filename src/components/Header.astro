@@ -1,0 +1,158 @@
+---
+import Mark from './Mark.astro';
+import { site } from '../data/site';
+
+const nav = [
+  { href: '/ai-agents', label: 'AI agents' },
+  { href: '/vibe-coding', label: 'Vibe coding' },
+  { href: '/features', label: 'Features' },
+  { href: '/templates', label: 'Templates' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/self-hosted', label: 'Self-host' },
+];
+const here = Astro.url.pathname.replace(/\.html$/, '');
+---
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Cloudgate home">
+      <Mark size={34} />
+      <span>Cloudgate</span>
+    </a>
+    <nav aria-label="Main">
+      <details class="menu">
+        <summary aria-label="Menu">Menu</summary>
+        <ul>
+          {nav.map((item) => (
+            <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
+          ))}
+        </ul>
+      </details>
+    </nav>
+    <div class="end">
+      <a class="signin" href={site.signIn}>Sign in</a>
+      <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    min-height: 64px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  nav {
+    flex: 1;
+  }
+  .menu summary {
+    display: none;
+  }
+  .menu ul {
+    display: flex;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .menu a {
+    display: block;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+  .menu a:hover,
+  .menu a[aria-current='page'] {
+    color: var(--ink);
+    background: var(--paper-2);
+  }
+  .end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .signin {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .signin:hover {
+    color: var(--ink);
+  }
+
+  @media (min-width: 981px) {
+    /* The menu is always open on wide screens; <details> only collapses it on small ones. */
+    .menu > ul {
+      display: flex !important;
+    }
+  }
+  @media (max-width: 980px) {
+    .bar {
+      gap: var(--space-3);
+    }
+    nav {
+      order: 3;
+      flex: 0;
+    }
+    .end {
+      margin-left: auto;
+    }
+    .signin {
+      display: none;
+    }
+    .menu summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 0.9rem;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-sm);
+      cursor: pointer;
+      list-style: none;
+    }
+    .menu summary::-webkit-details-marker {
+      display: none;
+    }
+    .menu ul {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 64px;
+      flex-direction: column;
+      padding: var(--space-3) var(--gutter) var(--space-5);
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+    }
+    .menu a {
+      font-size: var(--text-md);
+      padding: 0.75rem 0.5rem;
+    }
+  }
+  @media (max-width: 420px) {
+    .brand span {
+      display: none;
+    }
+  }
+</style>

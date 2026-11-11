@@ -1,0 +1,262 @@
+[
+  {
+    "id": "activepieces",
+    "name": "Activepieces",
+    "tagline": "Zapier-style automations between your apps, on your own server.",
+    "description": "Activepieces is an open-source Zapier alternative: automate work between your apps with step-by-step flows, AI steps and approvals, with no task limits.",
+    "category": "automation",
+    "alternativeTo": [
+      "zapier",
+      "make",
+      "ifttt"
+    ],
+    "license": "MIT",
+    "website": "https://www.activepieces.com"
+  },
+  {
+    "id": "automatisch",
+    "name": "Automatisch",
+    "tagline": "Simple if-this-then-that flows between your business apps.",
+    "description": "Automatisch is an open-source Zapier alternative for simple if-this-then-that flows between your business apps, self-hosted so your data stays with you.",
+    "category": "automation",
+    "alternativeTo": [
+      "zapier",
+      "ifttt",
+      "make"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://automatisch.io"
+  },
+  {
+    "id": "baserow",
+    "name": "Baserow",
+    "tagline": "Open-source Airtable alternative, as easy to use as a spreadsheet.",
+    "description": "Self-hosted Baserow: an open-source Airtable alternative. Build no-code databases that work like spreadsheets for customers, projects and stock.",
+    "category": "docs-wikis",
+    "alternativeTo": [
+      "airtable"
+    ],
+    "license": "MIT",
+    "website": "https://baserow.io"
+  },
+  {
+    "id": "calcom",
+    "name": "Cal.com",
+    "tagline": "Let clients book time with you from a simple link.",
+    "description": "Self-hosted Cal.com, the open-source Calendly alternative: let clients book meetings from a link that checks your calendar, for freelancers and teams.",
+    "category": "customers-sales",
+    "alternativeTo": [
+      "calendly"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://cal.com"
+  },
+  {
+    "id": "chatwoot",
+    "name": "Chatwoot",
+    "tagline": "Answer website chat, email, WhatsApp and social in one inbox.",
+    "description": "Self-hosted Chatwoot: an open-source Intercom and Zendesk alternative that puts website chat, email, WhatsApp and social messages in one shared inbox.",
+    "category": "customers-sales",
+    "alternativeTo": [
+      "intercom",
+      "zendesk"
+    ],
+    "license": "MIT",
+    "website": "https://www.chatwoot.com"
+  },
+  {
+    "id": "ghost",
+    "name": "Ghost",
+    "tagline": "Publish a blog and paid newsletter on a site that you own.",
+    "description": "Self-hosted Ghost, the open-source Substack alternative: publish a blog and paid newsletter on your own domain, with members and Stripe payments.",
+    "category": "websites",
+    "alternativeTo": [
+      "substack",
+      "medium",
+      "mailchimp",
+      "squarespace"
+    ],
+    "license": "MIT",
+    "website": "https://ghost.org"
+  },
+  {
+    "id": "gitea",
+    "name": "Gitea",
+    "tagline": "Host your team's code and reviews on your own server.",
+    "description": "Self-hosted Gitea: an open-source GitHub alternative for private code hosting, code reviews, issue tracking and automatic builds, for small software teams.",
+    "category": "developer-tools",
+    "alternativeTo": [
+      "github",
+      "bitbucket"
+    ],
+    "license": "MIT",
+    "website": "https://about.gitea.com"
+  },
+  {
+    "id": "immich",
+    "name": "Immich",
+    "tagline": "Back up your photos and videos, and find any picture fast.",
+    "description": "Self-hosted Immich: an open-source Google Photos alternative that backs up phone photos and videos automatically and finds any picture by face or place.",
+    "category": "files-photos",
+    "alternativeTo": [
+      "google-photos",
+      "icloud-photos"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://immich.app"
+  },
+  {
+    "id": "listmonk",
+    "name": "listmonk",
+    "tagline": "Send newsletters to any size of list, without paying per subscriber.",
+    "description": "Self-hosted listmonk, the open-source Mailchimp alternative: send newsletters and email campaigns to lists of any size, with no fee per subscriber.",
+    "category": "customers-sales",
+    "alternativeTo": [
+      "mailchimp"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://listmonk.app"
+  },
+  {
+    "id": "matomo",
+    "name": "Matomo",
+    "tagline": "Full website analytics, with your visitors' data kept private.",
+    "description": "Self-hosted Matomo: the open-source Google Analytics alternative with goals, funnels and e-commerce reports, and your visitors' data kept on your server.",
+    "category": "analytics",
+    "alternativeTo": [
+      "google-analytics"
+    ],
+    "license": "GPL-3.0-or-later",
+    "website": "https://matomo.org"
+  },
+  {
+    "id": "mattermost",
+    "name": "Mattermost",
+    "tagline": "Open-source team chat like Slack, with your full history kept.",
+    "description": "Self-hosted Mattermost: open-source team chat with channels, threads and file sharing. A free Slack alternative that keeps your history on your server.",
+    "category": "team-chat",
+    "alternativeTo": [
+      "slack",
+      "microsoft-teams"
+    ],
+    "license": "MIT",
+    "website": "https://mattermost.com"
+  },
+  {
+    "id": "metabase",
+    "name": "Metabase",
+    "tagline": "Turn your business data into charts your whole team can use.",
+    "description": "Self-hosted Metabase: open-source business intelligence and a free Tableau or Looker alternative. Build charts and dashboards from your data, no SQL needed.",
+    "category": "analytics",
+    "alternativeTo": [
+      "tableau",
+      "looker"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://www.metabase.com"
+  },
+  {
+    "id": "n8n",
+    "name": "n8n",
+    "tagline": "Automate work between your apps, with no limit on runs.",
+    "description": "Self-hosted n8n: automate work between your apps with drag-and-drop workflows and AI steps, with no task limits. A fair-code alternative to Zapier and Make.",
+    "category": "automation",
+    "alternativeTo": [
+      "zapier",
+      "make",
+      "ifttt"
+    ],
+    "license": "SUL-1.0",
+    "website": "https://n8n.io"
+  },
+  {
+    "id": "nextcloud",
+    "name": "Nextcloud",
+    "tagline": "Your own cloud for files, calendars and contacts.",
+    "description": "Self-hosted Nextcloud: an open-source Google Drive and Dropbox alternative to store, sync and share files, calendars and contacts on your own server.",
+    "category": "files-photos",
+    "alternativeTo": [
+      "google-drive",
+      "dropbox"
+    ],
+    "license": "AGPL-3.0-or-later",
+    "website": "https://nextcloud.com"
+  },
+  {
+    "id": "outline",
+    "name": "Outline",
+    "tagline": "A fast team wiki for your handbook, how-tos and meeting notes.",
+    "description": "Self-hosted Outline: a fast team wiki and knowledge base, and a Notion and Confluence alternative, where your team writes and finds its documents.",
+    "category": "docs-wikis",
+    "alternativeTo": [
+      "notion",
+      "confluence"
+    ],
+    "license": "BUSL-1.1",
+    "website": "https://www.getoutline.com"
+  },
+  {
+    "id": "plausible",
+    "name": "Plausible Analytics",
+    "tagline": "Simple website visitor stats, with no cookie banner needed.",
+    "description": "Self-hosted Plausible Analytics: a simple, privacy-friendly Google Analytics alternative for small businesses. No cookies, so no cookie banner needed.",
+    "category": "analytics",
+    "alternativeTo": [
+      "google-analytics"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://plausible.io"
+  },
+  {
+    "id": "umami",
+    "name": "Umami",
+    "tagline": "Lightweight, cookie-free website stats for one site or fifty.",
+    "description": "Self-hosted Umami: open-source, cookie-free website analytics and a light Google Analytics alternative. Track many sites from one simple dashboard.",
+    "category": "analytics",
+    "alternativeTo": [
+      "google-analytics"
+    ],
+    "license": "MIT",
+    "website": "https://umami.is"
+  },
+  {
+    "id": "uptime-kuma",
+    "name": "Uptime Kuma",
+    "tagline": "Know the moment your website goes down, and tell customers.",
+    "description": "Uptime Kuma is a self-hosted uptime monitor: get an alert the moment your website goes down and show customers a status page. Free, open source.",
+    "category": "monitoring",
+    "alternativeTo": [
+      "pingdom",
+      "statuspage"
+    ],
+    "license": "MIT",
+    "website": "https://uptime.kuma.pet"
+  },
+  {
+    "id": "vaultwarden",
+    "name": "Vaultwarden",
+    "tagline": "A shared password manager for your team, on your own server.",
+    "description": "Self-hosted Vaultwarden: an open-source password manager for your team that works with the free Bitwarden apps. A private 1Password or LastPass alternative.",
+    "category": "passwords",
+    "alternativeTo": [
+      "1password",
+      "lastpass"
+    ],
+    "license": "AGPL-3.0-only",
+    "website": "https://github.com/dani-garcia/vaultwarden"
+  },
+  {
+    "id": "wordpress",
+    "name": "WordPress",
+    "tagline": "Build a website, blog or shop with themes and thousands of add-ons.",
+    "description": "Self-hosted WordPress, the open-source Wix and Squarespace alternative: build a website, blog or online shop with themes and thousands of plugins.",
+    "category": "websites",
+    "alternativeTo": [
+      "wix",
+      "squarespace",
+      "medium"
+    ],
+    "license": "GPL-2.0-or-later",
+    "website": "https://wordpress.org"
+  }
+]

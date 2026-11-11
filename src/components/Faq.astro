@@ -1,0 +1,75 @@
+---
+// Questions and answers, rendered as headings plus answers so search engines and AI assistants
+// can lift each answer whole. Pass the same list to faqSchema() for the page's JSON-LD.
+export interface QA { q: string; a: string }
+interface Props { items: QA[]; title?: string }
+const { items, title = 'Questions people ask' } = Astro.props;
+---
+<section class="section" aria-labelledby="faq-title">
+  <div class="wrap faq">
+    <h2 id="faq-title">{title}</h2>
+    <div class="list">
+      {items.map((item) => (
+        <details>
+          <summary><h3>{item.q}</h3></summary>
+          <p set:html={item.a} />
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--space-7);
+  }
+  details {
+    border-top: 1px solid var(--line);
+  }
+  details:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: var(--space-5) 2.5rem var(--space-5) 0;
+    position: relative;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '';
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform 180ms var(--ease);
+  }
+  details[open] summary::after {
+    transform: translateY(-30%) rotate(-135deg);
+  }
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: var(--text-lg);
+    letter-spacing: -0.01em;
+  }
+  details p {
+    color: var(--muted);
+    padding-bottom: var(--space-5);
+    max-width: 68ch;
+  }
+  @media (max-width: 860px) {
+    .faq {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+</style>
