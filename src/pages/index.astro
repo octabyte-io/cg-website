@@ -6,6 +6,7 @@ import CtaBand from '../components/CtaBand.astro';
 import { site, plans, addOn, trialDays, deployUrl } from '../data/site';
 import { faqSchema, softwareSchema } from '../data/schema';
 import templates from '../data/templates.json';
+import { templatePageUrl } from '../data/template-links';
 
 const lanes = [
   {
@@ -177,7 +178,7 @@ const shown = templates.slice(0, 20);
   <section class="section" aria-labelledby="templates">
     <div class="wrap">
       <div class="section-head">
-        <h2 id="templates">Self-host popular open-source apps in one click</h2>
+        <h2 id="templates">Self-host popular apps in one click</h2>
         <p class="lede">
           Each template sets up the app, its database and its secrets for you. Replace Zapier with n8n, Google
           Analytics with Plausible, or 1Password with Vaultwarden.
@@ -186,7 +187,7 @@ const shown = templates.slice(0, 20);
       <ul class="logos">
         {shown.map((t) => (
           <li>
-            <a href={`/templates/${t.id}`}>
+            <a href={templatePageUrl(t.id)}>
               <img src={`/templates/${t.id}.svg`} alt="" width="40" height="40" loading="lazy" decoding="async" />
               <span>{t.name}</span>
             </a>

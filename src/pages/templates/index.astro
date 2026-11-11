@@ -1,0 +1,416 @@
+---
+// The template catalogue overview. Each app's full page lives on the templates website
+// (template-links.ts); this page groups the 20 apps, says how a template deploy works and sends
+// every "Deploy" button to the console's get-started wizard.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Faq from '../../components/Faq.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import templates from '../../data/templates.json';
+import { categories, categoryById } from '../../data/categories';
+import { templatePageUrl, templatesHome } from '../../data/template-links';
+import { site, deployUrl, plans, trialDays } from '../../data/site';
+import { breadcrumbSchema, faqSchema } from '../../data/schema';
+
+const title = 'Self-hosted app templates for your own server';
+const description =
+  'Deploy n8n, WordPress, Nextcloud, Vaultwarden and 16 more self-hosted apps on your own server with Cloudgate. Pick a template, get a server, press Deploy.';
+const trail = [{ name: 'Templates', path: '/templates' }];
+
+const starter = plans.find((p) => p.id === 'starter')!;
+
+/** "A, B and C" */
+const listOf = (items: readonly string[]) =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+
+const groups = categories
+  .map((c) => ({ ...c, apps: templates.filter((t) => t.category === c.id) }))
+  .filter((g) => g.apps.length > 0);
+
+// The first group sits near the fold; every logo after it loads lazily.
+const eagerIds = new Set(groups[0]?.apps.map((a) => a.id) ?? []);
+
+const steps = [
+  {
+    name: 'Pick an app and press Deploy',
+    text: 'The Deploy button opens the get-started wizard in the Cloudgate console with that app chosen. Sign up, or sign in if you already have an account.',
+  },
+  {
+    name: 'Get a server',
+    text: 'Buy one from Cloudgate, choosing where it runs and how big it is, or use your own Ubuntu machine: the wizard makes a key and gives you the one command to run on it.',
+  },
+  {
+    name: 'Deploy and open your app',
+    text: 'Answer the few questions the app needs, if any, and press Deploy. Cloudgate applies the setup by itself once the server is ready, then shows the app’s address.',
+  },
+];
+
+const faq = [
+  {
+    q: 'How do I deploy a self-hosted app with Cloudgate?',
+    a: `Press Deploy next to the app. The get-started wizard signs you up or in, helps you buy a server or connect your own, asks the app’s questions and sets everything up. When it is done it shows an “Open” button and the app’s address.`,
+  },
+  {
+    q: 'How much does it cost to self-host an app with Cloudgate?',
+    a: `You pay for your Cloudgate plan, from $${starter.price} a month on ${starter.name} with a ${trialDays}-day free trial, plus the server the app runs on. A server bought from Cloudgate is billed monthly on the same invoice, with its price shown before you buy; your own server costs whatever you pay for it. The apps themselves are free to self-host under their own licences.`,
+  },
+  {
+    q: 'Can I use my own domain?',
+    a: 'Yes. Every app first gets a free sslip.io address that works right away over plain http. Add your own domain in the console and Cloudgate gets a Let’s Encrypt certificate for it, so the app is served over https.',
+  },
+  {
+    q: 'Is my data kept on my server?',
+    a: 'Yes. The app, its database and its files run on your Server, not on a shared platform. Cloudgate can back up databases and volumes to an S3-compatible destination you choose.',
+  },
+  {
+    q: 'Can I add my own app as a template?',
+    a: `Yes. The catalogue is public on GitHub at <a href="${site.templatesRepo}">octabyte-io/cg-templates</a>. A template is a folder with a <code>cloudgate.yaml</code> and a <code>template.yaml</code>, and <code>cloudgate template check</code> in the Cloudgate CLI tells you whether a Cloudgate instance will accept it.`,
+  },
+];
+
+const itemList = {
+  '@type': 'ItemList',
+  name: 'Cloudgate app templates',
+  numberOfItems: templates.length,
+  itemListElement: templates.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: templatePageUrl(t.id),
+    item: {
+      '@type': 'SoftwareApplication',
+      name: t.name,
+      description: t.description,
+      url: templatePageUrl(t.id),
+      applicationCategory: categoryById.get(t.category)?.schemaCategory ?? 'WebApplication',
+      operatingSystem: 'Linux',
+      sameAs: t.website,
+    },
+  })),
+};
+
+const howTo = {
+  '@type': 'HowTo',
+  name: 'How to deploy a self-hosted app template with Cloudgate',
+  step: steps.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: s.name, text: s.text })),
+};
+
+const schema = [breadcrumbSchema(trail), itemList, howTo, faqSchema(faq)];
+---
+<Base title={title} description={description} schema={schema}>
+  <PageHero
+    title="Self-hosted app templates"
+    lede={`${templates.length} apps that replace tools you pay for each month, each set up on your own server with everything it needs and a web address. Pick one and press Deploy.`}
+    trail={trail}
+  >
+    <a class="btn btn--primary" href="#apps">See the apps</a>
+    <a class="btn btn--ghost" href={templatesHome}>Browse the templates website</a>
+  </PageHero>
+
+  <section class="section section--tight" aria-labelledby="how-title">
+    <div class="wrap how">
+      <div class="section-head">
+        <h2 id="how-title">How a template deploy works</h2>
+        <p class="lede">
+          You never write a config file. The wizard knows what each app needs, and you get a free sslip.io
+          address the moment it is running; add your own domain later for https.
+        </p>
+      </div>
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li>
+            <span class={`slice slice--${i + 1}`} aria-hidden="true"></span>
+            <h3>{s.name}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--tight catalogue" id="apps" aria-labelledby="apps-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="apps-title">Apps you can deploy</h2>
+        <p class="lede">
+          Each app’s name opens its full page on the <a href={templatesHome}>Cloudgate templates website</a>,
+          where you can search the catalogue and read what every template sets up.
+        </p>
+      </div>
+      <nav class="jump" aria-label="Categories">
+        <ul>
+          {groups.map((g) => (
+            <li><a href={`#${g.id}`}>{g.name} <span class="count">{g.apps.length}</span></a></li>
+          ))}
+        </ul>
+      </nav>
+
+      {groups.map((g) => (
+        <section class="group" id={g.id} aria-labelledby={`${g.id}-title`}>
+          <div class="group-head">
+            <h2 id={`${g.id}-title`}>{g.name}</h2>
+            <p>{g.lede}</p>
+          </div>
+          <ul class="apps">
+            {g.apps.map((t) => (
+              <li class="app">
+                <img
+                  class="logo"
+                  src={`/templates/${t.id}.svg`}
+                  width="48"
+                  height="48"
+                  alt={`${t.name} logo`}
+                  loading={eagerIds.has(t.id) ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+                <div class="body">
+                  <h3><a href={templatePageUrl(t.id)}>{t.name}</a></h3>
+                  <p class="tagline">{t.tagline}</p>
+                  <dl class="meta">
+                    {t.alternativeNames.length > 0 && (
+                      <div><dt>Replaces</dt><dd>{listOf(t.alternativeNames)}</dd></div>
+                    )}
+                    <div><dt>Sets up</dt><dd>{listOf(t.creates.map((c) => (c === 'web app' ? 'the app' : `a ${c}`)))}</dd></div>
+                    <div><dt>Licence</dt><dd>{t.license}</dd></div>
+                  </dl>
+                  <a class="btn btn--primary deploy" href={deployUrl(t.id)}>Deploy {t.name}</a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="own-title">
+    <div class="wrap own">
+      <div class="stack">
+        <h2 id="own-title">Bring your own template</h2>
+        <p class="measure">
+          The catalogue is public on GitHub at <a href={site.templatesRepo}>octabyte-io/cg-templates</a>. Each
+          template is a folder with a <code>cloudgate.yaml</code>, the same project config you would write for
+          your own app, and a <code>template.yaml</code> that names the values to generate or ask for.
+        </p>
+        <p class="measure">
+          Before you open a pull request, the <a href="/cli">Cloudgate CLI</a> checks a template folder exactly
+          as a Cloudgate instance will read it. Your own app does not need a template at all: point Cloudgate at
+          its folder or Git repository and deploy it as it is.
+        </p>
+      </div>
+      <pre class="code" aria-label="Checking a template with the Cloudgate CLI"><code><span class="d"># install the CLI (Node 22+)</span>
+npm install -g @octabyte-io/cloudgate
+
+<span class="d"># check a template folder</span>
+<span class="k">cloudgate</span> template check <span class="s">./my-app</span></code></pre>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="next-title">
+    <div class="wrap">
+      <h2 id="next-title" class="next-title">Where to go next</h2>
+      <ul class="next">
+        <li><a href="/pricing">Cloudgate pricing: plans from ${starter.price} a month</a></li>
+        <li><a href="/self-hosted">Run Cloudgate itself on your own server</a></li>
+        <li><a href="/ai-agents">Let your AI agent deploy and check your apps</a></li>
+        <li><a href="/vibe-coding">Deploy an app you built with AI</a></li>
+        <li><a href={templatesHome}>Search every template on the templates website</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions about templates" />
+  <CtaBand title="Put your first app online today" />
+</Base>
+
+<style>
+  /* How it works: three steps, each marked by one slice of the mark. */
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+  .steps li {
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-5);
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .steps p {
+    color: var(--muted);
+  }
+
+  /* Category jump list. */
+  .jump ul {
+    list-style: none;
+    margin: 0 0 var(--space-7);
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .jump a:hover {
+    border-color: var(--ink);
+  }
+  .count {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A category: heading on the left, its apps on the right. */
+  .group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+    gap: var(--space-5) var(--space-7);
+    padding-block: var(--space-7);
+    border-top: 1px solid var(--line);
+  }
+  .group-head {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .group-head h2 {
+    font-size: var(--text-2xl);
+  }
+  .group-head p {
+    color: var(--muted);
+    max-width: 40ch;
+  }
+  .apps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+  .logo {
+    width: 48px;
+    height: 48px;
+    padding: 9px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .body {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .body h3 {
+    font-size: var(--text-xl);
+  }
+  .body h3 a {
+    text-decoration: none;
+  }
+  .body h3 a:hover {
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+  }
+  .tagline {
+    color: var(--ink-2);
+  }
+  .meta {
+    margin: 0;
+    display: grid;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+  }
+  .meta div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+  }
+  .meta dt {
+    color: var(--muted);
+  }
+  .meta dd {
+    margin: 0;
+    color: var(--ink-2);
+  }
+  .deploy {
+    margin-top: var(--space-2);
+  }
+
+  /* Bring your own template. */
+  .own {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: center;
+  }
+  .own h2 {
+    margin-bottom: var(--space-2);
+  }
+  .own p {
+    color: var(--muted);
+  }
+  .own p a,
+  .section-head a {
+    color: var(--brand);
+  }
+
+  .next-title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-5);
+  }
+  .next {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-7);
+  }
+  .next a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--line);
+    color: var(--brand);
+    font-weight: 500;
+  }
+
+  @media (max-width: 960px) {
+    .group {
+      grid-template-columns: 1fr;
+    }
+    .own {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 720px) {
+    .steps,
+    .apps,
+    .next {
+      grid-template-columns: 1fr;
+    }
+    .steps {
+      gap: var(--space-5);
+    }
+  }
+</style>

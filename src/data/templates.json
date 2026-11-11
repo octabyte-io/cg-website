@@ -11,7 +11,33 @@
       "ifttt"
     ],
     "license": "MIT",
-    "website": "https://www.activepieces.com"
+    "website": "https://www.activepieces.com",
+    "alternativeNames": [
+      "Zapier",
+      "Make",
+      "IFTTT"
+    ],
+    "version": "0.93.0",
+    "source": "https://github.com/activepieces/activepieces",
+    "docs": "https://www.activepieces.com/docs/install/overview",
+    "ease": "easy",
+    "goodFor": "Simple to medium automations, closest to how Zapier feels",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Activepieces app itself, with its own web address",
+      "A PostgreSQL database",
+      "A Redis cache and job queue"
+    ],
+    "volumes": 3,
+    "asks": [],
+    "generated": 3,
+    "creates": [
+      "web app",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "automatisch",
@@ -25,7 +51,35 @@
       "make"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://automatisch.io"
+    "website": "https://automatisch.io",
+    "alternativeNames": [
+      "Zapier",
+      "IFTTT",
+      "Make"
+    ],
+    "version": "0.15.0",
+    "source": "https://github.com/automatisch/automatisch",
+    "docs": "https://automatisch.io/docs",
+    "ease": "easy",
+    "goodFor": "Short two- or three-step flows for a small team",
+    "setup": "compose",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The Automatisch app itself, with its own web address",
+      "A background worker that runs the app’s jobs",
+      "A PostgreSQL database",
+      "A Redis cache and job queue"
+    ],
+    "volumes": 3,
+    "asks": [],
+    "generated": 4,
+    "creates": [
+      "web app",
+      "background worker",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "baserow",
@@ -37,7 +91,27 @@
       "airtable"
     ],
     "license": "MIT",
-    "website": "https://baserow.io"
+    "website": "https://baserow.io",
+    "alternativeNames": [
+      "Airtable"
+    ],
+    "version": "2.4.2",
+    "source": "https://github.com/baserow/baserow",
+    "docs": "https://baserow.io/docs/installation/install-with-docker",
+    "ease": "easy",
+    "goodFor": "Teams that outgrew spreadsheets and want Airtable-style databases on their own server",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Baserow app itself, with its own web address"
+    ],
+    "volumes": 1,
+    "asks": [],
+    "generated": 0,
+    "creates": [
+      "web app"
+    ]
   },
   {
     "id": "calcom",
@@ -49,7 +123,56 @@
       "calendly"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://cal.com"
+    "website": "https://cal.com",
+    "alternativeNames": [
+      "Calendly"
+    ],
+    "version": "6.2.0",
+    "source": "https://github.com/calcom/cal.com",
+    "docs": "https://cal.com/docs/self-hosting/installation",
+    "ease": "some-setup",
+    "goodFor": "Freelancers, practices and small teams who take bookings and meetings",
+    "setup": "services",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Cal.com app itself, with its own web address",
+      "A managed PostgreSQL 16 database",
+      "A managed Redis 7 cache"
+    ],
+    "volumes": 0,
+    "asks": [
+      {
+        "label": "Sender email (optional)",
+        "description": "The address booking confirmations are sent from. Leave the email questions empty to add them later on the app's variables page.",
+        "required": false
+      },
+      {
+        "label": "Email server (SMTP host, optional)",
+        "description": "From your email sending service, for example smtp.postmarkapp.com or email-smtp.eu-west-1.amazonaws.com.",
+        "required": false
+      },
+      {
+        "label": "Email server port",
+        "description": "587 works with most email services.",
+        "default": "587",
+        "required": false
+      },
+      {
+        "label": "Email server username (optional)",
+        "required": false
+      },
+      {
+        "label": "Email server password (optional)",
+        "required": false
+      }
+    ],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "chatwoot",
@@ -62,7 +185,58 @@
       "zendesk"
     ],
     "license": "MIT",
-    "website": "https://www.chatwoot.com"
+    "website": "https://www.chatwoot.com",
+    "alternativeNames": [
+      "Intercom",
+      "Zendesk"
+    ],
+    "version": "4.19.1",
+    "source": "https://github.com/chatwoot/chatwoot",
+    "docs": "https://developers.chatwoot.com/self-hosted",
+    "ease": "some-setup",
+    "goodFor": "Small support teams answering chat, email and social messages together",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Chatwoot app itself, with its own web address",
+      "A background worker that runs the app’s jobs",
+      "A PostgreSQL database",
+      "A Redis cache and job queue"
+    ],
+    "volumes": 3,
+    "asks": [
+      {
+        "label": "Send emails from",
+        "description": "The address Chatwoot's emails come from, such as support@yourshop.com. Needed if you fill in an email server below.",
+        "required": false
+      },
+      {
+        "label": "Email server (SMTP) address",
+        "description": "Optional, but needed to invite your team and reply to customers by email. Your email provider gives you this, such as smtp.mailgun.org.",
+        "required": false
+      },
+      {
+        "label": "Email server port",
+        "default": "587",
+        "required": false
+      },
+      {
+        "label": "Email server username",
+        "required": false
+      },
+      {
+        "label": "Email server password",
+        "required": false
+      }
+    ],
+    "generated": 3,
+    "creates": [
+      "web app",
+      "background worker",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "ghost",
@@ -77,7 +251,57 @@
       "squarespace"
     ],
     "license": "MIT",
-    "website": "https://ghost.org"
+    "website": "https://ghost.org",
+    "alternativeNames": [
+      "Substack",
+      "Medium",
+      "Mailchimp",
+      "Squarespace"
+    ],
+    "version": "6.76.0",
+    "source": "https://github.com/TryGhost/Ghost",
+    "docs": "https://docs.ghost.org",
+    "ease": "some-setup",
+    "goodFor": "Writers, creators and small publishers who want a blog, newsletter and paid memberships in one place",
+    "setup": "compose",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The Ghost app itself, with its own web address",
+      "A MySQL database"
+    ],
+    "volumes": 2,
+    "asks": [
+      {
+        "label": "Sender email",
+        "description": "The address Ghost sends sign-in links, staff invites and password resets from. Use one your email service lets you send from.",
+        "required": true
+      },
+      {
+        "label": "Email server (SMTP host)",
+        "description": "From your email sending service, for example smtp.mailgun.org, email-smtp.eu-west-1.amazonaws.com or smtp.postmarkapp.com.",
+        "required": true
+      },
+      {
+        "label": "Email server port",
+        "description": "587 works with most email services.",
+        "default": "587",
+        "required": true
+      },
+      {
+        "label": "Email server username",
+        "required": true
+      },
+      {
+        "label": "Email server password",
+        "required": true
+      }
+    ],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "MySQL database"
+    ]
   },
   {
     "id": "gitea",
@@ -90,7 +314,37 @@
       "bitbucket"
     ],
     "license": "MIT",
-    "website": "https://about.gitea.com"
+    "website": "https://about.gitea.com",
+    "alternativeNames": [
+      "GitHub",
+      "Bitbucket"
+    ],
+    "version": "28.3.0",
+    "source": "https://github.com/go-gitea/gitea",
+    "docs": "https://docs.gitea.com",
+    "ease": "easy",
+    "goodFor": "Small teams that want private code hosting with reviews and builds",
+    "setup": "compose",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The Gitea app itself, with its own web address",
+      "A PostgreSQL database"
+    ],
+    "volumes": 2,
+    "asks": [
+      {
+        "label": "Turn off open sign-up",
+        "description": "Leave this \"false\" for now: the first account registered becomes the admin. Once your team has accounts, change it to \"true\" in this app's variables and redeploy, so only the admin can add people. \"true\" at setup leaves nobody able to register, not even the admin.",
+        "default": "false",
+        "required": true
+      }
+    ],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "immich",
@@ -103,7 +357,41 @@
       "icloud-photos"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://immich.app"
+    "website": "https://immich.app",
+    "alternativeNames": [
+      "Google Photos",
+      "iCloud Photos"
+    ],
+    "version": "3.4.0",
+    "source": "https://github.com/immich-app/immich",
+    "docs": "https://docs.immich.app",
+    "ease": "easy",
+    "goodFor": "Families and teams with many photos who want them backed up privately",
+    "setup": "compose",
+    "size": "xlarge",
+    "sizeText": "4 CPU and 8 GB of memory",
+    "parts": [
+      "The Immich app itself, with its own web address",
+      "A machine-learning helper that recognises faces and objects in photos",
+      "A Valkey cache for background jobs",
+      "A PostgreSQL database"
+    ],
+    "volumes": 3,
+    "asks": [
+      {
+        "label": "Time zone",
+        "description": "Used to show when photos were taken, as an IANA name such as Europe/Berlin.",
+        "default": "Etc/UTC",
+        "required": false
+      }
+    ],
+    "generated": 1,
+    "creates": [
+      "web app",
+      "machine-learning helper",
+      "Valkey cache",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "listmonk",
@@ -115,7 +403,43 @@
       "mailchimp"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://listmonk.app"
+    "website": "https://listmonk.app",
+    "alternativeNames": [
+      "Mailchimp"
+    ],
+    "version": "6.2.0",
+    "source": "https://github.com/knadh/listmonk",
+    "docs": "https://listmonk.app/docs/",
+    "ease": "some-setup",
+    "goodFor": "Regular newsletters to large lists at a low cost per email",
+    "setup": "compose",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The listmonk app itself, with its own web address",
+      "A one-off setup step that prepares the database on first start",
+      "A PostgreSQL database"
+    ],
+    "volumes": 2,
+    "asks": [
+      {
+        "label": "Admin username",
+        "description": "The name you sign in with. Cloudgate creates a strong password for it, shown afterwards on the app's variables page.",
+        "default": "admin",
+        "required": true
+      },
+      {
+        "label": "Time zone",
+        "description": "Used for scheduled campaigns, as an IANA name such as Europe/Berlin.",
+        "default": "Etc/UTC",
+        "required": false
+      }
+    ],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "matomo",
@@ -127,7 +451,29 @@
       "google-analytics"
     ],
     "license": "GPL-3.0-or-later",
-    "website": "https://matomo.org"
+    "website": "https://matomo.org",
+    "alternativeNames": [
+      "Google Analytics"
+    ],
+    "version": "5.14.2",
+    "source": "https://github.com/matomo-org/matomo",
+    "docs": "https://matomo.org/docs/",
+    "ease": "some-setup",
+    "goodFor": "Detailed marketing and e-commerce reports, close to Google Analytics",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Matomo app itself, with its own web address",
+      "A MariaDB database"
+    ],
+    "volumes": 2,
+    "asks": [],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "MariaDB database"
+    ]
   },
   {
     "id": "mattermost",
@@ -140,7 +486,30 @@
       "microsoft-teams"
     ],
     "license": "MIT",
-    "website": "https://mattermost.com"
+    "website": "https://mattermost.com",
+    "alternativeNames": [
+      "Slack",
+      "Microsoft Teams"
+    ],
+    "version": "12.1.0",
+    "source": "https://github.com/mattermost/mattermost",
+    "docs": "https://docs.mattermost.com",
+    "ease": "easy",
+    "goodFor": "Small teams that want Slack-style chat with unlimited history on their own server",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Mattermost app itself, with its own web address",
+      "A PostgreSQL database"
+    ],
+    "volumes": 6,
+    "asks": [],
+    "generated": 1,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "metabase",
@@ -153,7 +522,30 @@
       "looker"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://www.metabase.com"
+    "website": "https://www.metabase.com",
+    "alternativeNames": [
+      "Tableau",
+      "Looker"
+    ],
+    "version": "0.65.4.1",
+    "source": "https://github.com/metabase/metabase",
+    "docs": "https://www.metabase.com/docs/latest/",
+    "ease": "some-setup",
+    "goodFor": "Teams that want shared dashboards without hiring a data analyst",
+    "setup": "services",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Metabase app itself, with its own web address",
+      "A managed PostgreSQL 16 database"
+    ],
+    "volumes": 0,
+    "asks": [],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "n8n",
@@ -167,7 +559,38 @@
       "ifttt"
     ],
     "license": "SUL-1.0",
-    "website": "https://n8n.io"
+    "website": "https://n8n.io",
+    "alternativeNames": [
+      "Zapier",
+      "Make",
+      "IFTTT"
+    ],
+    "version": "2.47.4",
+    "source": "https://github.com/n8n-io/n8n",
+    "docs": "https://docs.n8n.io/hosting/",
+    "ease": "some-setup",
+    "goodFor": "Busy or complex automations, with branches, loops and AI steps",
+    "setup": "services",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The n8n app itself, with its own web address",
+      "A managed PostgreSQL 16 database"
+    ],
+    "volumes": 0,
+    "asks": [
+      {
+        "label": "Time zone",
+        "description": "Used by schedule triggers, as an IANA name such as Europe/Berlin.",
+        "default": "UTC",
+        "required": true
+      }
+    ],
+    "generated": 1,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "nextcloud",
@@ -180,7 +603,34 @@
       "dropbox"
     ],
     "license": "AGPL-3.0-or-later",
-    "website": "https://nextcloud.com"
+    "website": "https://nextcloud.com",
+    "alternativeNames": [
+      "Google Drive",
+      "Dropbox"
+    ],
+    "version": "35.0.2",
+    "source": "https://github.com/nextcloud/server",
+    "docs": "https://docs.nextcloud.com/server/latest/admin_manual/",
+    "ease": "some-setup",
+    "goodFor": "Teams that want files, calendars and contacts in one private place",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Nextcloud app itself, with its own web address",
+      "A scheduled-jobs container that runs the app’s background tasks",
+      "A PostgreSQL database",
+      "A Redis cache and job queue"
+    ],
+    "volumes": 2,
+    "asks": [],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "scheduled jobs",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "outline",
@@ -193,7 +643,61 @@
       "confluence"
     ],
     "license": "BUSL-1.1",
-    "website": "https://www.getoutline.com"
+    "website": "https://www.getoutline.com",
+    "alternativeNames": [
+      "Notion",
+      "Confluence"
+    ],
+    "version": "1.12.0",
+    "source": "https://github.com/outline/outline",
+    "docs": "https://docs.getoutline.com/s/hosting",
+    "ease": "some-setup",
+    "goodFor": "Team handbooks, how-to guides and meeting notes that people can find quickly",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Outline app itself, with its own web address",
+      "A PostgreSQL database",
+      "A Redis cache and job queue"
+    ],
+    "volumes": 3,
+    "asks": [
+      {
+        "label": "OIDC client ID",
+        "description": "The client ID of the app you registered for Outline in your sign-in service (Google, Microsoft Entra, Okta, Authentik and others). Use <Outline's address>/auth/oidc.callback as its redirect URL.",
+        "required": true
+      },
+      {
+        "label": "OIDC client secret",
+        "required": true
+      },
+      {
+        "label": "Authorization URL",
+        "description": "Your provider's authorization endpoint, e.g. https://auth.example.com/application/o/authorize/",
+        "required": true
+      },
+      {
+        "label": "Token URL",
+        "required": true
+      },
+      {
+        "label": "User info URL",
+        "required": true
+      },
+      {
+        "label": "Sign-in button text",
+        "description": "Shown on Outline's sign-in page as \"Continue with …\".",
+        "default": "Single sign-on",
+        "required": false
+      }
+    ],
+    "generated": 3,
+    "creates": [
+      "web app",
+      "PostgreSQL database",
+      "Redis cache"
+    ]
   },
   {
     "id": "plausible",
@@ -205,7 +709,31 @@
       "google-analytics"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://plausible.io"
+    "website": "https://plausible.io",
+    "alternativeNames": [
+      "Google Analytics"
+    ],
+    "version": "3.2.1",
+    "source": "https://github.com/plausible/analytics",
+    "docs": "https://github.com/plausible/community-edition/wiki",
+    "ease": "easy",
+    "goodFor": "Small businesses that want clear visitor numbers on one page, without cookies",
+    "setup": "compose",
+    "size": "medium",
+    "sizeText": "1 CPU and 2 GB of memory",
+    "parts": [
+      "The Plausible Analytics app itself, with its own web address",
+      "A PostgreSQL database",
+      "A ClickHouse database that stores visitor events"
+    ],
+    "volumes": 4,
+    "asks": [],
+    "generated": 3,
+    "creates": [
+      "web app",
+      "PostgreSQL database",
+      "ClickHouse events database"
+    ]
   },
   {
     "id": "umami",
@@ -217,7 +745,29 @@
       "google-analytics"
     ],
     "license": "MIT",
-    "website": "https://umami.is"
+    "website": "https://umami.is",
+    "alternativeNames": [
+      "Google Analytics"
+    ],
+    "version": "3.4.1",
+    "source": "https://github.com/umami-software/umami",
+    "docs": "https://umami.is/docs",
+    "ease": "easy",
+    "goodFor": "Freelancers and agencies tracking several websites, with no cookies",
+    "setup": "services",
+    "size": null,
+    "sizeText": null,
+    "parts": [
+      "The Umami app itself, with its own web address",
+      "A managed PostgreSQL 16 database"
+    ],
+    "volumes": 0,
+    "asks": [],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "uptime-kuma",
@@ -230,7 +780,28 @@
       "statuspage"
     ],
     "license": "MIT",
-    "website": "https://uptime.kuma.pet"
+    "website": "https://uptime.kuma.pet",
+    "alternativeNames": [
+      "Pingdom",
+      "Statuspage"
+    ],
+    "version": "2.5.9",
+    "source": "https://github.com/louislam/uptime-kuma",
+    "docs": "https://github.com/louislam/uptime-kuma/wiki",
+    "ease": "easy",
+    "goodFor": "Watching websites and online services, with a public status page",
+    "setup": "compose",
+    "size": "xsmall",
+    "sizeText": "0.25 CPU and 512 MB of memory",
+    "parts": [
+      "The Uptime Kuma app itself, with its own web address"
+    ],
+    "volumes": 1,
+    "asks": [],
+    "generated": 0,
+    "creates": [
+      "web app"
+    ]
   },
   {
     "id": "vaultwarden",
@@ -243,7 +814,37 @@
       "lastpass"
     ],
     "license": "AGPL-3.0-only",
-    "website": "https://github.com/dani-garcia/vaultwarden"
+    "website": "https://github.com/dani-garcia/vaultwarden",
+    "alternativeNames": [
+      "1Password",
+      "LastPass"
+    ],
+    "version": "1.37.5",
+    "source": "https://github.com/dani-garcia/vaultwarden",
+    "docs": "https://github.com/dani-garcia/vaultwarden/wiki",
+    "ease": "easy",
+    "goodFor": "Small teams that want shared passwords without a per-person fee",
+    "setup": "compose",
+    "size": "xsmall",
+    "sizeText": "0.25 CPU and 512 MB of memory",
+    "parts": [
+      "The Vaultwarden app itself, with its own web address",
+      "A PostgreSQL database"
+    ],
+    "volumes": 2,
+    "asks": [
+      {
+        "label": "Allow sign-ups",
+        "description": "\"true\" lets anyone who can reach the Domain create an account. Once your own accounts exist, turn sign-ups off on the admin page (/admin) and invite people from there instead.",
+        "default": "true",
+        "required": true
+      }
+    ],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "PostgreSQL database"
+    ]
   },
   {
     "id": "wordpress",
@@ -257,6 +858,30 @@
       "medium"
     ],
     "license": "GPL-2.0-or-later",
-    "website": "https://wordpress.org"
+    "website": "https://wordpress.org",
+    "alternativeNames": [
+      "Wix",
+      "Squarespace",
+      "Medium"
+    ],
+    "version": "7.1.4",
+    "source": "https://github.com/WordPress/WordPress",
+    "docs": "https://wordpress.org/documentation/",
+    "ease": "easy",
+    "goodFor": "Any kind of website, with the widest choice of themes, plugins and people who can help",
+    "setup": "compose",
+    "size": "small",
+    "sizeText": "0.5 CPU and 1 GB of memory",
+    "parts": [
+      "The WordPress app itself, with its own web address",
+      "A MariaDB database"
+    ],
+    "volumes": 2,
+    "asks": [],
+    "generated": 2,
+    "creates": [
+      "web app",
+      "MariaDB database"
+    ]
   }
 ]
