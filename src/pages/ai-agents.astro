@@ -1,0 +1,481 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { faqSchema, breadcrumbSchema } from '../data/schema';
+
+const trail = [{ name: 'AI agents', path: '/ai-agents' }];
+
+const title = 'Let AI agents deploy over MCP with guard rails | Cloudgate';
+const description =
+  'Give Claude Code, Cursor or any MCP client its own Cloudgate Agent: a role, a grant, a key. It deploys, opens previews and reads logs, with every call audited.';
+
+// An illustrative session. The tool names and answer fields are the real ones; names and ids are examples.
+const transcript = `<span class="d"># An illustrative session. Project, Service and ids are examples.</span>
+
+<span class="who">you</span>    The checkout page fails on an empty cart. The fix is
+       merged. Ship it to staging and tell me if it is healthy.
+
+<span class="who">agent</span>  <span class="k">deploy_service</span>
+       { "serviceType": "application", "serviceId": "storefront" }
+<span class="d">result</span> { "deploymentId": "dep_7f2c", "coalesced": false,
+         "message": <span class="s">"Deployment dep_7f2c is queued; poll list_deployments for it."</span> }
+
+<span class="d"># The client timed out and retried. Nothing new is queued.</span>
+<span class="who">agent</span>  <span class="k">deploy_service</span>
+       { "serviceType": "application", "serviceId": "storefront" }
+<span class="d">result</span> { "deploymentId": "dep_7f2c", "coalesced": true }
+
+<span class="who">agent</span>  <span class="k">list_deployments</span>
+       { "serviceType": "application", "serviceId": "storefront" }
+<span class="d">result</span> [ { "deploymentId": "dep_7f2c", "status": <span class="s">"done"</span> }, ... ]
+
+<span class="who">agent</span>  <span class="k">read_deployment_log</span>
+       { "deploymentId": "dep_7f2c", "lines": 100 }
+<span class="d">result</span> ...
+         Installing dependencies
+         DATABASE_URL=<span class="s">••••••</span>
+         Build finished, starting container
+         ...
+
+<span class="who">agent</span>  <span class="k">get_service_health</span>
+       { "serviceType": "application", "serviceId": "storefront" }
+<span class="d">result</span> { "uptimeChecks": [ { "name": "checkout", "state": <span class="s">"up"</span> } ],
+         "openIncidents": [] }
+
+<span class="who">agent</span>  Deployed dep_7f2c to staging. The checkout uptime check
+       is up and there are no open incidents.`;
+
+const toolGroups = [
+  {
+    name: 'Deploy and operate',
+    text: 'Queue a build, start or stop a Service, or cancel a Deployment that should not finish.',
+    tools: ['deploy_service', 'start_service', 'stop_service', 'cancel_deployment'],
+  },
+  {
+    name: 'Previews',
+    text: 'Open a requested preview of a branch, give it more time, rebuild it, or end it early.',
+    tools: ['create_preview', 'extend_preview', 'redeploy_preview', 'delete_preview', 'list_previews', 'get_preview'],
+  },
+  {
+    name: 'Plans and project config',
+    text: 'Read the Project config, ask for a fresh Plan and read what it would change. Applying it stays with you.',
+    tools: ['get_project_config', 'request_plan', 'get_plan'],
+  },
+  {
+    name: 'Read health, logs and state',
+    text: 'Follow a Deployment, read its log, and read the same health a person sees on the Health tab.',
+    tools: [
+      'get_service_health',
+      'list_deployments',
+      'read_deployment_log',
+      'get_service',
+      'get_environment',
+      'list_projects',
+      'list_environments',
+      'list_domains',
+    ],
+  },
+];
+
+const faq = [
+  {
+    q: 'Which AI tools can connect to Cloudgate?',
+    a: 'Any MCP client, such as Claude Code or Cursor. It connects to your console address plus <code>/mcp</code> with an agent key as a bearer token. The console\'s Connect panel has the configuration for each supported client.',
+  },
+  {
+    q: 'Can an agent see my secrets?',
+    a: 'No stored secret reaches it as written. Every tool result, deployment logs included, passes through a mask that replaces stored secrets with <code>••••••</code>. A value the build prints that Cloudgate never stored is not masked, so do not let builds print secrets.',
+  },
+  {
+    q: 'What is the difference between the Reader and Operator roles?',
+    a: 'A Reader reads: Services, Deployments, logs, health and plans, and it can ask for a Plan. An Operator can also deploy, start and stop Services, cancel Deployments and manage previews. Both are limited to the Projects, Environments and Services in their grant.',
+  },
+  {
+    q: 'Can an agent apply infrastructure changes or turn off alerts?',
+    a: 'No. An agent can ask for a Plan and read it, but no tool applies or dismisses one, whatever its role. It reads a Service\'s health and never adds, edits or removes an uptime check or an error-rate threshold, so it cannot silence an incident.',
+  },
+  {
+    q: 'What happens if an agent gets stuck in a loop?',
+    a: 'Each Agent has two budgets: 120 reads a minute and 10 writes a minute. A call over budget is answered with HTTP 429 and a Retry-After header, and writes a refused row in the audit log. Calling <code>deploy_service</code> twice while a build is queued joins that build instead of queuing another.',
+  },
+  {
+    q: 'Can I use an agent key with the REST API or the CLI?',
+    a: 'No. An agent key works only at the MCP endpoint and the Gateway. The REST API and the console\'s sign-in routes refuse it. Scripts and the CLI use a personal key instead.',
+  },
+  {
+    q: 'Are Agents included in every plan?',
+    a: 'Yes. Agents and the MCP endpoint are part of the Starter plan on the Hosted instance, and of every self-hosted install. See <a href="/pricing">Cloudgate pricing</a> for what each plan counts.',
+  },
+];
+---
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Let your AI agent deploy, with guard rails"
+    lede="Cloudgate gives Claude Code, Cursor or any MCP client its own member account: a role, a grant to the Services it may touch, and its own keys. It deploys, opens previews and reads logs and health. Every call lands in the audit log and secrets never reach it."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+    <a class="btn btn--ghost" href="#guard-rails">See the guard rails</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="what-agent">
+    <div class="wrap split">
+      <div class="section-head">
+        <h2 id="what-agent">What is an Agent in Cloudgate?</h2>
+        <p class="lede">
+          An Agent is a member of your Organization that is not a person. Your AI tool acts as it,
+          so what the tool can reach is decided in Cloudgate, not in a prompt.
+        </p>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>Its own role</dt>
+          <dd>Reader to look, Operator to deploy and run. Never more than the role allows, whatever the agent is asked.</dd>
+        </div>
+        <div>
+          <dt>Its own grant</dt>
+          <dd>The Projects, Environments and Services it may reach. A staging grant keeps it out of production.</dd>
+        </div>
+        <div>
+          <dt>Its own keys</dt>
+          <dd>Agent keys, shown once, that you can let expire or revoke without touching anyone else's access.</dd>
+        </div>
+        <div>
+          <dt>It outlives its maker</dt>
+          <dd>The Agent belongs to the Organization. When the person who made it leaves, the agent keeps working.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="connect">
+    <div class="wrap two">
+      <div class="stack copy">
+        <h2 id="connect">How does an AI agent connect to Cloudgate?</h2>
+        <p>
+          Over MCP. The endpoint is your console's address followed by <code>/mcp</code>, and the
+          agent key goes in the <code>Authorization</code> header as a bearer token. That is the
+          whole of the setup: no OAuth flow, no plugin to install on the Server.
+        </p>
+        <p>
+          Create the Agent in Settings, Agents. The console's Connect panel then shows the
+          configuration for each MCP client it supports, ready to paste into Claude Code, Cursor or
+          another client.
+        </p>
+        <p>
+          On the Hosted instance the console is <code>cloudgate.octabyte.app</code>. On a <a href="/self-hosted">self-hosted Cloudgate install</a> it is your own address.
+        </p>
+      </div>
+      <pre class="code endpoint"><span class="d"># What every MCP call carries</span>
+<span class="k">POST</span> https://cloudgate.octabyte.app/mcp
+<span class="k">Authorization:</span> Bearer <span class="s">&lt;agent key&gt;</span>
+<span class="k">Content-Type:</span> application/json</pre>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="session">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="session">What does an agent's deploy look like?</h2>
+        <p class="lede">
+          The agent queues a build, follows it, reads the log and checks health before it reports
+          back. The tool names below are the real ones. A retried deploy joins the queued build, and
+          the stored database address comes back masked.
+        </p>
+      </div>
+      <figure class="session">
+        <pre class="code transcript" set:html={transcript} />
+        <figcaption>An illustrative session between an MCP client and Cloudgate. Names and ids are examples.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="tools">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="tools">Which tools can an agent call?</h2>
+        <p class="lede">
+          Four groups of tools, each checked against the Agent's role and grant on every call.
+          There is no tool that runs a shell, applies a Plan or changes an alert.
+        </p>
+      </div>
+      <dl class="facts tools">
+        {toolGroups.map((g) => (
+          <div>
+            <dt>{g.name}</dt>
+            <dd>
+              <p>{g.text}</p>
+              <ul class="tool-list">
+                {g.tools.map((t) => <li><code>{t}</code></li>)}
+              </ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="guard-rails" id="guard-rails-section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="guard-rails">What stops an agent from doing damage?</h2>
+        <p class="lede">
+          The limits sit in Cloudgate, outside the model, so they hold whatever the agent is told
+          or tells itself.
+        </p>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>Every call is in the audit log</dt>
+          <dd>One row per call, with the tool and the outcome: succeeded, refused or failed. A refusal names its reason, such as permission, grant or rate limit.</dd>
+        </div>
+        <div>
+          <dt>Secrets are masked in every result</dt>
+          <dd>Stored secrets, from environment variables to database passwords, are replaced with <code>••••••</code> in every answer, deployment logs included.</dd>
+        </div>
+        <div>
+          <dt>Rate limits per Agent</dt>
+          <dd>120 reads and 10 writes a minute, shared by all of an Agent's keys. Going over answers 429 with a Retry-After and spends nothing.</dd>
+        </div>
+        <div>
+          <dt>Deploying twice is safe</dt>
+          <dd>If a Deployment of the Service is still queued, a second <code>deploy_service</code> answers that one with <code>coalesced: true</code> and queues nothing.</dd>
+        </div>
+        <div>
+          <dt>Plans are requested, never applied</dt>
+          <dd>An agent can tell you what a change to the Project config would create, change or destroy. You review the Plan and apply it in the console.</dd>
+        </div>
+        <div>
+          <dt>Keys work in two places only</dt>
+          <dd>An agent key is accepted at the MCP endpoint and the Gateway. The REST API and the sign-in routes refuse it, and a personal key is refused at <code>/mcp</code>.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="loop">
+    <div class="wrap two">
+      <div class="stack copy">
+        <h2 id="loop">How does an agent test its own fix?</h2>
+        <p>
+          With a requested preview: a copy of the Application built from a branch, with its own
+          address, that expires on its own. The agent never touches the Environment you ship from.
+        </p>
+        <p class="note">
+          Pushing to a branch needs git access, which you give the AI tool at your git provider.
+          An Agent's grant reaches Cloudgate's Projects, Environments and Services, never your
+          repository.
+        </p>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Push a fix to a branch</h3>
+          <p>The agent commits its change to a branch, with the git access you gave it.</p>
+        </li>
+        <li>
+          <h3>Open a preview of that branch</h3>
+          <p><code>create_preview</code> builds the branch as its own preview, which expires by itself. <code>extend_preview</code> gives it more time.</p>
+        </li>
+        <li>
+          <h3>Read the log and health</h3>
+          <p><code>read_deployment_log</code> and <code>get_service_health</code> show whether the build worked and the app answers.</p>
+        </li>
+        <li>
+          <h3>Report back, or try again</h3>
+          <p>It tells you what it found, or pushes another commit and calls <code>redeploy_preview</code>.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="gateway">
+    <div class="wrap two">
+      <div class="stack copy">
+        <h2 id="gateway">Can agents call AI models you host yourself?</h2>
+        <p>
+          Yes, through the Gateway. Deploy a model served by Ollama, vLLM or llama.cpp as a Service,
+          on your own Server and GPUs. Every call reaches it through Cloudgate's Gateway, which
+          speaks the OpenAI API, so any OpenAI client works by changing its base URL.
+        </p>
+        <p>
+          The caller uses the key of a caller Agent, a third role that may call the AI models it is
+          granted and nothing else. The Gateway counts token spend per model and per calling Agent,
+          so give each app or agent its own caller Agent: its spend shows on its own line, and you
+          can suspend one caller without cutting off the rest.
+        </p>
+        <p><a href="/features#ai-models">How AI models and the Gateway work</a></p>
+      </div>
+      <pre class="code endpoint"><span class="d"># Any OpenAI client, pointed at the Gateway</span>
+<span class="k">OPENAI_BASE_URL</span>=https://&lt;console&gt;/ai/&lt;AI model id&gt;/v1
+<span class="k">OPENAI_API_KEY</span>=<span class="s">&lt;caller Agent key&gt;</span></pre>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="more">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="more">Where to go next</h2>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt><a href="/vibe-coding">Built your app with AI?</a></dt>
+          <dd>The plain-language path from a folder or a template to an address you can share, with your AI doing the deploying if you like.</dd>
+        </div>
+        <div>
+          <dt><a href="/features">Everything Cloudgate does</a></dt>
+          <dd>Ways in, where it runs, and what it looks after once your app is live: databases, backups, domains, monitoring and access.</dd>
+        </div>
+        <div>
+          <dt><a href="/cli">Deploy from your terminal with the CLI</a></dt>
+          <dd>For scripts and CI, the <code>cloudgate</code> command uses a personal key, kept apart from your agents' keys.</dd>
+        </div>
+        <div>
+          <dt><a href="/pricing">Plans and prices</a></dt>
+          <dd>Agents are not counted. A plan counts Servers and Cloud Environments, with a 30-day free trial.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions about AI agents" />
+
+  <CtaBand
+    title="Give your agent a key, not your keys"
+    text="Create an Agent, grant it one Environment, and connect your MCP client. Every plan starts with a 30-day free trial."
+  />
+</Base>
+
+<style>
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .split .section-head {
+    margin-bottom: 0;
+  }
+  .two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .copy {
+    max-width: 60ch;
+  }
+  .copy h2 {
+    margin-bottom: var(--space-5);
+  }
+  .copy p {
+    color: var(--ink-2);
+  }
+  .copy .note {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    border-left: 3px solid var(--slice-2);
+    padding-left: var(--space-4);
+  }
+  .copy a {
+    color: var(--brand);
+    font-weight: 500;
+  }
+  .endpoint {
+    margin-top: var(--space-2);
+  }
+
+  .session {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .transcript {
+    max-height: none;
+    white-space: pre;
+    line-height: 1.65;
+  }
+  .transcript :global(.who) {
+    color: var(--night-brand);
+    font-weight: 600;
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .tools dd p {
+    margin-bottom: var(--space-3);
+  }
+  .tool-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .tool-list code {
+    color: var(--ink);
+    font-size: var(--text-xs);
+  }
+
+  .facts dt a {
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: span 2;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    line-height: 1;
+    color: var(--slice-2);
+  }
+  .steps h3 {
+    margin-bottom: var(--space-2);
+  }
+  .steps p {
+    color: var(--muted);
+  }
+
+  @media (max-width: 600px) {
+    .transcript,
+    .endpoint {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: var(--text-xs);
+      padding: var(--space-4);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .split,
+    .two {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+</style>

@@ -1,0 +1,396 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site, plans, trialDays } from '../data/site';
+import { faqSchema, breadcrumbSchema } from '../data/schema';
+
+const trail = [{ name: 'Vibe coding', path: '/vibe-coding' }];
+
+const title = 'Put your AI-built app online in three steps | Cloudgate';
+const description =
+  'Built an app with Lovable, Bolt, Cursor or Claude? Put it online without learning servers: sign up, get a server, press Deploy and share the address you get.';
+
+const starter = plans.find((p) => p.id === 'starter')!;
+
+const steps = [
+  {
+    h: 'Sign up',
+    p: `Make an account on Cloudgate. The ${trialDays}-day free trial needs a card to start.`,
+  },
+  {
+    h: 'Get a server',
+    p: 'Buy one from us in the console: pick a place on the map and a size, and see the price before you pay. Or use a server you already have: Cloudgate makes a key and gives you one command to paste into it.',
+  },
+  {
+    h: 'Press Deploy',
+    p: 'Cloudgate sets the server up by itself once it is ready, then builds your app and starts it. You watch it happen; there is nothing to type.',
+  },
+];
+
+const looked = [
+  {
+    t: 'The padlock in the browser',
+    d: 'Add your own domain and Cloudgate gets the https certificate for it and renews it. You never touch a certificate file.',
+  },
+  {
+    t: 'A database that is set up for you',
+    d: 'PostgreSQL, MySQL, MariaDB, MongoDB, Redis or libSQL, next to your app. Cloudgate links its address into your app, so you do not paste passwords around.',
+  },
+  {
+    t: 'Backups',
+    d: 'Copies of your databases and stored files, sent to storage you choose, so a mistake is not the end of your data.',
+  },
+  {
+    t: 'An undo button for updates',
+    d: 'If a change breaks your app, roll back to an earlier Deployment, the version that worked, while the change gets fixed.',
+  },
+  {
+    t: 'Logs you can read',
+    d: 'When something goes wrong, the build log and your app\'s own log are in the console, a click away from the app.',
+  },
+  {
+    t: 'Someone watching it',
+    d: 'Uptime checks visit your app, and Cloudgate tells you on Slack, Discord, Telegram, email and more when it stops answering.',
+  },
+];
+
+const faq = [
+  {
+    q: 'Do I need to know about servers to use Cloudgate?',
+    a: 'No. The get started path sets the server up for you: buy one in the console, or paste one command into a server you already have. Cloudgate installs what it needs and then deploys your app.',
+  },
+  {
+    q: 'I built my app with Lovable, Bolt, v0 or Replit. Will it work?',
+    a: 'If your app\'s code is in a folder or a GitHub repository, Cloudgate can build it. It works out how to build most apps on its own, and it can also use a Dockerfile if your project has one. Cloudgate does not connect to those tools directly; it works from the code they give you.',
+  },
+  {
+    q: 'What address does my app get?',
+    a: 'Right away, a free address ending in <code>sslip.io</code> that works over plain http. For https and a name people remember, add your own domain and Cloudgate gets the certificate for it.',
+  },
+  {
+    q: 'What if an update breaks my app?',
+    a: 'Roll back to an earlier Deployment from the console. The version that worked comes back while you, or your AI tool, fix the change.',
+  },
+  {
+    q: 'How much does it cost?',
+    a: `Your plan plus your server. The Starter plan is $${starter.price} a month on the Hosted instance, after a ${trialDays}-day free trial. A server you buy from us is billed on top at the price shown before you buy; your own server costs whatever your provider charges. See <a href="/pricing">Cloudgate pricing</a>.`,
+  },
+  {
+    q: 'Can my AI tool deploy for me?',
+    a: 'Yes. Give it its own Agent in Cloudgate and connect it over MCP. It can deploy, read the logs and check your app is up, and it never sees your stored secrets. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
+  },
+];
+---
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Put the app you built with AI online"
+    lede="You made something with Lovable, Bolt, Cursor, Claude, v0 or Replit, and now it needs a home on the internet. Cloudgate gives it one, on a server that is yours, with an address you can send to people. No server knowledge needed."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={site.getStarted}>Get started</a>
+    <a class="btn btn--ghost" href="/templates">Browse ready-made apps</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="how">
+    <div class="wrap how">
+      <div>
+        <div class="section-head">
+          <h2 id="how">How do I get my app online?</h2>
+          <p class="lede">Three steps in the console. Most of the waiting is the server being set up, and Cloudgate does that part.</p>
+        </div>
+        <ol class="steps">
+          {steps.map((s) => (
+            <li>
+              <h3>{s.h}</h3>
+              <p>{s.p}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <figure class="done" aria-labelledby="done-cap">
+        <div class="panel">
+          <p class="live">Running</p>
+          <p class="app-name">notes-app</p>
+          <p class="addr"><code>http://notes-app.203.0.113.10.sslip.io</code></p>
+          <span class="btn btn--primary fake-btn" aria-hidden="true">Open notes-app</span>
+          <p class="hint">Add your own domain for https</p>
+        </div>
+        <figcaption id="done-cap">
+          What you see at the end: your app's address and a button to open it. The free <code>sslip.io</code> address works right away over plain http. Add your own domain and
+          it gets https, the padlock in the browser.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="routes">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="routes">Which way should I deploy my app?</h2>
+        <p class="lede">Pick a ready-made app if you want one that already exists. Bring your own if your AI tool made it.</p>
+      </div>
+      <div class="routes">
+        <article class="route">
+          <h3><span class="slice" aria-hidden="true"></span>Start from a ready-made app</h3>
+          <p>
+            Twenty apps people run for themselves, such as WordPress, Ghost, n8n, Nextcloud,
+            Umami and Uptime Kuma. Pick one, press Deploy, and the get started steps above take
+            you the rest of the way.
+          </p>
+          <p><a class="link" href="/templates">See all app templates</a></p>
+        </article>
+
+        <article class="route">
+          <h3><span class="slice slice--2" aria-hidden="true"></span>Deploy the app your AI made</h3>
+          <p>
+            <strong>From GitHub.</strong> Many AI app builders can save your project to GitHub.
+            Connect that repository in the console, and every time a change is pushed to it,
+            Cloudgate deploys the new version.
+          </p>
+          <p>
+            <strong>From a folder on your computer.</strong> If you have the project folder,
+            three commands in a terminal send it up. Cloudgate skips your <code>.env</code> file
+            and anything in <code>.gitignore</code>.
+          </p>
+          <pre class="code"><span class="d"># once</span>
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+<span class="d"># from your app's folder</span>
+cloudgate deploy</pre>
+          <p class="small">
+            The command line tool is new and needs Node 22 or newer. <a href="/cli">How the Cloudgate CLI works</a>
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="looked">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="looked">What does Cloudgate look after for me?</h2>
+        <p class="lede">
+          The parts of running an app that people usually learn the hard way. You get them without
+          having to know their names.
+        </p>
+      </div>
+      <dl class="facts">
+        {looked.map((f) => (
+          <div>
+            <dt>{f.t}</dt>
+            <dd>{f.d}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="more"><a class="link" href="/features">Everything Cloudgate does, in detail</a></p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ai">
+    <div class="wrap two">
+      <h2 id="ai">Can my AI do the deploying too?</h2>
+      <div class="stack copy">
+        <p>
+          Yes. If you build with Claude Code, Cursor or another tool that speaks MCP, give it its
+          own Agent in Cloudgate. Then you can ask it to ship a fix, and it deploys, reads the log
+          and checks that your app is up before it tells you it is done.
+        </p>
+        <p>
+          It only reaches the apps you allow, it never sees your passwords, and everything it does
+          is written down for you to read later.
+        </p>
+        <p><a class="link" href="/ai-agents">Let your AI tool deploy with Cloudgate</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="cost">
+    <div class="wrap two">
+      <h2 id="cost">What will it cost me?</h2>
+      <div class="stack copy">
+        <p>
+          Two things: your Cloudgate plan and your server. The Starter plan is
+          ${starter.price} a month and covers up to 3 Servers, with a {trialDays}-day free trial
+          (a card is needed to start it).
+        </p>
+        <p>
+          A server you buy in the console is billed on the same invoice, monthly, at a price shown
+          before you buy. A server you already have costs whatever you pay for it now. Members,
+          Projects and Environments are not counted.
+        </p>
+        <p><a class="link" href="/pricing">Compare Cloudgate plans</a></p>
+      </div>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions from people new to deploying" />
+
+  <CtaBand
+    title="Your app deserves an address"
+    text={`Sign up, get a server and press Deploy. Every plan starts with a ${trialDays}-day free trial.`}
+  />
+</Base>
+
+<style>
+  .how {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: span 2;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-2xl);
+    line-height: 1;
+    color: var(--brand);
+  }
+  .steps h3 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-2);
+  }
+  .steps p {
+    color: var(--muted);
+    max-width: 58ch;
+  }
+
+  .done {
+    margin: 0;
+    display: grid;
+    gap: var(--space-4);
+    position: sticky;
+    top: 6rem;
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+  .app-name {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    letter-spacing: -0.015em;
+  }
+  .addr {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .addr code {
+    font-size: var(--text-xs);
+  }
+  .fake-btn {
+    pointer-events: none;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .routes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .route {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-5);
+  }
+  .route h3 {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    font-size: var(--text-xl);
+  }
+  .route p {
+    color: var(--ink-2);
+  }
+  .route strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .small {
+    font-size: var(--text-sm);
+  }
+  .route .small {
+    color: var(--muted);
+  }
+
+  .link {
+    color: var(--brand);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .more {
+    margin-top: var(--space-6);
+  }
+
+  .two {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .copy {
+    max-width: 62ch;
+  }
+  .copy p {
+    color: var(--ink-2);
+    font-size: var(--text-lg);
+    line-height: 1.55;
+  }
+
+  @media (max-width: 600px) {
+    .route .code {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: var(--space-4);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .how,
+    .routes,
+    .two {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .done {
+      position: static;
+    }
+  }
+</style>

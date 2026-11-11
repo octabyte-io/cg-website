@@ -1,0 +1,563 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { faqSchema, breadcrumbSchema } from '../data/schema';
+
+const trail = [{ name: 'Features', path: '/features' }];
+
+const title = 'Cloudgate features: deploy, run and monitor your apps';
+const description =
+  'Every Cloudgate feature: deploy from the console, AI agents, the CLI or git; run on your Server, AWS or Google Cloud; databases, backups, domains and AI models.';
+
+interface Item { t: string; d: string }
+interface Topic { id: string; h: string; lede: string; items: Item[] }
+
+// "Running it": one h2 per topic, so other pages can link straight to #databases, #monitoring and so on.
+const running: Topic[] = [
+  {
+    id: 'builds',
+    h: 'How does Cloudgate build my code?',
+    lede: 'With Nixpacks by default, which works out how to build most apps on its own. Pick another builder when your project needs it.',
+    items: [
+      { t: 'Builders', d: 'Nixpacks, Railpack, a Dockerfile, Heroku buildpacks, Paketo buildpacks, or a static site.' },
+      { t: 'Ready-made images', d: 'Run a Docker image as it is, with no build at all.' },
+      { t: 'Build logs', d: 'Every Deployment keeps its build log, readable in the console, from the CLI and by an Agent.' },
+      { t: 'Builds in the cloud', d: 'On the Hosted instance, a Service in AWS or Google Cloud builds in that cloud\'s own build service, CodeBuild or Cloud Build.' },
+    ],
+  },
+  {
+    id: 'services',
+    h: 'What kinds of Service can I run?',
+    lede: 'Applications, databases, Compose stacks and AI models, each a Service in an Environment of a Project.',
+    items: [
+      { t: 'web', d: 'An Application with Domains that answers the internet.' },
+      { t: 'worker', d: 'Always on, with no address: queues, bots and background jobs.' },
+      { t: 'web-private', d: 'Answers HTTP only to the other Services in its Environment, never from outside.' },
+      { t: 'cron', d: 'A fresh container per run, on a timetable you set.' },
+      { t: 'bucket', d: 'Files behind an S3-compatible API. On a Server it is its own Garage container.' },
+      { t: 'Compose stacks', d: 'A Docker Compose file deployed as it is. In a cloud it runs on its own Stack VM.' },
+      { t: 'Sizes', d: 'From xsmall (0.25 CPU, 512 MB) doubling up to 2xlarge (8 CPU).' },
+      { t: 'A shell when you need one', d: 'Open a shell into a running container from the console.' },
+    ],
+  },
+  {
+    id: 'databases',
+    h: 'Which databases does Cloudgate run?',
+    lede: 'PostgreSQL, MySQL, MariaDB, MongoDB, Redis and libSQL, managed next to your apps, or a database you already have.',
+    items: [
+      { t: 'On a Server', d: 'Each database runs as its own Service, with its own volume, backups and logs.' },
+      { t: 'In a cloud', d: 'On AWS, PostgreSQL and MySQL on RDS and Redis on ElastiCache. On Google Cloud, Cloud SQL and Memorystore for Redis.' },
+      { t: 'Existing databases', d: 'Point Cloudgate at a database made outside it. It uses it as given and never changes it.' },
+      { t: 'Wired into your apps', d: 'Link a database\'s address into an app with a wired variable, such as <code>DATABASE_URL: pg-1.url</code>, filled in at deploy and never saved.' },
+    ],
+  },
+  {
+    id: 'ai-models',
+    h: 'Can I host my own AI models?',
+    lede: 'Yes. An AI model is a Service that serves one model with Ollama, vLLM or llama.cpp, on your own Server, optionally reserving whole GPUs.',
+    items: [
+      { t: 'The Gateway', d: 'Every call reaches the model through Cloudgate\'s Gateway, which speaks the OpenAI API, so any OpenAI client works by changing its base URL.' },
+      { t: 'Spend per caller', d: 'The Gateway counts token spend per model and per calling Agent, so each app or agent that calls a model shows on its own line.' },
+      { t: 'Nothing else gets in', d: 'An AI model has no Domain and no published port. A caller Agent\'s key is the only way to call it.' },
+      { t: 'Deployed like any app', d: 'Start, stop and redeploy it from the console or by an Agent, as you would an Application.' },
+    ],
+  },
+  {
+    id: 'domains',
+    h: 'How do domains, TLS and CDNs work?',
+    lede: 'Add a domain to a web Service and Cloudgate gets a Let\'s Encrypt certificate for it. Before that, a free sslip.io address works over plain http.',
+    items: [
+      { t: 'Certificates', d: 'TLS certificates issued and renewed for every Domain on a Server.' },
+      { t: 'CDN providers', d: 'Put a Domain behind Cloudflare, Bunny, Fastly or ArvanCloud.' },
+      { t: 'Static sites in AWS', d: 'Served from S3 and CloudFront.' },
+    ],
+  },
+  {
+    id: 'backups',
+    h: 'How are backups taken?',
+    lede: 'Databases and volumes are backed up to S3-compatible destinations that you choose.',
+    items: [
+      { t: 'Your destination', d: 'Any S3-compatible storage. Its keys are stored encrypted, like every secret.' },
+      { t: 'Server backups', d: 'A Bought Server can add optional server backups and extra storage, from 10 GB to 10 TB.' },
+    ],
+  },
+  {
+    id: 'previews',
+    h: 'What are previews and rollbacks?',
+    lede: 'A preview is a copy of an Application built from a branch, with its own address. A rollback returns a Service to an earlier Deployment.',
+    items: [
+      { t: 'Pull request previews', d: 'One preview per pull request on GitHub.' },
+      { t: 'Requested previews', d: 'A preview of any branch, asked for by a person or an Agent, that expires on its own.' },
+      { t: 'Rollbacks', d: 'Go back to an earlier Deployment when a release breaks something.' },
+    ],
+  },
+  {
+    id: 'monitoring',
+    h: 'What does Cloudgate monitor?',
+    lede: 'Servers, Services and the requests reaching them, with incidents opened when something crosses a line you set.',
+    items: [
+      { t: 'Server thresholds', d: 'CPU and memory thresholds per Server.' },
+      { t: 'Uptime checks', d: 'Regular checks against your app, with an incident when it stops answering.' },
+      { t: 'Error rate', d: 'Counted from Traefik\'s 5xx responses per Domain, with a threshold of your own.' },
+      { t: 'Traces', d: 'Each Service gets its own trace store.' },
+      { t: 'Logs', d: 'Build logs, runtime logs and access logs, in the console and from the CLI.' },
+      { t: 'Incidents', d: 'Opened and closed by checks and thresholds, and readable by an Agent, which can never silence one.' },
+    ],
+  },
+  {
+    id: 'notifications',
+    h: 'Where can alerts go?',
+    lede: 'Send incidents and other notifications to the places your team already reads.',
+    items: [
+      { t: 'Chat', d: 'Slack, Discord, Microsoft Teams, Telegram, Mattermost and Lark.' },
+      { t: 'Email and push', d: 'Email, Resend, ntfy, Gotify and Pushover.' },
+      { t: 'Anything else', d: 'A custom webhook.' },
+    ],
+  },
+  {
+    id: 'variables',
+    h: 'How are variables and secrets kept?',
+    lede: 'Environment variables live per Project, Environment and Service. Secrets are encrypted at rest and never shown back.',
+    items: [
+      { t: 'Wired variables', d: 'Link one Service\'s outputs into another, filled in at deploy and never saved.' },
+      { t: 'Secrets stay secret', d: 'API responses say only whether a secret is set. Agents see stored secrets masked as ••••••.' },
+      { t: 'From the CLI', d: '<code>cloudgate vars set KEY</code> asks for the value without echoing it.' },
+    ],
+  },
+  {
+    id: 'access',
+    h: 'How do teams and access work?',
+    lede: 'An Organization has members with roles, and grants decide which Projects, Environments and Services each one reaches.',
+    items: [
+      { t: 'Roles and grants', d: 'A role says what a member may do. A grant says where, down to a single Service.' },
+      { t: 'Agents', d: 'AI agents are members too, with a Reader, Operator or Caller role, a grant and their own keys.' },
+      { t: 'Audit log', d: 'What people and agents did, including every agent call allowed or refused.' },
+      { t: 'Personal keys', d: 'For scripts, CI and the CLI, acting as you.' },
+    ],
+  },
+  {
+    id: 'paid',
+    h: 'Which features are paid?',
+    lede: 'Most of Cloudgate is in every plan. A few features for larger companies are in the Business plan, or an Enterprise license when you self-host.',
+    items: [
+      { t: 'Business plan', d: 'SSO for domains the Organization has proven with DNS, SCIM, custom roles, forward auth in front of your apps, and more Organizations on one plan.' },
+      { t: 'Enterprise license (self-hosted)', d: 'The same, plus white-labelling, parallel builds and cloud runs, and more than one Organization.' },
+    ],
+  },
+];
+
+const jump = [
+  { id: 'ways-in', label: 'Ways in' },
+  { id: 'where-it-runs', label: 'Where it runs' },
+  ...running.map((r) => ({ id: r.id, label: r.h.replace(/\?$/, '') })),
+];
+const jumpShort: Record<string, string> = {
+  builds: 'Builds',
+  services: 'Kinds of Service',
+  databases: 'Databases',
+  'ai-models': 'AI models',
+  domains: 'Domains and TLS',
+  backups: 'Backups',
+  previews: 'Previews and rollbacks',
+  monitoring: 'Monitoring',
+  notifications: 'Notifications',
+  variables: 'Variables and secrets',
+  access: 'Teams and access',
+  paid: 'Paid features',
+};
+
+const faq = [
+  {
+    q: 'Is Cloudgate open source?',
+    a: 'No. It is source-available under the Elastic License 2.0: free to use, self-host and modify, but you may not offer it to others as a hosted service. See <a href="/self-hosted">self-hosting Cloudgate</a>.',
+  },
+  {
+    q: 'Can I deploy to AWS and Google Cloud as well as my own servers?',
+    a: 'Yes. Connect a Cloud account and an Environment deploys there: on AWS to ECS (Fargate), RDS, ElastiCache, S3 and CloudFront; on Google Cloud to Cloud Run, Cloud SQL and Memorystore. Cloudgate makes them with OpenTofu and shows drift.',
+  },
+  {
+    q: 'Which git providers does Cloudgate support?',
+    a: 'GitHub, GitLab, Bitbucket, Gitea, or any git URL, with push-to-deploy through webhooks. A Service can also run a Docker image or uploaded files.',
+  },
+  {
+    q: 'Does Cloudgate back up my databases?',
+    a: 'Yes. Backups of databases and volumes go to an S3-compatible destination you choose.',
+  },
+  {
+    q: 'Can an AI agent use Cloudgate?',
+    a: 'Yes. An Agent connects over MCP with its own key, role and grant. It can deploy, open previews and read logs and health, and every call is in the audit log. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
+  },
+  {
+    q: 'Which features need a paid plan?',
+    a: 'On the Hosted instance every plan includes deploys, databases, domains, backups, previews, monitoring and Agents. SSO, SCIM, custom roles and forward auth are in the Business plan. See <a href="/pricing">Cloudgate pricing</a>.',
+  },
+];
+---
+<Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Cloudgate features, from first deploy to production"
+    lede="Three ways in, three places to run, and what Cloudgate looks after once your app is live. Every Service sits in a Project and an Environment, and every Deployment is one attempt to build and release it."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+    <a class="btn btn--ghost" href="/templates">Deploy a template</a>
+  </PageHero>
+
+  <nav class="jump wrap" aria-label="On this page">
+    <h2 class="visually-hidden">On this page</h2>
+    <ul>
+      {jump.map((j) => (
+        <li><a href={`#${j.id}`}>{jumpShort[j.id] ?? j.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+
+  <section class="section" aria-labelledby="ways-in">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="ways-in" class="lane"><span class="slice" aria-hidden="true"></span>How can I deploy with Cloudgate?</h2>
+        <p class="lede">
+          From the console, from your AI agent or from your terminal. All three reach the same
+          Projects, under the same roles and grants.
+        </p>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt class="lane-dt"><span class="slice" aria-hidden="true"></span>The console</dt>
+          <dd>
+            The web console for everything, including the get started steps that take someone new
+            from sign-up to a live app: get a Server, press Deploy, open the address.
+          </dd>
+        </div>
+        <div>
+          <dt class="lane-dt"><span class="slice slice--2" aria-hidden="true"></span>Your AI agent</dt>
+          <dd>
+            Claude Code, Cursor or any MCP client, as an Agent with its own role, grant and keys.
+            It deploys, opens previews and reads logs and health. <a href="/ai-agents">How agents deploy over MCP</a>.
+          </dd>
+        </div>
+        <div>
+          <dt class="lane-dt"><span class="slice slice--3" aria-hidden="true"></span>Your terminal</dt>
+          <dd>
+            The <code>cloudgate</code> CLI on npm: <code>cloudgate deploy</code> uploads the
+            current folder, skipping <code>.env</code> and what <code>.gitignore</code> lists.
+            Then <code>status</code>, <code>logs</code> and <code>vars set</code>. <a href="/cli">The Cloudgate CLI</a>.
+          </dd>
+        </div>
+        <div>
+          <dt>Git, images and uploads</dt>
+          <dd>
+            Build from GitHub, GitLab, Bitbucket, Gitea or any git URL, with push-to-deploy
+            through webhooks. Or run a Docker image, or uploaded files.
+          </dd>
+        </div>
+        <div>
+          <dt>Project config with Plan and Apply</dt>
+          <dd>
+            One <code>cloudgate.yaml</code> describes a Project's Services, kept in your
+            repository or in Cloudgate. A change shows as a Plan of what it would create, change
+            or destroy, and nothing happens until you Apply it.
+          </dd>
+        </div>
+        <div>
+          <dt>Templates</dt>
+          <dd>
+            Twenty ready-made apps, from WordPress to n8n, each one a Project config. <a href="/templates">Browse the app templates</a>.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="where-it-runs">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="where-it-runs" class="lane"><span class="slice slice--2" aria-hidden="true"></span>Where do my apps run?</h2>
+        <p class="lede">
+          On a Server you own, on a Server you buy from us, or in your own AWS or Google Cloud
+          account. Each Environment picks one, so staging and production can live in different
+          places.
+        </p>
+      </div>
+      <div class="places">
+        <article>
+          <h3><span class="slice" aria-hidden="true"></span>Your Server</h3>
+          <p>
+            Any Ubuntu machine Cloudgate reaches over SSH, or the machine Cloudgate itself runs on.
+            A Setup run installs Docker Swarm and Traefik, and Domains get Let's Encrypt
+            certificates.
+          </p>
+          <p>
+            <strong>Bought Server.</strong> On the Hosted instance, buy one in the console: pick a
+            location on a world map and a size, add backups or extra storage from 10 GB to 10 TB.
+            It is billed monthly in advance on the same invoice, at the price shown before you buy.
+          </p>
+        </article>
+        <article>
+          <h3><span class="slice slice--2" aria-hidden="true"></span>AWS</h3>
+          <dl class="map">
+            <div><dt>web, worker, web-private, cron</dt><dd>ECS (Fargate)</dd></div>
+            <div><dt>PostgreSQL, MySQL</dt><dd>RDS</dd></div>
+            <div><dt>Redis</dt><dd>ElastiCache</dd></div>
+            <div><dt>bucket, static sites</dt><dd>S3 and CloudFront</dd></div>
+            <div><dt>Compose stack</dt><dd>Its own Stack VM</dd></div>
+          </dl>
+        </article>
+        <article>
+          <h3><span class="slice slice--3" aria-hidden="true"></span>Google Cloud</h3>
+          <dl class="map">
+            <div><dt>web</dt><dd>Cloud Run</dd></div>
+            <div><dt>worker</dt><dd>Cloud Run worker pool</dd></div>
+            <div><dt>Databases</dt><dd>Cloud SQL</dd></div>
+            <div><dt>Redis</dt><dd>Memorystore</dd></div>
+            <div><dt>bucket</dt><dd>Cloud Storage</dd></div>
+            <div><dt>Compose stack</dt><dd>Its own Stack VM</dd></div>
+          </dl>
+        </article>
+      </div>
+      <p class="note">
+        Cloud resources are made with OpenTofu in your own account. Cloudgate keeps the
+        infrastructure state and shows drift, the changes someone made by hand in the cloud's
+        console. Prefer to run Cloudgate itself on your own machine? Read about <a href="/self-hosted">self-hosting Cloudgate</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section running-intro" aria-labelledby="running-it">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="running-it" class="lane"><span class="slice slice--3" aria-hidden="true"></span>What does Cloudgate look after once my app is live?</h2>
+        <p class="lede">
+          Builds, databases, domains, backups, monitoring and access, the same wherever the
+          Service runs.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {running.map((r) => (
+    <section class="topic" aria-labelledby={r.id}>
+      <div class="wrap topic-grid">
+        <div class="topic-head">
+          <h2 id={r.id}>{r.h}</h2>
+          <p>{r.lede}</p>
+        </div>
+        <dl class="facts">
+          {r.items.map((i) => (
+            <div>
+              <dt>{i.t}</dt>
+              <dd set:html={i.d} />
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  ))}
+
+  <section class="section" aria-labelledby="next">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="next">Where to go from here</h2>
+      </div>
+      <ul class="next">
+        <li><a href="/pricing">Compare plans and what each counts</a></li>
+        <li><a href="/vibe-coding">Put an app you built with AI online</a></li>
+        <li><a href="/ai-agents">Let AI agents deploy with guard rails</a></li>
+        <li><a href="/templates">Deploy one of twenty app templates</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Questions about Cloudgate's features" />
+
+  <CtaBand />
+</Base>
+
+<style>
+  .jump {
+    padding-bottom: var(--space-6);
+  }
+  .jump ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+  .jump a:hover {
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+
+  .lane {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+  .lane .slice {
+    width: 0.9rem;
+    height: 2rem;
+    transform: translateY(0.2rem);
+  }
+  .lane-dt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .facts dd a,
+  .note a {
+    color: var(--brand);
+  }
+
+  .places {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-7);
+  }
+  .places article {
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .places h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-xl);
+  }
+  .places p {
+    color: var(--muted);
+  }
+  .places strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .map {
+    margin: 0;
+    display: grid;
+  }
+  .map > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .map dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    padding-top: 0.15em;
+  }
+  .map dd {
+    margin: 0;
+    font-weight: 500;
+  }
+  .note {
+    margin-top: var(--space-7);
+    max-width: 70ch;
+    color: var(--muted);
+  }
+
+  .running-intro {
+    padding-bottom: var(--space-5);
+  }
+  .running-intro .section-head {
+    margin-bottom: 0;
+  }
+  .topic {
+    padding-block: var(--space-7);
+  }
+  .topic-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .topic-grid > * {
+    border-top: 1px solid var(--line-strong);
+    padding-top: var(--space-5);
+  }
+  .topic-grid > .facts {
+    border-top: none;
+    padding-top: 0;
+  }
+  .topic-head {
+    display: grid;
+    gap: var(--space-3);
+    position: sticky;
+    top: 6rem;
+  }
+  .topic-head h2 {
+    font-size: var(--text-2xl);
+  }
+  .topic-head p {
+    color: var(--muted);
+  }
+  .topic .facts {
+    gap: var(--space-5) var(--space-6);
+  }
+  .topic .facts dt {
+    font-size: var(--text-md);
+  }
+
+  .next {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-7);
+  }
+  .next li {
+    border-top: 1px solid var(--line);
+  }
+  .next a {
+    display: flex;
+    align-items: center;
+    min-height: 56px;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .next a:hover {
+    color: var(--brand);
+  }
+
+  @media (max-width: 900px) {
+    .places {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .topic-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+    .topic-head {
+      position: static;
+    }
+    .next {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
