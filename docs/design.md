@@ -70,3 +70,25 @@ on buttons and inputs, 14px on panels.
 - 3+ internal links per page with descriptive anchor text.
 - Static HTML, no client JS unless an interaction needs it; images with width, height and alt.
 - `robots.txt`, `sitemap-index.xml`, `llms.txt` and `llms-full.txt` are generated at build.
+
+## Redesign (v2): richer, two themes
+
+The first pass read as too plain. The owner asked for the richness of cloudflare.com, neon.com,
+zed.dev and huly.io, and for both a light and a dark theme.
+
+- **Themes.** Dark is the default palette in `:root`; light comes from the system setting or the
+  header switch (`data-theme` on `<html>`, remembered in `localStorage` as `cg-theme`). Every colour
+  is a token, so a page that uses tokens works in both. Code and terminal surfaces (`--night*`)
+  stay dark in both themes. Check every page in both.
+- **Signature.** A narrow beam of light through the mark's keyhole (violet to lilac to a warm
+  peach, `--beam-a/b/c`) over a faint blueprint grid (`.grid-bg`). Full size in the home hero,
+  smaller in `PageHero`. Once per page.
+- **Show the product.** Use `.window` + `.window-bar` for product mock-ups (console screens,
+  terminals, a browser with the deployed app) built in HTML/SVG from real product states. This is
+  what Zed and Neon do and what made v1 feel empty.
+- **Tiles, not identical cards.** Feature grids are bento tiles of different spans, each with a
+  small drawn piece of the product in an `.art` well (see `components/home/Bento.astro`).
+- **Rhythm.** Alternate plain sections with `.band` sections (`--paper-2`), Cloudflare-style.
+- **Panels** have a gradient hairline border and an inner top highlight (`.panel`), radius
+  `--radius-lg`; the featured plan gets the beam gradient as its border.
+- `PageHero` takes an optional `visual` slot for a mock-up beside the title.
