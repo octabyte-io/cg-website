@@ -1,0 +1,626 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { softwareSchema, faqSchema, breadcrumbSchema } from '../data/schema';
+
+const trail = [{ name: 'Self-host', path: '/self-hosted' }];
+const accessMail = `mailto:${site.support}?subject=${encodeURIComponent('Access to self-host Cloudgate')}`;
+const licenseMail = `mailto:${site.support}?subject=${encodeURIComponent('Cloudgate Enterprise license')}`;
+const sourceUrl = site.sourceUrl;
+
+const requirements = [
+  { name: 'Operating system', value: 'Ubuntu 24.04, freshly installed' },
+  { name: 'Processor', value: 'x86-64 (amd64)' },
+  { name: 'Size', value: '2 vCPU, 4 GB memory, 40 GB disk' },
+  { name: 'Access', value: 'root over SSH' },
+  { name: 'Open ports', value: '22, 80, 443, 3000 and 4000, inbound' },
+  { name: 'DNS', value: 'None to start. Apps get a free sslip.io address that points at your server’s IP.' },
+];
+
+const faq = [
+  {
+    q: 'Is self-hosted Cloudgate really free?',
+    a: 'Yes. The Elastic License 2.0 lets you use, self-host and modify Cloudgate without paying. The free version holds one Organization and runs one build at a time per Server. You pay only for the servers you run it on.',
+  },
+  {
+    q: 'Is Cloudgate open source?',
+    a: 'No. It is source-available under the Elastic License 2.0. You can read, run and change it, but you may not offer it to others as a hosted service, and you may not remove or get around its license checks.',
+  },
+  {
+    q: 'Do I need a domain name to install it?',
+    a: 'No. The installer works with your server’s IP address, and deployed apps are reachable at a free sslip.io address straight away. Add your own domain later for https.',
+  },
+  {
+    q: 'Can I deploy to the same server Cloudgate runs on?',
+    a: 'Yes. Cloudgate can deploy onto the machine it runs on, and you can add more Ubuntu servers over SSH, or connect AWS and Google Cloud accounts.',
+  },
+  {
+    q: 'How do I upgrade a self-hosted instance?',
+    a: 'Pull the new version into /opt/cloudgate and run the same install script again with the same CLOUDGATE_PUBLIC_HOST. It migrates the database, rebuilds and restarts Cloudgate, and keeps your secrets.',
+  },
+  {
+    q: 'What does an Enterprise license cost?',
+    a: `We agree the price and billing period with each customer, and a 30-day trial key is available on request. Write to <a href="${licenseMail}">${site.support}</a>.`,
+  },
+];
+
+const howTo = sourceUrl
+  ? [
+      {
+        '@type': 'HowTo',
+        name: 'Install Cloudgate on your own server',
+        step: [
+          { '@type': 'HowToStep', name: 'Prepare the server', text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, and open ports 22, 80, 443, 3000 and 4000.' },
+          { '@type': 'HowToStep', name: 'Get the source', text: `As root, run: git clone ${sourceUrl} /opt/cloudgate` },
+          { '@type': 'HowToStep', name: 'Run the installer', text: "Run: CLOUDGATE_PUBLIC_HOST=<your server's IP> bash /opt/cloudgate/deploy/install.sh" },
+          { '@type': 'HowToStep', name: 'Claim the instance', text: 'Open http://<your server\'s IP>:3000/sign-up. The first account created owns the instance.' },
+        ],
+      },
+    ]
+  : [];
+
+const title = 'Self-host Cloudgate on your own Ubuntu server for free';
+const description =
+  'Run Cloudgate on one Ubuntu 24.04 server: what it needs, what the installer sets up, upgrades, backups, and what the Elastic License 2.0 lets you do for free.';
+---
+
+<Base
+  title={title}
+  description={description}
+  schema={[softwareSchema(), ...howTo, faqSchema(faq), breadcrumbSchema(trail)]}
+>
+  <PageHero
+    title="Self-host Cloudgate on your own server"
+    lede="Cloudgate installs on one Ubuntu server with a single script. It is free to run under the Elastic License 2.0, with one Organization and one build at a time per Server, and an Enterprise license for the rest."
+    trail={trail}
+  >
+    {sourceUrl ? (
+      <a class="btn btn--primary" href="#install">See the install steps</a>
+    ) : (
+      <a class="btn btn--primary" href={accessMail}>Ask for access</a>
+    )}
+    <a class="btn btn--ghost" href="/pricing">Compare with the hosted plans</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="who-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="who-title">Should you self-host or use the hosted console?</h2>
+        <p class="lede">
+          Both run the same Cloudgate and deploy to the same places. The question is whether you
+          want to look after Cloudgate itself.
+        </p>
+      </div>
+      <div class="choice">
+        <div class="side">
+          <h3>Self-host if</h3>
+          <ul>
+            <li>You have to keep the deployment platform inside your own network or provider.</li>
+            <li>You are comfortable running an Ubuntu server: updates, backups and a firewall.</li>
+            <li>One Organization is enough, or you plan to buy an Enterprise license.</li>
+            <li>You want to read or change how Cloudgate works.</li>
+          </ul>
+        </div>
+        <div class="side side--hosted">
+          <h3>Use the hosted console if</h3>
+          <ul>
+            <li>You want to sign up and deploy today, with nothing of ours to install or upgrade.</li>
+            <li>You want to buy a server from us instead of finding one yourself.</li>
+            <li>You want SSO and SCIM on a monthly plan, without a license agreement.</li>
+            <li>You built an app with an AI tool and just want it online.</li>
+          </ul>
+          <p class="side-link">
+            <a href="/pricing">Hosted plans start at $15 a month</a> with a 30-day free trial.
+            New to deploying? Read <a href="/vibe-coding">how to put an AI-built app online</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="needs-title">
+    <div class="wrap two">
+      <div class="section-head">
+        <h2 id="needs-title">What does the server need?</h2>
+        <p class="lede">
+          One bare machine. The installer was proved on exactly this size, and it is enough to run
+          Cloudgate and deploy small apps onto the same box.
+        </p>
+      </div>
+      <dl class="reqs">
+        {requirements.map((r) => (
+          <div>
+            <dt>{r.name}</dt>
+            <dd>{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+    <div class="wrap">
+      <p class="caution">
+        Check that no cloud firewall in front of the server blocks ports 3000 and 4000. A blocked
+        port looks exactly like a broken install.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sets-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="sets-title">What does the installer set up?</h2>
+        <p class="lede">
+          One script, <code>deploy/install.sh</code>, installs Cloudgate natively on the host.
+          There is no container image of Cloudgate itself: it deploys containers, it does not ship
+          as one.
+        </p>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>Cloudgate under systemd</dt>
+          <dd>
+            The console and the API run as two Node services that restart on their own. Node comes
+            from nodejs.org, checksum-verified.
+          </dd>
+        </div>
+        <div>
+          <dt>PostgreSQL on the box</dt>
+          <dd>Cloudgate's own database, with a generated role and password kept in a root-only file.</dd>
+        </div>
+        <div>
+          <dt>Docker and a Swarm of one</dt>
+          <dd>The server becomes a one-node Docker Swarm, so it can run what you deploy straight away.</dd>
+        </div>
+        <div>
+          <dt>Traefik</dt>
+          <dd>Routes each app's address and gets Let's Encrypt certificates once you add a domain.</dd>
+        </div>
+        <div>
+          <dt>Build and cloud tools</dt>
+          <dd>Nixpacks for builds, and OpenTofu with pinned providers for deploying to AWS and Google Cloud.</dd>
+        </div>
+        <div>
+          <dt>A firewall</dt>
+          <dd>
+            ufw with SSH, 80, 443, 3000 and 4000 allowed. Ports Docker publishes later go around it,
+            so treat a database's external port as public.
+          </dd>
+        </div>
+      </dl>
+      <div class="owner">
+        <h3>Who owns the instance?</h3>
+        <p>
+          The first person to sign up. Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code>
+          when the installer finishes; your account owns the instance and sign-up closes behind
+          you. Everyone after that joins by invitation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      {sourceUrl ? (
+        <>
+          <div class="section-head">
+            <h2 id="install-title">How do you install it?</h2>
+            <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Prepare the server</h3>
+              <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
+            </li>
+            <li>
+              <h3>Get the source</h3>
+              <p>The checkout has to live at <code>/opt/cloudgate</code>.</p>
+              <pre class="code"><code><span class="k">git</span> clone {sourceUrl} /opt/cloudgate</code></pre>
+            </li>
+            <li>
+              <h3>Run the installer</h3>
+              <p>
+                <code>CLOUDGATE_PUBLIC_HOST</code> is the one required input: the IP or hostname
+                people will use to reach the console.
+              </p>
+              <pre class="code"><code><span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;your server's IP&gt;</span> <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</code></pre>
+            </li>
+            <li>
+              <h3>Claim the instance</h3>
+              <p>
+                Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code> and create the first
+                account. Then add the server under Servers and deploy your first app, or
+                <a href="/templates">start from one of the app templates</a>.
+              </p>
+            </li>
+          </ol>
+        </>
+      ) : (
+        <div class="access">
+          <div>
+            <h2 id="install-title">How do you get the installer?</h2>
+            <p class="lede">
+              Ask us. The Cloudgate source repository is private today, so we give access to each
+              team that wants to self-host. Tell us a little about what you plan to run and we will
+              reply with access and the install steps.
+            </p>
+          </div>
+          <div class="access-side">
+            <p>
+              Once you have access, installing is one clone into <code>/opt/cloudgate</code> and one
+              command with your server's IP. Then you sign up at port 3000 and the instance is yours.
+            </p>
+            <div class="actions">
+              <a class="btn btn--primary" href={accessMail}>Ask for access</a>
+              <a class="btn btn--ghost" href={site.signUp}>Try the hosted console</a>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="run-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="run-title">How do upgrades and backups work?</h2>
+        <p class="lede">
+          On your own server, both are your job. They are short, and the secrets file is the part
+          not to lose.
+        </p>
+      </div>
+      <div class="ops">
+        <div>
+          <h3>Upgrading</h3>
+          <p>
+            Pull the new version and run the install script again with the same
+            <code>CLOUDGATE_PUBLIC_HOST</code>. It migrates the database, rebuilds, restarts both
+            services, and reads your existing secrets back instead of making new ones.
+          </p>
+          <pre class="code"><code><span class="k">cd</span> /opt/cloudgate <span class="d">&amp;&amp;</span> <span class="k">git</span> pull
+<span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;same as before&gt;</span> <span class="k">bash</span> deploy/install.sh</code></pre>
+        </div>
+        <div>
+          <h3>Backing up Cloudgate itself</h3>
+          <p>
+            Cloudgate backs up the databases and volumes you deploy. Back up Cloudgate on its own:
+            the <code>cloudgate</code> PostgreSQL database, the files
+            <code>/etc/default/cloudgate-*</code>, and the folder <code>/etc/cloudgate</code>. Keep
+            them off the server.
+          </p>
+          <p class="warn">
+            Without the encryption secret in <code>/etc/default/cloudgate-secrets</code>, stored
+            keys and passwords in the database cannot be read again. Back up both together.
+          </p>
+        </div>
+      </div>
+      <p class="caution">
+        Out of the box the console and API answer on plain http at ports 3000 and 4000. Before you
+        give the server a public address, decide whether that is acceptable, or reach the console
+        over an SSH tunnel or a private network.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="license-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="license-title">What does the Elastic License 2.0 let you do?</h2>
+        <p class="lede">
+          Almost everything a team running its own deployments needs, for free. Cloudgate is
+          source-available, not open source.
+        </p>
+      </div>
+      <div class="license">
+        <div>
+          <h3>You can</h3>
+          <ul>
+            <li>Use Cloudgate inside your company, for any apps you run</li>
+            <li>Run it on as many of your own servers as you like</li>
+            <li>Read the source and change it for your own use</li>
+          </ul>
+        </div>
+        <div>
+          <h3>You can't</h3>
+          <ul>
+            <li>Offer Cloudgate to others as a hosted or managed service</li>
+            <li>Remove, disable or get around its license checks</li>
+            <li>Remove its license and copyright notices</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="tiers-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="tiers-title">What does an Enterprise license add?</h2>
+        <p class="lede">
+          The free version deploys everything Cloudgate can deploy. A license unlocks the features
+          larger teams ask for, and they stay on as long as the license is valid.
+        </p>
+      </div>
+      <div class="table-wrap" role="region" aria-labelledby="tiers-title" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <td></td>
+              <th scope="col">Free</th>
+              <th scope="col">Enterprise license</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Apps, databases, Compose stacks, AI models</th><td>Yes</td><td>Yes</td></tr>
+            <tr><th scope="row">Servers, AWS and Google Cloud</th><td>Yes, not counted</td><td>Yes, not counted</td></tr>
+            <tr><th scope="row">Agents and the MCP endpoint</th><td>Yes</td><td>Yes</td></tr>
+            <tr><th scope="row">Organizations</th><td>One</td><td>More than one</td></tr>
+            <tr><th scope="row">Builds and cloud runs</th><td>One at a time per Server</td><td>In parallel</td></tr>
+            <tr><th scope="row">SSO, SCIM and custom roles</th><td>No</td><td>Yes</td></tr>
+            <tr><th scope="row">Forward auth in front of apps</th><td>No</td><td>Yes</td></tr>
+            <tr><th scope="row">White-labelling</th><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="more">
+        Prices are agreed with each customer, and a 30-day trial key is available. Write to
+        <a href={licenseMail}>{site.support}</a>. If a license ends, your settings are kept and the
+        licensed features stop; nothing is deleted. See every plan side by side on the
+        <a href="/pricing">Cloudgate pricing page</a>, or what the platform does on the
+        <a href="/features">features page</a>.
+      </p>
+    </div>
+  </section>
+
+  <Faq items={faq} />
+  <CtaBand
+    title="Rather not run it yourself?"
+    text="The hosted console is the same Cloudgate, kept up to date by us. Start a 30-day free trial and deploy to a server you bring or one you buy from us."
+  />
+</Base>
+
+<style>
+  .choice {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .side {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .side--hosted {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-2);
+    color: var(--ink-2);
+  }
+  .side-link {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-4);
+  }
+  .side-link a,
+  .more a {
+    color: var(--ink);
+  }
+
+  .two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .two .section-head {
+    margin-bottom: 0;
+  }
+  .reqs {
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .reqs > div {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--line);
+  }
+  .reqs dt {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    padding-top: 0.15em;
+  }
+  .reqs dd {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .caution {
+    margin-top: var(--space-6);
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--warn);
+    color: var(--ink-2);
+    max-width: 72ch;
+  }
+
+  .owner {
+    margin-top: var(--space-7);
+    display: grid;
+    gap: var(--space-2);
+    max-width: 70ch;
+  }
+  .owner p {
+    color: var(--muted);
+  }
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-6);
+    max-width: 820px;
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: span 3;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    color: var(--brand);
+    line-height: 1.1;
+  }
+  .steps li > * {
+    grid-column: 2;
+  }
+  .steps p {
+    color: var(--muted);
+  }
+  .steps .code {
+    margin-top: var(--space-2);
+  }
+
+  .access {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: end;
+  }
+  .access h2 {
+    margin-bottom: var(--space-4);
+  }
+  .access-side {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+  .access-side p {
+    color: var(--ink-2);
+  }
+
+  .ops {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-7);
+  }
+  .ops > div {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .ops p {
+    color: var(--muted);
+  }
+  .ops .warn {
+    color: var(--ink-2);
+    background: var(--paper-2);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .license {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-7);
+    max-width: 960px;
+  }
+  .license > div {
+    border-top: 2px solid var(--live);
+    padding-top: var(--space-4);
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .license > div + div {
+    border-top-color: var(--line-strong);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    max-width: 860px;
+  }
+  table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+  th,
+  td {
+    text-align: left;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  thead th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-md);
+  }
+  tbody th {
+    font-weight: 500;
+  }
+  td {
+    color: var(--ink-2);
+  }
+  td + td {
+    background: var(--paper-2);
+  }
+  thead th + th {
+    background: var(--paper-2);
+  }
+  .more {
+    margin-top: var(--space-6);
+    color: var(--muted);
+    max-width: 70ch;
+  }
+
+  @media (max-width: 860px) {
+    .choice,
+    .two,
+    .access,
+    .ops,
+    .license {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+  @media (max-width: 520px) {
+    .side,
+    .access-side {
+      padding: var(--space-5);
+    }
+    .reqs > div {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+</style>

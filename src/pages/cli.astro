@@ -1,0 +1,462 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { faqSchema, breadcrumbSchema } from '../data/schema';
+
+const trail = [{ name: 'CLI', path: '/cli' }];
+
+// One-line descriptions from each command's own summary in cli/src/commands/*.ts.
+const commandGroups = [
+  {
+    name: 'Logging in',
+    commands: [
+      { cmd: 'cloudgate login', text: 'Log in to an Instance through your browser. Add --instance <url> for a self-hosted one.' },
+      { cmd: 'cloudgate whoami', text: 'Show who you are logged in as, where, and when your key ends.' },
+      { cmd: 'cloudgate instance list', text: 'Show the Instances you are logged in to, marking the current one.' },
+      { cmd: 'cloudgate instance use <url>', text: 'Switch the current Instance.' },
+      { cmd: 'cloudgate logout', text: "Log out and delete this computer's key on the Instance. --all logs out everywhere." },
+    ],
+  },
+  {
+    name: 'This folder',
+    commands: [
+      { cmd: 'cloudgate deploy', text: 'Upload this folder and deploy it, then follow the Deployment log until it ends.' },
+      { cmd: 'cloudgate status', text: 'Show the Service, whether it is running, its Domains and its latest Deployment.' },
+      { cmd: 'cloudgate logs', text: "Show the Service's last 100 log lines; -f keeps following, --deployment shows a build log." },
+      { cmd: 'cloudgate vars list | set | unset', text: "List, set and unset the Service's variables. Values are never printed." },
+      { cmd: 'cloudgate link', text: 'Link this folder to a Service, so later commands know where to go.' },
+      { cmd: 'cloudgate unlink', text: "Remove this folder's link. Nothing changes on the Instance." },
+    ],
+  },
+  {
+    name: 'Templates',
+    commands: [
+      { cmd: 'cloudgate template check <path>', text: 'Check templates as Cloudgate will read them, without any request.' },
+      { cmd: 'cloudgate template pack <folder> <out>', text: 'Build the catalogue.zip a templates release publishes.' },
+    ],
+  },
+];
+
+const faq = [
+  {
+    q: 'Which version of Node does the Cloudgate CLI need?',
+    a: 'Node 22 or newer. The command refuses to start on an older Node and says so.',
+  },
+  {
+    q: 'Does cloudgate deploy upload my .env file?',
+    a: 'No. .env and .env.* files are left out (except .env.example), and so is anything your .gitignore or a .cloudgateignore lists. Put secrets in with <code>cloudgate vars set KEY</code>, which asks for the value without showing it.',
+  },
+  {
+    q: 'Can I use the CLI with a self-hosted Cloudgate?',
+    a: 'Yes. Run <code>cloudgate login --instance your-console-address</code>. The CLI can be logged in to several Instances at once; <code>cloudgate instance use</code> switches between them. See <a href="/self-hosted">how to self-host Cloudgate</a>.',
+  },
+  {
+    q: 'Does the CLI create the app for me?',
+    a: 'Not yet. Make the Application in the console first, then <code>cloudgate link</code> or your first <code>cloudgate deploy</code> asks which Organization, Project, Environment and Service the folder belongs to.',
+  },
+  {
+    q: 'How do I deploy from CI without logging in?',
+    a: 'Make a Personal key in the console, store it as a secret, and set <code>CLOUDGATE_KEY</code> in the job. Name the target with CLOUDGATE_ORG, CLOUDGATE_PROJECT, CLOUDGATE_ENV and CLOUDGATE_SERVICE, since a CI job cannot answer questions.',
+  },
+];
+
+const howTo = {
+  '@type': 'HowTo',
+  name: 'Deploy a folder with the Cloudgate CLI',
+  description: 'Install the Cloudgate CLI, log in, and deploy the current folder to an Application on Cloudgate.',
+  tool: [{ '@type': 'HowToTool', name: 'Node.js 22 or newer' }],
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: 'Install the CLI',
+      text: 'Run: npm install -g @octabyte-io/cloudgate',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Log in',
+      text: 'Run: cloudgate login. Open the link it prints, check the code and approve it in the Cloudgate console.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Deploy the folder',
+      text: 'In your project folder, run: cloudgate deploy. Pick the Organization, Project, Environment and Service the first time; the CLI uploads the folder and follows the Deployment log until it ends.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Check it',
+      text: 'Run: cloudgate status to see whether the Service is running and its Domains, and cloudgate logs to read its output.',
+    },
+  ],
+};
+
+const title = 'Cloudgate CLI: deploy any folder from your terminal';
+const description =
+  'Install the Cloudgate CLI from npm, log in with a code you approve in the console, and deploy the current folder. Also status, logs, variables and CI keys.';
+---
+
+<Base title={title} description={description} schema={[howTo, faqSchema(faq), breadcrumbSchema(trail)]}>
+  <PageHero
+    title="Cloudgate CLI: deploy a folder from your terminal"
+    lede="Run one command in your project folder and Cloudgate uploads it, builds it and follows the build log until it is live. The same commands work in a CI job with a key."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href="#install">Install the CLI</a>
+    <a class="btn btn--ghost" href={site.npm}>View on npm</a>
+  </PageHero>
+
+  <section class="hero-term" aria-label="A deploy from the terminal">
+    <div class="wrap">
+      <pre class="code term"><code><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate
+<span class="d">$</span> <span class="k">cloudgate</span> login
+<span class="d">$</span> <span class="k">cd</span> my-app
+<span class="d">$</span> <span class="k">cloudgate</span> deploy      <span class="d"># uploads this folder, builds it, follows the log</span>
+<span class="d">$</span> <span class="k">cloudgate</span> status      <span class="d"># running? which address? which Deployment?</span></code></pre>
+      <p class="early">
+        <strong>The CLI is early.</strong> The npm <code>latest</code> tag is version 0.0.1, and the
+        newer beta is on the <code>next</code> tag:
+        <code>npm install -g @octabyte-io/cloudgate@next</code>. Commands and flags may still change
+        before 1.0.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="install-title">How do you deploy a folder with the Cloudgate CLI?</h2>
+        <p class="lede">
+          Four steps. You need Node 22 or newer, a Cloudgate account, and an Application made in
+          the console for the folder to deploy to.
+        </p>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Install it from npm</h3>
+          <p>The package is <code>@octabyte-io/cloudgate</code>; the command it installs is <code>cloudgate</code>.</p>
+          <pre class="code"><code><span class="k">npm</span> install -g @octabyte-io/cloudgate</code></pre>
+        </li>
+        <li>
+          <h3>Log in through your browser</h3>
+          <p>
+            The CLI prints a link and a code. Open the link on any device, check the code matches
+            and approve it in the console. This computer then gets a Personal key that ends in 90
+            days, kept in the system keychain. For a self-hosted Cloudgate, give its address.
+          </p>
+          <pre class="code"><code><span class="k">cloudgate</span> login
+<span class="k">cloudgate</span> login --instance <span class="s">cloud.example.com</span>   <span class="d"># a self-hosted console</span></code></pre>
+        </li>
+        <li>
+          <h3>Deploy the current folder</h3>
+          <p>
+            The first time, it asks which Organization, Project, Environment and Service the folder
+            belongs to, and saves that link in <code>.cloudgate/</code> (added to your
+            <code>.gitignore</code>). It waits for any build already running, uploads, then follows
+            the Deployment log and exits 0 only if the Deployment is done.
+          </p>
+          <pre class="code"><code><span class="k">cloudgate</span> deploy
+<span class="k">cloudgate</span> deploy --env <span class="s">production</span>   <span class="d"># the same Service in another Environment</span></code></pre>
+        </li>
+        <li>
+          <h3>Check it is running</h3>
+          <p>Status shows whether it runs, its Domains and its latest Deployment. Logs prints what it writes.</p>
+          <pre class="code"><code><span class="k">cloudgate</span> status
+<span class="k">cloudgate</span> logs -f</code></pre>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="upload-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="upload-title">What does cloudgate deploy upload?</h2>
+        <p class="lede">
+          The folder as it is on your disk, uncommitted changes included, minus anything that
+          should not leave your machine.
+        </p>
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>Uploaded</dt>
+          <dd>Every file in the linked folder, or the current folder when nothing is linked yet, whether committed or not.</dd>
+        </div>
+        <div>
+          <dt>Left out by your ignore files</dt>
+          <dd>
+            Anything any <code>.gitignore</code> or a <code>.cloudgateignore</code> lists. Both use
+            the same syntax, and <code>!</code> brings a file back.
+          </dd>
+        </div>
+        <div>
+          <dt>Always left out</dt>
+          <dd>
+            <code>.git</code>, <code>.cloudgate</code>, and <code>.env</code> files except
+            <code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
+          </dd>
+        </div>
+        <div>
+          <dt>Warned about</dt>
+          <dd>Symlinks are skipped with a warning, and an upload over 100 MB names its biggest folders before it goes.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" id="commands" aria-labelledby="commands-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="commands-title">Which commands does the CLI have?</h2>
+        <p class="lede">
+          Every command explains itself with <code>--help</code>. Several take <code>--json</code> for
+          scripts, and every one that acts on a Service takes <code>--org</code>,
+          <code>--project</code>, <code>--env</code> and <code>--service</code>.
+        </p>
+      </div>
+      <div class="groups">
+        {commandGroups.map((g) => (
+          <div class="group">
+            <h3>{g.name}</h3>
+            <dl class="cmds">
+              {g.commands.map((c) => (
+                <div>
+                  <dt><code>{c.cmd}</code></dt>
+                  <dd>{c.text}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ci-title">
+    <div class="wrap ci">
+      <div>
+        <h2 id="ci-title">How do you deploy from CI?</h2>
+        <p class="lede">
+          Use a Personal key instead of logging in. Make one in the console, store it as a secret
+          in your CI, and set it as <code>CLOUDGATE_KEY</code>.
+        </p>
+        <p class="note">
+          A CI job cannot answer questions, so name the target with variables or flags. Add
+          <code>--switch-source</code> if the Service used to deploy from git or an image, and
+          <code>--detach --json</code> to queue the Deployment and move on. A key from
+          <code>CLOUDGATE_KEY</code> is never written to disk.
+        </p>
+      </div>
+      <pre class="code"><code><span class="d"># in your CI job</span>
+<span class="s">export</span> CLOUDGATE_KEY=<span class="d">&lt;Personal key from your secrets&gt;</span>
+<span class="s">export</span> CLOUDGATE_PROJECT=<span class="s">shop</span>
+<span class="s">export</span> CLOUDGATE_ENV=<span class="s">production</span>
+<span class="s">export</span> CLOUDGATE_SERVICE=<span class="s">web</span>
+
+<span class="k">npm</span> install -g @octabyte-io/cloudgate
+<span class="k">cloudgate</span> deploy --switch-source</code></pre>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="other-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="other-title">Not working in a terminal?</h2>
+        <p class="lede">The CLI is one of three ways in. The other two reach the same Projects and Services.</p>
+      </div>
+      <ul class="ways">
+        <li>
+          <span class="slice" aria-hidden="true"></span>
+          <div>
+            <h3><a href="/vibe-coding">Put an AI-built app online without a terminal</a></h3>
+            <p>Pick a template or point Cloudgate at your folder, get a server, press Deploy.</p>
+          </div>
+        </li>
+        <li>
+          <span class="slice slice--2" aria-hidden="true"></span>
+          <div>
+            <h3><a href="/ai-agents">Let your AI agent deploy over MCP</a></h3>
+            <p>An agent gets its own member account, key and grant, and every call it makes is audited.</p>
+          </div>
+        </li>
+        <li>
+          <span class="slice slice--3" aria-hidden="true"></span>
+          <div>
+            <h3><a href="/templates">Start from an app template</a></h3>
+            <p>Deploy one of 20 ready apps, such as n8n, Ghost or Uptime Kuma, from the console.</p>
+          </div>
+        </li>
+      </ul>
+      <p class="more">
+        The CLI works with the hosted console and with <a href="/self-hosted">a self-hosted Cloudgate</a>.
+        See <a href="/pricing">what the hosted plans cost</a>.
+      </p>
+    </div>
+  </section>
+
+  <Faq items={faq} />
+  <CtaBand
+    title="Deploy your first folder today"
+    text="Start a 30-day free trial, make an Application in the console, then run cloudgate deploy from your project folder."
+  />
+</Base>
+
+<style>
+  .hero-term {
+    padding-bottom: var(--space-8);
+  }
+  .term {
+    font-size: var(--text-md);
+    max-width: 860px;
+  }
+  .early {
+    margin-top: var(--space-5);
+    max-width: 860px;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--warn);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+  .early strong {
+    font-weight: 600;
+  }
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-7);
+    max-width: 860px;
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+  }
+  .steps li::before {
+    content: counter(step);
+    grid-row: span 3;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-xl);
+    color: var(--brand);
+    line-height: 1.1;
+  }
+  .steps li > * {
+    grid-column: 2;
+  }
+  .steps p {
+    color: var(--muted);
+    max-width: 68ch;
+  }
+  .steps .code {
+    margin-top: var(--space-2);
+  }
+
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-7);
+  }
+  .group h3 {
+    margin-bottom: var(--space-4);
+  }
+  .cmds {
+    margin: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .cmds > div {
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-3);
+  }
+  .cmds dt code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: var(--text-sm);
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .cmds dd {
+    margin: var(--space-1) 0 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .ci {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .ci h2 {
+    margin-bottom: var(--space-4);
+  }
+  .note {
+    margin-top: var(--space-4);
+    color: var(--muted);
+  }
+
+  .ways {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+  .ways li {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-4);
+  }
+  .ways .slice {
+    margin-top: 0.2rem;
+  }
+  .ways h3 a {
+    text-decoration-color: var(--line-strong);
+  }
+  .ways h3 a:hover {
+    text-decoration-color: currentColor;
+  }
+  .ways p {
+    margin-top: var(--space-2);
+    color: var(--muted);
+  }
+  .more {
+    margin-top: var(--space-6);
+    color: var(--muted);
+  }
+  .more a {
+    color: var(--ink);
+  }
+
+  @media (max-width: 960px) {
+    .groups,
+    .ways {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .ci {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+  @media (max-width: 520px) {
+    .term {
+      font-size: var(--text-xs);
+    }
+    .steps li {
+      grid-template-columns: 1.75rem minmax(0, 1fr);
+      column-gap: var(--space-3);
+    }
+  }
+</style>
