@@ -164,13 +164,14 @@ const description =
   <section class="plans-section" aria-labelledby="plans-title">
     <div class="wrap">
       <h2 id="plans-title" class="visually-hidden">Plans</h2>
-      <div class="plans">
+      <div class="plans" data-reveal-stagger="90">
         <p class="group-label label-hosted">
           <span>Hosted at <a href={site.console}>cloudgate.octabyte.app</a>, run by Octabyte</span>
         </p>
         {plans.map((p) => (
           <article
             class:list={['plan', `plan--${p.id}`, { 'plan--featured': p.id === 'business' }]}
+            data-spotlight
             aria-labelledby={`plan-${p.id}`}
           >
             <h3 id={`plan-${p.id}`}>{p.name}</h3>
@@ -189,7 +190,7 @@ const description =
         ))}
 
         <p class="group-label label-self"><span>On your own server</span></p>
-        <article class="plan plan--self" aria-labelledby="plan-self">
+        <article class="plan plan--self" aria-labelledby="plan-self" data-spotlight>
           <h3 id="plan-self">Self-hosted</h3>
           <p class="price">
             <span class="amount">$0</span>
@@ -213,7 +214,7 @@ const description =
         </article>
       </div>
 
-      <div class="addon">
+      <div class="addon" data-reveal>
         <div class="addon-art" aria-hidden="true">
           <span class="chip"><span class="plus-sign">+1</span> Server</span>
           <span class="chip"><span class="plus-sign">+1</span> Cloud Environment</span>
@@ -228,14 +229,14 @@ const description =
 
   <section class="section band" aria-labelledby="counts-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="counts-title">What counts toward a plan?</h2>
         <p class="lede">
           Two things are counted: Servers and Cloud Environments. Each plan includes three of each,
           and each ${addOn.price} Add-on raises both by one.
         </p>
       </div>
-      <div class="counts-grid">
+      <div class="counts-grid" data-reveal>
         <figure class="meter panel">
           <figcaption>An example Organization on Starter</figcaption>
           <div class="meter-rows">
@@ -313,15 +314,15 @@ const description =
 
   <section class="section" aria-labelledby="provider-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="provider-title">What do you pay your server or cloud provider?</h2>
         <p class="lede">
           Your plan pays for Cloudgate. The machines and cloud resources your apps run on are billed
           separately, and who bills you depends on where they come from.
         </p>
       </div>
-      <dl class="bills">
-        <div class="bill b-bring">
+      <dl class="bills" data-reveal-stagger>
+        <div data-spotlight class="bill b-bring">
           <div class="art" aria-hidden="true">
             <div class="wire-row">
               <span class="node">Your server</span>
@@ -336,7 +337,7 @@ const description =
             not part of that bill.
           </dd>
         </div>
-        <div class="bill b-buy">
+        <div data-spotlight class="bill b-buy">
           <div class="art" aria-hidden="true">
             <div class="invoice">
               <p class="inv-title">Cloudgate invoice, paid monthly in advance</p>
@@ -350,7 +351,7 @@ const description =
             price plus a markup. You see the full price before you buy.
           </dd>
         </div>
-        <div class="bill b-cloud">
+        <div data-spotlight class="bill b-cloud">
           <div class="art" aria-hidden="true">
             <div class="wire-row">
               <span class="node node--gate">Cloudgate</span>
@@ -368,7 +369,7 @@ const description =
             for you, and the bill for them stays between you and your cloud.
           </dd>
         </div>
-        <div class="bill b-self">
+        <div data-spotlight class="bill b-self">
           <div class="art" aria-hidden="true">
             <p class="zero"><span>Cloudgate</span><strong>$0</strong></p>
             <p class="art-tag">Plus the server it runs on</p>
@@ -385,14 +386,14 @@ const description =
 
   <section class="section band" aria-labelledby="examples-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="examples-title">What does a month cost?</h2>
         <p class="lede">
           Three setups, worked out from the prices on this page. Each total is what you pay
           Cloudgate; your servers and cloud resources are billed on top as described above.
         </p>
       </div>
-      <ul class="examples">
+      <ul class="examples" data-reveal-stagger>
         {examples.map((e) => (
           <li class="example">
             <h3>{e.who}</h3>
@@ -430,14 +431,14 @@ const description =
 
   <section class="section" aria-labelledby="compare-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="compare-title">How do the plans compare?</h2>
         <p class="lede">
           Every way of running Cloudgate deploys the same things. The differences are who runs it,
           what is counted, and the identity features larger companies ask for.
         </p>
       </div>
-      <div class="cmp">
+      <div class="cmp" data-reveal>
         <fieldset class="cmp-pick">
           <legend>Show one plan</legend>
           {columnPicks.map((c, i) => (
@@ -483,7 +484,7 @@ const description =
           </table>
         </div>
       </div>
-      <div class="enterprise panel">
+      <div class="enterprise panel" data-reveal>
         <div>
           <h3>Need something the plans don't cover?</h3>
           <p>
@@ -573,7 +574,7 @@ const description =
   .plan--featured {
     background:
       linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(160deg, var(--beam-c), var(--beam-b) 25%, var(--beam-a) 50%, var(--line) 80%) border-box;
+      conic-gradient(from var(--sweep, 200deg), var(--beam-c), var(--beam-b) 15%, var(--beam-a) 30%, var(--line) 50%, var(--line) 75%, var(--beam-c)) border-box;
     box-shadow:
       inset 0 1px 0 var(--panel-top),
       0 30px 80px -40px var(--glow);

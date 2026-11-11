@@ -2,12 +2,13 @@
 // What every app gets: tiles of different sizes, each drawn with a small piece of the real product
 // rather than an icon, so the grid shows the thing instead of naming it.
 ---
-<div class="bento">
-  <article class="tile t-domain">
+<div class="bento" data-reveal-stagger>
+  <article class="tile t-domain" data-play data-spotlight>
     <div class="art">
       <div class="urlbar">
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4.5 7V5.2a3.5 3.5 0 1 1 7 0V7h.8c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.7a.7.7 0 0 1-.7-.7V7.7c0-.4.3-.7.7-.7h.8Zm1.6 0h3.8V5.2a1.9 1.9 0 1 0-3.8 0V7Z" /></svg>
         <span>https://shop.example.com</span>
+        <span class="cert" aria-hidden="true"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
       </div>
       <p class="tag live">Certificate issued, renews by itself</p>
     </div>
@@ -15,12 +16,13 @@
     <p>Point a domain at your app and Cloudgate gets the TLS certificate. Every app also gets a free address that works straight away.</p>
   </article>
 
-  <article class="tile t-monitor">
+  <article class="tile t-monitor" data-play data-spotlight>
     <div class="art">
-      <svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+      <div class="spark-wrap"><svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
         <path class="area" d="M0 50 L20 46 L40 48 L60 40 L80 44 L100 30 L120 36 L140 28 L160 34 L180 22 L200 30 L220 26 L240 32 L260 18 L280 24 L300 20 L300 70 L0 70 Z" />
         <path class="line" d="M0 50 L20 46 L40 48 L60 40 L80 44 L100 30 L120 36 L140 28 L160 34 L180 22 L200 30 L220 26 L240 32 L260 18 L280 24 L300 20" />
       </svg>
+      <span class="spark-dot" aria-hidden="true"></span></div>
       <div class="checks">
         <span class="live">Uptime check up</span>
         <span>Error rate under 5%</span>
@@ -30,35 +32,40 @@
     <p>Uptime checks, error rates read from the proxy, logs, traces and server alerts, sent to Slack, Discord, Teams, email and more.</p>
   </article>
 
-  <article class="tile t-db">
+  <article class="tile t-db" data-play data-spotlight>
     <div class="art">
       <ul class="engines">
         <li>PostgreSQL</li><li>MySQL</li><li>MariaDB</li><li>MongoDB</li><li>Redis</li><li>libSQL</li>
       </ul>
       <ol class="timeline" aria-label="Backups">
-        <li></li><li></li><li></li><li></li><li></li><li class="now"></li>
+        <li style="--i:0"></li><li style="--i:1"></li><li style="--i:2"></li><li style="--i:3"></li><li style="--i:4"></li><li class="now" style="--i:5"></li>
       </ol>
     </div>
     <h3>Databases with backups</h3>
     <p>Six database engines, backed up on a schedule to any S3-compatible storage, and restored from the console.</p>
   </article>
 
-  <article class="tile t-build">
+  <article class="tile t-build" data-play data-spotlight>
     <div class="art">
-      <pre class="log"><code><span class="d">#1</span> Detected Node.js app
-<span class="d">#2</span> Building with Nixpacks
-<span class="d">#3</span> Image pushed
-<span class="d">#4</span> <span class="s">Deployment done</span></code></pre>
+      <pre class="log"><code><span class="ln" style="--i:0"><span class="d">#1</span> Detected Node.js app</span>
+<span class="ln" style="--i:1"><span class="d">#2</span> Building with Nixpacks</span>
+<span class="ln" style="--i:2"><span class="d">#3</span> Image pushed</span>
+<span class="ln" style="--i:3"><span class="d">#4</span> <span class="s">Deployment done</span></span></code></pre>
     </div>
     <h3>Builds without a Dockerfile</h3>
     <p>Nixpacks works out how to build most apps. Railpack, buildpacks and your own Dockerfile are there when you want them.</p>
   </article>
 
-  <article class="tile t-preview">
+  <article class="tile t-preview" data-play data-spotlight>
     <div class="art">
       <svg class="branches" viewBox="0 0 260 80" aria-hidden="true">
+        <defs>
+          <mask id="bento-pr-draw" maskUnits="userSpaceOnUse" x="0" y="0" width="260" height="80">
+            <path class="pr-draw" d="M60 60 C 90 60, 90 20, 120 20 H200" pathLength="1" />
+          </mask>
+        </defs>
         <path class="main" d="M10 60 H250" />
-        <path class="pr" d="M60 60 C 90 60, 90 20, 120 20 H200" />
+        <path class="pr" d="M60 60 C 90 60, 90 20, 120 20 H200" mask="url(#bento-pr-draw)" />
         <circle class="dot" cx="60" cy="60" r="6" />
         <circle class="dot" cx="160" cy="60" r="6" />
         <circle class="dot pr-dot" cx="200" cy="20" r="6" />
@@ -69,24 +76,24 @@
     <p>A preview for every pull request, and a way back to any earlier Deployment when a change goes wrong.</p>
   </article>
 
-  <article class="tile t-team">
+  <article class="tile t-team" data-play data-spotlight>
     <div class="art">
       <ul class="people">
-        <li><span class="av">AK</span><span>Owner</span></li>
-        <li><span class="av">ML</span><span>Developer</span></li>
-        <li><span class="av bot">AI</span><span>Agent, Operator</span></li>
+        <li style="--i:0"><span class="av">AK</span><span>Owner</span></li>
+        <li style="--i:1"><span class="av">ML</span><span>Developer</span></li>
+        <li style="--i:2"><span class="av bot">AI</span><span>Agent, Operator</span></li>
       </ul>
     </div>
     <h3>Teams and access</h3>
     <p>Members, roles and grants down to a single Service, and an audit log of who did what. SSO and SCIM on Business.</p>
   </article>
-  <article class="tile t-ai">
+  <article class="tile t-ai" data-play data-spotlight>
     <div class="art ai-art">
       <div class="gw">
         <span class="gw-node">Your app</span>
-        <span class="gw-wire"></span>
+        <span class="gw-wire gw-wire--1"></span>
         <span class="gw-node gw-gate">Gateway, OpenAI-compatible</span>
-        <span class="gw-wire"></span>
+        <span class="gw-wire gw-wire--2"></span>
         <span class="gw-node">llama-3 on vLLM, 1 GPU</span>
       </div>
       <p class="tag">Token spend counted per model and per calling Agent</p>
@@ -142,10 +149,30 @@
     box-shadow: 0 0 24px -8px var(--glow);
   }
   .gw-wire {
+    position: relative;
     flex: 1 1 1.5rem;
     min-width: 1.5rem;
-    height: 0;
-    border-top: 2px dashed var(--line-strong);
+    height: 8px;
+    overflow: hidden;
+  }
+  /* The dashed wire is a strip twice its width, slid along; the packet is a dot at the right end
+     of a full-width layer, slid from the left end to the right. Both are transforms. */
+  .gw-wire::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: -12px;
+    width: calc(100% + 12px);
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 12px);
+  }
+  .gw-wire::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at calc(100% - 4px) 50%, var(--brand) 0 3px, transparent 4px);
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
   }
   .tile p {
     color: var(--muted);
@@ -178,16 +205,49 @@
   .urlbar svg {
     color: var(--live);
   }
+  .cert {
+    display: grid;
+    place-items: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-left: auto;
+    border-radius: 50%;
+    background: var(--live-tint);
+    color: var(--live);
+  }
   .tag {
     font-size: var(--text-xs);
   }
-  .live {
+  .live,
+  .tile p.live {
     color: var(--live);
   }
 
+  .spark-wrap {
+    position: relative;
+  }
   .spark {
     width: 100%;
     height: 70px;
+  }
+  /* The latest reading: the line's last point is at (300, 20) of a 300 by 70 box. */
+  .spark-dot {
+    position: absolute;
+    right: 0;
+    top: calc(20 / 70 * 100%);
+    width: 7px;
+    height: 7px;
+    margin: -3.5px -3.5px 0 0;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+  .spark-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--brand);
+    opacity: 0;
   }
   .spark .area {
     fill: var(--brand-tint);
@@ -247,6 +307,19 @@
   .timeline li.now {
     background: var(--brand);
     box-shadow: 0 0 0 4px var(--brand-tint);
+  }
+  .timeline li.now::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--brand);
+    opacity: 0;
+  }
+  .branches .pr-draw {
+    fill: none;
+    stroke: white;
+    stroke-width: 6;
   }
 
   .log {
@@ -323,6 +396,207 @@
     border-radius: 8px;
     background: var(--brand);
     color: var(--on-brand);
+  }
+
+  /* ---- In view: each tile plays its piece once, then keeps a slow, quiet loop ---- */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Monitoring: the line draws left to right, then the latest reading pulses. */
+    :global(.js) .t-monitor:not(.is-playing) .spark,
+    :global(.js) .t-monitor:not(.is-playing) .spark-dot {
+      opacity: 0;
+    }
+    .t-monitor.is-playing .spark {
+      animation: draw-x 1.6s var(--ease-out) 0.2s both;
+    }
+    .t-monitor.is-playing .spark-dot {
+      animation: pop 0.5s var(--ease-out) 1.5s both;
+    }
+    .t-monitor.is-playing .spark-dot::after {
+      animation: pulse-ring 2.6s var(--ease-out) 2s infinite;
+    }
+
+    /* Build: log lines in turn, the last one turns green. */
+    :global(.js) .t-build:not(.is-playing) .ln {
+      opacity: 0;
+    }
+    .t-build.is-playing .ln {
+      animation: line-in 0.4s var(--ease-out) both;
+      animation-delay: calc(var(--i) * 0.45s + 0.2s);
+    }
+    .t-build.is-playing .log .s {
+      animation: turn-live 0.6s var(--ease-out) 1.8s both;
+    }
+
+    /* Backups: dots fill in order, the newest one pulses. */
+    :global(.js) .t-db:not(.is-playing) .timeline li {
+      transform: scale(0.3);
+      opacity: 0.3;
+    }
+    .t-db.is-playing .timeline li {
+      animation: pop 0.5s var(--ease-out) both;
+      animation-delay: calc(var(--i) * 0.16s + 0.2s);
+    }
+    .t-db.is-playing .timeline li.now::after {
+      animation: pulse-ring 2.8s var(--ease-out) 1.4s infinite;
+    }
+
+    /* Previews: the pull request branches off, then its preview pops. */
+    .branches .pr-draw {
+      stroke-dasharray: 1;
+    }
+    :global(.js) .t-preview:not(.is-playing) .pr-draw {
+      stroke-dashoffset: 1;
+    }
+    :global(.js) .t-preview:not(.is-playing) .pr-dot {
+      transform: scale(0);
+    }
+    .branches .pr-dot {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .t-preview.is-playing .pr-draw {
+      animation: dash-draw 1.2s var(--ease-out) 0.2s both;
+    }
+    .t-preview.is-playing .pr-dot {
+      animation: pop 0.5s var(--ease-out) 1.2s both;
+    }
+
+    /* Domains: the lock turns green as the certificate is issued. */
+    :global(.js) .t-domain:not(.is-playing) .cert,
+    :global(.js) .t-domain:not(.is-playing) .tag {
+      opacity: 0;
+    }
+    .t-domain.is-playing .urlbar svg {
+      animation: lock-live 0.8s var(--ease-out) 0.4s both;
+    }
+    .t-domain.is-playing .cert {
+      animation: pop 0.5s var(--ease-out) 1s both;
+    }
+    .t-domain.is-playing .tag {
+      animation: line-in 0.6s var(--ease-out) 1.2s both;
+    }
+
+    /* Team: rows slide in. */
+    :global(.js) .t-team:not(.is-playing) .people li {
+      opacity: 0;
+    }
+    .t-team.is-playing .people li {
+      animation: slide-in 0.6s var(--ease-out) both;
+      animation-delay: calc(var(--i) * 0.14s + 0.2s);
+    }
+
+    /* AI gateway: the wires flow, and a packet goes app, gateway, model every few seconds. */
+    .t-ai.is-playing .gw-wire::before {
+      animation: wire-flow 1.2s linear infinite;
+    }
+    .t-ai.is-playing .gw-wire--1::after {
+      animation: packet-1 4s var(--ease-in-out) 0.4s infinite;
+    }
+    .t-ai.is-playing .gw-wire--2::after {
+      animation: packet-2 4s var(--ease-in-out) 0.4s infinite;
+    }
+    .t-ai.is-playing .gw-gate {
+      animation: gate-hit 4s var(--ease-in-out) 0.4s infinite;
+    }
+  }
+  @keyframes draw-x {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes dash-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes pop {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.25);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes turn-live {
+    from {
+      color: var(--ink-2);
+    }
+  }
+  @keyframes lock-live {
+    from {
+      color: var(--muted);
+    }
+  }
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translate3d(-10px, 0, 0);
+    }
+  }
+  @keyframes wire-flow {
+    to {
+      transform: translate3d(12px, 0, 0);
+    }
+  }
+  @keyframes packet-1 {
+    0% {
+      transform: translate3d(-100%, 0, 0);
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    35% {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+    40%,
+    100% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+  }
+  @keyframes packet-2 {
+    0%,
+    45% {
+      transform: translate3d(-100%, 0, 0);
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    80% {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+    85%,
+    100% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+  }
+  @keyframes gate-hit {
+    0%,
+    34%,
+    50%,
+    100% {
+      box-shadow: 0 0 24px -8px var(--glow);
+    }
+    40% {
+      box-shadow: 0 0 30px -2px var(--glow);
+    }
   }
 
   @media (max-width: 1000px) {

@@ -1,6 +1,7 @@
 ---
 // One Cloudgate, three places to run: a diagram of the gate sending work down three lanes.
-// The dashes flow once the page loads; reduced motion keeps them still.
+// The dashes flow, a packet of light runs down each wire and the gate breathes; reduced motion
+// keeps all of it still.
 import Mark from '../Mark.astro';
 
 interface Lane { slice: string; name: string; text: string; runs: string[] }
@@ -8,7 +9,7 @@ interface Props { lanes: Lane[] }
 const { lanes } = Astro.props;
 ---
 <div class="lanes-wrap">
-  <div class="diagram" aria-hidden="true">
+  <div class="diagram" aria-hidden="true" data-reveal data-play>
     <div class="gate">
       <Mark size={64} />
       <span>Cloudgate</span>
@@ -17,11 +18,16 @@ const { lanes } = Astro.props;
       <path class="wire w1" d="M600 0 C 600 80, 200 70, 200 160" />
       <path class="wire w2" d="M600 0 L 600 160" />
       <path class="wire w3" d="M600 0 C 600 80, 1000 70, 1000 160" />
+      <g class="packets">
+        <path class="packet p1" d="M600 0 C 600 80, 200 70, 200 160" pathLength="100" />
+        <path class="packet p2" d="M600 0 L 600 160" pathLength="100" />
+        <path class="packet p3" d="M600 0 C 600 80, 1000 70, 1000 160" pathLength="100" />
+      </g>
     </svg>
   </div>
-  <div class="lanes">
+  <div class="lanes" data-reveal-stagger="90">
     {lanes.map((lane, i) => (
-      <article class="lane panel">
+      <article class="lane panel" data-spotlight>
         <div class="lane-head">
           <span class:list={['slice', lane.slice]} aria-hidden="true"></span>
           <h3>{lane.name}</h3>
@@ -64,7 +70,66 @@ const { lanes } = Astro.props;
     stroke-width: 2;
     stroke-dasharray: 6 10;
     vector-effect: non-scaling-stroke;
-    animation: flow 1.6s linear infinite;
+  }
+  /* A short bright dash with a soft halo, travelling the length of its wire. */
+  .packet {
+    fill: none;
+    stroke: var(--brand-hi);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 4 200;
+    stroke-dashoffset: 4;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+    filter: drop-shadow(0 0 4px var(--brand));
+  }
+  .gate::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: 0 0 70px 0 var(--glow), 0 0 0 1px var(--brand);
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .wire {
+      animation: flow 1.6s linear infinite;
+    }
+    .is-playing .packet {
+      animation: packet 3.6s var(--ease-in-out) infinite;
+    }
+    .is-playing .p2 {
+      animation-delay: 1.2s;
+    }
+    .is-playing .p3 {
+      animation-delay: 2.4s;
+    }
+    .gate::after {
+      animation: gate-glow 3.6s var(--ease-in-out) infinite;
+    }
+  }
+  @keyframes packet {
+    0% {
+      stroke-dashoffset: 4;
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    75% {
+      opacity: 1;
+    }
+    85%,
+    100% {
+      stroke-dashoffset: -100;
+      opacity: 0;
+    }
+  }
+  @keyframes gate-glow {
+    50% {
+      opacity: 0.6;
+    }
   }
   .w1 {
     stroke: var(--slice-1);

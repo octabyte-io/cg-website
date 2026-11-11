@@ -68,9 +68,7 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     position: sticky;
     top: 0;
     z-index: 20;
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: saturate(1.4) blur(10px);
-    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    background: var(--paper);
     border-bottom: 1px solid var(--line);
   }
   .bar {

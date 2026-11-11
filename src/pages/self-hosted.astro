@@ -106,30 +106,30 @@ const description =
     <a class="btn btn--ghost" href="/pricing">Compare with the hosted plans</a>
     <div class="window term" slot="visual" aria-hidden="true">
       <div class="window-bar">root@203.0.113.24</div>
-      <pre class="code"><code><span class="d">#</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=203.0.113.24 <span class="k">bash</span> /opt/cloudgate/deploy/install.sh
-<span class="s">  ✓</span> <span class="d">Node from nodejs.org, checksum verified</span>
-<span class="s">  ✓</span> <span class="d">PostgreSQL, role in a root-only file</span>
-<span class="s">  ✓</span> <span class="d">Docker, Swarm of one node</span>
-<span class="s">  ✓</span> <span class="d">Traefik</span>
-<span class="s">  ✓</span> <span class="d">Nixpacks and OpenTofu</span>
-<span class="s">  ✓</span> <span class="d">ufw: 22, 80, 443, 3000, 4000</span>
-<span class="s">  ✓</span> <span class="d">Console and API under systemd</span>
+      <pre class="code" data-play style="--type-step:200ms"><code><span class="ln" style="--i:0"><span class="d">#</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=203.0.113.24 <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</span>
+<span class="ln" style="--i:1"><span class="s">  ✓</span> <span class="d">Node from nodejs.org, checksum verified</span></span>
+<span class="ln" style="--i:2"><span class="s">  ✓</span> <span class="d">PostgreSQL, role in a root-only file</span></span>
+<span class="ln" style="--i:3"><span class="s">  ✓</span> <span class="d">Docker, Swarm of one node</span></span>
+<span class="ln" style="--i:4"><span class="s">  ✓</span> <span class="d">Traefik</span></span>
+<span class="ln" style="--i:5"><span class="s">  ✓</span> <span class="d">Nixpacks and OpenTofu</span></span>
+<span class="ln" style="--i:6"><span class="s">  ✓</span> <span class="d">ufw: 22, 80, 443, 3000, 4000</span></span>
+<span class="ln" style="--i:7"><span class="s">  ✓</span> <span class="d">Console and API under systemd</span></span>
 
-  Open <span class="k">http://203.0.113.24:3000/sign-up</span>
-<span class="d">  The first account to sign up owns this instance.</span></code></pre>
+<span class="ln" style="--i:8">  Open <span class="k">http://203.0.113.24:3000/sign-up</span></span>
+<span class="ln" style="--i:9"><span class="d">  The first account to sign up owns this instance.</span></span></code></pre>
     </div>
   </PageHero>
 
   <section class="section" aria-labelledby="who-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="who-title">Should you self-host or use the hosted console?</h2>
         <p class="lede">
           Both run the same Cloudgate and deploy to the same places. The question is whether you
           want to look after Cloudgate itself.
         </p>
       </div>
-      <div class="choice">
+      <div class="choice" data-reveal-stagger="90">
         <div class="side side--self">
           <div class="side-art" aria-hidden="true">
             <span class="box">Your server</span>
@@ -144,7 +144,7 @@ const description =
             <li>You want to read or change how Cloudgate works.</li>
           </ul>
         </div>
-        <div class="side side--hosted panel">
+        <div class="side side--hosted panel" data-spotlight>
           <div class="side-art" aria-hidden="true">
             <span class="box box--gate">cloudgate.octabyte.app</span>
             <span class="wire"></span>
@@ -168,7 +168,7 @@ const description =
 
   <section class="section band" aria-labelledby="needs-title">
     <div class="wrap split">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="needs-title">What does the server need?</h2>
         <p class="lede">
           One bare machine. The installer was proved on exactly this size, and it is enough to run
@@ -179,7 +179,7 @@ const description =
           port looks exactly like a broken install.
         </p>
       </div>
-      <div class="spec panel">
+      <div class="spec panel" data-reveal data-reveal-delay="120">
         <div class="spec-head" aria-hidden="true">
           <svg viewBox="0 0 64 40" width="64" height="40">
             <rect class="rack" x="1" y="1" width="62" height="17" rx="4" />
@@ -212,7 +212,7 @@ const description =
 
   <section class="section" aria-labelledby="sets-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="sets-title">What does the installer set up?</h2>
         <p class="lede">
           One script, <code>deploy/install.sh</code>, installs Cloudgate natively on the host.
@@ -220,7 +220,7 @@ const description =
           as one.
         </p>
       </div>
-      <figure class="host" aria-hidden="true">
+      <figure class="host" aria-hidden="true" data-reveal>
         <div class="host-frame">
           <p class="host-label">Ubuntu 24.04 host</p>
           <div class="host-grid">
@@ -249,7 +249,7 @@ const description =
           <p class="ufw">ufw: 22, 80, 443, 3000, 4000</p>
         </div>
       </figure>
-      <dl class="facts setup">
+      <dl class="facts setup" data-reveal-stagger="60">
         <div>
           <dt>Cloudgate under systemd</dt>
           <dd>
@@ -281,7 +281,7 @@ const description =
           </dd>
         </div>
       </dl>
-      <div class="owner">
+      <div class="owner" data-reveal>
         <div class="owner-copy">
           <h3>Who owns the instance?</h3>
           <p>
@@ -310,11 +310,11 @@ const description =
     <div class="wrap">
       {sourceUrl ? (
         <>
-          <div class="section-head">
+          <div class="section-head" data-reveal>
             <h2 id="install-title">How do you install it?</h2>
             <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
           </div>
-          <ol class="steps install-steps">
+          <ol class="steps install-steps" data-reveal-stagger="90">
             <li>
               <h3>Prepare the server</h3>
               <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
@@ -343,7 +343,7 @@ const description =
           </ol>
         </>
       ) : (
-        <div class="access">
+        <div class="access" data-reveal>
           <div>
             <h2 id="install-title">How do you get the installer?</h2>
             <p class="lede">
@@ -374,14 +374,14 @@ const description =
 
   <section class="section" aria-labelledby="run-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="run-title">How do upgrades and backups work?</h2>
         <p class="lede">
           On your own server, both are your job. They are short, and the secrets file is the part
           not to lose.
         </p>
       </div>
-      <div class="ops">
+      <div class="ops" data-reveal-stagger>
         <div class="op">
           <h3>Upgrading</h3>
           <p>
@@ -428,15 +428,15 @@ const description =
 
   <section class="section band" aria-labelledby="license-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="license-title">What does the Elastic License 2.0 let you do?</h2>
         <p class="lede">
           Almost everything a team running its own deployments needs, for free. Cloudgate is
           source-available, not open source.
         </p>
       </div>
-      <div class="license">
-        <div class="lic lic--can panel">
+      <div class="license" data-reveal-stagger="90">
+        <div class="lic lic--can panel" data-spotlight>
           <h3>You can</h3>
           <ul>
             <li>Use Cloudgate inside your company, for any apps you run</li>
@@ -458,15 +458,15 @@ const description =
 
   <section class="section" aria-labelledby="tiers-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="tiers-title">What does an Enterprise license add?</h2>
         <p class="lede">
           The free version deploys everything Cloudgate can deploy. A license unlocks the features
           larger teams ask for, and they stay on as long as the license is valid.
         </p>
       </div>
-      <div class="tiers">
-        <article class="tier tier--free" aria-labelledby="tier-free">
+      <div class="tiers" data-reveal-stagger="90">
+        <article class="tier tier--free" aria-labelledby="tier-free" data-spotlight>
           <div class="tier-head">
             <h3 id="tier-free">Free</h3>
             <p class="tier-price"><strong>$0</strong> under the Elastic License 2.0</p>
@@ -480,7 +480,7 @@ const description =
             ))}
           </dl>
         </article>
-        <article class="tier tier--ent" aria-labelledby="tier-ent">
+        <article class="tier tier--ent" aria-labelledby="tier-ent" data-spotlight>
           <div class="tier-head">
             <h3 id="tier-ent">Enterprise license</h3>
             <p class="tier-price"><strong>Agreed with you</strong> 30-day trial key on request</p>
@@ -1031,7 +1031,7 @@ const description =
   .tier--ent {
     background:
       linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(160deg, var(--beam-c), var(--beam-b) 25%, var(--beam-a) 50%, var(--line) 80%) border-box;
+      conic-gradient(from var(--sweep, 200deg), var(--beam-c), var(--beam-b) 15%, var(--beam-a) 30%, var(--line) 50%, var(--line) 75%, var(--beam-c)) border-box;
     border: 1px solid transparent;
     box-shadow:
       inset 0 1px 0 var(--panel-top),

@@ -10,7 +10,7 @@ const {
 ---
 <section class="band" aria-labelledby="cta-title">
   <div class="beam" aria-hidden="true"></div>
-  <div class="wrap inner">
+  <div class="wrap inner" data-reveal>
     <h2 id="cta-title">{title}</h2>
     <p>{text}</p>
     <div class="actions">
@@ -40,6 +40,28 @@ const {
     opacity: 0.55;
     transform: skewX(-12deg);
     z-index: -1;
+  }
+  /* The beam drifts slowly across the band and back, and a fainter second beam trails it. */
+  .beam::after {
+    content: '';
+    position: absolute;
+    inset: 10% -180% 10% auto;
+    width: 80px;
+    background: inherit;
+    opacity: 0.5;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .beam {
+      animation: cta-drift 22s var(--ease-in-out) infinite alternate;
+    }
+  }
+  @keyframes cta-drift {
+    from {
+      transform: translate3d(-18vw, 0, 0) skewX(-8deg);
+    }
+    to {
+      transform: translate3d(14vw, 0, 0) skewX(-16deg);
+    }
   }
   .inner {
     display: grid;

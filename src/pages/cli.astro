@@ -126,18 +126,18 @@ const description =
     <a class="btn btn--ghost" href={site.npm}>View on npm</a>
     <div class="window term" slot="visual" aria-label="A deploy from the terminal" role="img">
       <div class="window-bar">~/my-app</div>
-      <pre class="code"><code><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate
-<span class="d">$</span> <span class="k">cloudgate</span> login
-<span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span>
-<span class="d">$</span> <span class="k">cd</span> my-app
-<span class="d"># uploads this folder, builds it, follows the log</span>
-<span class="d">$</span> <span class="k">cloudgate</span> deploy
-<span class="d">  Uploading 214 files (skipping .env and .git)</span>
-<span class="d">  Building with Nixpacks</span>
-<span class="d">  Deployment</span> <span class="s">done</span>
-<span class="d"># running? which address? which Deployment?</span>
-<span class="d">$</span> <span class="k">cloudgate</span> status
-<span class="d">  web</span>  <span class="s">running</span>  <span class="d">shop.example.com</span></code></pre>
+      <pre class="code" data-play style="--type-step:160ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate</span>
+<span class="ln" style="--i:1"><span class="d">$</span> <span class="k">cloudgate</span> login</span>
+<span class="ln" style="--i:2"><span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span></span>
+<span class="ln" style="--i:3"><span class="d">$</span> <span class="k">cd</span> my-app</span>
+<span class="ln" style="--i:4"><span class="d"># uploads this folder, builds it, follows the log</span></span>
+<span class="ln" style="--i:5"><span class="d">$</span> <span class="k">cloudgate</span> deploy</span>
+<span class="ln" style="--i:6"><span class="d">  Uploading 214 files (skipping .env and .git)</span></span>
+<span class="ln" style="--i:7"><span class="d">  Building with Nixpacks</span></span>
+<span class="ln" style="--i:8"><span class="d">  Deployment</span> <span class="s">done</span></span>
+<span class="ln" style="--i:9"><span class="d"># running? which address? which Deployment?</span></span>
+<span class="ln" style="--i:10"><span class="d">$</span> <span class="k">cloudgate</span> status</span>
+<span class="ln" style="--i:11"><span class="d">  web</span>  <span class="s">running</span>  <span class="d">shop.example.com</span></span></code></pre>
     </div>
   </PageHero>
 
@@ -154,14 +154,14 @@ const description =
 
   <section class="section" id="install" aria-labelledby="install-title">
     <div class="wrap split install">
-      <div class="section-head sticky-head">
+      <div class="section-head sticky-head" data-reveal>
         <h2 id="install-title">How do you deploy a folder with the Cloudgate CLI?</h2>
         <p class="lede">
           Four steps. You need Node 22 or newer, a Cloudgate account, and an Application made in
           the console for the folder to deploy to.
         </p>
       </div>
-      <ol class="steps">
+      <ol class="steps" data-reveal-stagger="90">
         <li>
           <h3>Install it from npm</h3>
           <p>The package is <code>@octabyte-io/cloudgate</code>; the command it installs is <code>cloudgate</code>.</p>
@@ -200,14 +200,14 @@ const description =
 
   <section class="section band" aria-labelledby="upload-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="upload-title">What does cloudgate deploy upload?</h2>
         <p class="lede">
           The folder as it is on your disk, uncommitted changes included, minus anything that
           should not leave your machine.
         </p>
       </div>
-      <div class="upload">
+      <div class="upload" data-reveal>
         <figure class="tree panel" aria-hidden="true">
           <figcaption>my-app/</figcaption>
           <ul>
@@ -249,7 +249,7 @@ const description =
 
   <section class="section" id="commands" aria-labelledby="commands-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="commands-title">Which commands does the CLI have?</h2>
         <p class="lede">
           Every command explains itself with <code>--help</code>. Several take <code>--json</code> for
@@ -257,8 +257,8 @@ const description =
           {" "}<code>--project</code>, <code>--env</code> and <code>--service</code>.
         </p>
       </div>
-      <div class="groups">
-        <div class="group g-folder">
+      <div class="groups" data-reveal-stagger>
+        <div data-spotlight class="group g-folder">
           <div class="art" aria-hidden="true">
             <pre class="mini"><code><span class="p">$</span> cloudgate status
 <span class="dim">Service</span>      web
@@ -276,7 +276,7 @@ const description =
             ))}
           </dl>
         </div>
-        <div class="group g-login">
+        <div data-spotlight class="group g-login">
           <div class="art" aria-hidden="true">
             <pre class="mini"><code><span class="p">$</span> cloudgate instance list
 <span class="ok">*</span> cloudgate.octabyte.app
@@ -292,7 +292,7 @@ const description =
             ))}
           </dl>
         </div>
-        <div class="group g-templates">
+        <div data-spotlight class="group g-templates">
           <div class="art pack" aria-hidden="true">
             <span class="node">templates/</span>
             <span class="wire"></span>
@@ -318,7 +318,7 @@ const description =
 
   <section class="section band" aria-labelledby="ci-title">
     <div class="wrap split ci">
-      <div class="prose">
+      <div class="prose" data-reveal>
         <h2 id="ci-title">How do you deploy from CI?</h2>
         <p class="lede">
           Use a Personal key instead of logging in. Make one in the console, store it as a secret
@@ -331,7 +331,7 @@ const description =
           {" "}<code>CLOUDGATE_KEY</code> is never written to disk.
         </p>
       </div>
-      <div class="window ci-win">
+      <div class="window ci-win" data-reveal data-reveal-delay="120">
         <div class="window-bar ci-tabs" role="radiogroup" aria-label="CI example">
           <input type="radio" name="ci" id="ci-gh" checked />
           <label for="ci-gh"><span class="path-dir">.github/workflows/</span>deploy.yml</label>
@@ -371,26 +371,26 @@ const description =
 
   <section class="section" aria-labelledby="other-title">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="other-title">Not working in a terminal?</h2>
         <p class="lede">The CLI is one of three ways in. The other two reach the same Projects and Services.</p>
       </div>
-      <ul class="ways">
-        <li class="panel">
+      <ul class="ways" data-reveal-stagger>
+        <li class="panel" data-spotlight>
           <span class="slice" aria-hidden="true"></span>
           <div>
             <h3><a href="/vibe-coding">Put an AI-built app online without a terminal</a></h3>
             <p>Pick a template or point Cloudgate at your folder, get a server, press Deploy.</p>
           </div>
         </li>
-        <li class="panel">
+        <li class="panel" data-spotlight>
           <span class="slice slice--2" aria-hidden="true"></span>
           <div>
             <h3><a href="/ai-agents">Let your AI agent deploy over MCP</a></h3>
             <p>An agent gets its own member account, key and grant, and every call it makes is audited.</p>
           </div>
         </li>
-        <li class="panel">
+        <li class="panel" data-spotlight>
           <span class="slice" aria-hidden="true"></span>
           <div>
             <h3><a href={templatesHome}>Start from an app template</a></h3>

@@ -1,8 +1,13 @@
 ---
 // The hero's three ways in, one per slice of the mark. A radio group drives the panels with CSS
 // alone, so it works without JavaScript and each panel stays in the HTML for crawlers.
+//
+// With JavaScript, and unless the visitor asked for reduced motion, the panel plays itself while it
+// is on screen: it steps through the three tabs, and each one acts out its own run (the wizard ticks
+// its steps, the transcript and terminal print line by line). The first click on or focus of a tab
+// stops that for good and shows every pane in its final state, the same as without JavaScript.
 ---
-<div class="panel" role="group" aria-label="Three ways to deploy with Cloudgate">
+<div class="panel" role="group" aria-label="Three ways to deploy with Cloudgate" data-hero-panel>
   <div class="tabs">
     <input type="radio" name="way" id="way-console" checked />
     <label for="way-console"><span class="slice"></span>In the console</label>
@@ -12,7 +17,7 @@
     <label for="way-cli"><span class="slice slice--3"></span>From your terminal</label>
 
     <section class="pane pane--console" aria-label="Deploying a template in the console">
-      <div class="window">
+      <div class="window" data-wizard>
         <p class="win-title">Get started: deploy n8n</p>
         <ol class="checklist">
           <li class="done"><span>Your account</span><span class="state">Signed in</span></li>
@@ -22,7 +27,8 @@
           </li>
           <li class="current">
             <span>Deploy</span>
-            <span class="state live">Running</span>
+            <span class="state live" data-running>Running</span>
+            <span class="state building" data-building hidden>Building<span class="bar"><span></span></span></span>
           </li>
         </ol>
         <div class="result">
@@ -34,7 +40,7 @@
     </section>
 
     <section class="pane pane--agent" aria-label="An AI agent deploying over MCP">
-      <pre class="code"><code><span class="d">you</span>    Fix the checkout bug and send me a preview.
+      <pre class="code" data-typed="you"><code><span class="d">you</span>    Fix the checkout bug and send me a preview.
 <span class="d">agent</span>  Pushed fix-checkout. Asking Cloudgate for a preview.
 
 <span class="k">create_preview</span>  {'{'} applicationId: <span class="s">"shop-web"</span>, branch: <span class="s">"fix-checkout"</span> {'}'}
@@ -51,7 +57,7 @@
     </section>
 
     <section class="pane pane--cli" aria-label="Deploying a folder from the terminal">
-      <pre class="code"><code><span class="d">$</span> npm install -g @octabyte-io/cloudgate
+      <pre class="code" data-typed="$"><code><span class="d">$</span> npm install -g @octabyte-io/cloudgate
 <span class="d">$</span> cloudgate login
 <span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span>
 <span class="d">$</span> cd my-app
@@ -79,6 +85,7 @@
     pointer-events: none;
   }
   label {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -89,6 +96,9 @@
     color: var(--muted);
     cursor: pointer;
     user-select: none;
+    transition:
+      background-color 240ms var(--ease),
+      color 240ms var(--ease);
   }
   label:hover {
     color: var(--ink);
@@ -102,6 +112,27 @@
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
+  /* While the panel plays itself: time left on the current tab. */
+  .tabs:global(.timing) input:checked + label::after {
+    content: '';
+    position: absolute;
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: 5px;
+    height: 2px;
+    border-radius: 2px;
+    background:
+      linear-gradient(var(--brand), var(--brand)) left / 0% 100% no-repeat,
+      color-mix(in srgb, var(--brand) 16%, transparent);
+    animation: tab-time var(--dwell, 6s) linear both;
+  }
+  @keyframes tab-time {
+    to {
+      background-size:
+        100% 100%,
+        auto;
+    }
+  }
   .pane {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -112,6 +143,19 @@
   #way-agent:checked ~ .pane--agent,
   #way-cli:checked ~ .pane--cli {
     display: block;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    #way-console:checked ~ .pane--console,
+    #way-agent:checked ~ .pane--agent,
+    #way-cli:checked ~ .pane--cli {
+      animation: pane-in 420ms var(--ease) both;
+    }
+  }
+  @keyframes pane-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
   }
   .pane .code {
     min-height: 330px;
@@ -150,6 +194,9 @@
     border-radius: var(--radius-sm);
     background: var(--surface);
     font-size: var(--text-sm);
+    transition:
+      border-color 300ms var(--ease),
+      opacity 300ms var(--ease);
   }
   .checklist li::before {
     content: counter(step);
@@ -172,15 +219,49 @@
   .state {
     color: var(--muted);
     text-align: right;
+    transition: opacity 300ms var(--ease);
   }
   .state.live {
     color: var(--live);
+  }
+  .building {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+  .state[hidden] {
+    display: none;
+  }
+  .bar {
+    width: 4.5rem;
+    height: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--brand-tint);
+  }
+  .bar > span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--beam-a), var(--brand));
+    transform-origin: left;
+    animation: build 1.9s cubic-bezier(0.4, 0.1, 0.3, 1) both;
+  }
+  @keyframes build {
+    from {
+      transform: scaleX(0.04);
+    }
   }
   .result {
     border-top: 1px dashed var(--line-strong);
     padding-top: var(--space-4);
     font-size: var(--text-sm);
     color: var(--muted);
+    transition:
+      opacity 500ms var(--ease),
+      transform 500ms var(--ease);
   }
   .url {
     font-family: var(--font-mono);
@@ -191,6 +272,91 @@
   }
   .hint {
     font-size: var(--text-xs);
+  }
+
+  /* ---- The wizard acting out a run (set by the script below) ---- */
+  .window:global(.playing) li:not(:global(.ticked)):not(:global(.building)) {
+    opacity: 0.5;
+    border-color: var(--line);
+  }
+  .window:global(.playing) li:not(:global(.ticked))::before {
+    content: counter(step);
+  }
+  .window:global(.playing) li:not(:global(.ticked)) .state:not(.building) {
+    opacity: 0;
+  }
+  .window:global(.playing) li:global(.ticked)::before {
+    animation: tick 420ms var(--ease) both;
+  }
+  .window:global(.playing) li:global(.building)::before {
+    content: '';
+    box-sizing: border-box;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0.25rem;
+    background: transparent;
+    border: 2px solid var(--brand-tint);
+    border-top-color: var(--brand);
+    animation: spin 800ms linear infinite;
+  }
+  .window:global(.playing):not(:global(.finished)) .result {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  @keyframes tick {
+    from {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.15);
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  /* ---- The transcript and terminal printing line by line ---- */
+  .code:global(.playing) :global(.ln:not(.on)) {
+    visibility: hidden;
+  }
+  .code :global(.ln.on:not(.typed)) {
+    animation: line-in 260ms var(--ease) both;
+  }
+  .code :global(.ln.typing) {
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+    white-space: pre;
+    width: 0;
+    animation: type var(--type, 600ms) steps(var(--n, 20), end) forwards;
+  }
+  .code :global(.caret) {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.15em;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    background: var(--night-brand);
+    animation: blink 1s steps(1, end) infinite;
+  }
+  @keyframes line-in {
+    from {
+      opacity: 0;
+      transform: translateX(-4px);
+    }
+  }
+  @keyframes type {
+    to {
+      width: calc(var(--n, 20) * 1ch);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
   }
 
   @media (max-width: 640px) {
@@ -207,9 +373,185 @@
       grid-column: 2;
       text-align: left;
     }
+    .building {
+      justify-content: flex-start;
+    }
     .pane .code {
       font-size: var(--text-xs);
       min-height: 0;
     }
   }
 </style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-hero-panel]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (root && !reduce.matches) {
+    const tabs = root.querySelector<HTMLElement>('.tabs')!;
+    const inputs = [...root.querySelectorAll<HTMLInputElement>('input[name="way"]')];
+    const labels = [...root.querySelectorAll<HTMLLabelElement>('label')];
+    const wizard = root.querySelector<HTMLElement>('[data-wizard]')!;
+    const steps = [...wizard.querySelectorAll<HTMLLIElement>('.checklist li')];
+    const running = wizard.querySelector<HTMLElement>('[data-running]')!;
+    const building = wizard.querySelector<HTMLElement>('[data-building]')!;
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    caret.setAttribute('aria-hidden', 'true');
+
+    // Wrap each line of a <pre><code> in its own span, so lines can appear one at a time.
+    const splitLines = (pre: HTMLElement) => {
+      const code = pre.querySelector('code')!;
+      const groups: Node[][] = [[]];
+      for (const node of [...code.childNodes]) {
+        if (node.nodeType !== Node.TEXT_NODE) {
+          groups[groups.length - 1].push(node);
+          continue;
+        }
+        (node.textContent ?? '').split('\n').forEach((part, i) => {
+          if (i > 0) groups.push([]);
+          if (part) groups[groups.length - 1].push(document.createTextNode(part));
+        });
+      }
+      code.textContent = '';
+      const prompt = pre.dataset.typed ?? '';
+      return groups.map((nodes, i) => {
+        const line = document.createElement('span');
+        line.className = 'ln';
+        line.append(...nodes);
+        code.append(line);
+        if (i < groups.length - 1) code.append('\n');
+        const text = line.textContent ?? '';
+        return { el: line, text, typed: prompt !== '' && text.startsWith(prompt) };
+      });
+    };
+    const transcripts = [...root.querySelectorAll<HTMLElement>('pre[data-typed]')].map((pre) => ({
+      pre,
+      lines: splitLines(pre),
+    }));
+
+    let timers: number[] = [];
+    let current = Math.max(0, inputs.findIndex((i) => i.checked));
+    let auto = true;
+    let inView = false;
+    let playing = false;
+
+    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    const clearTimers = () => {
+      timers.forEach((t) => clearTimeout(t));
+      timers = [];
+    };
+
+    // Every pane back to its final state: what a visitor without JavaScript sees.
+    const settle = () => {
+      wizard.classList.remove('playing', 'finished');
+      steps.forEach((li) => li.classList.remove('ticked', 'building'));
+      running.hidden = false;
+      building.hidden = true;
+      for (const { pre, lines } of transcripts) {
+        pre.classList.remove('playing');
+        lines.forEach(({ el }) => el.classList.remove('on', 'typing', 'typed'));
+      }
+      caret.remove();
+    };
+
+    const playWizard = (lead: number) => {
+      wizard.classList.add('playing');
+      const [account, server, deploy] = steps;
+      later(lead + 350, () => account.classList.add('ticked'));
+      later(lead + 950, () => server.classList.add('ticked'));
+      later(lead + 1550, () => {
+        deploy.classList.add('building');
+        running.hidden = true;
+        building.hidden = false;
+      });
+      later(lead + 3500, () => {
+        deploy.classList.remove('building');
+        deploy.classList.add('ticked');
+        building.hidden = true;
+        running.hidden = false;
+      });
+      later(lead + 3900, () => wizard.classList.add('finished'));
+      return lead + 3900;
+    };
+
+    const playLines = (index: number, lead: number) => {
+      const { pre, lines } = transcripts[index];
+      pre.classList.add('playing');
+      let at = lead + 300;
+      for (const line of lines) {
+        const { el, text, typed } = line;
+        if (!text.trim()) {
+          at += 140;
+          continue;
+        }
+        const typeMs = typed ? Math.min(1100, text.length * 24) : 0;
+        later(at, () => {
+          el.classList.add('on');
+          if (typed) {
+            el.style.setProperty('--n', String(text.length));
+            el.style.setProperty('--type', `${typeMs}ms`);
+            el.classList.add('typing', 'typed');
+          }
+          el.after(caret);
+        });
+        if (typed) later(at + typeMs + 20, () => el.classList.remove('typing'));
+        at += typed ? typeMs + 380 : 300;
+      }
+      return at;
+    };
+
+    const play = (index: number, lead = 0) => {
+      clearTimers();
+      settle();
+      current = index;
+      const end = index === 0 ? playWizard(lead) : playLines(index - 1, lead);
+      const dwell = Math.max(6000, end + 1800);
+      tabs.style.setProperty('--dwell', `${dwell - lead}ms`);
+      tabs.classList.remove('timing');
+      void tabs.offsetWidth; // restart the progress bar
+      later(lead, () => tabs.classList.add('timing'));
+      later(dwell, () => {
+        const next = (index + 1) % inputs.length;
+        inputs[next].checked = true;
+        play(next);
+      });
+      playing = true;
+    };
+
+    const pause = () => {
+      clearTimers();
+      tabs.classList.remove('timing');
+      playing = false;
+    };
+
+    const update = () => {
+      const should = auto && inView && !document.hidden && !reduce.matches;
+      if (should && !playing) play(current, Math.max(0, 1100 - performance.now()));
+      else if (!should && playing) pause();
+    };
+
+    // The visitor took over: stop for good and show everything as it is.
+    const takeOver = () => {
+      if (!auto) return;
+      auto = false;
+      pause();
+      settle();
+    };
+    inputs.forEach((input) => {
+      input.addEventListener('focus', takeOver);
+      input.addEventListener('change', takeOver);
+    });
+    labels.forEach((label) => label.addEventListener('pointerdown', takeOver));
+    reduce.addEventListener('change', takeOver);
+
+    new IntersectionObserver(
+      (entries) => {
+        inView = entries.some((e) => e.isIntersecting);
+        update();
+      },
+      { threshold: 0.2 },
+    ).observe(root);
+    document.addEventListener('visibilitychange', update);
+  }
+</script>

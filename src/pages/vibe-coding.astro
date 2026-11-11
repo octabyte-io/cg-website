@@ -133,11 +133,11 @@ const faq = [
   <section class="section" aria-labelledby="how">
     <div class="wrap how">
       <div>
-        <div class="section-head">
+        <div class="section-head" data-reveal>
           <h2 id="how">How do I get my app online?</h2>
           <p class="lede">Three steps in the console. Most of the waiting is the server being set up, and Cloudgate does that part.</p>
         </div>
-        <ol class="steps">
+        <ol class="steps" data-reveal-stagger="90">
           {steps.map((s) => (
             <li>
               <h3>{s.h}</h3>
@@ -147,7 +147,7 @@ const faq = [
         </ol>
       </div>
 
-      <figure class="done" aria-labelledby="done-cap">
+      <figure class="done" aria-labelledby="done-cap" data-reveal data-reveal-delay="120">
         <div class="window ui wizard">
           <div class="window-bar">Get started</div>
           <div class="wiz-body">
@@ -175,12 +175,12 @@ const faq = [
 
   <section class="section band" aria-labelledby="routes">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="routes">Which way should I deploy my app?</h2>
         <p class="lede">Pick a ready-made app if you want one that already exists. Bring your own if your AI tool made it.</p>
       </div>
-      <div class="routes">
-        <article class="route">
+      <div class="routes" data-reveal-stagger="90">
+        <article class="route" data-spotlight>
           <div class="art logos" aria-hidden="true">
             {['wordpress', 'ghost', 'n8n', 'nextcloud', 'uptime-kuma'].map((id) => (
               <span class="logo"><img src={`/templates/${id}.svg`} alt="" width="40" height="40" loading="lazy" decoding="async" /></span>
@@ -196,7 +196,7 @@ const faq = [
           <p><a class="text-link" href={templatesHome}>See all app templates</a></p>
         </article>
 
-        <article class="route">
+        <article class="route" data-spotlight>
           <h3><span class="slice slice--2" aria-hidden="true"></span>Deploy the app your AI made</h3>
           <div class="way">
             <div class="push art" aria-hidden="true">
@@ -220,11 +220,11 @@ const faq = [
             </p>
             <div class="window term">
               <div class="window-bar">Terminal, in your app's folder</div>
-              <pre class="code"><span class="d"># once</span>
-npm install -g @octabyte-io/cloudgate
-cloudgate login
-<span class="d"># from your app's folder</span>
-cloudgate deploy</pre>
+              <pre class="code" data-play style="--type-step:260ms"><span class="ln" style="--i:0"><span class="d"># once</span></span>
+<span class="ln" style="--i:1">npm install -g @octabyte-io/cloudgate</span>
+<span class="ln" style="--i:2">cloudgate login</span>
+<span class="ln" style="--i:3"><span class="d"># from your app's folder</span></span>
+<span class="ln" style="--i:4">cloudgate deploy</span></pre>
             </div>
           </div>
           <p class="small">
@@ -237,16 +237,16 @@ cloudgate deploy</pre>
 
   <section class="section" aria-labelledby="looked">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="looked">What does Cloudgate look after for me?</h2>
         <p class="lede">
           The parts of running an app that people usually learn the hard way. You get them without
           having to know their names.
         </p>
       </div>
-      <dl class="bento">
+      <dl class="bento" data-reveal-stagger>
         {looked.map((f, i) => (
-          <div class:list={['tile', `t${i}`]}>
+          <div class:list={['tile', `t${i}`]} data-spotlight>
             <div class="art" aria-hidden="true">
               {i === 0 && (
                 <>
@@ -299,7 +299,7 @@ cloudgate deploy</pre>
 
   <section class="section band" aria-labelledby="ai">
     <div class="wrap split ai">
-      <div class="stack">
+      <div class="stack" data-reveal>
         <h2 id="ai">Can my AI do the deploying too?</h2>
         <div class="prose">
           <p>
@@ -314,22 +314,22 @@ cloudgate deploy</pre>
           <p><a class="text-link" href="/ai-agents">Let your AI tool deploy with Cloudgate</a></p>
         </div>
       </div>
-      <div class="panel chat" aria-hidden="true">
-        <p class="msg you">The save button is broken. Fix it and put it online.</p>
-        <p class="msg bot">Fixed it and asked Cloudgate to deploy.</p>
+      <div class="panel chat" aria-hidden="true" data-reveal data-reveal-delay="120" data-play style="--type-step:450ms">
+        <p class="msg you ln" style="--i:0">The save button is broken. Fix it and put it online.</p>
+        <p class="msg bot ln" style="--i:1">Fixed it and asked Cloudgate to deploy.</p>
         <ul class="calls">
-          <li><code>deploy_service</code><span class="live">Done</span></li>
-          <li><code>read_deployment_log</code><span>Build finished, <code>DATABASE_URL=••••••</code></span></li>
-          <li><code>get_service_health</code><span class="live">Up</span></li>
+          <li class="ln" style="--i:2"><code>deploy_service</code><span class="live">Done</span></li>
+          <li class="ln" style="--i:3"><code>read_deployment_log</code><span>Build finished, <code>DATABASE_URL=••••••</code></span></li>
+          <li class="ln" style="--i:4"><code>get_service_health</code><span class="live">Up</span></li>
         </ul>
-        <p class="msg bot">It is live and your app is answering.</p>
+        <p class="msg bot ln" style="--i:5">It is live and your app is answering.</p>
       </div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="cost">
     <div class="wrap split cost">
-      <div class="stack">
+      <div class="stack" data-reveal>
         <h2 id="cost">What will it cost me?</h2>
         <div class="prose">
           <p>
@@ -345,7 +345,7 @@ cloudgate deploy</pre>
           <p><a class="text-link" href="/pricing">Compare Cloudgate plans</a></p>
         </div>
       </div>
-      <div class="panel bill" aria-hidden="true">
+      <div class="panel bill" aria-hidden="true" data-reveal data-reveal-delay="120" data-spotlight>
         <p class="bill-title">Your monthly bill</p>
         <div class="line"><span><span class="slice"></span>Cloudgate Starter plan</span><strong>${starter.price}</strong></div>
         <div class="line"><span><span class="slice slice--2"></span>A server you buy from us</span><span class="muted">Price shown before you buy</span></div>

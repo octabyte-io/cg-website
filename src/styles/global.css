@@ -75,6 +75,16 @@
   --column: 1200px;
   --gutter: clamp(1rem, 4vw, 2rem);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Motion (see the Motion section below and docs/design.md). */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-reveal: 900ms;
+  --dur-play: 1400ms;
+  --reveal-shift: 16px;
+  --spot-ring: rgba(181, 176, 255, 0.75);
+  --spot-fill: rgba(141, 120, 255, 0.1);
 }
 
 
@@ -101,6 +111,8 @@
   --glow: rgba(109, 87, 224, 0.22);
   --grid-line: rgba(90, 68, 207, 0.07);
   --panel-top: rgba(255, 255, 255, 0.9);
+  --spot-ring: rgba(90, 68, 207, 0.7);
+  --spot-fill: rgba(109, 87, 224, 0.07);
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme='dark']) {
@@ -126,6 +138,8 @@
     --glow: rgba(109, 87, 224, 0.22);
     --grid-line: rgba(90, 68, 207, 0.07);
     --panel-top: rgba(255, 255, 255, 0.9);
+    --spot-ring: rgba(90, 68, 207, 0.7);
+    --spot-fill: rgba(109, 87, 224, 0.07);
   }
 }
 
@@ -622,6 +636,7 @@ pre {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
@@ -703,4 +718,136 @@ pre {
   font-weight: 650;
   letter-spacing: -0.03em;
   line-height: 1;
+}
+
+/* ==========================================================================
+   Motion (v3). Read with src/scripts/motion.ts and "Motion (v3)" in docs/design.md.
+   - [data-reveal]          fades up once when it scrolls into view (.is-in).
+   - [data-reveal-stagger]  does the same for each child, ~70ms apart.
+   - [data-play]            gets .is-playing in view; illustrations start their animation then.
+   - [data-spotlight]       a glow on the border and a faint fill that follow a fine pointer.
+   Hidden starting states live under `.js` and prefers-reduced-motion: no-preference only, so
+   without JavaScript, when printing, or with reduced motion every element shows its final state.
+   ========================================================================== */
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .js [data-reveal]:not(.is-in),
+  .js [data-reveal-stagger]:not(.is-in) > * {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-shift), 0);
+    filter: blur(6px);
+  }
+  .js [data-reveal],
+  .js [data-reveal-stagger] > * {
+    transition:
+      opacity var(--dur-reveal) var(--ease-out),
+      transform var(--dur-reveal) var(--ease-out),
+      filter calc(var(--dur-reveal) * 0.7) var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+/* Type-on: a terminal whose lines are <span class="ln" style="--i:n">. Lines appear in turn once
+   the block is in view; the full text is in the HTML for search engines and readers without JS. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .js [data-play]:not(.is-playing) .ln {
+    opacity: 0;
+  }
+  [data-play].is-playing .ln {
+    animation: line-in 320ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * var(--type-step, 110ms) + 200ms);
+  }
+}
+@keyframes line-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Spotlight: ring (::after) and inner glow (::before). [data-spotlight='ring'] keeps ::before free. */
+[data-spotlight] {
+  position: relative;
+  isolation: isolate;
+  --mx: 50%;
+  --my: -200px;
+}
+[data-spotlight]::after,
+[data-spotlight]:not([data-spotlight='ring'])::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out);
+}
+[data-spotlight]::after {
+  z-index: 2;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx) var(--my), var(--spot-ring), transparent 70%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+[data-spotlight]:not([data-spotlight='ring'])::before {
+  z-index: -1;
+  background: radial-gradient(420px circle at var(--mx) var(--my), var(--spot-fill), transparent 65%);
+}
+@media (pointer: fine) {
+  [data-spotlight]:hover::after,
+  [data-spotlight]:hover::before {
+    opacity: 1;
+  }
+}
+
+/* The featured card's border: a slow sweep of the beam colours. Unregistered browsers see it still
+   (0deg and 360deg are the same picture, so the discrete fallback never jumps). */
+@property --sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes sweep {
+  to {
+    --sweep: 360deg;
+  }
+}
+
+/* Small shared loops for illustrations. */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes glow-breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal-stagger] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Featured cards (home and pricing plans, the Enterprise tier) set a conic border from --sweep. */
+@media (prefers-reduced-motion: no-preference) {
+  .plan--featured,
+  .tier--ent {
+    animation: sweep 8s linear infinite;
+  }
 }

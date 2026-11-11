@@ -253,15 +253,15 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
 
   <section class="section" aria-labelledby="ways-in">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="ways-in">How can I deploy with Cloudgate?</h2>
         <p class="lede">
           From the console, from your AI agent or from your terminal. All three reach the same
           Projects, under the same roles and grants.
         </p>
       </div>
-      <dl class="bento">
-        <div class="tile s2">
+      <dl class="bento" data-reveal-stagger>
+        <div data-spotlight class="tile s2">
           <div class="art" aria-hidden="true">
             <ol class="mini-wiz">
               <li class="ok">Get a Server</li>
@@ -275,7 +275,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             from sign-up to a live app: get a Server, press Deploy, open the address.
           </dd>
         </div>
-        <div class="tile s2">
+        <div data-spotlight class="tile s2">
           <div class="art night" aria-hidden="true">
             <pre class="mini-code"><span class="d">you</span>   Ship the fix to staging.
 <span class="k">deploy_service</span>
@@ -289,7 +289,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             It deploys, opens previews and reads logs and health. <a href="/ai-agents">How agents deploy over MCP</a>.
           </dd>
         </div>
-        <div class="tile s2">
+        <div data-spotlight class="tile s2">
           <div class="art night" aria-hidden="true">
             <pre class="mini-code"><span class="d">$</span> cloudgate deploy
 <span class="d">  skipping .env and .git</span>
@@ -303,7 +303,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             Then <code>status</code>, <code>logs</code> and <code>vars set</code>. <a href="/cli">The Cloudgate CLI</a>.
           </dd>
         </div>
-        <div class="tile s2">
+        <div data-spotlight class="tile s2">
           <div class="art" aria-hidden="true">
             <ul class="chips">
               <li>GitHub</li><li>GitLab</li><li>Bitbucket</li><li>Gitea</li><li>any git URL</li><li>Docker image</li><li>uploaded files</li>
@@ -315,7 +315,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             through webhooks. Or run a Docker image, or uploaded files.
           </dd>
         </div>
-        <div class="tile s4 t-plan">
+        <div data-spotlight class="tile s4 t-plan">
           <div class="art plan-art" aria-hidden="true">
             <div class="plan-file">
               <p class="pf-name">cloudgate.yaml</p>
@@ -342,7 +342,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             or destroy, and nothing happens until you Apply it.
           </dd>
         </div>
-        <div class="tile s6 t-templates">
+        <div data-spotlight class="tile s6 t-templates">
           <div class="art logos" aria-hidden="true">
             {['wordpress', 'n8n', 'ghost', 'plausible', 'vaultwarden', 'nextcloud', 'mattermost', 'uptime-kuma'].map((id) => (
               <span class="logo"><img src={`/templates/${id}.svg`} alt="" width="32" height="32" loading="lazy" decoding="async" /></span>
@@ -359,7 +359,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
 
   <section class="section band" aria-labelledby="where-it-runs">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="where-it-runs">Where do my apps run?</h2>
         <p class="lede">
           On a Server you own, on a Server you buy from us, or in your own AWS or Google Cloud
@@ -367,7 +367,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
           places.
         </p>
       </div>
-      <div class="fan" aria-hidden="true">
+      <div class="fan" aria-hidden="true" data-reveal>
         <span class="fan-gate"><Mark size={36} /><span>One Project config</span></span>
         <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
           <path class="w1" d="M600 0 C 600 50, 200 40, 200 90" />
@@ -375,8 +375,8 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
           <path class="w3" d="M600 0 C 600 50, 1000 40, 1000 90" />
         </svg>
       </div>
-      <div class="places">
-        <article class="panel place p1">
+      <div class="places" data-reveal-stagger="90">
+        <article data-spotlight="ring" class="panel place p1">
           <h3><span class="slice" aria-hidden="true"></span>Your Server</h3>
           <ul class="chips" aria-hidden="true"><li>Ubuntu over SSH</li><li>Docker Swarm</li><li>Traefik</li><li>Let's Encrypt</li></ul>
           <p>
@@ -390,7 +390,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             It is billed monthly in advance on the same invoice, at the price shown before you buy.
           </p>
         </article>
-        <article class="panel place p2">
+        <article data-spotlight="ring" class="panel place p2">
           <h3><span class="slice slice--2" aria-hidden="true"></span>AWS</h3>
           <dl class="map">
             <div><dt>web, worker, web-private, cron</dt><dd>ECS (Fargate)</dd></div>
@@ -400,7 +400,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             <div><dt>Compose stack</dt><dd>Its own Stack VM</dd></div>
           </dl>
         </article>
-        <article class="panel place p3">
+        <article data-spotlight="ring" class="panel place p3">
           <h3><span class="slice slice--3" aria-hidden="true"></span>Google Cloud</h3>
           <dl class="map">
             <div><dt>web</dt><dd>Cloud Run</dd></div>
@@ -422,7 +422,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
 
   <section class="section running-intro" aria-labelledby="running-it">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="running-it">What does Cloudgate look after once my app is live?</h2>
         <p class="lede">
           Builds, databases, domains, backups, monitoring and access, the same wherever the
@@ -436,7 +436,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
     const wide = layoutOf[r.id] === 'wide';
     return (
     <section class:list={['topic', `topic--${r.id}`, { band: n % 2 === 0, 'topic--wide': wide, 'topic--flip': flipped.has(r.id) }]} aria-labelledby={r.id}>
-      <div class="wrap topic-grid">
+      <div class="wrap topic-grid" data-reveal>
         <div class="topic-head">
           <h2 id={r.id}>{r.h}</h2>
           <p>{r.lede}</p>
@@ -444,10 +444,10 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             {r.id === 'builds' && (
               <div class="window term">
                 <div class="window-bar">Build log, Deployment of web</div>
-                <pre class="code"><span class="d">#1</span> Detected Node.js app
-<span class="d">#2</span> Building with Nixpacks
-<span class="d">#3</span> Image pushed
-<span class="d">#4</span> <span class="s">Deployment done</span></pre>
+                <pre class="code" data-play style="--type-step:380ms"><span class="ln" style="--i:0"><span class="d">#1</span> Detected Node.js app</span>
+<span class="ln" style="--i:1"><span class="d">#2</span> Building with Nixpacks</span>
+<span class="ln" style="--i:2"><span class="d">#3</span> Image pushed</span>
+<span class="ln" style="--i:3"><span class="d">#4</span> <span class="s">Deployment done</span></span></pre>
               </div>
             )}
             {r.id === 'services' && (
@@ -541,9 +541,9 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
             {r.id === 'variables' && (
               <div class="window term">
                 <div class="window-bar">Variables, web</div>
-                <pre class="code"><span class="k">NODE_ENV</span>       production
-<span class="k">DATABASE_URL</span>   <span class="s">pg-1.url</span>  <span class="d">wired</span>
-<span class="k">STRIPE_KEY</span>     <span class="d">set, hidden</span></pre>
+                <pre class="code" data-play style="--type-step:300ms"><span class="ln" style="--i:0"><span class="k">NODE_ENV</span>       production</span>
+<span class="ln" style="--i:1"><span class="k">DATABASE_URL</span>   <span class="s">pg-1.url</span>  <span class="d">wired</span></span>
+<span class="ln" style="--i:2"><span class="k">STRIPE_KEY</span>     <span class="d">set, hidden</span></span></pre>
               </div>
             )}
             {r.id === 'access' && (
@@ -572,10 +572,10 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
 
   <section class="section" aria-labelledby="next">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="next">Where to go from here</h2>
       </div>
-      <ul class="next">
+      <ul class="next" data-reveal-stagger="60">
         <li><a href="/pricing"><span class="slice" aria-hidden="true"></span>Compare plans and what each counts</a></li>
         <li><a href="/vibe-coding"><span class="slice slice--2" aria-hidden="true"></span>Put an app you built with AI online</a></li>
         <li><a href="/ai-agents"><span class="slice slice--3" aria-hidden="true"></span>Let AI agents deploy with guard rails</a></li>

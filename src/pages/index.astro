@@ -2,6 +2,7 @@
 import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import HeroPanel from '../components/home/HeroPanel.astro';
+import HeroField from '../components/home/HeroField.astro';
 import Lanes from '../components/home/Lanes.astro';
 import Bento from '../components/home/Bento.astro';
 import Mark from '../components/Mark.astro';
@@ -69,6 +70,8 @@ const faq = [
   },
 ];
 
+const runsOn = ['Any Ubuntu server', 'AWS', 'Google Cloud', 'Docker Swarm', 'PostgreSQL', 'MySQL', 'Redis', 'MongoDB', 'Ollama', 'vLLM', 'GitHub', 'GitLab'];
+
 // A featured few: the full catalogue lives on the templates website and will grow to hundreds.
 const featured = ['n8n', 'wordpress', 'ghost', 'plausible', 'vaultwarden', 'nextcloud', 'mattermost', 'uptime-kuma'];
 const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t) => t !== undefined);
@@ -82,21 +85,28 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   <section class="hero">
     <div class="grid-bg" aria-hidden="true"></div>
     <div class="beam" aria-hidden="true"></div>
+    <HeroField />
     <div class="wrap hero-inner">
-      <div class="keyhole" aria-hidden="true"><Mark size={92} /></div>
-      <h1>Deploy what you and your AI build, on servers you own</h1>
-      <p class="lede">
+      <div class="keyhole" aria-hidden="true" data-field-focus><Mark size={92} /></div>
+      <h1 data-field-avoid>
+        <span class="line"><span>Deploy what you</span></span>{' '}
+        <span class="line"><span>and your AI build,</span></span>{' '}
+        <span class="line"><span>on servers you own</span></span>
+      </h1>
+      <p class="lede" data-field-avoid>
         Cloudgate puts apps, databases and AI models on your own server, AWS or Google Cloud, with domains, https,
         backups and monitoring already set up. Click Deploy in the console, run one command, or let your AI agent do
         it over MCP.
       </p>
-      <div class="actions">
+      <div class="actions" data-field-avoid>
         <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
         <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
       </div>
-      <p class="aside">Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
-      <div class="hero-product">
-        <HeroPanel />
+      <p class="aside" data-field-avoid>Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
+      <div class="hero-product" data-field-target>
+        <div class="hero-tilt">
+          <HeroPanel />
+        </div>
       </div>
     </div>
   </section>
@@ -104,16 +114,22 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   <section class="ticker" aria-label="What Cloudgate runs and where">
     <div class="wrap ticker-inner">
       <p>Runs on</p>
-      <ul>
-        <li>Any Ubuntu server</li><li>AWS</li><li>Google Cloud</li><li>Docker Swarm</li><li>PostgreSQL</li>
-        <li>MySQL</li><li>Redis</li><li>MongoDB</li><li>Ollama</li><li>vLLM</li><li>GitHub</li><li>GitLab</li>
-      </ul>
+      <div class="marquee">
+        <div class="marquee-track">
+          <ul>
+            {runsOn.map((r) => <li>{r}</li>)}
+          </ul>
+          <ul class="marquee-copy" aria-hidden="true">
+            {runsOn.map((r) => <li>{r}</li>)}
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="where">
     <div class="wrap">
-      <div class="section-head center">
+      <div class="section-head center" data-reveal>
         <h2 id="where">One platform, three places to run</h2>
         <p class="lede">
           Each Environment picks where its Services run. Keep production on AWS and staging on a cheap server, or
@@ -126,7 +142,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   </section>
 
   <section class="section band" aria-labelledby="vibe">
-    <div class="wrap split vibe">
+    <div class="wrap split vibe" data-reveal data-play>
       <div class="stack">
         <h2 id="vibe">Built it with AI? Put it online in three steps</h2>
         <p class="lede">
@@ -152,6 +168,16 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
       <div class="browser window" aria-hidden="true">
         <div class="window-bar">my-recipe-app.203-0-113-24.sslip.io</div>
         <div class="browser-body">
+          <div class="vb-stage">
+            <div class="vb-status">
+              <span class="vb-msg vb-msg--1">Waiting for a server</span>
+              <span class="vb-msg vb-msg--2">Building with Nixpacks</span>
+              <span class="vb-bar"><span></span></span>
+            </div>
+            <div class="vb-skel">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
           <div class="live-pill"><span class="live">Running</span> Deployed 40 seconds ago</div>
           <div class="fake-app">
             <div class="fa-nav"><span></span><span></span><span></span></div>
@@ -166,7 +192,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 
   <section class="section" aria-labelledby="agents">
     <div class="halo halo--right" aria-hidden="true"></div>
-    <div class="wrap split agents">
+    <div class="wrap split agents" data-reveal>
       <div class="stack">
         <h2 id="agents">Let your AI agent deploy, inside limits you set</h2>
         <p class="lede">
@@ -183,28 +209,28 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
       </div>
       <div class="window term">
         <div class="window-bar">Your AI agent, connected to Cloudgate over MCP</div>
-        <pre class="code"><code><span class="d">you</span>    The checkout page is broken. Fix it and send me a preview.
-<span class="d">agent</span>  Pushed a fix to <span class="s">fix-checkout</span>. Asking Cloudgate for a preview.
+        <pre class="code" data-play style="--type-step:140ms"><code><span class="ln" style="--i:0"><span class="d">you</span>    The checkout page is broken. Fix it and send me a preview.</span>
+<span class="ln" style="--i:1"><span class="d">agent</span>  Pushed a fix to <span class="s">fix-checkout</span>. Asking Cloudgate for a preview.</span>
 
-<span class="k">create_preview</span>
-  applicationId <span class="s">"shop-web"</span>  branch <span class="s">"fix-checkout"</span>
-  <span class="d">queued, expires in 60 minutes</span>
+<span class="ln" style="--i:2"><span class="k">create_preview</span></span>
+<span class="ln" style="--i:3">  applicationId <span class="s">"shop-web"</span>  branch <span class="s">"fix-checkout"</span></span>
+<span class="ln" style="--i:4">  <span class="d">queued, expires in 60 minutes</span></span>
 
-<span class="k">read_deployment_log</span>
-  <span class="d">build finished, container healthy</span>
-  <span class="d">DATABASE_URL=</span><span class="s">••••••</span>
+<span class="ln" style="--i:5"><span class="k">read_deployment_log</span></span>
+<span class="ln" style="--i:6">  <span class="d">build finished, container healthy</span></span>
+<span class="ln" style="--i:7">  <span class="d">DATABASE_URL=</span><span class="s">••••••</span></span>
 
-<span class="k">get_service_health</span>
-  <span class="d">uptime check up, error rate under threshold</span>
+<span class="ln" style="--i:8"><span class="k">get_service_health</span></span>
+<span class="ln" style="--i:9">  <span class="d">uptime check up, error rate under threshold</span></span>
 
-<span class="d">agent</span>  The preview is live. Every call above is in your audit log.</code></pre>
+<span class="ln" style="--i:10"><span class="d">agent</span>  The preview is live. Every call above is in your audit log.</span></code></pre>
       </div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="included">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="included">What every app gets without extra setup</h2>
         <p class="lede">The parts of running an app in production that usually take a week of setup, ready on day one.</p>
       </div>
@@ -215,17 +241,17 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 
   <section class="section band" aria-labelledby="templates">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head" data-reveal>
         <h2 id="templates">Self-host popular apps in one click</h2>
         <p class="lede">
           Each template sets up the app, its database and its secrets for you. Replace Zapier with n8n, Google
           Analytics with Plausible, or 1Password with Vaultwarden.
         </p>
       </div>
-      <ul class="logos">
+      <ul class="logos" data-reveal-stagger="50">
         {shown.map((t) => (
           <li>
-            <a href={templatePageUrl(t.id)}>
+            <a href={templatePageUrl(t.id)} data-spotlight>
               <img src={`/templates/${t.id}.svg`} alt="" width="40" height="40" loading="lazy" decoding="async" />
               <span>
                 <strong>{t.name}</strong>
@@ -244,16 +270,16 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 
   <section class="section" aria-labelledby="price">
     <div class="wrap">
-      <div class="section-head center">
+      <div class="section-head center" data-reveal>
         <h2 id="price">Pay for the platform, not a markup on compute</h2>
         <p class="lede">
           Members, Projects and Environments are never counted. Servers you bring are billed by their provider, and
           cloud resources by AWS or Google, straight to you.
         </p>
       </div>
-      <div class="plans">
+      <div class="plans" data-reveal-stagger="90">
         {plans.map((p) => (
-          <article class:list={['plan', { 'plan--featured': p.id === 'business' }]}>
+          <article class:list={['plan', { 'plan--featured': p.id === 'business' }]} data-spotlight>
             <h3>{p.name}</h3>
             <p class="price"><strong>${p.price}</strong> a month</p>
             <p class="blurb">{p.blurb}</p>
@@ -261,7 +287,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
             <a class:list={['btn', p.id === 'business' ? 'btn--primary' : 'btn--ghost']} href={site.signUp}>Start {trialDays}-day free trial</a>
           </article>
         ))}
-        <article class="plan plan--self">
+        <article class="plan plan--self" data-spotlight>
           <h3>Self-hosted</h3>
           <p class="price"><strong>Free</strong> under the Elastic License 2.0</p>
           <p class="blurb">Run Cloudgate on your own machine.</p>
@@ -289,7 +315,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    padding-block: var(--space-8) 0;
+    padding-block: calc(var(--space-8) + var(--space-3)) 0;
   }
   .beam {
     position: absolute;
@@ -316,17 +342,58 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     text-align: center;
     gap: var(--space-5);
   }
+  /* The mark in a lit gate, with two quiet rings around it. */
   .keyhole {
+    position: relative;
+    margin-bottom: var(--space-3);
     padding: var(--space-4) var(--space-5);
     border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--surface) 60%, transparent);
-    border: 1px solid var(--line-strong);
-    box-shadow: 0 0 80px -10px var(--glow);
+    background:
+      linear-gradient(color-mix(in srgb, var(--surface) 78%, transparent), color-mix(in srgb, var(--surface) 78%, transparent))
+        padding-box,
+      linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--beam-b) 80%, transparent),
+          var(--line-strong) 50%,
+          color-mix(in srgb, var(--beam-c) 45%, transparent)
+        )
+        border-box;
+    border: 1px solid transparent;
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 0 0 6px color-mix(in srgb, var(--brand) 5%, transparent),
+      0 0 90px -4px var(--glow),
+      0 24px 60px -30px var(--glow);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .keyhole::before,
+  .keyhole::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: calc(var(--radius-lg) + 16px);
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    pointer-events: none;
+  }
+  .keyhole::after {
+    inset: -34px;
+    border-radius: calc(var(--radius-lg) + 34px);
+    border-color: color-mix(in srgb, var(--brand) 14%, transparent);
   }
   .hero h1 {
-    font-size: clamp(2.7rem, 7vw, 5.6rem);
-    max-width: 16ch;
+    font-size: clamp(2.3rem, 6.2vw, 4.75rem);
     letter-spacing: -0.045em;
+  }
+  /* One block per line, each its own mask for the load-in. */
+  .hero h1 .line {
+    display: block;
+    overflow: clip;
+    padding-block: 0.04em 0.14em;
+    margin-block: -0.04em -0.14em;
+  }
+  .hero h1 .line > span {
+    display: inline-block;
   }
   .hero .lede {
     max-width: 60ch;
@@ -341,7 +408,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   .hero-product {
     width: 100%;
     max-width: 980px;
-    margin-top: var(--space-7);
+    margin-top: var(--space-6);
     text-align: left;
     position: relative;
   }
@@ -355,12 +422,151 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     z-index: -1;
     filter: blur(14px);
   }
+  .hero-tilt {
+    position: relative;
+    transform-origin: 50% 100%;
+  }
+  /* Light catching the panel's top edge. */
+  .hero-tilt::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--beam-b) 35%, var(--beam-c) 65%, transparent);
+    opacity: 0.8;
+    pointer-events: none;
+  }
   .hero-product :global(.panel) {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     box-shadow:
       inset 0 1px 0 var(--panel-top),
-      0 -20px 80px -30px var(--glow);
+      0 -20px 80px -30px var(--glow),
+      0 -2px 160px -60px var(--glow);
+  }
+
+  /* ---- Hero: the one page-load sequence. Content is in the HTML at rest; these only animate it in. ---- */
+  @media (prefers-reduced-motion: no-preference) {
+    .keyhole {
+      animation: key-in 1s var(--ease) both;
+    }
+    .keyhole::before,
+    .keyhole::after {
+      animation: ring 5.6s cubic-bezier(0.3, 0.6, 0.4, 1) 1.2s infinite;
+    }
+    .keyhole::after {
+      animation-delay: 4s;
+    }
+    .hero h1 .line > span {
+      animation: line-up 850ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .hero h1 .line:nth-child(1) > span {
+      animation-delay: 220ms;
+    }
+    .hero h1 .line:nth-child(2) > span {
+      animation-delay: 320ms;
+    }
+    .hero h1 .line:nth-child(3) > span {
+      animation-delay: 420ms;
+    }
+    .hero .lede,
+    .hero .actions,
+    .hero .aside {
+      animation: rise-in 800ms var(--ease) both;
+    }
+    .hero .lede {
+      animation-delay: 620ms;
+    }
+    .hero .actions {
+      animation-delay: 720ms;
+    }
+    .hero .aside {
+      animation-delay: 800ms;
+    }
+    .hero-product {
+      animation: panel-in 1.2s var(--ease) 900ms both;
+    }
+  }
+  @keyframes key-in {
+    from {
+      opacity: 0;
+      transform: scale(0.72);
+      filter: blur(8px) brightness(1.8);
+    }
+  }
+  @keyframes ring {
+    0% {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.22);
+    }
+  }
+  @keyframes line-up {
+    from {
+      transform: translateY(108%);
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(56px);
+    }
+  }
+  /* The panel leans back and flattens as it scrolls into view, where the browser can tie it to scroll. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-tilt {
+        animation: flatten linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 50%;
+      }
+    }
+  }
+  @keyframes flatten {
+    from {
+      transform: perspective(1400px) rotateX(18deg) scale(0.95);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      padding-top: var(--space-8);
+    }
+    .beam {
+      width: 120px;
+      opacity: 0.38;
+    }
+    .keyhole {
+      padding: var(--space-3) var(--space-4);
+    }
+    .keyhole :global(svg) {
+      width: 64px;
+      height: auto;
+    }
+    .keyhole::before {
+      inset: -10px;
+      border-radius: calc(var(--radius-lg) + 10px);
+    }
+    .keyhole::after {
+      display: none;
+    }
   }
 
   /* ---- Ticker ---- */
@@ -392,6 +598,52 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     font-size: var(--text-lg);
     color: var(--ink-2);
   }
+  /* An endless marquee: two identical lists, the track slides by exactly one list's width.
+     The second list is hidden from screen readers; reduced motion shows the first list wrapped. */
+  .marquee {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+  .marquee-copy {
+    display: none !important;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ticker .marquee ul {
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      padding-right: var(--space-6);
+    }
+    .marquee-copy {
+      display: flex !important;
+    }
+    .marquee-track {
+      animation: marquee 48s linear infinite;
+    }
+    .marquee:hover .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      mask-image: none;
+      -webkit-mask-image: none;
+    }
+    .marquee-track {
+      width: auto;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
 
   .center {
     margin-inline: auto;
@@ -410,10 +662,203 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     align-items: center;
   }
   .browser-body {
+    position: relative;
     padding: var(--space-5);
     display: grid;
     gap: var(--space-4);
     background: var(--surface);
+  }
+
+  /* The three steps play out in the browser on a 9s loop: waiting (1), building (2), running (3).
+     Without JS or with reduced motion the overlay stays hidden and the Running state shows. */
+  .vb-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--surface);
+    opacity: 0;
+    visibility: hidden;
+  }
+  .vb-status {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    justify-self: start;
+    min-width: 14rem;
+    padding: 0.35rem 0.8rem 0.55rem;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .vb-msg {
+    grid-area: 1 / 1;
+  }
+  .vb-msg--2 {
+    opacity: 0;
+  }
+  .vb-bar {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .vb-bar span {
+    display: block;
+    height: 100%;
+    background: var(--brand);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .vb-skel {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--line-strong);
+  }
+  .vb-skel span {
+    height: 0.6rem;
+    border-radius: 4px;
+    background: var(--line);
+  }
+  .vb-skel span:first-child {
+    height: 7rem;
+  }
+  .vb-skel span:last-child {
+    width: 60%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .vibe.is-playing .vb-stage {
+      visibility: visible;
+      animation: vb-stage 9s var(--ease-in-out) infinite;
+    }
+    .vibe.is-playing .vb-msg--1 {
+      animation: vb-msg-1 9s linear infinite;
+    }
+    .vibe.is-playing .vb-msg--2 {
+      animation: vb-msg-2 9s linear infinite;
+    }
+    .vibe.is-playing .vb-bar span {
+      animation: vb-bar 9s var(--ease-in-out) infinite;
+    }
+    .vibe.is-playing .vb-skel span {
+      animation: glow-breathe 1.5s var(--ease-in-out) infinite;
+    }
+    .vibe.is-playing .live-pill {
+      animation: vb-pop 9s var(--ease-out) infinite;
+    }
+    .vibe.is-playing .steps > li {
+      animation: vb-step 9s var(--ease-in-out) infinite;
+    }
+    .vibe.is-playing .steps > li:nth-child(2) {
+      animation-delay: -6s;
+    }
+    .vibe.is-playing .steps > li:nth-child(3) {
+      animation-delay: -3s;
+    }
+    .vibe.is-playing .steps > li::after {
+      animation: vb-step-line 9s linear infinite;
+      animation-delay: inherit;
+    }
+  }
+  .vibe .steps > li {
+    position: relative;
+  }
+  .vibe .steps > li::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--brand);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  @keyframes vb-step {
+    0%,
+    33% {
+      opacity: 1;
+    }
+    38%,
+    95% {
+      opacity: 0.45;
+    }
+  }
+  @keyframes vb-step-line {
+    0% {
+      transform: scaleX(0);
+      opacity: 1;
+    }
+    32% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    38%,
+    100% {
+      transform: scaleX(1);
+      opacity: 0;
+    }
+  }
+  @keyframes vb-stage {
+    0%,
+    63% {
+      opacity: 1;
+    }
+    68%,
+    96% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes vb-msg-1 {
+    0%,
+    31% {
+      opacity: 1;
+    }
+    34%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes vb-msg-2 {
+    0%,
+    31% {
+      opacity: 0;
+    }
+    34%,
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes vb-bar {
+    0%,
+    34% {
+      transform: scaleX(0);
+    }
+    62%,
+    100% {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes vb-pop {
+    0%,
+    64% {
+      transform: scale(0.92);
+      opacity: 0;
+    }
+    72%,
+    100% {
+      transform: none;
+      opacity: 1;
+    }
   }
   .live-pill {
     display: inline-flex;
@@ -585,7 +1030,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     position: relative;
     background:
       linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(160deg, var(--beam-b), var(--beam-a) 40%, var(--line) 70%) border-box;
+      conic-gradient(from var(--sweep, 160deg), var(--beam-b), var(--beam-a) 18%, var(--line) 40%, var(--line) 62%, var(--beam-c) 82%, var(--beam-b)) border-box;
     border: 1px solid transparent;
     box-shadow: 0 30px 80px -40px var(--glow);
   }

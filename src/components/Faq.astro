@@ -6,7 +6,7 @@ interface Props { items: QA[]; title?: string }
 const { items, title = 'Questions people ask' } = Astro.props;
 ---
 <section class="section" aria-labelledby="faq-title">
-  <div class="wrap faq">
+  <div class="wrap faq" data-reveal>
     <h2 id="faq-title">{title}</h2>
     <div class="list">
       {items.map((item) => (

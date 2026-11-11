@@ -1,0 +1,434 @@
+---
+// The home hero's living light field: fine streams of light fall from the top of the page into the
+// Cloudgate keyhole and fan out below it in three lanes (your server, AWS, Google Cloud), one per
+// slice tone. Decorative only. It draws on a canvas behind the hero's content and reads every colour
+// from the theme tokens, so it follows the light and dark themes. Without JavaScript the CSS beam
+// and grid underneath it carry the hero on their own.
+//
+// The parent section must be positioned. Inside it, mark the keyhole with `data-field-focus`, the
+// product panel with `data-field-target`, and text the streams should dim behind with `data-field-avoid`.
+---
+<canvas class="hero-field" aria-hidden="true" data-hero-field></canvas>
+
+<style>
+  .hero-field {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    mask-image: linear-gradient(to bottom, var(--ink) 82%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, var(--ink) 82%, transparent);
+  }
+  .hero-field[data-tone='light'] {
+    mix-blend-mode: multiply;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-field {
+      animation: field-in 1.6s var(--ease) 0.25s both;
+    }
+  }
+  @keyframes field-in {
+    from {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  type Pt = { x: number; y: number };
+  type Bez = [number, number, number, number, number, number, number, number];
+
+  // A fibre is one fixed path of light; particles are pulses that run along it.
+  interface Fibre {
+    lane: number; // -1 incoming, 0..2 the outgoing lanes
+    seed: number; // where across the stream it sits, -1..1
+    seed2: number;
+    color: number; // index into the palette
+    bez: Bez;
+  }
+
+  interface Particle {
+    fibre: number;
+    t: number;
+    speed: number;
+    trail: number;
+    width: number;
+    alpha: number;
+    spark: boolean;
+    color: number;
+  }
+
+  interface Layout {
+    w: number;
+    h: number;
+    focus: { x: number; y: number; w: number; h: number };
+    target: { x: number; y: number; w: number };
+    avoid: { l: number; t: number; r: number; b: number } | null;
+  }
+
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-field]');
+  const root = canvas?.parentElement;
+  const ctx = canvas?.getContext('2d');
+
+  if (canvas && root && ctx) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const schemeQuery = matchMedia('(prefers-color-scheme: light)');
+    const strands = document.createElement('canvas');
+    const sctx = strands.getContext('2d')!;
+
+    let dpr = 1;
+    let layout: Layout | null = null;
+    let fibres: Fibre[] = [];
+    let particles: Particle[] = [];
+    let palette: string[] = [];
+    let sprites: HTMLCanvasElement[] = [];
+    let glow: HTMLCanvasElement | null = null;
+    let light = false;
+    let visible = true;
+    let raf = 0;
+    let last = 0;
+    let clock = 0;
+
+    // Position of an element inside the hero, ignoring CSS transforms (the load-in animation scales
+    // and moves things, and the measurements must not depend on when they are taken).
+    const offsetIn = (el: HTMLElement) => {
+      let x = 0;
+      let y = 0;
+      let node: HTMLElement | null = el;
+      while (node && node !== root) {
+        x += node.offsetLeft;
+        y += node.offsetTop;
+        node = node.offsetParent as HTMLElement | null;
+      }
+      if (node !== root) {
+        const a = el.getBoundingClientRect();
+        const b = root.getBoundingClientRect();
+        return { x: a.left - b.left, y: a.top - b.top, w: el.offsetWidth, h: el.offsetHeight };
+      }
+      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    };
+
+    const measure = (): Layout | null => {
+      const focusEl = root.querySelector<HTMLElement>('[data-field-focus]');
+      const targetEl = root.querySelector<HTMLElement>('[data-field-target]');
+      if (!focusEl || !targetEl) return null;
+      const f = offsetIn(focusEl);
+      const t = offsetIn(targetEl);
+      let avoid: Layout['avoid'] = null;
+      for (const el of root.querySelectorAll<HTMLElement>('[data-field-avoid]')) {
+        const r = offsetIn(el);
+        const box = { l: r.x, t: r.y, r: r.x + r.w, b: r.y + r.h };
+        avoid = avoid
+          ? { l: Math.min(avoid.l, box.l), t: Math.min(avoid.t, box.t), r: Math.max(avoid.r, box.r), b: Math.max(avoid.b, box.b) }
+          : box;
+      }
+      return {
+        w: root.clientWidth,
+        h: Math.min(root.clientHeight, t.y + 120),
+        focus: { x: f.x + f.w / 2, y: f.y + f.h / 2, w: f.w, h: f.h },
+        target: { x: t.x, y: t.y, w: t.w },
+        avoid,
+      };
+    };
+
+    // A soft round dot in one colour: an alpha mask from a radial gradient, then tinted.
+    const sprite = (color: string, r: number) => {
+      const s = document.createElement('canvas');
+      s.width = s.height = r * 2;
+      const g = s.getContext('2d')!;
+      const grad = g.createRadialGradient(r, r, 0, r, r, r);
+      grad.addColorStop(0, 'black');
+      grad.addColorStop(0.25, 'rgb(0 0 0 / 0.5)');
+      grad.addColorStop(1, 'transparent');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, r * 2, r * 2);
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = color || 'gray';
+      g.fillRect(0, 0, r * 2, r * 2);
+      return s;
+    };
+
+    const readTheme = () => {
+      const css = getComputedStyle(document.documentElement);
+      const v = (name: string) => css.getPropertyValue(name).trim();
+      light = css.colorScheme === 'light';
+      canvas.dataset.tone = light ? 'light' : 'dark';
+      // 0..2: the lanes' slice tones. 3: the beam's light. 4: its warm end. 5: the deep violet.
+      palette = [v('--slice-1'), v('--slice-2'), v('--slice-3'), v('--beam-b'), v('--beam-c'), v('--beam-a')];
+      if (light) palette[3] = v('--slice-2');
+      sprites = palette.map((c) => sprite(c, 16));
+      glow = sprite(light ? v('--slice-3') : v('--beam-b'), 160);
+    };
+
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+    // The three lanes end along the top edge of the product panel, behind it.
+    const laneEnds = (l: Layout) => {
+      const at = l.w < 700 ? [0.1, 0.5, 0.9] : [0.06, 0.5, 0.94];
+      return at.map((p) => ({ x: l.target.x + l.target.w * p, y: l.target.y + 24 }));
+    };
+
+    const shape = (f: Fibre, l: Layout) => {
+      const { focus } = l;
+      const narrow = l.w < 700;
+      if (f.lane < 0) {
+        // Incoming: falls from above the page and bends in to the top of the keyhole.
+        const sx = focus.x + f.seed * l.w * (narrow ? 0.75 : 0.56);
+        const sy = -focus.y * (0.6 + f.seed2 * 0.9);
+        const ex = focus.x + f.seed * focus.w * 0.32;
+        const ey = focus.y - focus.h * 0.38;
+        const bend = 0.18 + Math.abs(f.seed) * 0.12;
+        f.bez = [sx, sy, sx, ey - (ey - sy) * 0.18, ex + (sx - ex) * bend, ey - focus.h * 0.35, ex, ey];
+        return;
+      }
+      // Outgoing: out of the bottom of the keyhole, bowing around the text, down to a lane's end.
+      const d = laneEnds(l)[f.lane];
+      const bx = focus.x + f.seed * focus.w * 0.18;
+      const by = focus.y + focus.h * 0.38;
+      const dir = f.lane === 0 ? -1 : f.lane === 2 ? 1 : 0;
+      const ribbon = narrow ? 10 : 30;
+      const o = f.seed * ribbon;
+      if (dir === 0) {
+        f.bez = [bx, by, bx + o * 0.3, by + (d.y - by) * 0.4, d.x + o, d.y - (d.y - by) * 0.35, d.x + o * 1.6, d.y];
+        return;
+      }
+      const textEdge = l.avoid ? (dir < 0 ? l.avoid.l : l.avoid.r) : d.x;
+      const outer = Math.max(8, Math.min(l.w - 8, textEdge + dir * (narrow ? 2 : 80)));
+      f.bez = [
+        bx,
+        by,
+        focus.x + dir * Math.abs(outer - focus.x) * 0.6 + o * 0.4,
+        by + (d.y - by) * 0.04,
+        outer + o,
+        d.y - (d.y - by) * 0.5,
+        d.x + o * 0.8,
+        d.y,
+      ];
+    };
+
+    const build = (l: Layout) => {
+      const narrow = l.w < 700;
+      const incoming = narrow ? 22 : 44;
+      const perLane = narrow ? 6 : 12;
+      fibres = [];
+      for (let i = 0; i < incoming; i++) {
+        // Spread evenly across the stream, a little uneven so it never looks ruled.
+        const seed = -1 + (2 * (i + 0.5)) / incoming + rand(-0.4, 0.4) / incoming;
+        const r = Math.random();
+        fibres.push({ lane: -1, seed, seed2: Math.random(), color: r < 0.7 ? 3 : r < 0.88 ? 0 : 5, bez: [0, 0, 0, 0, 0, 0, 0, 0] });
+      }
+      for (let lane = 0; lane < 3; lane++) {
+        for (let i = 0; i < perLane; i++) {
+          const seed = -1 + (2 * (i + 0.5)) / perLane;
+          fibres.push({ lane, seed, seed2: Math.random(), color: lane, bez: [0, 0, 0, 0, 0, 0, 0, 0] });
+        }
+      }
+      fibres.forEach((f) => shape(f, l));
+
+      const count = narrow ? 150 : Math.round(330 * Math.min(1, l.w / 1440));
+      const old = particles;
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        // Three fifths of the light falls in, two fifths fan out.
+        const pool = i % 5 >= 3 ? fibres.filter((f) => f.lane >= 0) : fibres.filter((f) => f.lane < 0);
+        const fi = fibres.indexOf(pool[Math.floor(Math.random() * pool.length)]);
+        const f = fibres[fi];
+        particles.push({
+          fibre: fi,
+          t: old[i]?.t ?? Math.random(),
+          speed: f.lane < 0 ? 1 / rand(2.8, 5.6) : 1 / rand(3.4, 6.8),
+          trail: rand(0.05, 0.16),
+          width: rand(0.7, 1.6),
+          alpha: rand(0.4, 1),
+          spark: Math.random() < 0.25,
+          color: f.lane < 0 && Math.random() < 0.08 ? 4 : f.color,
+        });
+      }
+    };
+
+    const at = (b: Bez, t: number, out: Pt) => {
+      const u = 1 - t;
+      const a = u * u * u;
+      const c1 = 3 * u * u * t;
+      const c2 = 3 * u * t * t;
+      const d = t * t * t;
+      out.x = a * b[0] + c1 * b[2] + c2 * b[4] + d * b[6];
+      out.y = a * b[1] + c1 * b[3] + c2 * b[5] + d * b[7];
+      return out;
+    };
+
+    // The fibres themselves, faint and still: drawn once per resize or theme change.
+    const paintStrands = (l: Layout) => {
+      strands.width = canvas.width;
+      strands.height = canvas.height;
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sctx.lineWidth = 1;
+      for (const f of fibres) {
+        const b = f.bez;
+        const grad = sctx.createLinearGradient(b[0], b[1], b[6], b[7]);
+        const c = palette[f.color];
+        grad.addColorStop(0, 'transparent');
+        grad.addColorStop(f.lane < 0 ? 0.55 : 0.15, c);
+        grad.addColorStop(1, f.lane < 0 ? c : 'transparent');
+        sctx.strokeStyle = grad;
+        sctx.globalAlpha = (light ? 0.09 : 0.1) * (f.lane < 0 ? 1 : 1.6);
+        sctx.beginPath();
+        sctx.moveTo(b[0], b[1]);
+        sctx.bezierCurveTo(b[2], b[3], b[4], b[5], b[6], b[7]);
+        sctx.stroke();
+      }
+      sctx.globalAlpha = 1;
+      // Keep the strands clear of the headline.
+      if (l.avoid) {
+        sctx.globalCompositeOperation = 'destination-out';
+        const a = l.avoid;
+        sctx.globalAlpha = 0.75;
+        sctx.filter = 'blur(24px)';
+        sctx.fillRect(a.l, a.t, a.r - a.l, a.b - a.t);
+        sctx.filter = 'none';
+        sctx.globalAlpha = 1;
+        sctx.globalCompositeOperation = 'source-over';
+      }
+    };
+
+    // How much a point sits behind the headline and copy: 1 clear, down to `floor` inside.
+    const clearOf = (x: number, y: number, l: Layout, floor: number) => {
+      const a = l.avoid;
+      if (!a) return 1;
+      const pad = 40;
+      const dx = Math.max(a.l - x, 0, x - a.r);
+      const dy = Math.max(a.t - y, 0, y - a.b);
+      const dist = Math.hypot(dx, dy);
+      if (dist >= pad) return 1;
+      const k = dist / pad;
+      return floor + (1 - floor) * k * k;
+    };
+
+    const head: Pt = { x: 0, y: 0 };
+    const mid: Pt = { x: 0, y: 0 };
+    const tail: Pt = { x: 0, y: 0 };
+
+    const draw = (dt: number) => {
+      const l = layout;
+      if (!l) return;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(strands, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
+      ctx.lineCap = 'round';
+
+      const strength = light ? 0.6 : 0.95;
+      const floor = light ? 0.1 : 0.16;
+      const narrow = l.w < 700;
+
+      // The keyhole's slow breathing glow.
+      if (glow) {
+        const pulse = 0.5 + 0.5 * Math.sin(clock * 0.8);
+        const r = Math.max(l.focus.w, 120) * (narrow ? 1.05 : 1.45) * (1 + pulse * 0.08);
+        ctx.globalAlpha = (light ? 0.22 : narrow ? 0.3 : 0.42) + pulse * 0.1;
+        ctx.drawImage(glow, l.focus.x - r, l.focus.y - r, r * 2, r * 2);
+      }
+
+      for (const p of particles) {
+        const f = fibres[p.fibre];
+        p.t += p.speed * dt;
+        if (p.t > 1) p.t -= 1;
+        // Incoming light speeds up as it nears the keyhole; outgoing light eases as it lands.
+        const te = f.lane < 0 ? p.t * (0.55 + 0.45 * p.t) : 1 - Math.pow(1 - p.t, 1.5);
+        const fade = Math.pow(Math.sin(Math.PI * p.t), 0.6);
+        at(f.bez, te, head);
+        at(f.bez, Math.max(0, te - p.trail * 0.45), mid);
+        at(f.bez, Math.max(0, te - p.trail), tail);
+        const a = p.alpha * fade * strength * clearOf(head.x, head.y, l, floor);
+        if (a < 0.02) continue;
+
+        ctx.strokeStyle = palette[p.color];
+        ctx.lineWidth = p.width;
+        ctx.globalAlpha = a * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(tail.x, tail.y);
+        ctx.lineTo(mid.x, mid.y);
+        ctx.stroke();
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.moveTo(mid.x, mid.y);
+        ctx.lineTo(head.x, head.y);
+        ctx.stroke();
+
+        if (p.spark) {
+          const s = 3 + p.width * 3;
+          ctx.globalAlpha = a * (light ? 0.55 : 0.85);
+          ctx.drawImage(sprites[p.color], head.x - s, head.y - s, s * 2, s * 2);
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    };
+
+    const running = () => visible && !document.hidden && !reduce.matches;
+
+    const frame = (now: number) => {
+      raf = 0;
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+      last = now;
+      clock += dt;
+      draw(dt);
+      schedule();
+    };
+
+    const schedule = () => {
+      if (!raf && running()) raf = requestAnimationFrame(frame);
+    };
+
+    const stop = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      last = 0;
+    };
+
+    const resize = () => {
+      const next = measure();
+      if (!next) return;
+      const narrowChanged = !layout || layout.w < 700 !== next.w < 700;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.style.height = `${next.h}px`;
+      canvas.width = Math.round(next.w * dpr);
+      canvas.height = Math.round(next.h * dpr);
+      layout = next;
+      if (narrowChanged) build(next);
+      else fibres.forEach((f) => shape(f, next));
+      paintStrands(next);
+      if (running()) schedule();
+      else draw(0);
+    };
+
+    const repaint = () => {
+      readTheme();
+      if (layout) paintStrands(layout);
+      if (!running()) draw(0);
+    };
+
+    readTheme();
+    resize();
+
+    new ResizeObserver(() => resize()).observe(root);
+    document.fonts?.ready.then(() => resize());
+
+    new IntersectionObserver((entries) => {
+      visible = entries.some((e) => e.isIntersecting);
+      if (running()) schedule();
+      else stop();
+    }).observe(canvas);
+
+    document.addEventListener('visibilitychange', () => (running() ? schedule() : stop()));
+    reduce.addEventListener('change', () => (running() ? schedule() : (stop(), draw(0))));
+
+    new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    schemeQuery.addEventListener('change', repaint);
+  }
+</script>

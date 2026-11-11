@@ -57,7 +57,7 @@ on buttons and inputs, 14px on panels.
   a "→" glued to every link, one word in a headline set in a different colour or italic.
 - Gradient washes, glass, blobs, purple mesh, identical rounded cards with soft shadows.
 - Numbered markers unless the content is a real sequence (the deploy steps are one).
-- Entrance animations on every section. Motion only where a person acted (tabs, details).
+- Motion for its own sake. (v1 said no entrance animations at all; v3 below supersedes that.)
 - Fake logos, fake quotes, invented numbers. Every claim must be checkable in the repo.
 
 ## SEO and AEO (SearchFit checklist)
@@ -92,3 +92,28 @@ zed.dev and huly.io, and for both a light and a dark theme.
 - **Panels** have a gradient hairline border and an inner top highlight (`.panel`), radius
   `--radius-lg`; the featured plan gets the beam gradient as its border.
 - `PageHero` takes an optional `visual` slot for a mock-up beside the title.
+
+## Motion (v3)
+
+The owner asked for the site to feel alive the way neon.com does, but premium and restrained. One
+system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gzipped) and the
+"Motion" section at the end of `global.css`. Pages only add attributes:
+
+- **`data-reveal`**: fades up 16px out of a soft blur, once, when it scrolls into view.
+  `data-reveal-delay="120"` waits that many ms. **`data-reveal-stagger`** on a grid reveals each
+  child ~70ms after the one before (pass a number to change the step). One reveal per block: a
+  section head, a grid, a window; never per paragraph.
+- **`data-play`**: gets `.is-playing` once in view (and keeps it). Illustrations start their CSS
+  animations from that class: the bento tiles on the home page, the Lanes packets, the vibe band.
+- **Type-on**: a `<pre data-play>` whose lines are `<span class="ln" style="--i:n">` shows them in
+  turn; `--type-step` sets the pace. The full text is always in the HTML.
+- **`data-spotlight`**: a border glow and faint fill that follow a fine pointer (cards, tiles,
+  panels, plans). `data-spotlight="ring"` when the element already uses `::before`.
+- **Featured card**: `.plan--featured` and `.tier--ent` draw their border as a conic gradient from
+  `--sweep`, which turns slowly (`@property`; without it the border just stays still).
+
+Rules: easing and durations are tokens (`--ease-out`, `--ease-in-out`, `--dur-*`). Animate
+transform and opacity; loops are slow (4s and up) and quiet. Hidden starting states exist only
+under `.js` (set by the inline head script) and `prefers-reduced-motion: no-preference`, so without
+JavaScript, in print, or with reduced motion every element shows its final, static state.
+Never animate the page's layout, and check 390px and 1440px for sideways scroll.

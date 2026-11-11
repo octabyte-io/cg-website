@@ -22,6 +22,7 @@ const props = Astro.props;
     <meta name="theme-color" content="#0b0912" media="(prefers-color-scheme: dark)" />
     <script is:inline>
       // Apply a theme the visitor chose before, before first paint. No choice: follow the system.
+      document.documentElement.classList.add('js');
       try {
         const t = localStorage.getItem('cg-theme');
         if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
@@ -38,6 +39,9 @@ const props = Astro.props;
       <slot />
     </main>
     <Footer />
+    <script>
+      import '../scripts/motion';
+    </script>
     <style>
       .skip {
         position: absolute;
