@@ -139,6 +139,8 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: 5rem;
+  /* Halos and beams bleed past the edges on purpose; never let them add a sideways scroll. */
+  overflow-x: clip;
 }
 
 body {
@@ -641,7 +643,10 @@ pre {
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
 }
 
-/* A soft halo of the brand colour, placed by the page. */
+/* A soft halo of the brand colour, placed by the page. Its section clips it so it never widens the page. */
+:where(section):has(> .halo) {
+  overflow-x: clip;
+}
 .halo {
   position: absolute;
   z-index: -1;
