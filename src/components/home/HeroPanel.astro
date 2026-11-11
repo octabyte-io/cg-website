@@ -1,0 +1,218 @@
+---
+// The hero's three ways in, one per slice of the mark. A radio group drives the panels with CSS
+// alone, so it works without JavaScript and each panel stays in the HTML for crawlers.
+---
+<div class="panel" role="group" aria-label="Three ways to deploy with Cloudgate">
+  <div class="tabs">
+    <input type="radio" name="way" id="way-console" checked />
+    <label for="way-console"><span class="slice"></span>In the console</label>
+    <input type="radio" name="way" id="way-agent" />
+    <label for="way-agent"><span class="slice slice--2"></span>From your AI agent</label>
+    <input type="radio" name="way" id="way-cli" />
+    <label for="way-cli"><span class="slice slice--3"></span>From your terminal</label>
+
+    <section class="pane pane--console" aria-label="Deploying a template in the console">
+      <div class="window">
+        <p class="win-title">Get started: deploy n8n</p>
+        <ol class="steps">
+          <li class="done"><span>Your account</span><span class="state">Signed in</span></li>
+          <li class="done">
+            <span>A server</span>
+            <span class="state">Bought from Cloudgate, 2 vCPU, 4 GB</span>
+          </li>
+          <li class="current">
+            <span>Deploy</span>
+            <span class="state live">Running</span>
+          </li>
+        </ol>
+        <div class="result">
+          <p>n8n is online at</p>
+          <p class="url">http://n8n-app.203-0-113-24.sslip.io</p>
+          <p class="hint">Next: add your own domain for https.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane pane--agent" aria-label="An AI agent deploying over MCP">
+      <pre class="code"><code><span class="d">you</span>    Fix the checkout bug and send me a preview.
+<span class="d">agent</span>  Pushed fix-checkout. Asking Cloudgate for a preview.
+
+<span class="k">create_preview</span>  {'{'} applicationId: <span class="s">"shop-web"</span>, branch: <span class="s">"fix-checkout"</span> {'}'}
+<span class="d">→</span> queued, expires in 60 minutes
+
+<span class="k">read_deployment_log</span>  {'{'} deploymentId: <span class="s">"dpl_4f2c"</span> {'}'}
+<span class="d">→</span> build finished, container healthy
+<span class="d">→</span> DATABASE_URL=<span class="s">••••••</span>
+
+<span class="k">get_service_health</span>  {'{'} serviceId: <span class="s">"shop-web"</span> {'}'}
+<span class="d">→</span> uptime check up, error rate under threshold
+
+<span class="d">agent</span>  Preview is live. Every call above is in your audit log.</code></pre>
+    </section>
+
+    <section class="pane pane--cli" aria-label="Deploying a folder from the terminal">
+      <pre class="code"><code><span class="d">$</span> npm install -g @octabyte-io/cloudgate
+<span class="d">$</span> cloudgate login
+<span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span>
+<span class="d">$</span> cd my-app
+<span class="d">$</span> <span class="k">cloudgate deploy</span>
+<span class="d">  Uploading 214 files (skipping .env and .git)</span>
+<span class="d">  Building with Nixpacks</span>
+<span class="d">  Deployment</span> <span class="s">done</span>
+<span class="d">$</span> cloudgate logs --follow</code></pre>
+    </section>
+  </div>
+</div>
+
+<style>
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    padding: var(--space-3);
+  }
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, auto) 1fr;
+    gap: var(--space-1);
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  label:hover {
+    color: var(--ink);
+  }
+  input:checked + label {
+    background: var(--paper-2);
+    color: var(--ink);
+    font-weight: 500;
+  }
+  input:focus-visible + label {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  .pane {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: none;
+    margin-top: var(--space-2);
+  }
+  #way-console:checked ~ .pane--console,
+  #way-agent:checked ~ .pane--agent,
+  #way-cli:checked ~ .pane--cli {
+    display: block;
+  }
+  .pane .code {
+    min-height: 330px;
+    white-space: pre;
+  }
+
+  .window {
+    min-height: 330px;
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius-md) - 4px);
+    background: var(--paper);
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+  .win-title {
+    font-weight: 600;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 1.75rem 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: var(--text-sm);
+  }
+  .steps li::before {
+    content: counter(step);
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-weight: 600;
+    font-size: var(--text-xs);
+  }
+  .steps li.done::before {
+    content: '✓';
+  }
+  .steps li.current {
+    border-color: var(--brand);
+  }
+  .state {
+    color: var(--muted);
+    text-align: right;
+  }
+  .state.live {
+    color: var(--live);
+  }
+  .result {
+    border-top: 1px dashed var(--line-strong);
+    padding-top: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .url {
+    font-family: var(--font-mono);
+    color: var(--ink);
+    font-size: var(--text-md);
+    overflow-wrap: anywhere;
+    margin-block: var(--space-1);
+  }
+  .hint {
+    font-size: var(--text-xs);
+  }
+
+  @media (max-width: 640px) {
+    .tabs {
+      grid-template-columns: 1fr;
+    }
+    .pane {
+      grid-row: auto;
+    }
+    .steps li {
+      grid-template-columns: 1.75rem 1fr;
+    }
+    .state {
+      grid-column: 2;
+      text-align: left;
+    }
+    .pane .code {
+      font-size: var(--text-xs);
+      min-height: 0;
+    }
+  }
+</style>

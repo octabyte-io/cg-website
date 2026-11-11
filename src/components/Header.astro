@@ -18,19 +18,27 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
       <Mark size={34} />
       <span>Cloudgate</span>
     </a>
-    <nav aria-label="Main">
-      <details class="menu">
-        <summary aria-label="Menu">Menu</summary>
-        <ul>
-          {nav.map((item) => (
-            <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
-          ))}
-        </ul>
-      </details>
+    <nav aria-label="Main" class="wide">
+      <ul>
+        {nav.map((item) => (
+          <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
+        ))}
+      </ul>
     </nav>
     <div class="end">
       <a class="signin" href={site.signIn}>Sign in</a>
       <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+      <details class="menu">
+        <summary>Menu</summary>
+        <nav aria-label="Main, small screens">
+          <ul>
+            {nav.map((item) => (
+              <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
+            ))}
+            <li><a href={site.signIn}>Sign in</a></li>
+          </ul>
+        </nav>
+      </details>
     </div>
   </div>
 </header>
@@ -61,20 +69,17 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     letter-spacing: -0.02em;
     text-decoration: none;
   }
-  nav {
+  .wide {
     flex: 1;
   }
-  .menu summary {
-    display: none;
-  }
-  .menu ul {
+  ul {
     display: flex;
     gap: var(--space-1);
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .menu a {
+  nav a {
     display: block;
     padding: 0.5rem 0.7rem;
     border-radius: var(--radius-sm);
@@ -82,8 +87,8 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     font-size: var(--text-sm);
     text-decoration: none;
   }
-  .menu a:hover,
-  .menu a[aria-current='page'] {
+  nav a:hover,
+  nav a[aria-current='page'] {
     color: var(--ink);
     background: var(--paper-2);
   }
@@ -91,6 +96,7 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     display: flex;
     align-items: center;
     gap: var(--space-4);
+    margin-left: auto;
   }
   .signin {
     font-size: var(--text-sm);
@@ -100,54 +106,50 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
   .signin:hover {
     color: var(--ink);
   }
-
-  @media (min-width: 981px) {
-    /* The menu is always open on wide screens; <details> only collapses it on small ones. */
-    .menu > ul {
-      display: flex !important;
-    }
+  .menu {
+    display: none;
   }
+  .menu summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    list-style: none;
+  }
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .menu nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 64px;
+    padding: var(--space-3) var(--gutter) var(--space-5);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .menu ul {
+    flex-direction: column;
+  }
+  .menu a {
+    font-size: var(--text-md);
+    padding: 0.75rem 0.5rem;
+  }
+
   @media (max-width: 980px) {
-    .bar {
-      gap: var(--space-3);
-    }
-    nav {
-      order: 3;
-      flex: 0;
-    }
-    .end {
-      margin-left: auto;
-    }
+    .wide,
     .signin {
       display: none;
     }
-    .menu summary {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0 0.9rem;
-      border: 1px solid var(--line-strong);
-      border-radius: var(--radius-sm);
-      font-size: var(--text-sm);
-      cursor: pointer;
-      list-style: none;
+    .menu {
+      display: block;
     }
-    .menu summary::-webkit-details-marker {
-      display: none;
-    }
-    .menu ul {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 64px;
-      flex-direction: column;
-      padding: var(--space-3) var(--gutter) var(--space-5);
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-    }
-    .menu a {
-      font-size: var(--text-md);
-      padding: 0.75rem 0.5rem;
+    .end {
+      gap: var(--space-3);
     }
   }
   @media (max-width: 420px) {
