@@ -109,7 +109,6 @@ export const legalTodo: string[] = [
   'Where the Hosted instance (cloudgate.octabyte.app) and its database are hosted, and in which country, for the Privacy Policy and Subprocessors page',
   'Whether Resend is the mail provider on the Hosted instance in production (ADR-0052 says so; the code also supports SMTP)',
   'Whether any error tracking, uptime or log service watches the Hosted instance itself (none is in the code)',
-  'Naming the Bought Server provider (Hetzner) on the Subprocessors page: ADR-0071 says it is named only there, but docs/product-facts.md says not to name it on the site unless asked',
   'Refund stance: the Terms say paid fees are not refunded except a failed Bought Server (refunded in full, per ADR-0071) or where the law requires',
   'Whether sales tax or VAT is added to invoices (Checkout collects a billing address and tax ID; automatic tax is not turned on in the code)',
   'How long billing records are kept after an Organization is deleted (Stripe keeps its own; the Privacy Policy says "as long as tax and accounting law requires")',
