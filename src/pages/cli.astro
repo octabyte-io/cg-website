@@ -12,6 +12,7 @@ const trail = [{ name: 'CLI', path: '/cli' }];
 // One-line descriptions from each command's own summary in cli/src/commands/*.ts.
 const commandGroups = [
   {
+    id: 'login',
     name: 'Logging in',
     commands: [
       { cmd: 'cloudgate login', text: 'Log in to an Instance through your browser. Add --instance <url> for a self-hosted one.' },
@@ -22,6 +23,7 @@ const commandGroups = [
     ],
   },
   {
+    id: 'folder',
     name: 'This folder',
     commands: [
       { cmd: 'cloudgate deploy', text: 'Upload this folder and deploy it, then follow the Deployment log until it ends.' },
@@ -33,12 +35,28 @@ const commandGroups = [
     ],
   },
   {
+    id: 'templates',
     name: 'Templates',
     commands: [
       { cmd: 'cloudgate template check <path>', text: 'Check templates as Cloudgate will read them, without any request.' },
       { cmd: 'cloudgate template pack <folder> <out>', text: 'Build the catalogue.zip a templates release publishes.' },
     ],
   },
+];
+const [loginGroup, folderGroup, templatesGroup] = commandGroups;
+
+// The drawn folder in "What does cloudgate deploy upload?".
+const tree = [
+  { path: 'src/', state: 'up', why: 'Uploaded' },
+  { path: 'package.json', state: 'up', why: 'Uploaded' },
+  { path: 'notes.md', state: 'up', why: 'Uploaded, not committed yet' },
+  { path: 'node_modules/', state: 'ignored', why: 'Listed in .gitignore' },
+  { path: 'dist/', state: 'ignored', why: 'Listed in .cloudgateignore' },
+  { path: '.env', state: 'never', why: 'Always left out' },
+  { path: '.env.example', state: 'up', why: 'Uploaded' },
+  { path: '.git/', state: 'never', why: 'Always left out' },
+  { path: '.cloudgate/', state: 'never', why: 'Always left out' },
+  { path: 'shared → ../lib', state: 'warn', why: 'Symlink, skipped with a warning' },
 ];
 
 const faq = [
@@ -106,15 +124,25 @@ const description =
   >
     <a class="btn btn--primary" href="#install">Install the CLI</a>
     <a class="btn btn--ghost" href={site.npm}>View on npm</a>
+    <div class="window term" slot="visual" aria-label="A deploy from the terminal" role="img">
+      <div class="window-bar">~/my-app</div>
+      <pre class="code"><code><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate
+<span class="d">$</span> <span class="k">cloudgate</span> login
+<span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span>
+<span class="d">$</span> <span class="k">cd</span> my-app
+<span class="d"># uploads this folder, builds it, follows the log</span>
+<span class="d">$</span> <span class="k">cloudgate</span> deploy
+<span class="d">  Uploading 214 files (skipping .env and .git)</span>
+<span class="d">  Building with Nixpacks</span>
+<span class="d">  Deployment</span> <span class="s">done</span>
+<span class="d"># running? which address? which Deployment?</span>
+<span class="d">$</span> <span class="k">cloudgate</span> status
+<span class="d">  web</span>  <span class="s">running</span>  <span class="d">shop.example.com</span></code></pre>
+    </div>
   </PageHero>
 
-  <section class="hero-term" aria-label="A deploy from the terminal">
+  <section class="early-strip" aria-label="Release status">
     <div class="wrap">
-      <pre class="code term"><code><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate
-<span class="d">$</span> <span class="k">cloudgate</span> login
-<span class="d">$</span> <span class="k">cd</span> my-app
-<span class="d">$</span> <span class="k">cloudgate</span> deploy      <span class="d"># uploads this folder, builds it, follows the log</span>
-<span class="d">$</span> <span class="k">cloudgate</span> status      <span class="d"># running? which address? which Deployment?</span></code></pre>
       <p class="note note--warn early">
         <strong>The CLI is early.</strong> The npm <code>latest</code> tag is version 0.0.1, and the
         newer beta is on the <code>next</code> tag:
@@ -125,8 +153,8 @@ const description =
   </section>
 
   <section class="section" id="install" aria-labelledby="install-title">
-    <div class="wrap">
-      <div class="section-head">
+    <div class="wrap split install">
+      <div class="section-head sticky-head">
         <h2 id="install-title">How do you deploy a folder with the Cloudgate CLI?</h2>
         <p class="lede">
           Four steps. You need Node 22 or newer, a Cloudgate account, and an Application made in
@@ -170,7 +198,7 @@ const description =
     </div>
   </section>
 
-  <section class="section" aria-labelledby="upload-title">
+  <section class="section band" aria-labelledby="upload-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="upload-title">What does cloudgate deploy upload?</h2>
@@ -179,30 +207,43 @@ const description =
           should not leave your machine.
         </p>
       </div>
-      <dl class="facts">
-        <div>
-          <dt>Uploaded</dt>
-          <dd>Every file in the linked folder, or the current folder when nothing is linked yet, whether committed or not.</dd>
-        </div>
-        <div>
-          <dt>Left out by your ignore files</dt>
-          <dd>
-            Anything any <code>.gitignore</code> or a <code>.cloudgateignore</code> lists. Both use
-            the same syntax, and <code>!</code> brings a file back.
-          </dd>
-        </div>
-        <div>
-          <dt>Always left out</dt>
-          <dd>
-            <code>.git</code>, <code>.cloudgate</code>, and <code>.env</code> files except
-            {" "}<code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
-          </dd>
-        </div>
-        <div>
-          <dt>Warned about</dt>
-          <dd>Symlinks are skipped with a warning, and an upload over 100 MB names its biggest folders before it goes.</dd>
-        </div>
-      </dl>
+      <div class="upload">
+        <figure class="tree panel" aria-hidden="true">
+          <figcaption>my-app/</figcaption>
+          <ul>
+            {tree.map((t) => (
+              <li class={`t-${t.state}`}>
+                <span class="t-path">{t.path}</span>
+                <span class="t-why">{t.why}</span>
+              </li>
+            ))}
+          </ul>
+        </figure>
+        <dl class="upload-facts">
+          <div class="f-up">
+            <dt>Uploaded</dt>
+            <dd>Every file in the linked folder, or the current folder when nothing is linked yet, whether committed or not.</dd>
+          </div>
+          <div class="f-ignored">
+            <dt>Left out by your ignore files</dt>
+            <dd>
+              Anything any <code>.gitignore</code> or a <code>.cloudgateignore</code> lists. Both use
+              the same syntax, and <code>!</code> brings a file back.
+            </dd>
+          </div>
+          <div class="f-never">
+            <dt>Always left out</dt>
+            <dd>
+              <code>.git</code>, <code>.cloudgate</code>, and <code>.env</code> files except
+              {" "}<code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
+            </dd>
+          </div>
+          <div class="f-warn">
+            <dt>Warned about</dt>
+            <dd>Symlinks are skipped with a warning, and an upload over 100 MB names its biggest folders before it goes.</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   </section>
 
@@ -217,11 +258,52 @@ const description =
         </p>
       </div>
       <div class="groups">
-        {commandGroups.map((g) => (
-          <div class="group">
-            <h3>{g.name}</h3>
-            <dl class="cmds">
-              {g.commands.map((c) => (
+        <div class="group g-folder">
+          <div class="art" aria-hidden="true">
+            <pre class="mini"><code><span class="p">$</span> cloudgate status
+<span class="dim">Service</span>      web
+<span class="dim">State</span>        <span class="ok">running</span>
+<span class="dim">Domains</span>      shop.example.com
+<span class="dim">Deployment</span>   done</code></pre>
+          </div>
+          <h3>{folderGroup.name}</h3>
+          <dl class="cmds cmds--two">
+            {folderGroup.commands.map((c) => (
+              <div>
+                <dt><code>{c.cmd}</code></dt>
+                <dd>{c.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div class="group g-login">
+          <div class="art" aria-hidden="true">
+            <pre class="mini"><code><span class="p">$</span> cloudgate instance list
+<span class="ok">*</span> cloudgate.octabyte.app
+  cloud.example.com</code></pre>
+          </div>
+          <h3>{loginGroup.name}</h3>
+          <dl class="cmds">
+            {loginGroup.commands.map((c) => (
+              <div>
+                <dt><code>{c.cmd}</code></dt>
+                <dd>{c.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div class="group g-templates">
+          <div class="art pack" aria-hidden="true">
+            <span class="node">templates/</span>
+            <span class="wire"></span>
+            <span class="node node--gate">template pack</span>
+            <span class="wire"></span>
+            <span class="node">catalogue.zip</span>
+          </div>
+          <div class="g-body">
+            <h3>{templatesGroup.name}</h3>
+            <dl class="cmds cmds--two">
+              {templatesGroup.commands.map((c) => (
                 <div>
                   <dt><code>{c.cmd}</code></dt>
                   <dd>{c.text}</dd>
@@ -229,12 +311,12 @@ const description =
               ))}
             </dl>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="ci-title">
+  <section class="section band" aria-labelledby="ci-title">
     <div class="wrap split ci">
       <div class="prose">
         <h2 id="ci-title">How do you deploy from CI?</h2>
@@ -249,7 +331,33 @@ const description =
           {" "}<code>CLOUDGATE_KEY</code> is never written to disk.
         </p>
       </div>
-      <pre class="code"><code><span class="d"># in your CI job</span>
+      <div class="window ci-win">
+        <div class="window-bar ci-tabs" role="radiogroup" aria-label="CI example">
+          <input type="radio" name="ci" id="ci-gh" checked />
+          <label for="ci-gh"><span class="path-dir">.github/workflows/</span>deploy.yml</label>
+          <input type="radio" name="ci" id="ci-sh" />
+          <label for="ci-sh">Any CI job</label>
+        </div>
+        <pre class="code pane pane--gh"><code><span class="k">name</span>: Deploy
+<span class="k">on</span>:
+  <span class="k">push</span>:
+    <span class="k">branches</span>: [<span class="s">main</span>]
+<span class="k">jobs</span>:
+  <span class="k">deploy</span>:
+    <span class="k">runs-on</span>: ubuntu-latest
+    <span class="k">steps</span>:
+      - <span class="k">uses</span>: actions/checkout@v4
+      - <span class="k">uses</span>: actions/setup-node@v4
+        <span class="k">with</span>:
+          <span class="k">node-version</span>: <span class="s">22</span>
+      - <span class="k">run</span>: npm install -g @octabyte-io/cloudgate
+      - <span class="k">run</span>: cloudgate deploy
+        <span class="k">env</span>:
+          <span class="k">CLOUDGATE_KEY</span>: <span class="s">{'${{ secrets.CLOUDGATE_KEY }}'}</span>
+          <span class="k">CLOUDGATE_PROJECT</span>: <span class="s">shop</span>
+          <span class="k">CLOUDGATE_ENV</span>: <span class="s">production</span>
+          <span class="k">CLOUDGATE_SERVICE</span>: <span class="s">web</span></code></pre>
+        <pre class="code pane pane--sh"><code><span class="d"># in your CI job</span>
 <span class="s">export</span> CLOUDGATE_KEY=<span class="d">&lt;Personal key from your secrets&gt;</span>
 <span class="s">export</span> CLOUDGATE_PROJECT=<span class="s">shop</span>
 <span class="s">export</span> CLOUDGATE_ENV=<span class="s">production</span>
@@ -257,6 +365,7 @@ const description =
 
 <span class="k">npm</span> install -g @octabyte-io/cloudgate
 <span class="k">cloudgate</span> deploy --switch-source</code></pre>
+      </div>
     </div>
   </section>
 
@@ -267,21 +376,21 @@ const description =
         <p class="lede">The CLI is one of three ways in. The other two reach the same Projects and Services.</p>
       </div>
       <ul class="ways">
-        <li>
+        <li class="panel">
           <span class="slice" aria-hidden="true"></span>
           <div>
             <h3><a href="/vibe-coding">Put an AI-built app online without a terminal</a></h3>
             <p>Pick a template or point Cloudgate at your folder, get a server, press Deploy.</p>
           </div>
         </li>
-        <li>
+        <li class="panel">
           <span class="slice slice--2" aria-hidden="true"></span>
           <div>
             <h3><a href="/ai-agents">Let your AI agent deploy over MCP</a></h3>
             <p>An agent gets its own member account, key and grant, and every call it makes is audited.</p>
           </div>
         </li>
-        <li>
+        <li class="panel">
           <span class="slice" aria-hidden="true"></span>
           <div>
             <h3><a href={templatesHome}>Start from an app template</a></h3>
@@ -304,33 +413,234 @@ const description =
 </Base>
 
 <style>
-  .hero-term {
-    padding-bottom: var(--space-8);
+  /* ---- Terminal windows: the bar follows the dark code surface in both themes ---- */
+  .window-bar {
+    color: var(--night-muted);
+    border-bottom-color: var(--night-line);
   }
-  .term {
-    font-size: var(--text-md);
-    max-width: 860px;
+  .window .code {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: var(--text-xs);
+    line-height: 1.75;
+  }
+  .term .code {
+    white-space: pre-wrap;
+  }
+
+  .early-strip {
+    padding-block: var(--space-6);
+  }
+  /* Flags such as --service stay on one line. */
+  .lede code,
+  .prose code {
+    white-space: nowrap;
   }
   .early {
-    margin-top: var(--space-5);
-  }
-
-  .steps {
     max-width: 860px;
   }
 
+  /* ---- Install steps beside a heading that stays in view ---- */
+  .sticky-head {
+    position: sticky;
+    top: 6rem;
+  }
+  .install .steps .code {
+    font-size: var(--text-xs);
+  }
+
+  /* ---- What leaves your machine ---- */
+  .upload {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .tree {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .tree figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .tree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 var(--space-4);
+    border-left: 1px solid var(--line-strong);
+    display: grid;
+    gap: 2px;
+  }
+  .tree li {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.45rem 0.7rem;
+    border-radius: 8px;
+    font-size: var(--text-sm);
+  }
+  .tree li::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--space-4));
+    top: 50%;
+    width: calc(var(--space-4) - 4px);
+    border-top: 1px solid var(--line-strong);
+  }
+  .t-path {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink);
+  }
+  .t-why {
+    font-size: var(--text-xs);
+    color: var(--muted);
+    text-align: right;
+  }
+  .t-up {
+    background: color-mix(in srgb, var(--live) 9%, transparent);
+  }
+  .t-up .t-why {
+    color: var(--live);
+  }
+  .t-ignored .t-path {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--line-strong);
+  }
+  .t-never .t-path {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .t-never .t-why,
+  .t-warn .t-why {
+    color: var(--warn);
+  }
+  .t-warn {
+    outline: 1px dashed var(--warn);
+    outline-offset: -1px;
+  }
+  .upload-facts {
+    margin: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .upload-facts > div {
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--line-strong);
+  }
+  .upload-facts .f-up {
+    border-left-color: var(--live);
+  }
+  .upload-facts .f-never,
+  .upload-facts .f-warn {
+    border-left-color: var(--warn);
+  }
+  .upload-facts dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-1);
+  }
+  .upload-facts dd {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* ---- Commands: tiles of different sizes ---- */
   .groups {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-7);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-4);
   }
-  .group h3 {
-    margin-bottom: var(--space-4);
+  .group {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .g-folder {
+    grid-column: span 7;
+  }
+  .g-login {
+    grid-column: span 5;
+  }
+  .g-templates {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: center;
+    gap: var(--space-6);
+  }
+  .g-body {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .art {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+  }
+  .mini {
+    margin: 0;
+    font-size: var(--text-xs);
+    line-height: 1.8;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+  }
+  .mini .p,
+  .mini .dim {
+    color: var(--muted);
+  }
+  .mini .ok {
+    color: var(--live);
+  }
+  .pack {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 100%;
+  }
+  .node {
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+  .node--gate {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 24px -8px var(--glow);
+  }
+  .wire {
+    flex: 1 1 1rem;
+    min-width: 1rem;
+    border-top: 2px dashed var(--line-strong);
   }
   .cmds {
     margin: 0;
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-3);
+  }
+  .cmds--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-5);
   }
   .cmds > div {
     border-top: 1px solid var(--line);
@@ -341,8 +651,9 @@ const description =
     border: 0;
     padding: 0;
     font-size: var(--text-sm);
-    color: var(--ink);
+    color: var(--brand);
     font-weight: 500;
+    overflow-wrap: anywhere;
   }
   .cmds dd {
     margin: var(--space-1) 0 0;
@@ -350,27 +661,69 @@ const description =
     font-size: var(--text-sm);
   }
 
+  /* ---- CI: a window with two examples ---- */
+  .ci {
+    align-items: center;
+  }
   .ci .prose p {
     color: var(--muted);
   }
   .ci .prose .lede {
     color: var(--muted);
   }
+  .ci-tabs {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    padding-block: 0.35rem;
+  }
+  .ci-tabs input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ci-tabs label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    color: var(--night-muted);
+    cursor: pointer;
+  }
+  .ci-tabs label:hover {
+    color: var(--night-ink);
+  }
+  .ci-tabs input:checked + label {
+    background: var(--night-line);
+    color: var(--night-ink);
+  }
+  .ci-tabs input:focus-visible + label {
+    outline: 2px solid var(--night-brand);
+    outline-offset: 1px;
+  }
+  .pane {
+    display: none;
+    min-height: 26rem;
+  }
+  .ci-win:has(#ci-gh:checked) .pane--gh,
+  .ci-win:has(#ci-sh:checked) .pane--sh {
+    display: block;
+  }
 
+  /* ---- Other ways in ---- */
   .ways {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
+    gap: var(--space-4);
   }
   .ways li {
     display: flex;
     gap: var(--space-4);
     align-items: flex-start;
-    border-top: 1px solid var(--line);
-    padding-top: var(--space-4);
   }
   .ways .slice {
     margin-top: 0.2rem;
@@ -387,15 +740,55 @@ const description =
   }
 
   @media (max-width: 960px) {
-    .groups,
+    .upload,
+    .g-templates {
+      grid-template-columns: 1fr;
+    }
+    .g-folder,
+    .g-login {
+      grid-column: 1 / -1;
+    }
     .ways {
       grid-template-columns: 1fr;
-      gap: var(--space-6);
+    }
+    .sticky-head {
+      position: static;
     }
   }
-  @media (max-width: 520px) {
-    .term {
-      font-size: var(--text-xs);
+  @media (max-width: 640px) {
+    .cmds--two {
+      grid-template-columns: 1fr;
+    }
+    .pack {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .pack .wire {
+      flex: none;
+      width: 0;
+      min-width: 0;
+      height: 1rem;
+      border-top: 0;
+      border-left: 2px dashed var(--line-strong);
+      margin-left: var(--space-4);
+    }
+    .tree li {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .t-why {
+      text-align: left;
+    }
+    .pane {
+      min-height: 0;
+    }
+    .path-dir {
+      display: none;
+    }
+    .window .code {
+      font-size: 0.6875rem;
+      padding: var(--space-4);
     }
   }
 </style>

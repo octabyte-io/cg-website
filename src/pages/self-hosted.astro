@@ -21,6 +21,26 @@ const requirements = [
   { name: 'DNS', value: 'None to start. Apps get a free sslip.io address that points at your server’s IP.' },
 ];
 
+// What each open port is for, drawn under the spec sheet.
+const ports = [
+  { n: '22', what: 'SSH' },
+  { n: '80', what: 'http' },
+  { n: '443', what: 'https' },
+  { n: '3000', what: 'Console' },
+  { n: '4000', what: 'API' },
+];
+
+const tiers = [
+  { label: 'Apps, databases, Compose stacks, AI models', free: 'Yes', ent: 'Yes' },
+  { label: 'Servers, AWS and Google Cloud', free: 'Yes, not counted', ent: 'Yes, not counted' },
+  { label: 'Agents and the MCP endpoint', free: 'Yes', ent: 'Yes' },
+  { label: 'Organizations', free: 'One', ent: 'More than one' },
+  { label: 'Builds and cloud runs', free: 'One at a time per Server', ent: 'In parallel' },
+  { label: 'SSO, SCIM and custom roles', free: 'No', ent: 'Yes' },
+  { label: 'Forward auth in front of apps', free: 'No', ent: 'Yes' },
+  { label: 'White-labelling', free: 'No', ent: 'Yes' },
+];
+
 const faq = [
   {
     q: 'Is self-hosted Cloudgate really free?',
@@ -84,6 +104,20 @@ const description =
       <a class="btn btn--primary" href={accessMail}>Ask for access</a>
     )}
     <a class="btn btn--ghost" href="/pricing">Compare with the hosted plans</a>
+    <div class="window term" slot="visual" aria-hidden="true">
+      <div class="window-bar">root@203.0.113.24</div>
+      <pre class="code"><code><span class="d">#</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=203.0.113.24 <span class="k">bash</span> /opt/cloudgate/deploy/install.sh
+<span class="s">  ✓</span> <span class="d">Node from nodejs.org, checksum verified</span>
+<span class="s">  ✓</span> <span class="d">PostgreSQL, role in a root-only file</span>
+<span class="s">  ✓</span> <span class="d">Docker, Swarm of one node</span>
+<span class="s">  ✓</span> <span class="d">Traefik</span>
+<span class="s">  ✓</span> <span class="d">Nixpacks and OpenTofu</span>
+<span class="s">  ✓</span> <span class="d">ufw: 22, 80, 443, 3000, 4000</span>
+<span class="s">  ✓</span> <span class="d">Console and API under systemd</span>
+
+  Open <span class="k">http://203.0.113.24:3000/sign-up</span>
+<span class="d">  The first account to sign up owns this instance.</span></code></pre>
+    </div>
   </PageHero>
 
   <section class="section" aria-labelledby="who-title">
@@ -96,18 +130,28 @@ const description =
         </p>
       </div>
       <div class="choice">
-        <div class="side panel panel--open">
+        <div class="side side--self">
+          <div class="side-art" aria-hidden="true">
+            <span class="box">Your server</span>
+            <span class="wire"></span>
+            <span class="box box--you">Cloudgate, run by you</span>
+          </div>
           <h3>Self-host if</h3>
-          <ul>
+          <ul class="ticks">
             <li>You have to keep the deployment platform inside your own network or provider.</li>
             <li>You are comfortable running an Ubuntu server: updates, backups and a firewall.</li>
             <li>One Organization is enough, or you plan to buy an Enterprise license.</li>
             <li>You want to read or change how Cloudgate works.</li>
           </ul>
         </div>
-        <div class="side panel">
+        <div class="side side--hosted panel">
+          <div class="side-art" aria-hidden="true">
+            <span class="box box--gate">cloudgate.octabyte.app</span>
+            <span class="wire"></span>
+            <span class="box">Your servers and clouds</span>
+          </div>
           <h3>Use the hosted console if</h3>
-          <ul>
+          <ul class="ticks">
             <li>You want to sign up and deploy today, with nothing of ours to install or upgrade.</li>
             <li>You want to buy a server from us instead of finding one yourself.</li>
             <li>You want SSO and SCIM on a monthly plan, without a license agreement.</li>
@@ -122,7 +166,7 @@ const description =
     </div>
   </section>
 
-  <section class="section" aria-labelledby="needs-title">
+  <section class="section band" aria-labelledby="needs-title">
     <div class="wrap split">
       <div class="section-head">
         <h2 id="needs-title">What does the server need?</h2>
@@ -130,21 +174,39 @@ const description =
           One bare machine. The installer was proved on exactly this size, and it is enough to run
           Cloudgate and deploy small apps onto the same box.
         </p>
+        <p class="note note--warn caution">
+          Check that no cloud firewall in front of the server blocks ports 3000 and 4000. A blocked
+          port looks exactly like a broken install.
+        </p>
       </div>
-      <dl class="reqs">
-        {requirements.map((r) => (
+      <div class="spec panel">
+        <div class="spec-head" aria-hidden="true">
+          <svg viewBox="0 0 64 40" width="64" height="40">
+            <rect class="rack" x="1" y="1" width="62" height="17" rx="4" />
+            <rect class="rack" x="1" y="22" width="62" height="17" rx="4" />
+            <circle class="led" cx="10" cy="9.5" r="2.4" />
+            <circle class="led led--off" cx="10" cy="30.5" r="2.4" />
+            <path class="vent" d="M30 6v7M35 6v7M40 6v7M45 6v7M50 6v7M30 27v7M35 27v7M40 27v7M45 27v7M50 27v7" />
+          </svg>
           <div>
-            <dt>{r.name}</dt>
-            <dd>{r.value}</dd>
+            <p class="spec-title">One server for Cloudgate</p>
+            <p class="spec-sub">The size the installer is tested on</p>
           </div>
-        ))}
-      </dl>
-    </div>
-    <div class="wrap">
-      <p class="note note--warn caution">
-        Check that no cloud firewall in front of the server blocks ports 3000 and 4000. A blocked
-        port looks exactly like a broken install.
-      </p>
+        </div>
+        <dl class="reqs">
+          {requirements.map((r) => (
+            <div>
+              <dt>{r.name}</dt>
+              <dd>{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <ul class="ports" aria-label="What each port is for">
+          {ports.map((p) => (
+            <li><strong>{p.n}</strong><span>{p.what}</span></li>
+          ))}
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -158,7 +220,36 @@ const description =
           as one.
         </p>
       </div>
-      <dl class="facts">
+      <figure class="host" aria-hidden="true">
+        <div class="host-frame">
+          <p class="host-label">Ubuntu 24.04 host</p>
+          <div class="host-grid">
+            <div class="layer l-systemd">
+              <p class="layer-name">systemd</p>
+              <div class="units"><span>Console</span><span>API</span></div>
+            </div>
+            <div class="layer l-pg">
+              <p class="layer-name">PostgreSQL</p>
+              <div class="units"><span>cloudgate</span></div>
+            </div>
+            <div class="layer l-swarm">
+              <p class="layer-name">Docker Swarm, one node</p>
+              <div class="units">
+                <span class="traefik">Traefik</span>
+                <span class="app">your app</span>
+                <span class="app">your database</span>
+                <span class="app app--empty">next deploy</span>
+              </div>
+            </div>
+            <div class="layer l-tools">
+              <p class="layer-name">Build and cloud tools</p>
+              <div class="units"><span>Nixpacks</span><span>OpenTofu</span></div>
+            </div>
+          </div>
+          <p class="ufw">ufw: 22, 80, 443, 3000, 4000</p>
+        </div>
+      </figure>
+      <dl class="facts setup">
         <div>
           <dt>Cloudgate under systemd</dt>
           <dd>
@@ -191,17 +282,31 @@ const description =
         </div>
       </dl>
       <div class="owner">
-        <h3>Who owns the instance?</h3>
-        <p>
-          The first person to sign up. Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code>{" "}
-          when the installer finishes; your account owns the instance and sign-up closes behind
-          you. Everyone after that joins by invitation.
-        </p>
+        <div class="owner-copy">
+          <h3>Who owns the instance?</h3>
+          <p>
+            The first person to sign up. Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code>{" "}
+            when the installer finishes; your account owns the instance and sign-up closes behind
+            you. Everyone after that joins by invitation.
+          </p>
+        </div>
+        <div class="owner-art" aria-hidden="true">
+          <div class="seq">
+            <span class="who who--first">First sign-up</span>
+            <span class="arrow"></span>
+            <span class="role">Owns the instance</span>
+          </div>
+          <div class="seq">
+            <span class="who">Everyone after</span>
+            <span class="arrow"></span>
+            <span class="role role--muted">Joins by invitation</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="section" id="install" aria-labelledby="install-title">
+  <section class="section band" id="install" aria-labelledby="install-title">
     <div class="wrap">
       {sourceUrl ? (
         <>
@@ -209,7 +314,7 @@ const description =
             <h2 id="install-title">How do you install it?</h2>
             <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
           </div>
-          <ol class="steps">
+          <ol class="steps install-steps">
             <li>
               <h3>Prepare the server</h3>
               <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
@@ -248,6 +353,11 @@ const description =
             </p>
           </div>
           <div class="access-side panel">
+            <ol class="mini-steps" aria-label="After you have access">
+              <li><span>Clone into <code>/opt/cloudgate</code></span></li>
+              <li><span>Run the installer with your server's IP</span></li>
+              <li><span>Sign up at port 3000</span></li>
+            </ol>
             <p>
               Once you have access, installing is one clone into <code>/opt/cloudgate</code> and one
               command with your server's IP. Then you sign up at port 3000 and the instance is yours.
@@ -272,17 +382,20 @@ const description =
         </p>
       </div>
       <div class="ops">
-        <div>
+        <div class="op">
           <h3>Upgrading</h3>
           <p>
             Pull the new version and run the install script again with the same
             {" "}<code>CLOUDGATE_PUBLIC_HOST</code>. It migrates the database, rebuilds, restarts both
             services, and reads your existing secrets back instead of making new ones.
           </p>
-          <pre class="code"><code><span class="k">cd</span> /opt/cloudgate <span class="d">&amp;&amp;</span> <span class="k">git</span> pull
+          <div class="window">
+            <div class="window-bar">root@your-server</div>
+            <pre class="code"><code><span class="k">cd</span> /opt/cloudgate <span class="d">&amp;&amp;</span> <span class="k">git</span> pull
 <span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;same as before&gt;</span> <span class="k">bash</span> deploy/install.sh</code></pre>
+          </div>
         </div>
-        <div>
+        <div class="op">
           <h3>Backing up Cloudgate itself</h3>
           <p>
             Cloudgate backs up the databases and volumes you deploy. Back up Cloudgate on its own:
@@ -290,6 +403,15 @@ const description =
             {" "}<code>/etc/default/cloudgate-*</code>, and the folder <code>/etc/cloudgate</code>. Keep
             them off the server.
           </p>
+          <div class="backup" aria-hidden="true">
+            <ul class="backup-items">
+              <li>cloudgate database</li>
+              <li class="key">/etc/default/cloudgate-*</li>
+              <li>/etc/cloudgate</li>
+            </ul>
+            <span class="backup-wire"></span>
+            <span class="backup-dest">Off the server</span>
+          </div>
           <p class="note note--warn">
             Without the encryption secret in <code>/etc/default/cloudgate-secrets</code>, stored
             keys and passwords in the database cannot be read again. Back up both together.
@@ -304,7 +426,7 @@ const description =
     </div>
   </section>
 
-  <section class="section" aria-labelledby="license-title">
+  <section class="section band" aria-labelledby="license-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="license-title">What does the Elastic License 2.0 let you do?</h2>
@@ -314,7 +436,7 @@ const description =
         </p>
       </div>
       <div class="license">
-        <div>
+        <div class="lic lic--can panel">
           <h3>You can</h3>
           <ul>
             <li>Use Cloudgate inside your company, for any apps you run</li>
@@ -322,7 +444,7 @@ const description =
             <li>Read the source and change it for your own use</li>
           </ul>
         </div>
-        <div>
+        <div class="lic lic--cant">
           <h3>You can't</h3>
           <ul>
             <li>Offer Cloudgate to others as a hosted or managed service</li>
@@ -343,26 +465,36 @@ const description =
           larger teams ask for, and they stay on as long as the license is valid.
         </p>
       </div>
-      <div class="table-wrap" role="region" aria-labelledby="tiers-title" tabindex="0">
-        <table class="table tiers">
-          <thead>
-            <tr>
-              <td></td>
-              <th scope="col">Free</th>
-              <th scope="col" class="col-self">Enterprise license</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><th scope="row">Apps, databases, Compose stacks, AI models</th><td>Yes</td><td class="col-self">Yes</td></tr>
-            <tr><th scope="row">Servers, AWS and Google Cloud</th><td>Yes, not counted</td><td class="col-self">Yes, not counted</td></tr>
-            <tr><th scope="row">Agents and the MCP endpoint</th><td>Yes</td><td class="col-self">Yes</td></tr>
-            <tr><th scope="row">Organizations</th><td>One</td><td class="col-self">More than one</td></tr>
-            <tr><th scope="row">Builds and cloud runs</th><td>One at a time per Server</td><td class="col-self">In parallel</td></tr>
-            <tr><th scope="row">SSO, SCIM and custom roles</th><td>No</td><td class="col-self">Yes</td></tr>
-            <tr><th scope="row">Forward auth in front of apps</th><td>No</td><td class="col-self">Yes</td></tr>
-            <tr><th scope="row">White-labelling</th><td>No</td><td class="col-self">Yes</td></tr>
-          </tbody>
-        </table>
+      <div class="tiers">
+        <article class="tier tier--free" aria-labelledby="tier-free">
+          <div class="tier-head">
+            <h3 id="tier-free">Free</h3>
+            <p class="tier-price"><strong>$0</strong> under the Elastic License 2.0</p>
+          </div>
+          <dl>
+            {tiers.map((t) => (
+              <div class:list={{ off: t.free === 'No' }}>
+                <dt>{t.label}</dt>
+                <dd>{t.free}</dd>
+              </div>
+            ))}
+          </dl>
+        </article>
+        <article class="tier tier--ent" aria-labelledby="tier-ent">
+          <div class="tier-head">
+            <h3 id="tier-ent">Enterprise license</h3>
+            <p class="tier-price"><strong>Agreed with you</strong> 30-day trial key on request</p>
+          </div>
+          <dl>
+            {tiers.map((t) => (
+              <div class:list={{ gain: t.ent !== t.free }}>
+                <dt>{t.label}</dt>
+                <dd>{t.ent}</dd>
+              </div>
+            ))}
+          </dl>
+          <a class="btn btn--primary" href={licenseMail}>Ask about a license</a>
+        </article>
       </div>
       <p class="more">
         Prices are agreed with each customer, and a 30-day trial key is available. Write to
@@ -382,6 +514,23 @@ const description =
 </Base>
 
 <style>
+  /* ---- Terminal windows: the bar follows the dark code surface in both themes ---- */
+  .window-bar {
+    color: var(--night-muted);
+    border-bottom-color: var(--night-line);
+  }
+  .window .code {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .term .code {
+    font-size: var(--text-xs);
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+
+  /* ---- Self-host or hosted ---- */
   .choice {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -392,12 +541,56 @@ const description =
     gap: var(--space-4);
     align-content: start;
   }
-  ul {
+  .side--self {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--line-strong);
+  }
+  .side-art {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-xs);
+  }
+  .box {
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .box--gate,
+  .box--you {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 24px -8px var(--glow);
+  }
+  .wire {
+    flex: 1 1 1rem;
+    min-width: 1rem;
+    border-top: 2px dashed var(--line-strong);
+  }
+  .ticks {
+    list-style: none;
     margin: 0;
-    padding-left: 1.2rem;
+    padding: 0;
     display: grid;
     gap: var(--space-2);
     color: var(--ink-2);
+  }
+  .ticks li {
+    display: flex;
+    gap: var(--space-3);
+  }
+  .ticks li::before {
+    content: '✓';
+    color: var(--brand);
+    font-weight: 700;
   }
   .side-link {
     color: var(--muted);
@@ -406,16 +599,61 @@ const description =
     padding-top: var(--space-4);
   }
 
+  /* ---- Spec sheet ---- */
+  .caution {
+    margin-top: var(--space-2);
+  }
+  .spec {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .spec-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--line);
+  }
+  .spec-head svg {
+    flex: none;
+  }
+  .rack {
+    fill: var(--paper-2);
+    stroke: var(--line-strong);
+  }
+  .led {
+    fill: var(--live);
+  }
+  .led--off {
+    fill: var(--line-strong);
+  }
+  .vent {
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .spec-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    letter-spacing: -0.015em;
+  }
+  .spec-sub {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
   .reqs {
     margin: 0;
-    border-top: 1px solid var(--line);
   }
   .reqs > div {
     display: grid;
-    grid-template-columns: 11rem minmax(0, 1fr);
+    grid-template-columns: 10rem minmax(0, 1fr);
     gap: var(--space-4);
-    padding-block: var(--space-4);
-    border-bottom: 1px solid var(--line);
+    padding-block: var(--space-3);
+    border-bottom: 1px dashed var(--line);
+  }
+  .reqs > div:last-child {
+    border-bottom: 0;
   }
   .reqs dt {
     color: var(--muted);
@@ -426,26 +664,203 @@ const description =
     margin: 0;
     font-weight: 500;
   }
+  .ports {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .ports li {
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+    padding: var(--space-3) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .ports strong {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
 
-  .caution {
-    margin-top: var(--space-6);
+  /* ---- The host the installer builds ---- */
+  .host {
+    margin: 0 0 var(--space-7);
+  }
+  .host-frame {
+    position: relative;
+    padding: var(--space-6) var(--space-5) var(--space-5);
+    border-radius: var(--radius-lg);
+    border: 2px dashed color-mix(in srgb, var(--warn) 55%, transparent);
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+  }
+  .host-label,
+  .ufw {
+    position: absolute;
+    left: var(--space-5);
+    padding: 0 var(--space-2);
+    background: var(--paper);
+    font-size: var(--text-xs);
+  }
+  .host-label {
+    top: -0.75rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .ufw {
+    bottom: -0.75rem;
+    right: var(--space-5);
+    left: auto;
+    color: var(--warn);
+  }
+  .host-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .layer {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .l-swarm {
+    grid-column: span 2;
+    grid-row: span 2;
+    border-color: var(--slice-2);
+  }
+  .l-systemd {
+    border-color: var(--brand);
+  }
+  .l-tools {
+    grid-column: span 2;
+  }
+  .layer-name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .units {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+  }
+  .units span {
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+  }
+  .l-systemd .units span {
+    background: var(--brand-tint);
+    border-color: transparent;
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .l-swarm {
+    grid-template-rows: auto 1fr;
+  }
+  .l-swarm .units {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+  }
+  .l-swarm .units .traefik {
+    grid-column: 1 / -1;
+    text-align: center;
+    border-color: var(--slice-2);
+    color: var(--ink);
+  }
+  .app {
+    min-height: 3.2rem;
+    display: grid;
+    align-items: end;
+  }
+  .app--empty {
+    border-style: dashed !important;
+    background: transparent !important;
+    color: var(--muted) !important;
+  }
+  .setup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-6);
   }
 
   .owner {
-    margin-top: var(--space-7);
+    margin-top: var(--space-8);
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: center;
+  }
+  .owner-copy {
     display: grid;
     gap: var(--space-2);
-    max-width: 70ch;
+    max-width: 62ch;
   }
   .owner p {
     color: var(--muted);
   }
+  .owner-art {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-xs);
+  }
+  .seq {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(1rem, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .who {
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .who--first {
+    border-color: var(--brand);
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .arrow {
+    border-top: 2px dashed var(--line-strong);
+  }
+  .role {
+    font-weight: 600;
+  }
+  .role--muted {
+    color: var(--muted);
+    font-weight: 500;
+  }
 
+  /* ---- Install ---- */
+  .install-steps {
+    max-width: 860px;
+  }
   .access {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: var(--space-7);
-    align-items: end;
+    align-items: center;
   }
   .access h2 {
     margin-bottom: var(--space-4);
@@ -457,61 +872,297 @@ const description =
   .access-side p {
     color: var(--ink-2);
   }
+  .mini-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: m;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .mini-steps li {
+    counter-increment: m;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-sm);
+  }
+  .mini-steps li::before {
+    content: counter(m);
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-weight: 600;
+    font-size: var(--text-xs);
+  }
 
+  /* ---- Upgrades and backups ---- */
   .ops {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-7);
   }
-  .ops > div {
+  .op {
     display: grid;
     gap: var(--space-4);
     align-content: start;
   }
-  .ops p {
+  .op > p {
     color: var(--muted);
   }
-  .ops .note {
+  .op .note {
     color: var(--ink-2);
   }
+  .op .window .code {
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+  }
+  .backup {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-xs);
+  }
+  .backup-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .backup-items li {
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+  .backup-items .key {
+    border-color: var(--warn);
+  }
+  .backup-wire {
+    flex: 1 1 1rem;
+    min-width: 1rem;
+    border-top: 2px dashed var(--line-strong);
+  }
+  .backup-dest {
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    border: 1.5px dashed var(--brand);
+    color: var(--brand);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .ops + .caution {
+    margin-top: var(--space-7);
+  }
 
+  /* ---- License ---- */
   .license {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-7);
+    gap: var(--space-5);
     max-width: 960px;
   }
-  .license > div {
-    border-top: 2px solid var(--ink);
-    padding-top: var(--space-4);
+  .lic {
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-4);
     align-content: start;
   }
-  .license > div + div {
-    border-top-color: var(--line-strong);
+  .lic--cant {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--line-strong);
+  }
+  .lic ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    color: var(--ink-2);
+  }
+  .lic li {
+    display: flex;
+    gap: var(--space-3);
+  }
+  .lic--can li::before {
+    content: '✓';
+    color: var(--live);
+    font-weight: 700;
+  }
+  .lic--cant li::before {
+    content: '✕';
+    color: var(--warn);
+    font-weight: 700;
   }
 
-  .table-wrap {
-    max-width: 860px;
-  }
+  /* ---- Free and Enterprise, side by side ---- */
   .tiers {
-    min-width: 520px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    max-width: 960px;
+  }
+  .tier {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+  }
+  .tier--free {
+    border: 1.5px dashed var(--line-strong);
+  }
+  .tier--ent {
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(160deg, var(--beam-c), var(--beam-b) 25%, var(--beam-a) 50%, var(--line) 80%) border-box;
+    border: 1px solid transparent;
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 30px 80px -40px var(--glow);
+  }
+  .tier-head {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .tier-head h3 {
+    font-size: var(--text-xl);
+  }
+  .tier-price {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .tier-price strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .tier dl {
+    margin: 0;
+  }
+  .tier dl > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+  }
+  .tier dt {
+    color: var(--muted);
+  }
+  .tier dd {
+    margin: 0;
+    font-weight: 500;
+  }
+  .tier .off dd {
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .tier .gain dd {
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .tier .btn {
+    justify-self: start;
   }
 
+  @media (max-width: 960px) {
+    .host-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .l-swarm {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .setup {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   @media (max-width: 860px) {
     .choice,
     .access,
     .ops,
-    .license {
+    .license,
+    .tiers,
+    .owner {
       grid-template-columns: 1fr;
-      gap: var(--space-6);
+      gap: var(--space-5);
+    }
+  }
+  @media (max-width: 640px) {
+    .setup {
+      grid-template-columns: 1fr;
+    }
+    .side--self,
+    .lic--cant,
+    .tier {
+      padding: var(--space-5);
+    }
+    .term .code {
+      font-size: 0.6875rem;
+      padding: var(--space-4);
     }
   }
   @media (max-width: 520px) {
     .reqs > div {
       grid-template-columns: 1fr;
       gap: var(--space-1);
+    }
+    .ports {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .host-grid {
+      grid-template-columns: 1fr;
+    }
+    .l-swarm .units {
+      grid-template-columns: 1fr 1fr;
+    }
+    .l-tools {
+      grid-column: auto;
+    }
+    .app--empty {
+      grid-column: 1 / -1;
+    }
+    .side-art {
+      flex-wrap: wrap;
+    }
+    .side-art .wire {
+      display: none;
+    }
+    .backup {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .backup-wire {
+      display: none;
+    }
+    .seq {
+      grid-template-columns: 1fr;
+      justify-items: start;
+    }
+    .arrow {
+      display: none;
     }
   }
 </style>

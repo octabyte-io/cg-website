@@ -90,6 +90,8 @@ const compare: { group: string; rows: { label: string; cells: [Cell, Cell, Cell,
 ];
 
 const columns = ['Starter', 'Business', 'Self-hosted, free', 'Self-hosted, Enterprise license'];
+// Short names for the phone picker, which shows one column at a time.
+const columnPicks = ['Starter', 'Business', 'Self-hosted', 'Enterprise'];
 
 const examples = [
   {
@@ -98,6 +100,9 @@ const examples = [
     math: `$${starter.price}`,
     total: `$${starter.price}`,
     note: 'Two Servers fit inside the three Starter includes.',
+    lines: [{ label: 'Starter plan', amount: starter.price }],
+    servers: { used: 2, allowed: 3 },
+    clouds: { used: 0, allowed: 3 },
   },
   {
     who: 'One team, five servers',
@@ -105,6 +110,12 @@ const examples = [
     math: `$${starter.price} + 2 × $${addOn.price}`,
     total: `$${starter.price + 2 * addOn.price}`,
     note: 'Each Add-on raises Servers and Cloud Environments by one.',
+    lines: [
+      { label: 'Starter plan', amount: starter.price },
+      { label: `2 Add-ons at $${addOn.price}`, amount: 2 * addOn.price },
+    ],
+    servers: { used: 5, allowed: 5 },
+    clouds: { used: 0, allowed: 5 },
   },
   {
     who: 'A company that needs SSO, with four servers and one AWS environment',
@@ -112,8 +123,27 @@ const examples = [
     math: `$${business.price} + $${addOn.price}`,
     total: `$${business.price + addOn.price}`,
     note: 'The fourth Server needs one Add-on; the Cloud Environment fits in the three included. AWS bills its own resources to you.',
+    lines: [
+      { label: 'Business plan', amount: business.price },
+      { label: `1 Add-on at $${addOn.price}`, amount: addOn.price },
+    ],
+    servers: { used: 4, allowed: 4 },
+    clouds: { used: 1, allowed: 4 },
   },
 ];
+
+// The drawn meter in "What counts": an example Organization on Starter.
+const meter = [
+  { name: 'Servers', used: 2, allowed: 3 },
+  { name: 'Cloud Environments', used: 1, allowed: 3 },
+];
+const uncounted = [
+  { name: 'Members', value: '14 people, 2 Agents' },
+  { name: 'Projects', value: '9' },
+  { name: 'Environments on Servers', value: '23' },
+  { name: 'Cloud accounts connected', value: '2' },
+];
+const slots = (n: number) => Array.from({ length: n }, (_, i) => i);
 
 const title = 'Cloudgate pricing: plans from $15 a month, 30-day trial';
 const description =
@@ -135,36 +165,31 @@ const description =
     <div class="wrap">
       <h2 id="plans-title" class="visually-hidden">Plans</h2>
       <div class="plans">
-        <div class="hosted panel">
-          <p class="group-label">
-            Hosted at <a href={site.console}>cloudgate.octabyte.app</a>, run by Octabyte
-          </p>
-          <div class="hosted-cols">
-            {plans.map((p) => (
-              <article class="plan" aria-labelledby={`plan-${p.id}`}>
-                <h3 id={`plan-${p.id}`}>{p.name}</h3>
-                <p class="price">
-                  <span class="amount">${p.price}</span>
-                  <span class="per">a month</span>
-                </p>
-                <p class="blurb">{p.blurb}</p>
-                <ul class="includes">
-                  {p.includes.map((line) => <li>{line}</li>)}
-                </ul>
-                <a class={`btn ${p.id === 'starter' ? 'btn--primary' : 'btn--ghost'}`} href={site.signUp}>
-                  Start {trialDays}-day trial
-                </a>
-              </article>
-            ))}
-          </div>
-          <p class="hosted-foot">
-            <strong>Add-on, ${addOn.price} a month:</strong> {addOn.what}, on either plan.
-            Monthly only. A card starts the trial; cancel before it ends and nothing is charged.
-          </p>
-        </div>
+        <p class="group-label label-hosted">
+          <span>Hosted at <a href={site.console}>cloudgate.octabyte.app</a>, run by Octabyte</span>
+        </p>
+        {plans.map((p) => (
+          <article
+            class:list={['plan', `plan--${p.id}`, { 'plan--featured': p.id === 'business' }]}
+            aria-labelledby={`plan-${p.id}`}
+          >
+            <h3 id={`plan-${p.id}`}>{p.name}</h3>
+            <p class="price">
+              <span class="amount">${p.price}</span>
+              <span class="per">a month</span>
+            </p>
+            <p class="blurb">{p.blurb}</p>
+            <ul class="includes">
+              {p.includes.map((line) => <li>{line}</li>)}
+            </ul>
+            <a class:list={['btn', p.id === 'business' ? 'btn--primary' : 'btn--ghost']} href={site.signUp}>
+              Start {trialDays}-day trial
+            </a>
+          </article>
+        ))}
 
-        <article class="plan self panel panel--open" aria-labelledby="plan-self">
-          <p class="group-label">On your own server</p>
+        <p class="group-label label-self"><span>On your own server</span></p>
+        <article class="plan plan--self" aria-labelledby="plan-self">
           <h3 id="plan-self">Self-hosted</h3>
           <p class="price">
             <span class="amount">$0</span>
@@ -187,10 +212,21 @@ const description =
           </div>
         </article>
       </div>
+
+      <div class="addon">
+        <div class="addon-art" aria-hidden="true">
+          <span class="chip"><span class="plus-sign">+1</span> Server</span>
+          <span class="chip"><span class="plus-sign">+1</span> Cloud Environment</span>
+        </div>
+        <p>
+          <strong>Add-on, ${addOn.price} a month:</strong> {addOn.what}, on either plan.
+          Monthly only. A card starts the trial; cancel before it ends and nothing is charged.
+        </p>
+      </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="counts-title">
+  <section class="section band" aria-labelledby="counts-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="counts-title">What counts toward a plan?</h2>
@@ -199,35 +235,69 @@ const description =
           and each ${addOn.price} Add-on raises both by one.
         </p>
       </div>
-      <div class="counts">
-        <div>
-          <h3>Counted</h3>
-          <dl class="count-list">
-            <div>
-              <dt>Servers</dt>
-              <dd>Every machine you connect over SSH, and every Server you buy from Cloudgate.</dd>
+      <div class="counts-grid">
+        <figure class="meter panel">
+          <figcaption>An example Organization on Starter</figcaption>
+          <div class="meter-rows">
+            {meter.map((m) => (
+              <div class="meter-row">
+                <div class="meter-head">
+                  <span>{m.name}</span>
+                  <span class="meter-num"><strong>{m.used}</strong> of {m.allowed}</span>
+                </div>
+                <div class="slots" aria-hidden="true">
+                  {slots(m.allowed).map((i) => <span class:list={['slot', { 'slot--used': i < m.used }]}></span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="refused">
+            <div class="slots slots--try" aria-hidden="true">
+              <span class="slot slot--used"></span><span class="slot slot--used"></span><span class="slot slot--used"></span>
+              <span class="slot slot--over"></span>
             </div>
-            <div>
-              <dt>Cloud Environments</dt>
-              <dd>
-                An Environment that deploys to AWS or Google Cloud. It counts once, however many
-                cloud accounts or regions it uses.
-              </dd>
-            </div>
+            <p>Adding a fourth Server is refused and an Add-on is offered. The three already running keep running.</p>
+          </div>
+          <dl class="uncounted">
+            {uncounted.map((u) => (
+              <div>
+                <dt>{u.name}</dt>
+                <dd>{u.value}<span class="nc">not counted</span></dd>
+              </div>
+            ))}
           </dl>
-        </div>
-        <div>
-          <h3>Not counted</h3>
-          <dl class="count-list">
-            <div>
-              <dt>Members</dt>
-              <dd>Invite your whole team, and give AI agents their own member accounts.</dd>
-            </div>
-            <div>
-              <dt>Projects and Environments</dt>
-              <dd>Make as many as you need on your Servers. Connecting a cloud account is free too.</dd>
-            </div>
-          </dl>
+        </figure>
+
+        <div class="counts">
+          <div>
+            <h3><span class="dot dot--on" aria-hidden="true"></span>Counted</h3>
+            <dl class="count-list">
+              <div>
+                <dt>Servers</dt>
+                <dd>Every machine you connect over SSH, and every Server you buy from Cloudgate.</dd>
+              </div>
+              <div>
+                <dt>Cloud Environments</dt>
+                <dd>
+                  An Environment that deploys to AWS or Google Cloud. It counts once, however many
+                  cloud accounts or regions it uses.
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div>
+            <h3><span class="dot" aria-hidden="true"></span>Not counted</h3>
+            <dl class="count-list">
+              <div>
+                <dt>Members</dt>
+                <dd>Invite your whole team, and give AI agents their own member accounts.</dd>
+              </div>
+              <div>
+                <dt>Projects and Environments</dt>
+                <dd>Make as many as you need on your Servers. Connecting a cloud account is free too.</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
       <div class="over note">
@@ -250,29 +320,59 @@ const description =
           separately, and who bills you depends on where they come from.
         </p>
       </div>
-      <dl class="facts">
-        <div>
+      <dl class="bills">
+        <div class="bill b-bring">
+          <div class="art" aria-hidden="true">
+            <div class="wire-row">
+              <span class="node">Your server</span>
+              <span class="wire"></span>
+              <span class="node node--gate">Cloudgate</span>
+            </div>
+            <p class="art-tag">Connected over SSH. The invoice comes from your provider.</p>
+          </div>
           <dt>Servers you bring</dt>
           <dd>
             Billed by your provider, as they are today. Cloudgate connects to them over SSH and is
             not part of that bill.
           </dd>
         </div>
-        <div>
+        <div class="bill b-buy">
+          <div class="art" aria-hidden="true">
+            <div class="invoice">
+              <p class="inv-title">Cloudgate invoice, paid monthly in advance</p>
+              <p class="inv-line"><span>Business plan</span><span>${business.price}</span></p>
+              <p class="inv-line"><span>Server, 2 vCPU, 4 GB</span><span>Shown before you buy</span></p>
+            </div>
+          </div>
           <dt>Servers you buy from Cloudgate</dt>
           <dd>
             Billed by us, monthly in advance on the same invoice as your plan, at the provider's
             price plus a markup. You see the full price before you buy.
           </dd>
         </div>
-        <div>
+        <div class="bill b-cloud">
+          <div class="art" aria-hidden="true">
+            <div class="wire-row">
+              <span class="node node--gate">Cloudgate</span>
+              <span class="wire"></span>
+              <span class="account">
+                <span class="acct-name">Your AWS account</span>
+                <span class="res">ECS</span><span class="res">RDS</span><span class="res">S3</span>
+              </span>
+            </div>
+            <p class="art-tag">Resources made in your account. AWS or Google bills you directly.</p>
+          </div>
           <dt>AWS and Google Cloud resources</dt>
           <dd>
             Billed by AWS or Google to your own cloud account. Cloudgate creates the resources there
             for you, and the bill for them stays between you and your cloud.
           </dd>
         </div>
-        <div>
+        <div class="bill b-self">
+          <div class="art" aria-hidden="true">
+            <p class="zero"><span>Cloudgate</span><strong>$0</strong></p>
+            <p class="art-tag">Plus the server it runs on</p>
+          </div>
           <dt>Self-hosted</dt>
           <dd>
             You pay for the server Cloudgate runs on, plus whatever your apps run on. Cloudgate
@@ -283,7 +383,7 @@ const description =
     </div>
   </section>
 
-  <section class="section" aria-labelledby="examples-title">
+  <section class="section band" aria-labelledby="examples-title">
     <div class="wrap">
       <div class="section-head">
         <h2 id="examples-title">What does a month cost?</h2>
@@ -292,34 +392,39 @@ const description =
           Cloudgate; your servers and cloud resources are billed on top as described above.
         </p>
       </div>
-      <div class="table-wrap" role="region" aria-labelledby="examples-title" tabindex="0">
-        <table class="table examples">
-          <thead>
-            <tr>
-              <th scope="col">Setup</th>
-              <th scope="col">Plan</th>
-              <th scope="col">Sum</th>
-              <th scope="col">Cloudgate a month</th>
-            </tr>
-          </thead>
-          <tbody>
-            {examples.map((e) => (
-              <tr>
-                <th scope="row">
-                  {e.who}
-                  <span class="row-note">{e.note}</span>
-                </th>
-                <td data-label="Plan">{e.plan}</td>
-                <td class="num" data-label="Sum">{e.math}</td>
-                <td class="num total" data-label="A month">
-                  {e.total}
-                  <span class="plus">plus your servers</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul class="examples">
+        {examples.map((e) => (
+          <li class="example">
+            <h3>{e.who}</h3>
+            <p class="ex-plan">{e.plan}</p>
+            <div class="ex-use" aria-hidden="true">
+              <div>
+                <span>Servers</span>
+                <span class="slots slots--sm">
+                  {slots(e.servers.allowed).map((i) => <span class:list={['slot', { 'slot--used': i < e.servers.used }]}></span>)}
+                </span>
+              </div>
+              <div>
+                <span>Cloud Environments</span>
+                <span class="slots slots--sm">
+                  {slots(e.clouds.allowed).map((i) => <span class:list={['slot', { 'slot--used': i < e.clouds.used }]}></span>)}
+                </span>
+              </div>
+            </div>
+            <dl class="receipt">
+              {e.lines.map((l) => (
+                <div><dt>{l.label}</dt><dd>${l.amount}</dd></div>
+              ))}
+              <div class="sum"><dt>Sum</dt><dd>{e.math}</dd></div>
+            </dl>
+            <p class="ex-total">
+              <span class="ex-amount">{e.total}</span>
+              <span class="plus">a month to Cloudgate, plus your servers</span>
+            </p>
+            <p class="ex-note">{e.note}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 
@@ -332,46 +437,62 @@ const description =
           what is counted, and the identity features larger companies ask for.
         </p>
       </div>
-      <div class="table-wrap" role="region" aria-labelledby="compare-title" tabindex="0">
-        <table class="table compare">
-          <thead>
-            <tr>
-              <td></td>
-              {columns.map((c, i) => <th scope="col" class={i >= 2 ? 'col-self' : undefined}>{c}</th>)}
-            </tr>
-          </thead>
-          {compare.map((g) => (
-            <tbody>
-              <tr class="group">
-                <th scope="colgroup" colspan="5">{g.group}</th>
-              </tr>
-              {g.rows.map((r) => (
-                <tr>
-                  <th scope="row">{r.label}</th>
-                  {r.cells.map((c, i) => (
-                    <td class={i >= 2 ? 'col-self' : undefined}>
-                      {c === true ? (
-                        <span class="yes"><span class="tick" aria-hidden="true"></span><span class="visually-hidden">Included</span></span>
-                      ) : c === false ? (
-                        <span class="no"><span aria-hidden="true">–</span><span class="visually-hidden">Not included</span></span>
-                      ) : (
-                        c
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
+      <div class="cmp">
+        <fieldset class="cmp-pick">
+          <legend>Show one plan</legend>
+          {columnPicks.map((c, i) => (
+            <>
+              <input type="radio" name="cmp-col" id={`cmp-${i}`} checked={i === 1} />
+              <label for={`cmp-${i}`}>{c}</label>
+            </>
           ))}
-        </table>
+        </fieldset>
+        <div class="table-wrap" role="region" aria-labelledby="compare-title" tabindex="0">
+          <table class="table compare">
+            <thead>
+              <tr>
+                <td></td>
+                {columns.map((c, i) => (
+                  <th scope="col" data-col={i} class:list={{ 'col-self': i >= 2, 'col-feat': i === 1 }}>{c}</th>
+                ))}
+              </tr>
+            </thead>
+            {compare.map((g) => (
+              <tbody>
+                <tr class="group">
+                  <th scope="colgroup" colspan="5">{g.group}</th>
+                </tr>
+                {g.rows.map((r) => (
+                  <tr>
+                    <th scope="row">{r.label}</th>
+                    {r.cells.map((c, i) => (
+                      <td data-col={i} class:list={{ 'col-self': i >= 2, 'col-feat': i === 1 }}>
+                        {c === true ? (
+                          <span class="yes"><span class="tick" aria-hidden="true"></span><span class="visually-hidden">Included</span></span>
+                        ) : c === false ? (
+                          <span class="no"><span aria-hidden="true">–</span><span class="visually-hidden">Not included</span></span>
+                        ) : (
+                          c
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+          </table>
+        </div>
       </div>
-      <div class="enterprise">
-        <h3>Need something the plans don't cover?</h3>
-        <p>
-          Enterprise is a custom deal on the hosted console, with counts set for you and the
-          Business features included. For a self-hosted Enterprise license we agree the price and
-          billing period with you. Write to <a href={enterpriseMail}>{site.support}</a>.
-        </p>
+      <div class="enterprise panel">
+        <div>
+          <h3>Need something the plans don't cover?</h3>
+          <p>
+            Enterprise is a custom deal on the hosted console, with counts set for you and the
+            Business features included. For a self-hosted Enterprise license we agree the price and
+            billing period with you. Write to <a href={enterpriseMail}>{site.support}</a>.
+          </p>
+        </div>
+        <a class="btn btn--ghost" href={enterpriseMail}>Email {site.support}</a>
       </div>
       <p class="more">
         Not sure where to start? <a href={templatesHome}>Deploy an app from a template</a> during the
@@ -386,51 +507,81 @@ const description =
 </Base>
 
 <style>
+  /* ---- Plans: two hosted, one self-hosted, each group bracketed by a label ---- */
   .plans-section {
-    padding-bottom: var(--space-9);
+    padding-block: var(--space-8) var(--space-9);
   }
   .plans {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: var(--space-5);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
     align-items: stretch;
   }
+  .label-hosted {
+    grid-column: 1 / span 2;
+    grid-row: 1;
+  }
+  .label-self {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .plan--starter {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .plan--business {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .plan--self {
+    grid-column: 3;
+    grid-row: 2;
+  }
   .group-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     font-size: var(--text-sm);
     color: var(--muted);
+  }
+  /* A drawn bracket from the label to the end of its group. */
+  .group-label::after {
+    content: '';
+    flex: 1;
+    height: 0.55rem;
+    border-top: 1px solid var(--line-strong);
+    border-right: 1px solid var(--line-strong);
+    border-top-right-radius: 6px;
+    margin-top: 0.55rem;
   }
   .group-label a {
     color: var(--ink);
-  }
-
-  .hosted {
-    display: grid;
-    gap: var(--space-5);
-  }
-  .hosted-cols {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .hosted-cols .plan + .plan {
-    border-left: 1px solid var(--line);
-    padding-left: var(--space-6);
-    margin-left: var(--space-6);
-  }
-  .hosted-foot {
-    border-top: 1px solid var(--line);
-    padding-top: var(--space-4);
-    font-size: var(--text-sm);
-    color: var(--muted);
-  }
-  .hosted-foot strong {
-    color: var(--ink);
-    font-weight: 600;
   }
 
   .plan {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 60%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .plan--featured {
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(160deg, var(--beam-c), var(--beam-b) 25%, var(--beam-a) 50%, var(--line) 80%) border-box;
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 30px 80px -40px var(--glow);
+  }
+  .plan--self {
+    background: transparent;
+    border: 1.5px dashed var(--line-strong);
+    box-shadow: none;
   }
   .plan h3 {
     font-size: var(--text-xl);
@@ -457,31 +608,28 @@ const description =
   }
   .includes {
     list-style: none;
-    padding: 0;
+    padding: var(--space-4) 0 0;
     margin: var(--space-2) 0 var(--space-4);
+    border-top: 1px solid var(--line);
     display: grid;
     gap: var(--space-2);
+    align-content: start;
     font-size: var(--text-sm);
-    color: var(--muted);
+    color: var(--ink-2);
     flex: 1;
   }
   .includes li {
-    padding-left: 1.1rem;
-    position: relative;
+    display: flex;
+    gap: var(--space-2);
   }
   .includes li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 0.45rem;
-    height: 2px;
-    background: var(--line-strong);
+    content: '✓';
+    color: var(--brand);
+    font-weight: 700;
   }
   .plan .btn {
     align-self: flex-start;
   }
-
   .self-actions {
     display: flex;
     flex-wrap: wrap;
@@ -489,13 +637,169 @@ const description =
     gap: var(--space-4);
   }
 
-  .counts {
+  .addon {
+    margin-top: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .addon strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .addon-art {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    flex: none;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+  .plus-sign {
+    display: grid;
+    place-items: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-weight: 700;
+  }
+
+  /* ---- What counts: a drawn meter ---- */
+  .counts-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .meter {
+    margin: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .meter figcaption {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .meter-rows {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .meter-row {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .meter-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-weight: 500;
+  }
+  .meter-num {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .meter-num strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .slots {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .slot {
+    height: 1.4rem;
+    border-radius: 6px;
+    border: 1.5px dashed var(--line-strong);
+  }
+  .slot--used {
+    border: 0;
+    background: linear-gradient(180deg, var(--slice-1), var(--slice-2));
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .slot--over {
+    border-color: var(--warn);
+    background: repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--warn) 22%, transparent) 5px 7px);
+  }
+  .refused {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .slots--try .slot {
+    height: 0.9rem;
+  }
+  .refused p {
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+  .uncounted {
+    margin: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-7);
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .uncounted dt {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .uncounted dd {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-weight: 600;
+  }
+  .nc {
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--live);
+  }
+
+  .counts {
+    display: grid;
+    gap: var(--space-6);
   }
   .counts h3 {
-    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 3px;
+    border: 2px dashed var(--muted);
+  }
+  .dot--on {
+    border: 0;
+    background: var(--slice-1);
   }
   .count-list {
     margin: 0;
@@ -520,42 +824,273 @@ const description =
     font-size: var(--text-md);
   }
 
-  .examples {
-    min-width: 680px;
+  /* ---- Who bills you: tiles of different widths, each with a drawing ---- */
+  .bills {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
   }
-  .row-note {
-    display: block;
-    margin-top: var(--space-1);
+  .bill {
+    grid-column: span 3;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 70%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .b-cloud {
+    grid-column: span 4;
+  }
+  .b-self {
+    grid-column: span 2;
+  }
+  .bill .art {
+    min-height: 150px;
+  }
+  .bill dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    letter-spacing: -0.015em;
+  }
+  .bill dd {
+    margin: 0;
     color: var(--muted);
-    font-weight: 400;
-    max-width: 44ch;
+    font-size: var(--text-sm);
   }
-  .num {
-    font-variant-numeric: tabular-nums;
+  .art {
+    min-height: 120px;
+    display: grid;
+    align-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    font-size: var(--text-xs);
+  }
+  .art-tag {
+    color: var(--muted);
+  }
+  .wire-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .node {
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
     white-space: nowrap;
   }
-  .total {
-    font-family: var(--font-display);
-    font-size: var(--text-xl);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
+  .node--gate {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 24px -8px var(--glow);
   }
-  .plus {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: var(--text-xs);
-    font-weight: 400;
-    letter-spacing: 0;
+  .wire {
+    flex: 1 1 1.5rem;
+    min-width: 1.5rem;
+    border-top: 2px dashed var(--line-strong);
+  }
+  .account {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 10px;
+    border: 1.5px dashed var(--slice-2);
+  }
+  .acct-name {
+    width: 100%;
     color: var(--muted);
-    margin-top: var(--space-1);
+  }
+  .res {
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .invoice {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .inv-title {
+    color: var(--muted);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .inv-line {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .inv-line span:last-child {
+    color: var(--muted);
+    text-align: right;
+  }
+  .inv-line:nth-child(2) span:last-child {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .zero {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    color: var(--muted);
+  }
+  .zero strong {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    color: var(--ink);
   }
 
+  /* ---- Worked examples: receipts with the sum shown ---- */
+  .examples {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .example {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line) 60%) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .example h3 {
+    font-size: var(--text-md);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+  .ex-plan {
+    align-self: flex-start;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: var(--brand-tint);
+    color: var(--brand);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    margin-top: calc(-1 * var(--space-2));
+  }
+  .ex-use {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .ex-use > div {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .slots--sm {
+    gap: 4px;
+  }
+  .slots--sm .slot {
+    height: 0.65rem;
+    border-radius: 3px;
+    border-width: 1px;
+  }
+  .slots--sm .slot--used {
+    border: 0;
+  }
+  .receipt {
+    margin: 0;
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--line-strong);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .receipt > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .receipt dt {
+    color: var(--muted);
+  }
+  .receipt dd {
+    margin: 0;
+    color: var(--ink);
+  }
+  .receipt .sum {
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+  .receipt .sum dd {
+    font-weight: 600;
+  }
+  .ex-total {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .ex-amount {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .plus {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .ex-note {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  /* ---- Compare ---- */
+  .cmp-pick {
+    display: none;
+  }
   .compare {
     min-width: 820px;
   }
   .compare thead th {
     width: 19%;
+    vertical-align: bottom;
+  }
+  .compare thead th.col-feat {
+    box-shadow: inset 0 3px 0 var(--brand);
+  }
+  .compare .col-feat {
+    background: color-mix(in srgb, var(--brand-tint) 45%, transparent);
   }
   .compare tbody th[scope='row'] {
     width: 24%;
@@ -568,6 +1103,9 @@ const description =
     color: var(--muted);
     background: var(--surface);
   }
+  .compare tbody tr:not(.group):hover > * {
+    background-image: linear-gradient(var(--brand-tint), var(--brand-tint));
+  }
   .tick {
     display: inline-block;
     width: 0.8rem;
@@ -577,11 +1115,17 @@ const description =
     transform: rotate(-45deg) translateY(-0.1rem);
   }
   .no {
-    color: var(--line-strong);
+    color: var(--muted);
   }
 
   .enterprise {
     margin-top: var(--space-7);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+  .enterprise > div {
     display: grid;
     gap: var(--space-2);
     max-width: 68ch;
@@ -590,83 +1134,147 @@ const description =
   .more {
     color: var(--muted);
   }
+  .enterprise p a {
+    color: var(--ink);
+  }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1000px) {
+    .plans {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .label-self {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      margin-top: var(--space-4);
+    }
+    .plan--self {
+      grid-column: 1 / -1;
+      grid-row: 4;
+    }
+    .counts-grid {
+      grid-template-columns: 1fr;
+    }
+    .bill,
+    .b-cloud,
+    .b-self {
+      grid-column: span 3;
+    }
+    .examples {
+      grid-template-columns: 1fr;
+      max-width: 560px;
+    }
+    .enterprise {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  @media (max-width: 720px) {
     .plans {
       grid-template-columns: 1fr;
     }
+    .label-hosted,
+    .label-self,
+    .plan--starter,
+    .plan--business,
+    .plan--self {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    .bills {
+      grid-template-columns: 1fr;
+    }
+    .bill,
+    .b-cloud,
+    .b-self {
+      grid-column: 1;
+    }
+    .addon {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
   }
   @media (max-width: 640px) {
-    .hosted-cols {
+    .uncounted {
       grid-template-columns: 1fr;
     }
-    .hosted-cols .plan + .plan {
-      border-left: 0;
-      padding-left: 0;
-      margin-left: 0;
-      border-top: 1px solid var(--line);
-      padding-top: var(--space-5);
-      margin-top: var(--space-5);
-    }
-    .counts {
+    .ex-use > div {
       grid-template-columns: 1fr;
-      gap: var(--space-6);
+      gap: var(--space-1);
     }
-    /* Worked examples: one block per setup instead of a scrolling table. */
-    .table-wrap:has(.examples) {
-      overflow: visible;
+    /* Compare on a phone: pick one plan, see its column next to the row names. */
+    .cmp-pick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      margin: 0 0 var(--space-3);
+      padding: var(--space-1);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
     }
-    .examples {
-      min-width: 0;
-    }
-    .examples thead {
+    .cmp-pick legend {
       position: absolute;
       width: 1px;
       height: 1px;
       overflow: hidden;
       clip: rect(0, 0, 0, 0);
     }
-    .examples tr {
+    .cmp-pick input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .cmp-pick label {
+      flex: 1 1 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--line);
-    }
-    .examples tbody tr:last-child {
-      border-bottom: 0;
-    }
-    .examples th,
-    .examples td {
-      border: 0;
-    }
-    .examples th {
-      grid-column: 1 / -1;
-      padding-bottom: 0;
-    }
-    .examples td::before {
-      content: attr(data-label);
-      display: block;
-      font-family: var(--font-sans);
+      place-items: center;
+      min-height: 40px;
+      padding: 0 var(--space-3);
+      border-radius: 6px;
       font-size: var(--text-xs);
-      font-weight: 400;
-      letter-spacing: 0;
       color: var(--muted);
+      cursor: pointer;
     }
-    .examples td.total {
-      grid-column: 1 / -1;
-      padding-top: 0;
+    .cmp-pick input:checked + label {
+      background: var(--brand-tint);
+      color: var(--ink);
+      font-weight: 600;
     }
-    /* Compare: keep the row names in view while the plans scroll. */
-    .compare {
-      min-width: 640px;
+    .cmp-pick input:focus-visible + label {
+      outline: 2px solid var(--brand);
+      outline-offset: 1px;
     }
-    .compare thead td,
+    /* Rows become two-column grids, so the group rows' colspan adds no empty columns. */
+    .compare,
+    .compare thead,
+    .compare tbody {
+      display: block;
+      min-width: 0;
+    }
+    .compare tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    }
+    .compare tr.group {
+      grid-template-columns: 1fr;
+    }
+    .compare th,
+    .compare td {
+      display: block;
+    }
+    .compare thead th,
     .compare tbody th[scope='row'] {
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      width: 9rem;
-      background: var(--surface);
-      box-shadow: 1px 0 0 var(--line);
+      width: auto;
+    }
+    .cmp:has(#cmp-0:checked) .compare [data-col]:not([data-col='0']),
+    .cmp:has(#cmp-1:checked) .compare [data-col]:not([data-col='1']),
+    .cmp:has(#cmp-2:checked) .compare [data-col]:not([data-col='2']),
+    .cmp:has(#cmp-3:checked) .compare [data-col]:not([data-col='3']) {
+      display: none;
+    }
+    .compare td {
+      overflow-wrap: anywhere;
     }
   }
 </style>

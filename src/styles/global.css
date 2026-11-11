@@ -314,6 +314,11 @@ pre {
 .btn--primary:hover {
   background: var(--brand-hi);
 }
+.btn--lg {
+  min-height: 52px;
+  padding-inline: 1.5rem;
+  font-size: var(--text-md);
+}
 .btn--ghost {
   background: color-mix(in srgb, var(--surface) 70%, transparent);
   border-color: var(--line-strong);
@@ -666,19 +671,19 @@ pre {
   align-items: center;
   gap: var(--space-3);
   padding: 0.65rem var(--space-4);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--night-line);
   font-size: var(--text-xs);
-  color: var(--muted);
+  color: var(--night-muted);
 }
 .window-bar::before {
   content: '';
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 50%;
-  background: var(--line-strong);
+  background: var(--night-line);
   box-shadow:
-    1rem 0 0 var(--line-strong),
-    2rem 0 0 var(--line-strong);
+    1rem 0 0 var(--night-line),
+    2rem 0 0 var(--night-line);
   margin-right: 2.2rem;
 }
 
