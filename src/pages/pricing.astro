@@ -135,7 +135,7 @@ const description =
     <div class="wrap">
       <h2 id="plans-title" class="visually-hidden">Plans</h2>
       <div class="plans">
-        <div class="hosted">
+        <div class="hosted panel">
           <p class="group-label">
             Hosted at <a href={site.console}>cloudgate.octabyte.app</a>, run by Octabyte
           </p>
@@ -163,7 +163,7 @@ const description =
           </p>
         </div>
 
-        <article class="plan self" aria-labelledby="plan-self">
+        <article class="plan self panel panel--open" aria-labelledby="plan-self">
           <p class="group-label">On your own server</p>
           <h3 id="plan-self">Self-hosted</h3>
           <p class="price">
@@ -230,7 +230,7 @@ const description =
           </dl>
         </div>
       </div>
-      <div class="over">
+      <div class="over note">
         <h3>What happens if you go over?</h3>
         <p>
           Only the next addition is refused. If your plan holds three Servers and you try to add a
@@ -293,7 +293,7 @@ const description =
         </p>
       </div>
       <div class="table-wrap" role="region" aria-labelledby="examples-title" tabindex="0">
-        <table class="examples">
+        <table class="table examples">
           <thead>
             <tr>
               <th scope="col">Setup</th>
@@ -309,9 +309,9 @@ const description =
                   {e.who}
                   <span class="row-note">{e.note}</span>
                 </th>
-                <td>{e.plan}</td>
-                <td class="num">{e.math}</td>
-                <td class="num total">
+                <td data-label="Plan">{e.plan}</td>
+                <td class="num" data-label="Sum">{e.math}</td>
+                <td class="num total" data-label="A month">
                   {e.total}
                   <span class="plus">plus your servers</span>
                 </td>
@@ -333,7 +333,7 @@ const description =
         </p>
       </div>
       <div class="table-wrap" role="region" aria-labelledby="compare-title" tabindex="0">
-        <table class="compare">
+        <table class="table compare">
           <thead>
             <tr>
               <td></td>
@@ -404,10 +404,6 @@ const description =
   }
 
   .hosted {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    padding: var(--space-6);
     display: grid;
     gap: var(--space-5);
   }
@@ -486,25 +482,11 @@ const description =
     align-self: flex-start;
   }
 
-  .self {
-    border: 1.5px dashed var(--line-strong);
-    border-radius: var(--radius-md);
-    padding: var(--space-6);
-    background: transparent;
-  }
   .self-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-4);
-  }
-  .text-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--brand);
   }
 
   .counts {
@@ -533,51 +515,9 @@ const description =
   }
   .over {
     margin-top: var(--space-7);
-    padding: var(--space-5) var(--space-6);
-    background: var(--live-tint);
-    border-radius: var(--radius-md);
     display: grid;
     gap: var(--space-2);
-    max-width: 820px;
-  }
-  .over p {
-    color: var(--ink-2);
-  }
-
-  .table-wrap {
-    position: relative;
-    overflow-x: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-    -webkit-overflow-scrolling: touch;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--text-sm);
-  }
-  th,
-  td {
-    text-align: left;
-    vertical-align: top;
-    padding: var(--space-4) var(--space-5);
-    border-bottom: 1px solid var(--line);
-  }
-  tbody:last-child tr:last-child > *,
-  .examples tbody tr:last-child > * {
-    border-bottom: 0;
-  }
-  thead th {
-    font-family: var(--font-display);
-    font-weight: 600;
     font-size: var(--text-md);
-    letter-spacing: -0.01em;
-    color: var(--ink);
-  }
-  tbody th {
-    font-weight: 500;
-    color: var(--ink);
   }
 
   .examples {
@@ -620,9 +560,6 @@ const description =
   .compare tbody th[scope='row'] {
     width: 24%;
   }
-  .compare .col-self {
-    background: var(--paper-2);
-  }
   .compare tr.group th {
     padding-top: var(--space-5);
     padding-bottom: var(--space-2);
@@ -630,9 +567,6 @@ const description =
     font-weight: 600;
     color: var(--muted);
     background: var(--surface);
-  }
-  .compare td {
-    color: var(--ink-2);
   }
   .tick {
     display: inline-block;
@@ -656,14 +590,6 @@ const description =
   .more {
     color: var(--muted);
   }
-  .enterprise a,
-  .more a {
-    color: var(--ink);
-  }
-  .more {
-    margin-top: var(--space-6);
-    max-width: 68ch;
-  }
 
   @media (max-width: 960px) {
     .plans {
@@ -671,10 +597,6 @@ const description =
     }
   }
   @media (max-width: 640px) {
-    .hosted,
-    .self {
-      padding: var(--space-5);
-    }
     .hosted-cols {
       grid-template-columns: 1fr;
     }
@@ -690,8 +612,61 @@ const description =
       grid-template-columns: 1fr;
       gap: var(--space-6);
     }
-    .over {
-      padding: var(--space-5);
+    /* Worked examples: one block per setup instead of a scrolling table. */
+    .table-wrap:has(.examples) {
+      overflow: visible;
+    }
+    .examples {
+      min-width: 0;
+    }
+    .examples thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+    .examples tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--line);
+    }
+    .examples tbody tr:last-child {
+      border-bottom: 0;
+    }
+    .examples th,
+    .examples td {
+      border: 0;
+    }
+    .examples th {
+      grid-column: 1 / -1;
+      padding-bottom: 0;
+    }
+    .examples td::before {
+      content: attr(data-label);
+      display: block;
+      font-family: var(--font-sans);
+      font-size: var(--text-xs);
+      font-weight: 400;
+      letter-spacing: 0;
+      color: var(--muted);
+    }
+    .examples td.total {
+      grid-column: 1 / -1;
+      padding-top: 0;
+    }
+    /* Compare: keep the row names in view while the plans scroll. */
+    .compare {
+      min-width: 640px;
+    }
+    .compare thead td,
+    .compare tbody th[scope='row'] {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      width: 9rem;
+      background: var(--surface);
+      box-shadow: 1px 0 0 var(--line);
     }
   }
 </style>

@@ -120,7 +120,7 @@ const faq = [
       </div>
 
       <figure class="done" aria-labelledby="done-cap">
-        <div class="panel">
+        <div class="panel mock">
           <p class="live">Running</p>
           <p class="app-name">notes-app</p>
           <p class="addr"><code>http://notes-app.203.0.113.10.sslip.io</code></p>
@@ -149,7 +149,7 @@ const faq = [
             Umami and Uptime Kuma. Pick one, press Deploy, and the get started steps above take
             you the rest of the way.
           </p>
-          <p><a class="link" href={templatesHome}>See all app templates</a></p>
+          <p><a class="text-link" href={templatesHome}>See all app templates</a></p>
         </article>
 
         <article class="route">
@@ -194,14 +194,14 @@ cloudgate deploy</pre>
           </div>
         ))}
       </dl>
-      <p class="more"><a class="link" href="/features">Everything Cloudgate does, in detail</a></p>
+      <p class="more"><a class="text-link" href="/features">Everything Cloudgate does, in detail</a></p>
     </div>
   </section>
 
   <section class="section" aria-labelledby="ai">
-    <div class="wrap two">
+    <div class="wrap split">
       <h2 id="ai">Can my AI do the deploying too?</h2>
-      <div class="stack copy">
+      <div class="prose">
         <p>
           Yes. If you build with Claude Code, Cursor or another tool that speaks MCP, give it its
           own Agent in Cloudgate. Then you can ask it to ship a fix, and it deploys, reads the log
@@ -211,15 +211,15 @@ cloudgate deploy</pre>
           It only reaches the apps you allow, it never sees your passwords, and everything it does
           is written down for you to read later.
         </p>
-        <p><a class="link" href="/ai-agents">Let your AI tool deploy with Cloudgate</a></p>
+        <p><a class="text-link" href="/ai-agents">Let your AI tool deploy with Cloudgate</a></p>
       </div>
     </div>
   </section>
 
   <section class="section" aria-labelledby="cost">
-    <div class="wrap two">
+    <div class="wrap split">
       <h2 id="cost">What will it cost me?</h2>
-      <div class="stack copy">
+      <div class="prose">
         <p>
           Two things: your Cloudgate plan and your server. The Starter plan is
           ${starter.price} a month and covers up to 3 Servers, with a {trialDays}-day free trial
@@ -230,7 +230,7 @@ cloudgate deploy</pre>
           before you buy. A server you already have costs whatever you pay for it now. Members,
           Projects and Environments are not counted.
         </p>
-        <p><a class="link" href="/pricing">Compare Cloudgate plans</a></p>
+        <p><a class="text-link" href="/pricing">Compare Cloudgate plans</a></p>
       </div>
     </div>
   </section>
@@ -250,40 +250,6 @@ cloudgate deploy</pre>
     gap: var(--space-8);
     align-items: start;
   }
-  .steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    counter-reset: step;
-    display: grid;
-    gap: var(--space-5);
-  }
-  .steps li {
-    counter-increment: step;
-    display: grid;
-    grid-template-columns: 3rem minmax(0, 1fr);
-    column-gap: var(--space-4);
-    padding-top: var(--space-5);
-    border-top: 1px solid var(--line);
-  }
-  .steps li::before {
-    content: counter(step);
-    grid-row: span 2;
-    font-family: var(--font-display);
-    font-weight: 650;
-    font-size: var(--text-2xl);
-    line-height: 1;
-    color: var(--brand);
-  }
-  .steps h3 {
-    font-size: var(--text-xl);
-    margin-bottom: var(--space-2);
-  }
-  .steps p {
-    color: var(--muted);
-    max-width: 58ch;
-  }
-
   .done {
     margin: 0;
     display: grid;
@@ -291,11 +257,7 @@ cloudgate deploy</pre>
     position: sticky;
     top: 6rem;
   }
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    padding: var(--space-6);
+  .mock {
     display: grid;
     gap: var(--space-3);
     justify-items: start;
@@ -357,28 +319,7 @@ cloudgate deploy</pre>
     color: var(--muted);
   }
 
-  .link {
-    color: var(--brand);
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-  .more {
-    margin-top: var(--space-6);
-  }
-
-  .two {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: var(--space-8);
-    align-items: start;
-  }
-  .copy {
-    max-width: 62ch;
-  }
-  .copy p {
-    color: var(--ink-2);
+  .prose p {
     font-size: var(--text-lg);
     line-height: 1.55;
   }
@@ -393,8 +334,7 @@ cloudgate deploy</pre>
 
   @media (max-width: 900px) {
     .how,
-    .routes,
-    .two {
+    .routes {
       grid-template-columns: 1fr;
       gap: var(--space-6);
     }

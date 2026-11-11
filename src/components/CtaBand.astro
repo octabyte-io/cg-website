@@ -27,6 +27,7 @@ const {
     background: var(--night);
     color: var(--night-ink);
     padding-block: var(--space-9);
+    border-block: 1px solid var(--night-line);
     isolation: isolate;
   }
   /* A narrow beam through the keyhole of the mark: the page's one dramatic moment. */
@@ -60,5 +61,8 @@ const {
   }
   .band :global(.btn--primary:hover) {
     background: var(--night-brand-hi);
+  }
+  .band :global(:focus-visible) {
+    outline-color: var(--night-brand);
   }
 </style>

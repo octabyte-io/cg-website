@@ -115,7 +115,7 @@ const description =
 <span class="d">$</span> <span class="k">cd</span> my-app
 <span class="d">$</span> <span class="k">cloudgate</span> deploy      <span class="d"># uploads this folder, builds it, follows the log</span>
 <span class="d">$</span> <span class="k">cloudgate</span> status      <span class="d"># running? which address? which Deployment?</span></code></pre>
-      <p class="early">
+      <p class="note note--warn early">
         <strong>The CLI is early.</strong> The npm <code>latest</code> tag is version 0.0.1, and the
         newer beta is on the <code>next</code> tag:
         <code>npm install -g @octabyte-io/cloudgate@next</code>. Commands and flags may still change
@@ -235,14 +235,14 @@ const description =
   </section>
 
   <section class="section" aria-labelledby="ci-title">
-    <div class="wrap ci">
-      <div>
+    <div class="wrap split ci">
+      <div class="prose">
         <h2 id="ci-title">How do you deploy from CI?</h2>
         <p class="lede">
           Use a Personal key instead of logging in. Make one in the console, store it as a secret
           in your CI, and set it as <code>CLOUDGATE_KEY</code>.
         </p>
-        <p class="note">
+        <p>
           A CI job cannot answer questions, so name the target with variables or flags. Add
           {" "}<code>--switch-source</code> if the Service used to deploy from git or an image, and
           {" "}<code>--detach --json</code> to queue the Deployment and move on. A key from
@@ -282,7 +282,7 @@ const description =
           </div>
         </li>
         <li>
-          <span class="slice slice--3" aria-hidden="true"></span>
+          <span class="slice" aria-hidden="true"></span>
           <div>
             <h3><a href={templatesHome}>Start from an app template</a></h3>
             <p>Deploy a ready-made app, such as n8n, Ghost or Uptime Kuma, from the console.</p>
@@ -313,50 +313,10 @@ const description =
   }
   .early {
     margin-top: var(--space-5);
-    max-width: 860px;
-    padding-left: var(--space-4);
-    border-left: 3px solid var(--warn);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
-  }
-  .early strong {
-    font-weight: 600;
   }
 
   .steps {
-    list-style: none;
-    counter-reset: step;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: var(--space-7);
     max-width: 860px;
-  }
-  .steps li {
-    counter-increment: step;
-    display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr);
-    column-gap: var(--space-4);
-    row-gap: var(--space-2);
-  }
-  .steps li::before {
-    content: counter(step);
-    grid-row: span 3;
-    font-family: var(--font-display);
-    font-weight: 650;
-    font-size: var(--text-xl);
-    color: var(--brand);
-    line-height: 1.1;
-  }
-  .steps li > * {
-    grid-column: 2;
-  }
-  .steps p {
-    color: var(--muted);
-    max-width: 68ch;
-  }
-  .steps .code {
-    margin-top: var(--space-2);
   }
 
   .groups {
@@ -390,17 +350,10 @@ const description =
     font-size: var(--text-sm);
   }
 
-  .ci {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: var(--space-7);
-    align-items: start;
+  .ci .prose p {
+    color: var(--muted);
   }
-  .ci h2 {
-    margin-bottom: var(--space-4);
-  }
-  .note {
-    margin-top: var(--space-4);
+  .ci .prose .lede {
     color: var(--muted);
   }
 
@@ -432,13 +385,6 @@ const description =
     margin-top: var(--space-2);
     color: var(--muted);
   }
-  .more {
-    margin-top: var(--space-6);
-    color: var(--muted);
-  }
-  .more a {
-    color: var(--ink);
-  }
 
   @media (max-width: 960px) {
     .groups,
@@ -446,18 +392,10 @@ const description =
       grid-template-columns: 1fr;
       gap: var(--space-6);
     }
-    .ci {
-      grid-template-columns: 1fr;
-      gap: var(--space-5);
-    }
   }
   @media (max-width: 520px) {
     .term {
       font-size: var(--text-xs);
-    }
-    .steps li {
-      grid-template-columns: 1.75rem minmax(0, 1fr);
-      column-gap: var(--space-3);
     }
   }
 </style>

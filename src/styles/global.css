@@ -35,7 +35,7 @@
   --night-muted: #a39db6;
   --code-key: #c4b9ff;
   --code-str: #8fe0b8;
-  --code-dim: #7d7690;
+  --code-dim: #8b84a0;
   --night-brand: #b5b0ff;
   --night-brand-hi: #cbc7ff;
   --beam-a: #6d57e0;
@@ -51,8 +51,9 @@
   --text-lg: 1.25rem;
   --text-xl: 1.625rem;
   --text-2xl: 2.25rem;
-  --text-3xl: clamp(2.25rem, 4.6vw, 3.5rem);
-  --text-hero: clamp(2.6rem, 6.4vw, 5rem);
+  --text-3xl: clamp(2rem, 4vw, 3rem);
+  --text-page: clamp(2.3rem, 5.2vw, 4rem);
+  --text-hero: clamp(2.6rem, 5.4vw, 4.4rem);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -138,7 +139,7 @@ h4 {
   color: var(--ink);
 }
 h1 {
-  font-size: var(--text-hero);
+  font-size: var(--text-page);
   letter-spacing: -0.035em;
   line-height: 1.02;
 }
@@ -164,6 +165,9 @@ a {
 }
 a:hover {
   text-decoration-color: currentColor;
+}
+:where(main) :where(p, dd, li, figcaption) a:not([class]) {
+  color: var(--ink);
 }
 
 code,
@@ -380,6 +384,189 @@ pre {
   height: 0.5em;
   border-radius: 50%;
   background: currentColor;
+}
+
+/* ---- Two columns: a heading and its copy on the left, the detail on the right ---- */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--space-8);
+  align-items: start;
+}
+.split > .section-head {
+  margin-bottom: 0;
+}
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* Running copy next to or under a heading. */
+.prose {
+  max-width: 62ch;
+}
+.prose > * + * {
+  margin-top: var(--space-4);
+}
+.prose > h2 {
+  margin-bottom: var(--space-5);
+}
+.prose p {
+  color: var(--ink-2);
+}
+
+/* ---- Links that stand on their own line ---- */
+
+.more {
+  margin-top: var(--space-6);
+  max-width: 70ch;
+  color: var(--muted);
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--brand);
+  font-weight: 500;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.text-link:hover {
+  color: var(--brand-hi);
+  text-decoration-color: currentColor;
+}
+
+/* ---- Numbered steps: only for content that is a real sequence ---- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+  display: grid;
+  gap: var(--space-5);
+}
+.steps > li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+.steps > li::before {
+  content: counter(step);
+  grid-row: 1 / span 4;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: var(--text-xl);
+  line-height: 1.1;
+  color: var(--brand);
+}
+.steps > li > * {
+  grid-column: 2;
+}
+.steps p {
+  color: var(--muted);
+  max-width: 68ch;
+}
+.steps .code {
+  margin-top: var(--space-2);
+}
+@media (max-width: 520px) {
+  .steps > li {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+  }
+}
+
+/* ---- A side note, and a warning ---- */
+
+.note {
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--line-strong);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  max-width: 72ch;
+}
+.note--warn {
+  border-left-color: var(--warn);
+}
+.note strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---- A raised panel: product mock-ups and grouped choices, not feature lists ---- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+.panel--open {
+  background: transparent;
+  border: 1.5px dashed var(--line-strong);
+}
+@media (max-width: 640px) {
+  .panel {
+    padding: var(--space-5);
+  }
+}
+
+/* ---- Tables in a panel; wide ones scroll inside it ---- */
+
+.table-wrap {
+  /* Positioned, so visually hidden text in cells stays inside the scroller. */
+  position: relative;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+.table > tbody:last-child > tr:last-child > * {
+  border-bottom: 0;
+}
+.table thead th {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.table tbody th {
+  font-weight: 500;
+  color: var(--ink);
+}
+.table td {
+  color: var(--ink-2);
+}
+/* The self-hosted columns, shaded the same way on every page. */
+.table .col-self {
+  background: var(--paper-2);
+}
+@media (max-width: 640px) {
+  .table th,
+  .table td {
+    padding: var(--space-3) var(--space-4);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
