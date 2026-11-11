@@ -1,4 +1,5 @@
 ---
+import { templatesHome } from '../data/template-links';
 import Mark from './Mark.astro';
 import { site } from '../data/site';
 
@@ -9,7 +10,7 @@ const columns = [
       { href: '/features', label: 'Features' },
       { href: '/ai-agents', label: 'Cloudgate for AI agents' },
       { href: '/vibe-coding', label: 'Deploy an app you built with AI' },
-      { href: '/templates', label: 'App templates' },
+      { href: templatesHome, label: 'App templates' },
       { href: '/cli', label: 'Command-line tool' },
     ],
   },
@@ -25,6 +26,8 @@ const columns = [
   {
     title: 'Elsewhere',
     links: [
+      // The source link appears on its own once site.sourceUrl is set (the repository is private today).
+      ...(site.sourceUrl ? [{ href: site.sourceUrl, label: 'Cloudgate source on GitHub' }] : []),
       { href: site.templatesRepo, label: 'Template catalogue on GitHub' },
       { href: site.npm, label: 'CLI on npm' },
       { href: `mailto:${site.support}`, label: site.support },

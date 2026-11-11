@@ -1,4 +1,5 @@
 ---
+import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import HeroPanel from '../components/home/HeroPanel.astro';
 import Faq from '../components/Faq.astro';
@@ -65,7 +66,9 @@ const faq = [
   },
 ];
 
-const shown = templates.slice(0, 20);
+// A featured few: the full catalogue lives on the templates website and will grow to hundreds.
+const featured = ['n8n', 'wordpress', 'ghost', 'plausible', 'vaultwarden', 'nextcloud', 'mattermost', 'uptime-kuma'];
+const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t) => t !== undefined);
 ---
 
 <Base
@@ -84,7 +87,7 @@ const shown = templates.slice(0, 20);
         </p>
         <div class="actions">
           <a class="btn btn--primary" href={site.signUp}>Start {trialDays}-day free trial</a>
-          <a class="btn btn--ghost" href="/templates">Deploy an app template</a>
+          <a class="btn btn--ghost" href={templatesHome}>Deploy an app template</a>
         </div>
         <p class="aside">
           Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.
@@ -130,7 +133,7 @@ const shown = templates.slice(0, 20);
       <ol class="three">
         <li>
           <h3>Sign up</h3>
-          <p>Start the {trialDays}-day free trial. You can deploy your own app or pick one of {templates.length} ready-made templates.</p>
+          <p>Start the {trialDays}-day free trial. You can deploy your own app or pick a ready-made template.</p>
         </li>
         <li>
           <h3>Get a server</h3>
@@ -195,7 +198,7 @@ const shown = templates.slice(0, 20);
         ))}
       </ul>
       <div class="actions more">
-        <a class="btn btn--ghost" href="/templates">Browse all templates</a>
+        <a class="btn btn--ghost" href={templatesHome}>Browse the template catalogue</a>
         <a href={deployUrl('n8n')}>Deploy n8n now</a>
       </div>
     </div>

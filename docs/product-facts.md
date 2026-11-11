@@ -145,5 +145,6 @@ or a ready-made Docker image.
 20 apps in the public catalogue (github.com/octabyte-io/cg-templates), each a `cloudgate.yaml`
 plus `template.yaml`: Activepieces, Automatisch, Baserow, Cal.com, Chatwoot, Ghost, Gitea,
 Immich, listmonk, Matomo, Mattermost, Metabase, n8n, Nextcloud, Outline, Plausible Analytics,
-Umami, Uptime Kuma, Vaultwarden, WordPress. Data in `src/data/templates.json`; logos in
-`public/templates/<id>.svg`; deploy link `deployUrl(id)` from `src/data/site.ts`.
+Umami, Uptime Kuma, Vaultwarden, WordPress, growing to hundreds. The catalogue's own website,
+https://cgt.octabyte.io, is the only home of template pages: this site never repeats one, and
+never states a fixed count. Deploy link `deployUrl(id)` from `src/data/site.ts`.

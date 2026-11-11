@@ -15,7 +15,7 @@ export const site = {
   // Set this when it goes public and the Self-host page shows the clone-and-install steps.
   sourceUrl: null as string | null,
   templatesRepo: 'https://github.com/octabyte-io/cg-templates',
-  templatesSite: 'https://octabyte-io.github.io/cg-templates/',
+  templatesSite: 'https://cgt.octabyte.io/',
   npm: 'https://www.npmjs.com/package/@octabyte-io/cloudgate',
   support: 'support@octabyte.io',
   company: { name: 'Octabyte', url: 'https://octabyte.io' },

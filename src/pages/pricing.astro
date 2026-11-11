@@ -1,4 +1,5 @@
 ---
+import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
@@ -373,7 +374,7 @@ const description =
         </p>
       </div>
       <p class="more">
-        Not sure where to start? <a href="/templates">Deploy an app from a template</a> during the
+        Not sure where to start? <a href={templatesHome}>Deploy an app from a template</a> during the
         trial, read <a href="/features">what Cloudgate does</a>, or see how
         <a href="/ai-agents">AI agents deploy through Cloudgate</a>.
       </p>

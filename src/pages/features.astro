@@ -1,4 +1,5 @@
 ---
+import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
@@ -203,7 +204,7 @@ const faq = [
     trail={trail}
   >
     <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
-    <a class="btn btn--ghost" href="/templates">Deploy a template</a>
+    <a class="btn btn--ghost" href={templatesHome}>Deploy a template</a>
   </PageHero>
 
   <nav class="jump wrap" aria-label="On this page">
@@ -265,7 +266,7 @@ const faq = [
         <div>
           <dt>Templates</dt>
           <dd>
-            Twenty ready-made apps, from WordPress to n8n, each one a Project config. <a href="/templates">Browse the app templates</a>.
+            Ready-made apps, from WordPress to n8n, each one a Project config. <a href={templatesHome}>Browse the app templates</a>.
           </dd>
         </div>
       </dl>
@@ -366,7 +367,7 @@ const faq = [
         <li><a href="/pricing">Compare plans and what each counts</a></li>
         <li><a href="/vibe-coding">Put an app you built with AI online</a></li>
         <li><a href="/ai-agents">Let AI agents deploy with guard rails</a></li>
-        <li><a href="/templates">Deploy one of twenty app templates</a></li>
+        <li><a href={templatesHome}>Deploy a ready-made app template</a></li>
       </ul>
     </div>
   </section>

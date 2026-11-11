@@ -1,4 +1,5 @@
 ---
+import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
@@ -90,7 +91,7 @@ const faq = [
     trail={trail}
   >
     <a class="btn btn--primary" href={site.getStarted}>Get started</a>
-    <a class="btn btn--ghost" href="/templates">Browse ready-made apps</a>
+    <a class="btn btn--ghost" href={templatesHome}>Browse ready-made apps</a>
   </PageHero>
 
   <section class="section" aria-labelledby="how">
@@ -136,11 +137,11 @@ const faq = [
         <article class="route">
           <h3><span class="slice" aria-hidden="true"></span>Start from a ready-made app</h3>
           <p>
-            Twenty apps people run for themselves, such as WordPress, Ghost, n8n, Nextcloud,
+            Popular apps people run for themselves, such as WordPress, Ghost, n8n, Nextcloud,
             Umami and Uptime Kuma. Pick one, press Deploy, and the get started steps above take
             you the rest of the way.
           </p>
-          <p><a class="link" href="/templates">See all app templates</a></p>
+          <p><a class="link" href={templatesHome}>See all app templates</a></p>
         </article>
 
         <article class="route">
