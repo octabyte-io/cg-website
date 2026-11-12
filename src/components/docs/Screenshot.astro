@@ -1,0 +1,45 @@
+---
+// A real console screenshot (made with dummy data, see public/docs/screens/manifest.json) in a
+// console window frame. Both themes are shipped; CSS shows the one matching the site's theme and a
+// lazy image that is never displayed is never downloaded. Pressing it opens it full size.
+import fs from 'node:fs';
+import path from 'node:path';
+
+interface Props {
+  /** File stem under public/docs/screens: "servers-list" for servers-list-dark.webp / -light.webp. */
+  name: string;
+  /** What the screenshot shows, for people who cannot see it. */
+  alt: string;
+  caption?: string;
+  /** Address shown in the frame's bar; defaults to the manifest's route on the console. */
+  url?: string;
+  /** Load at once (the first screenshot above the fold). */
+  eager?: boolean;
+}
+const { name, alt, caption, url, eager = false } = Astro.props;
+
+type Entry = { name: string; route?: string; width: number; height: number };
+const manifestPath = path.join(process.cwd(), 'public/docs/screens/manifest.json');
+const manifest: Entry[] = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : [];
+const entry = manifest.find((e) => e.name === name);
+const exists = fs.existsSync(path.join(process.cwd(), `public/docs/screens/${name}-dark.webp`));
+const width = entry?.width ?? 2000;
+const height = entry?.height ?? 1250;
+const route = url ?? (entry?.route ? `cloudgate.octabyte.app${entry.route.replace(/\[[^\]]+\]/g, '…')}` : 'cloudgate.octabyte.app');
+---
+<figure class="shot" data-reveal>
+  <div class="window ui shot-frame">
+    <div class="window-bar"><span class="shot-url">{route}</span></div>
+    {exists ? (
+      <button class="shot-zoom" type="button" aria-label={`Enlarge screenshot: ${alt}`} data-zoom>
+        <img class="shot-img shot-img--dark" src={`/docs/screens/${name}-dark.webp`} width={width} height={height} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+        <img class="shot-img shot-img--light" src={`/docs/screens/${name}-light.webp`} width={width} height={height} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+      </button>
+    ) : (
+      <div class="shot-missing" role="img" aria-label={alt} style={`aspect-ratio:${width}/${height}`}>
+        <span>{alt}</span>
+      </div>
+    )}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

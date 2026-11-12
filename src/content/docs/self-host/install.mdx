@@ -1,0 +1,211 @@
+---
+title: Install Cloudgate on your own server
+seoTitle: Install self-hosted Cloudgate on Ubuntu 24.04
+description: Install Cloudgate on an Ubuntu 24.04 server with one script, claim the instance with the first sign-up, deploy at sslip.io addresses, then add a domain.
+lede: One script turns a fresh Ubuntu 24.04 server into a Cloudgate instance. This page covers what the server needs, what the script sets up, the first sign-up, and what to do after.
+section: self-host
+order: 2
+navTitle: Install
+badges: ['Self-hosted only', 'Root on the server']
+howto:
+  name: Install Cloudgate on an Ubuntu server
+  steps:
+    - { name: Prepare the server, text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, reachable as root over SSH, with ports 22, 80, 443, 3000 and 4000 open inbound.' }
+    - { name: Put the source in place, text: 'Once you have access to the source, place it at /opt/cloudgate. The script refuses to run from anywhere else.' }
+    - { name: Run the installer, text: 'As root, run CLOUDGATE_PUBLIC_HOST=<server IP or hostname> bash /opt/cloudgate/deploy/install.sh and wait for the verification block.' }
+    - { name: Claim the instance, text: 'Open http://<server>:3000/sign-up and create the first account. It owns the instance, and sign-up closes behind it.' }
+    - { name: Add the server as a Server, text: 'In the console, add the same machine under Servers with a key Cloudgate generates, so its shell, Docker view and setup are on screen.' }
+faq:
+  - { q: Do I need a domain name to install Cloudgate?, a: 'No. The installer works with the server''s IP address, and the apps you deploy can use free sslip.io addresses that point at it. Add a domain later.' }
+  - { q: Can I run the installer again?, a: 'Yes. Every step checks before it acts, so a second run changes nothing that is already in place. Running it again with the same <code>CLOUDGATE_PUBLIC_HOST</code> is also how you upgrade.' }
+  - { q: Can I install it on ARM or another Linux?, a: 'No. The installer is tested on Ubuntu 24.04 on x86-64 and stops on any other processor architecture.' }
+  - { q: I lost my password and no mail is set up. What now?, a: 'There is no console path to reset it. Whoever has root on the server sets <code>MAIL_PROVIDER</code> and its settings in <code>/etc/default/cloudgate-backend</code>, restarts <code>cloudgate-backend</code>, and asks for the reset link again.' }
+---
+
+Cloudgate installs natively: two Node services under systemd (the console and the API), PostgreSQL
+on the same machine, Docker as a Swarm of one, and a Traefik container that serves the apps you
+deploy. It is not shipped as a container image. The [Self-host page](/self-hosted) has the short
+version; this page is the full one. You need access to the source first, see
+[Self-hosting Cloudgate](/docs/self-host#get-access-to-the-source).
+
+## What the server needs
+
+| | |
+|---|---|
+| Operating system | Ubuntu 24.04, freshly installed |
+| Processor | x86-64 (amd64). The script stops on anything else. |
+| Size | 2 vCPU, 4 GB memory, 40 GB disk. The install was proved on this size. |
+| Access | root over SSH |
+| Ports open inbound | 22 (SSH), 80 and 443 (your apps), 3000 (console), 4000 (API) |
+| DNS | None to start |
+| Outbound access | `get.docker.com`, `nodejs.org`, the npm registry, Docker Hub, `github.com` and `release-assets.githubusercontent.com` |
+
+<Callout type="tip" title="Check the provider's firewall first">
+  A cloud firewall in front of the server that blocks 3000 or 4000 looks exactly like a broken
+  install. Before you start, run `python3 -m http.server 3000` on the server and open
+  `http://<server>:3000/` from your laptop.
+</Callout>
+
+## Install Cloudgate
+
+<Steps>
+<Step title="Put the source at /opt/cloudgate">
+
+Once you have access to the source, place it at `/opt/cloudgate` on the server. The systemd units
+expect that path, and the script refuses to run from anywhere else.
+
+</Step>
+<Step title="Run the installer as root">
+
+`CLOUDGATE_PUBLIC_HOST` is the one required input: the IP address or hostname people will use to
+reach the console. It is built into the console, so changing it later means a rebuild, not a
+restart.
+
+```bash
+CLOUDGATE_PUBLIC_HOST=203.0.113.24 bash /opt/cloudgate/deploy/install.sh
+```
+
+The script takes no subcommands. It prints each stage as `==> Swap`, `==> Docker` and so on, then a
+verification block.
+
+</Step>
+<Step title="Check that it finished">
+
+A good install ends like this:
+
+```text
+==> Verification
+{"status":"ok"}
+{"open":true}
+console /sign-up: 200
+traefik  :80    : 404  (404 = listening)
+swarm: active
+network: overlay attachable=true
+traefik: true traefik:v3.6.7
+
+==> Done. Open http://<host>:3000/sign-up — the first account owns the instance.
+```
+
+A `404` from Traefik on port 80 is the success case: it is listening and has no app to serve yet.
+
+</Step>
+<Step title="Claim the instance">
+
+Open `http://<server>:3000/sign-up` and create an account. **The first account owns the
+instance**, and sign-up closes behind it. Everyone after that joins by invitation, from
+**Settings** > **Members** > **Invite someone**. Without mail set up, the console gives you the
+invitation link to send yourself.
+
+</Step>
+<Step title="Add this machine as a Server">
+
+Cloudgate can deploy onto the machine it runs on from the start. To also see its shell, Docker and
+setup on screen, open **Servers**, press **Add a Server** and point it at the machine's own address
+with a key Cloudgate generates. Running setup on the already-installed machine is safe; every step
+checks before it acts. See [Servers](/docs/guide/servers).
+
+</Step>
+</Steps>
+
+## What the installer sets up
+
+- Swap, and the packages builds need (including `build-essential` and `python3`).
+- Node from `nodejs.org`, checksum-verified, and pnpm.
+- Docker, `docker swarm init` (a Swarm of one), and the `cloudgate-network` overlay network.
+- PostgreSQL, with a generated role and password.
+- Nixpacks for builds, and OpenTofu with pinned AWS and Google Cloud providers for Cloud accounts
+  (about 255 MB to download).
+- A `cloudgate` service user, the folder `/etc/cloudgate`, and Traefik's configuration.
+- The `cloudgate-traefik` container on ports 80 and 443.
+- Two systemd units, `cloudgate-backend` and `cloudgate-console`, that restart on their own.
+- ufw, allowing SSH, 80, 443, 3000 and 4000.
+
+Secrets are generated once and kept in `/etc/default/cloudgate-secrets` (readable only by root); a
+second run reads them back instead of making new ones.
+
+<Callout type="warn" title="ufw does not protect published ports">
+  Docker writes its own firewall rules ahead of ufw. A port you publish later, for example a
+  database's external port, is reachable from the internet even though `ufw status` does not list
+  it. Treat any published port as public, or block it in the provider's firewall.
+</Callout>
+
+## Deploy at an sslip.io address first
+
+You do not need DNS to start. An Application's **Domains** tab can **Generate one for me**: an
+sslip.io host such as `web.203.0.113.24.sslip.io`, which resolves to the server's IP. It is served
+over plain HTTP until you add a domain of your own. See [Domains](/docs/guide/domains).
+
+## Add a domain later
+
+There are two kinds of domain on a self-hosted instance:
+
+- **Your apps' domains.** Point a DNS record at the server, then add the host on the Service's
+  **Domains** tab with **Serve over HTTPS** and **Let's Encrypt**. Traefik gets the certificate.
+- **The console's own domain.** **Settings** > **Instance** > **Console domain** serves the console
+  on a hostname, over HTTPS. Sign-in there is refused until that origin is trusted: add it under
+  **Settings** > **Single sign-on** > **Trusted origins** (needs an Enterprise license) or in
+  `TRUSTED_ORIGINS` in `/etc/default/cloudgate-backend`, then restart `cloudgate-backend`. Live
+  screens (logs, shells) also need the API on the same hostname, which means rebuilding the console.
+  See [Instance settings](/docs/self-host/instance-settings#serve-the-console-on-a-domain).
+
+<Callout type="limit" title="Plain HTTP until you change it">
+  Out of the box the console and API answer on plain HTTP at ports 3000 and 4000, so the session
+  cookie crosses the network in clear. Before you give the server a public address, decide whether
+  that is acceptable, or close 3000 and 4000 and reach both through one SSH tunnel:
+  `ssh -N -L 3000:127.0.0.1:3000 -L 4000:127.0.0.1:4000 root@<server>`, with the console built for
+  `CLOUDGATE_PUBLIC_HOST=localhost`.
+</Callout>
+
+## Upgrade an instance
+
+Pull the new version into `/opt/cloudgate` and run the same script with the same
+`CLOUDGATE_PUBLIC_HOST`. It migrates the database, rebuilds, and restarts both services, keeping
+your secrets.
+
+```bash
+cd /opt/cloudgate
+# bring in the new version you were given, then:
+CLOUDGATE_PUBLIC_HOST=203.0.113.24 bash deploy/install.sh
+```
+
+The console's **Update and restart** button does not work on a native install, and **Restart
+Cloudgate** is refused there: use `systemctl restart cloudgate-backend cloudgate-console`. A queued
+Deployment survives a restart; one that was building is cut off and ends as an error.
+
+## Back up the instance itself
+
+Cloudgate backs up what you deploy, not itself. Keep these four off the server:
+
+- the PostgreSQL database `cloudgate`
+- `/etc/default/cloudgate-backend`
+- `/etc/default/cloudgate-secrets`
+- the folder `/etc/cloudgate`
+
+```bash
+su - postgres -c 'pg_dump -Fc cloudgate' > /root/cloudgate-$(date -u +%FT%TZ).dump
+tar -czf /root/cloudgate-etc-$(date -u +%FT%TZ).tar.gz /etc/cloudgate /etc/default/cloudgate-*
+```
+
+<Callout type="warn" title="The encryption secret cannot be replaced">
+  Without `APP_ENCRYPTION_SECRET` from `/etc/default/cloudgate-secrets`, every stored key, password
+  and cloud state in the database is unreadable for good. Back up the database and the secrets files
+  together, and restore them together.
+</Callout>
+
+## What the install does not do
+
+<Callout type="limit" title="Limits of a self-hosted install">
+  - It installs Cloudgate on one server. The Servers you add later are for your apps.
+  - There is no self-update. Re-running the script is the upgrade.
+  - Nothing is emailed until you set `MAIL_PROVIDER` (SMTP or Resend) in
+    `/etc/default/cloudgate-backend`. Without it there are no password-reset emails, and no console
+    screen resets another person's password or two-factor.
+  - Ports 80 and 443 belong to Cloudgate's Traefik. Nothing else on the server may listen there.
+</Callout>
+
+## Related pages
+
+- [Self-hosting Cloudgate](/docs/self-host): the licence, and what is free.
+- [Instance settings](/docs/self-host/instance-settings): the platform's own settings after install.
+- [Quickstart](/docs/quickstart): your first app, once you are signed in.
+- [Troubleshooting](/docs/help/troubleshooting): when a Server, a build or a certificate misbehaves.

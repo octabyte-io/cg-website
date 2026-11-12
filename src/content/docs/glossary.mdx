@@ -1,0 +1,488 @@
+---
+title: Cloudgate glossary
+seoTitle: Cloudgate glossary, every term in one place
+description: Every term Cloudgate uses, from Access log to Wired variable, with a one-line definition each, plus the words Cloudgate avoids and what it says instead.
+lede: Cloudgate uses one word for each thing, the same in the console, the CLI, the API and these docs. Each term here has its own link, so you can point someone straight at it.
+section: start
+order: 3
+navTitle: Glossary
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: What is the difference between a Service and an Application?, a: 'A Service is anything an Environment runs: an Application, a Compose stack or a Database. An Application is the kind built from a source and run as a container.' }
+  - { q: Why does Cloudgate not say app or host?, a: 'Because each has several meanings. Cloudgate says Application for the thing it builds, Server for a machine it deploys onto, and Domain for the address a Service answers on.' }
+  - { q: Is an Operator an Agent role or a person?, a: 'Both words exist. An Agent with the Operator role may deploy, start, stop and cancel. Separately, an Operator on the Hosted instance is a person at Octabyte who can suspend an Organization; they never see inside its Projects.' }
+---
+
+Terms are in alphabetical order. Each heading is a link target: add `#` and the term in lower case
+with hyphens, for example `/docs/glossary#wired-variable`. For how the main terms fit together,
+read [How Cloudgate fits together](/docs/concepts).
+
+## A
+
+### Access log
+
+One line for each request a Server's Traefik answers. The console's **Requests** screen reads it.
+
+### Add-on
+
+One more Server and one more Cloud Environment on a Hosted plan, for 5 USD a month.
+
+### Agent
+
+A member of an Organization that is not a person: an AI tool acting through the MCP endpoint or the Gateway, with its own role, grant and keys.
+
+### Agent key
+
+One of an Agent's credentials. It works only at the MCP endpoint and the Gateway, never on the REST API or in the console.
+
+### AI model
+
+An Application that serves one model through an Inference runtime and is reached only through the Gateway.
+
+### AI provider
+
+An Organization's setting for Cloudgate's own AI features, such as **Draft one with AI** and **Explain this log**.
+
+### Application
+
+A Service built from a source (a git repository, a Docker image or uploaded files) and run as a container.
+
+### Attached Organization
+
+An Organization whose Hosted plan is paid for by another Organization, its Paying Organization.
+
+### Authorization lease
+
+The renewable authorization a live connection (a log stream or a shell) holds, checked again on a clock so that losing access ends it.
+
+## B
+
+### Bought Server
+
+A Server bought from Cloudgate in the console, billed monthly on the Hosted plan's invoice. Hosted instance only.
+
+### Bucket
+
+A Service that holds files other Services read and write, and runs nothing itself.
+
+### Build deployment
+
+A Deployment that builds and releases one version of an Application or Compose stack.
+
+### Build host
+
+The machine a build happens on: a dedicated build Server when one is set, otherwise the Server the Service runs on.
+
+### Business
+
+The 35 USD a month Hosted plan, which adds SSO, SCIM, custom roles, forward auth and paying for other Organizations.
+
+## C
+
+### Cloud account
+
+One Organization's link to one AWS account or one Google Cloud project.
+
+### Cloud Environment
+
+An Environment that deploys into a Cloud account. The Hosted plan counts these.
+
+### Cloud run
+
+The OpenTofu plan and apply that creates or changes cloud resources for one Deployment.
+
+### Config branch
+
+The branch an Environment reads a repository-kept Project config from. Empty means the repository's default branch.
+
+### Config name
+
+A Service's fixed name in its Project config: lower-case letters, digits and hyphens, at most 63 characters.
+
+### Console-managed
+
+A Service the Project config lists by name and kind only, because the config cannot describe it yet. It is changed in the console, and a Plan never changes or destroys it.
+
+### Cron service
+
+A Service that runs a command on a timetable, in a fresh container each time.
+
+## D
+
+### Delete
+
+Destroys a Service and Cloudgate's record of it. Its volumes go only if you ask.
+
+### Deploy target
+
+Where an Environment's new Services are created: a Server, the platform host, or a Cloud account and a region.
+
+### Deployment
+
+One attempt at one thing, such as a build, a backup run, a cron run or a Cloud run, with its own log, status and timings.
+
+### Deployment log
+
+Cloudgate's record of one Deployment: what it ran and what that printed.
+
+### Deployment parent
+
+What a Deployment belongs to: an Application, a Compose stack, a schedule, a volume backup, a backup, a cloud database or an Environment network.
+
+### Dock
+
+The panel along the bottom of the console that keeps shells and logs open while you move between pages.
+
+### Docked log
+
+A log kept open in the Dock. The Dock holds up to four.
+
+### Docked shell
+
+A shell kept open in the Dock. The Dock holds up to four.
+
+### Domain
+
+A host, and optionally a path, that a Service answers on.
+
+### Drift
+
+A change made by hand in a cloud's own console that Cloudgate did not make. Applying a Plan puts Cloudgate's version back.
+
+## E
+
+### Enterprise
+
+A Hosted Organization billed by agreement with Octabyte. It counts as Business.
+
+### Enterprise license
+
+The key that unlocks the licensed features on a self-hosted instance.
+
+### Environment
+
+A named slice of a Project, such as `production` or `staging`, that owns the Services and its own variables.
+
+### Environment network
+
+The private network and the one load balancer Cloudgate makes for an Environment in a Cloud account.
+
+### Error rate
+
+The share of a Service's requests that its Server's Traefik answered with a 5xx error.
+
+### Error-rate threshold
+
+A Service's limit on its Error rate. Going over it opens an Incident.
+
+### Existing database
+
+A database made outside Cloudgate that Cloudgate uses as given, and never changes or deletes.
+
+## F
+
+### Folder link
+
+A folder's record, in `.cloudgate/link.json`, of which Service the CLI deploys it to.
+
+### Free trial
+
+The first 30 days of a Hosted plan. A card is needed to start it.
+
+### Frozen Organization
+
+An Organization whose plan lapsed or was suspended. What runs keeps running, but it starts no new work.
+
+## G
+
+### Gateway
+
+The one OpenAI-compatible address in front of every AI model, and the only place token spend is counted.
+
+### GPU reservation
+
+How many whole GPUs each running copy of an Application holds.
+
+### GPU setup
+
+What makes a Server a GPU Server. It restarts Docker, so every Service on that machine stops for a moment.
+
+## H
+
+### Host key
+
+The SSH key a Server presents. Cloudgate trusts the first one it sees and refuses a different one later.
+
+### Hosted instance
+
+The Cloudgate that Octabyte runs and sells, at `cloudgate.octabyte.app`.
+
+### Hosted mode
+
+The setting that makes an Instance the Hosted instance, with plans and billing.
+
+### Hosted plan
+
+Starter or Business, the monthly plans on the Hosted instance.
+
+## I
+
+### Incident
+
+The stretch of time an Uptime check is down or an Error-rate threshold is breached.
+
+### Inference runtime
+
+The program that serves an AI model: Ollama, vLLM or llama.cpp.
+
+### Infrastructure state
+
+Cloudgate's record of what it made in a Cloud account, kept encrypted in its own database.
+
+### Instance
+
+One running Cloudgate, known by its address.
+
+### Instance organization
+
+The first Organization on an Instance. Only its owners and admins configure the machine Cloudgate runs on.
+
+## L
+
+### Locked setting
+
+A Native setting Cloudgate refuses, because Cloudgate depends on it or because it reaches beyond the Service.
+
+## M
+
+### Managed container
+
+A container that Cloudgate can trace back to one of its Services by its labels.
+
+### Member
+
+A person's (or an Agent's) membership in one Organization, with a role.
+
+## N
+
+### Native settings
+
+The part of a Project config entry written for one deploy target: `native.docker`, `native.aws` or `native.gcp`.
+
+## O
+
+### Operator
+
+A person who is an owner or admin of the Instance organization, acting on other Organizations on the Hosted instance. Separately, Operator is also an Agent role that may deploy, start, stop and cancel.
+
+### Output
+
+A named secret value a Service hands to others, such as a database's `url`, `host` or `password`.
+
+## P
+
+### Parentless deployment
+
+A Deployment that belongs to nothing. Nothing creates one today; Cloudgate answers a request for its log with not found.
+
+### Paying Organization
+
+An Organization that pays for other Organizations on its Business or Enterprise plan.
+
+### Pending setup
+
+What a Template setup chose, waiting for its Plan to be applied. Unused ones are dropped after 30 days.
+
+### Personal key
+
+A credential that acts as you, with everything you may do, for scripts, the CLI and the REST API.
+
+### Plan
+
+One Environment's list of what applying its Project config would create, change and destroy.
+
+### Preview deployment
+
+A copy of a git-sourced Application built from another branch, on its own address.
+
+### Private web service
+
+A Service that answers HTTP only to other Services, never to the internet.
+
+### Project
+
+A named group of related Services, holding Environments and its own variables.
+
+### Project config
+
+The one description of what a Project runs, kept in Cloudgate or as `cloudgate.yaml` in a repository.
+
+### Proven domain
+
+An email domain an Organization has proven it owns with a DNS record, so single sign-on can route people to it.
+
+### Pull-request preview
+
+A Preview deployment opened for a GitHub pull request and removed when the pull request closes.
+
+## R
+
+### Remove containers
+
+Removes a Compose stack's containers and keeps everything else: its network, files, volumes and record.
+
+### Requested preview
+
+A Preview deployment someone asked for, which expires on its own.
+
+### Rollback
+
+Putting a Service back onto what an earlier Deployment produced.
+
+### Run record
+
+A Deployment for a backup, a volume backup, a schedule or a cron run, rather than a build.
+
+### Runtime log
+
+What a running Service writes.
+
+## S
+
+### Self-hosted instance
+
+A Cloudgate you install and run yourself.
+
+### Server
+
+A machine Cloudgate reaches over SSH and deploys Services onto.
+
+### Server markup
+
+The percentage Octabyte adds to the provider's price of a Bought Server.
+
+### Server threshold
+
+A CPU or memory percentage for a Server. Crossing it sends a notification.
+
+### Service
+
+Anything an Environment runs: an Application, a Compose stack or a Database.
+
+### Setup record
+
+A Project's note that some of its Services came from a Template.
+
+### Setup run
+
+One run of a Server's setup, which installs Docker, a Swarm and Traefik. It starts only when someone confirms it.
+
+### Shell tab
+
+The tab that opens a shell in one of a Service's own containers.
+
+### Size
+
+How much CPU and memory a Service may use, from `xsmall` (0.25 CPU, 512 MB) to `2xlarge` (8 CPU, 16 GB), or a custom pair.
+
+### Stack VM
+
+The virtual machine a Compose stack runs on in a Cloud account.
+
+### Starter
+
+The 15 USD a month Hosted plan, with 3 Servers and 3 Cloud Environments.
+
+### Stop
+
+Leaves a Service with zero running containers and keeps everything else.
+
+## T
+
+### Template
+
+A ready-made starting point for a Project's Services, from the Template catalogue.
+
+### Template catalogue
+
+The published list of Templates an Instance offers.
+
+### Token spend
+
+The tokens an AI model's calls used, counted at the Gateway per model and per calling Agent.
+
+### Trace store
+
+One Service's own store of OpenTelemetry traces, on its Server.
+
+### Trusted origin
+
+A web address single sign-on may sign people in from.
+
+## U
+
+### Uptime check
+
+A request Cloudgate makes to a Service on an interval, recording up or down.
+
+## V
+
+### Volume lock
+
+The rule that only one backup, restore or delete works on a Docker volume at a time.
+
+## W
+
+### Wired variable
+
+A variable whose value is another Service's Output, filled in at each deploy and never saved.
+
+### Worker
+
+A Service that runs all the time with no Domain and no address of its own.
+
+## Words Cloudgate does not use
+
+Cloudgate avoids these words because each one means something else, or several things. If you
+search for one of them, this is the word to look for instead.
+
+| Instead of | Cloudgate says |
+|---|---|
+| Team, workspace, tenant | Organization |
+| App group | Project |
+| Stage, namespace | Environment |
+| App, workload | Application (or Service, for any kind) |
+| Host, node, machine | Server |
+| Release, build (for the record) | Deployment |
+| Build log, log file | Deployment log |
+| Container log | Runtime log |
+| Request log, traffic log | Access log |
+| Route, hostname, router | Domain |
+| Diff, changeset | Plan |
+| Manifest, blueprint, spec | Project config |
+| Linked env, binding | Wired variable |
+| Connection string, export | Output |
+| Tier, instance type, limits | Size |
+| Revert, undo | Rollback |
+| Preview environment, ephemeral environment, PR deployment | Preview deployment |
+| Health check, monitor | Uptime check (a health check is the container's own `HEALTHCHECK`) |
+| Outage, alert, downtime | Incident |
+| Pause, halt | Stop |
+| Tear down, reset | Remove containers |
+| Remove, destroy | Delete |
+| User, collaborator | Member |
+| Bot, service account, integration | Agent |
+| API key, token, personal access token | Personal key or Agent key |
+| Provider, connection | Cloud account |
+| One-click app, marketplace, recipe | Template |
+| VPS, managed server | Bought Server |
+| SaaS, cloud version | Hosted instance |
+| On-prem, community edition | Self-hosted instance |
+| Pro, subscription | Hosted plan (Starter, Business) |
+| External database, imported database | Existing database |
+| Terminal dock, drawer | Dock |
+| Provisioning, setup log | Setup run |
+
+Related reading: [Members and roles](/docs/guide/members-and-roles) for the roles named here,
+[Project config and Plans](/docs/guide/project-config), [Deployments and rollbacks](/docs/guide/deployments),
+and the [security overview](/security) for how keys and secrets are kept.

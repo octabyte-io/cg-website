@@ -1,0 +1,111 @@
+---
+title: Notifications
+seoTitle: Send Cloudgate alerts to Slack, email and more
+description: Send Cloudgate events to Slack, Discord, Teams, Telegram, email, ntfy or a webhook, and choose which Deployments, backups and Incidents each channel hears.
+lede: A notification channel is a place Cloudgate tells you something happened, such as a failed Deployment or a Service that stopped answering. Each channel picks the events it wants.
+section: guide
+group: Operate
+order: 3
+badges: ['Owner or Admin']
+howto:
+  name: Add a notification channel
+  steps:
+    - { name: Open Notifications, text: 'Open Settings and then Notifications, and press Add a channel.' }
+    - { name: Pick the channel, text: 'Choose where messages go, such as Slack or Email over SMTP.' }
+    - { name: Enter its details, text: 'Name the channel and paste its webhook URL, token or SMTP details.' }
+    - { name: Tick the events, text: 'Tick each event the channel should hear about. A channel with nothing ticked stays silent.' }
+    - { name: Test it and save, text: 'Press Send a test to check the message arrives, then save the channel.' }
+faq:
+  - { q: Why does my channel get nothing?, a: 'Check that it has events ticked. A channel with no event ticked is configured and silent by design.' }
+  - { q: How many messages does one Incident send?, a: 'Two: one when it opens and one when it closes, saying why. Nothing repeats while it stays open.' }
+  - { q: Can I see a saved webhook URL or password again?, a: 'No. Credentials are stored encrypted and never shown again. When editing, leave the field empty to keep the saved one, or type a new value.' }
+---
+
+Notification channels belong to the Organization. Every channel subscribes to the same set of
+events; you tick the ones it should receive.
+
+## What you can do
+
+- Send to 12 kinds of channel, from Slack to a custom webhook.
+- Give each channel its own events, so on-call hears about Incidents and a team channel hears about
+  Deployments.
+- Send a test message before you rely on it.
+
+## Add a channel
+
+<Steps>
+<Step title="Open Notifications">
+Open **Settings** > **Notifications** and press **Add a channel**.
+<Screenshot name="notifications" alt="Settings, Notifications for Northwind Labs, listing a Slack channel and an Email over SMTP channel with their events" caption="Each channel shows where it goes and how many events it receives." />
+</Step>
+<Step title="Pick where messages go">
+Choose one of the channels below. Each asks for its own credentials next.
+</Step>
+<Step title="Name it and enter its details">
+Give it a **Name**, such as `Ops on-call`; only you see it. Then fill in the fields for that
+channel.
+</Step>
+<Step title="Tick its events">
+Under **Send this channel**, tick each event it should receive.
+</Step>
+<Step title="Test it and save">
+Press **Send a test** to check a message arrives, then save the channel.
+</Step>
+</Steps>
+
+## Channels and what each asks for
+
+| Channel | What you enter |
+|---|---|
+| **Slack** | **Webhook URL**, optional **Channel override** |
+| **Discord** | **Webhook URL**, **Decorate the message** |
+| **Mattermost** | **Webhook URL**, **Channel override**, **Post as** |
+| **Microsoft Teams** | **Webhook URL** |
+| **Lark** | **Webhook URL** |
+| **Email over SMTP** | **SMTP server**, **Port**, **Username**, **Password**, **From**, **To** (one address per line) |
+| **Resend** | **API key**, **From**, **To** |
+| **Telegram** | **Bot token**, **Chat ID**, optional **Topic ID** for a group with topics |
+| **Gotify** | **Server URL**, **App token**, **Priority**, **Decorate the message** |
+| **ntfy** | **Server URL**, **Topic**, optional **Access token**, **Priority** |
+| **Pushover** | **User key**, **API token**, **Priority**, **Retry every**, **Give up after** |
+| **Custom webhook** | **Endpoint**, **Headers** (name and value) |
+
+On a public ntfy server, the topic name is the only thing keeping it private: make it unguessable.
+
+## Events you can send
+
+| Event | When it fires |
+|---|---|
+| **A Deployment succeeded** | A build finished and the Service is running. |
+| **A Deployment failed** | A build errored, with the builder's message. |
+| **A database backup ran** | Both outcomes, written or not. |
+| **A volume backup ran** | Both outcomes, with the archive's size. |
+| **Docker cleanup ran** | The scheduled prune of unused images, containers and volumes. |
+| **A Server crossed a threshold** | CPU or memory crossed a Server's threshold, and when it came back. |
+| **Cloudgate restarted** | The instance started, which is also how you learn it went down. |
+| **An enterprise license lapsed** | Once, when a license's expiry passes. |
+| **An enterprise license is about to expire** | 14 days and 3 days before expiry. |
+| **An Agent was rate limited** | An Agent's first refused call after running out of budget. |
+| **Requested previews could not be torn down** | Expired previews on a Server are still there after 15 minutes of retries. |
+| **Service incidents** | An Incident opened or closed, from an Uptime check or an Error-rate threshold. |
+| **An AI model is not answering** | A call through the Gateway cannot reach a model that should be running. |
+
+The list also shows **Cloudgate backed itself up**; nothing fires it yet.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- Channels are per Organization, not per Project or per person.
+- Adding and editing channels needs an owner, an admin, or a custom role that allows it.
+- Credentials are never shown again after saving.
+- Notifications are not repeated while an Incident or a threshold breach stays open, and there is
+  no maintenance window to silence them.
+</Callout>
+
+## Related pages
+
+- [Monitoring](/docs/guide/monitoring): the Uptime checks, thresholds and Incidents behind most alerts.
+- [Deployments](/docs/guide/deployments): what a succeeded or failed Deployment means.
+- [Backups](/docs/guide/backups): database and volume backups that report here.
+- [Agents](/docs/guide/agents): rate limits and how to suspend an Agent.
+- [Everything Cloudgate does](/features).

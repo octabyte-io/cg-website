@@ -1,0 +1,145 @@
+---
+title: Servers
+seoTitle: Add your own Server to Cloudgate over SSH
+description: Connect your own machine to Cloudgate over SSH, run its setup to install Docker Swarm and Traefik, and manage its host key, shell, telemetry and removal.
+lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto. Add any machine you control, run its setup once, and it is ready for Applications, databases and Compose stacks.
+section: guide
+group: Where it runs
+order: 1
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+howto:
+  name: Add a Server over SSH
+  steps:
+    - { name: 'Make an SSH key', text: 'In Servers, press Manage SSH keys and generate a key, or paste one you have. Add its public line to the server''s ~/.ssh/authorized_keys.' }
+    - { name: 'Add the Server', text: 'Press Add a Server and enter its name, address, SSH port, SSH user and key, then press Add Server.' }
+    - { name: 'Check the connection', text: 'On the Infrastructure tab, press Check now under Reaching this Server.' }
+    - { name: 'Run setup', text: 'On the Setup card, press Run setup and confirm. Cloudgate installs Docker, a Swarm and Traefik.' }
+faq:
+  - { q: 'Which operating system does a Server need?', a: 'The setup installs its packages with apt-get, so use Ubuntu or Debian. On other systems that step is skipped and you install unzip, curl, wget, git, jq and openssl yourself.' }
+  - { q: 'Does Cloudgate need root?', a: 'It needs root, or a user with passwordless sudo, over SSH.' }
+  - { q: 'What happens to my machine if I remove the Server?', a: 'Nothing. Cloudgate forgets the machine and does nothing to it. Removal is refused while Services are still recorded on it.' }
+  - { q: 'Is it safe to run the setup again?', a: 'Yes. Every step checks before it acts, so Run setup again changes only what is missing.' }
+---
+
+A Server can be a VPS, a dedicated machine or a box under your desk, as long as Cloudgate can reach
+it over SSH. On the Hosted instance you can also [buy one from Cloudgate](/docs/guide/bought-servers).
+On a self-hosted instance, the machine Cloudgate runs on is available as **This Cloudgate host**
+without adding it.
+
+## What you can do
+
+- Add a machine over SSH, as a deploy Server or a build Server.
+- Run its setup, which installs Docker, a Swarm and Traefik.
+- Check that Cloudgate can reach it, and see what is installed and what runs there.
+- Open a shell on it from the console, and see its CPU, memory, disk and network.
+- Turn on request logging and request metrics for its Traefik.
+- Remove it from Cloudgate.
+
+## Add a Server over SSH
+
+<Steps>
+<Step title="Make an SSH key">
+Open **Servers** in the rail. If your Organization has no SSH key yet, press **Manage SSH keys**,
+then **Generate one** or **Paste one I have**. Copy its public line into the machine's
+`~/.ssh/authorized_keys`.
+<Screenshot name="servers-list" alt="The Servers list of Northwind Labs with fra-1 and nyc-edge, their status and what runs on them" caption="Every Server in the Organization, with its readiness." />
+</Step>
+<Step title="Add the Server">
+Press **Add a Server** and fill in:
+
+- **Name**, such as `fra-1`, and an optional description.
+- **Address**: an IP address or a hostname.
+- **SSH port** and **SSH user**: root, or a user with passwordless sudo.
+- **SSH key**: the key from the previous step.
+- **Role**: **Deploy**, or **Build** for a Server that only builds images for other Servers.
+
+Press **Add Server**. Adding it records the machine; it does not connect to it yet.
+
+<Screenshot name="servers-add" alt="The Add a Server dialog with fields for the name, address, SSH port, user and SSH key" caption="Name, address, SSH port, user and the key Cloudgate signs in with." />
+
+</Step>
+<Step title="Check that Cloudgate can reach it">
+On the Server's **Infrastructure** tab, under **Reaching this Server**, press **Check now**. The
+readiness findings say what is missing; **Read again** refreshes them.
+</Step>
+<Step title="Run the setup">
+On the **Setup** card press **Run setup**, read the command that will run, and confirm. The setup:
+
+1. installs unzip, curl, wget, git, jq and openssl if any is missing (on Debian, Ubuntu or
+   Raspbian; elsewhere this step is skipped);
+2. installs Docker;
+3. starts a Docker Swarm and creates the `cloudgate-network` network;
+4. creates `/etc/cloudgate` and starts Traefik on ports 80 and 443.
+
+<Screenshot name="server-infrastructure" alt="The Infrastructure tab of the fra-1 Server, with its readiness checks and the Setup card showing each step done" caption="Each setup step shows its result; the log can be opened in the Dock." />
+</Step>
+</Steps>
+
+When the setup is done, the Server is ready. Pick it as an Environment's Deploy target or as the
+Server of a new Service; see [Projects and Environments](/docs/guide/projects-and-environments).
+
+<Callout type="note" title="The setup runs only when you press it">
+A setup run starts only from a confirmed **Run setup**. Opening or docking its log never starts
+one. Once started it cannot be stopped. **Run setup again** is safe: every step checks before it
+acts. You can replace the default script with your own on the **Settings** tab, under **Setup
+command**.
+</Callout>
+
+## Check the Server's host key
+
+The first time Cloudgate connects, it records the Server's SSH host key. The **Access** tab's
+**Host key** card shows its SHA256 fingerprint; compare it with `ssh-keygen -lf` on the machine.
+If the machine later presents a different key, Cloudgate refuses to connect.
+
+<Callout type="warn" title="Forget host key">
+Press **Forget host key** only after you reinstalled the machine or replaced its host keys on
+purpose. A changed key you did not expect can mean someone is in between. Changing the address or
+port also forgets it.
+</Callout>
+
+## Work on the Server
+
+- **Overview**: readiness and what runs here.
+- **Telemetry**: CPU, memory, disk and network. Set up sampling on
+  [Monitoring](/docs/guide/monitoring).
+- **Docker & Swarm**: Swarm services, containers, the join command and nodes.
+- **Access**: the SSH key (**Change the key**) and the host key.
+- **Terminal**: **Open a shell** over SSH. Cloudgate records nothing you run there and undoes none
+  of it.
+- **Settings**: name and connection (saving checks nothing; use **Check now**), **Setup command**,
+  **Prune Docker nightly**, **Request logging** and **Request metrics**. Turning either of the last
+  two on restarts Traefik on that Server.
+
+<Screenshot name="server-telemetry" alt="The Telemetry tab of the fra-1 Server with CPU, memory, disk and network charts from stored samples" caption="A Server's own charts, from the samples Cloudgate stores." />
+
+## Remove a Server
+
+On **Settings**, **Remove this Server**. Cloudgate forgets the machine and does nothing to it: the
+containers and data on it stay. Removal is refused while Services are recorded on the Server;
+delete them first.
+
+<Callout type="warn" title="A bought Server is different">
+Removing a [Bought Server](/docs/guide/bought-servers) deletes the machine, its data and its
+backups.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Who and where">
+Adding and removing Servers needs the owner or admin role, or a custom role that allows it. On the
+Hosted instance, each Server counts against your plan (3, plus one per Add-on), and the machine
+Cloudgate itself runs on is never available.
+</Callout>
+
+- Move a Service from one Server to another.
+- Stop a setup run once it has started.
+- Build more than one Deployment at a time on a Server without an Enterprise license.
+- Remove a Server while Services are still recorded on it.
+
+## Related pages
+
+- [Buy a Server from Cloudgate](/docs/guide/bought-servers) (Hosted only).
+- [Cloud accounts](/docs/guide/cloud-accounts) to deploy to AWS or Google Cloud instead.
+- [Monitoring](/docs/guide/monitoring): Server metrics and thresholds.
+- [Install Cloudgate on your own server](/docs/self-host/install).
+- [Pricing](/pricing) for how Servers count on the Hosted plans, and [Security](/security).

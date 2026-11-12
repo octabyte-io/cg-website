@@ -1,0 +1,127 @@
+---
+title: Agent workflows that work well with Cloudgate
+seoTitle: Cloudgate agent workflows to fix and deploy
+description: Step-by-step tool sequences for AI agents on Cloudgate. Diagnose a failed Deployment, fix and preview a branch, deploy and watch health, and explain a Plan.
+lede: Four sequences an agent can follow with Cloudgate's tools, each with the calls in order, what to poll and when to stop. Give them to your agent as instructions, or use them to judge what it did.
+section: mcp
+order: 5
+navTitle: Workflows
+badges: ['Hosted and self-hosted']
+howto:
+  name: Fix a failed Deployment and preview the fix with an AI agent
+  steps:
+    - { name: 'Find the Service', text: 'Call list_projects, list_environments and get_environment to find the Application''s serviceId.' }
+    - { name: 'Read why it failed', text: 'Call list_deployments, then read_deployment_log with the failed deploymentId.' }
+    - { name: 'Push a fix', text: 'Fix the code and push it to a new branch with the git access you gave the agent.' }
+    - { name: 'Ask for a preview', text: 'Call create_preview with the applicationId and branch, then poll get_preview until its build ends.' }
+    - { name: 'Check and clean up', text: 'Read the preview build''s log, share the preview url, and call delete_preview when it is no longer needed.' }
+faq:
+  - { q: 'Can an agent merge its own fix to production?', a: 'Not through Cloudgate. It can push a branch with git access you give it and preview it. Merging is up to your git provider''s rules; an Operator Agent can then call <code>deploy_service</code> on the production Service if you granted it.' }
+  - { q: 'How often should an agent poll?', a: 'Every few seconds is plenty. Polling spends the read budget, 120 calls a minute with a burst of 60, and a build usually takes minutes.' }
+  - { q: 'What should an agent do with "Not found or not permitted."?', a: 'Stop and tell you what it needed. It is an access decision: retrying or trying another id will not change it. You widen its grant with <strong>Manage access</strong>.' }
+---
+
+Every workflow uses tools from the [tool reference](/docs/mcp/tools), within the limits in
+[guard rails](/docs/mcp/guard-rails). The examples use the fictional Northwind Labs organization: the
+`web` Application in the `production` Environment of the `storefront` Project.
+
+## Find a Service
+
+Every workflow starts by turning names into ids:
+
+1. `list_projects` answers the granted Projects, including `storefront` with its `projectId`.
+2. `list_environments` with that `projectId` answers `production` with its `environmentId`.
+3. `get_environment` with that `environmentId` answers each granted Service's `serviceType` and
+   `serviceId`, including `web` (`application`).
+
+An agent that already has the ids can skip this.
+
+## Diagnose a failed Deployment
+
+**Role:** Reader.
+
+1. `list_deployments` with `serviceType: "application"` and the `serviceId` of `web`. The newest
+   comes first; look for `status: "error"`.
+2. `read_deployment_log` with that `deploymentId`. It answers the last 100 lines; ask for up to 500
+   with `lines`, or fewer if the answer is over 1 MiB.
+3. Explain the cause. If the log is full of `••••••`, a short, common word is probably stored as a
+   secret; see [what the mask hides](/docs/mcp/guard-rails#what-does-the-secret-mask-hide).
+
+## Fix a branch and preview it
+
+**Role:** Operator, with a grant on `web`. **Also needs:** git write access you give the AI tool, and
+requested previews allowed on the Application in the console. See [previews](/docs/guide/previews).
+
+<Steps>
+  <Step title="Read why it failed">
+    Follow the diagnosis above, then fix the code locally.
+  </Step>
+  <Step title="Push the fix to a branch">
+    Push to a new branch, such as `fix/checkout-total`, with the agent's own git access. Cloudgate
+    plays no part in this step.
+  </Step>
+  <Step title="Ask for a preview">
+    Call `create_preview`:
+
+```json
+{ "applicationId": "aW3b7c…", "branch": "fix/checkout-total", "ttlMinutes": 120 }
+```
+
+    It answers as soon as the build is queued, with `previewDeploymentId`, the queued
+    `deploymentId` and the preview's `url`. Leave `ttlMinutes` out for 60 minutes.
+  </Step>
+  <Step title="Wait for the build">
+    Poll `get_preview` every few seconds until `latestDeploymentId`'s Deployment has ended, or poll
+    `list_deployments`. If it failed, `read_deployment_log` with that id, fix, push again and call
+    `redeploy_preview`, which rebuilds the branch as it is now without moving the expiry.
+  </Step>
+  <Step title="Hand it over">
+    Share the `url`. If a person needs more time, `extend_preview` sets a new window from now. When
+    the preview is no longer needed, `delete_preview` expires it at once and its copy is gone within
+    about a minute.
+  </Step>
+</Steps>
+
+Each `create_preview` makes a new preview, even of the same branch, and an Application holds a
+limited number. Rebuild with `redeploy_preview` rather than asking again.
+
+## Deploy and watch health
+
+**Role:** Operator.
+
+1. `deploy_service` with `serviceType: "application"` and the `serviceId` of `web`. It answers the
+   `deploymentId` once queued. If a Deployment was already waiting, it answers that one with
+   `coalesced: true`; calling twice is safe.
+2. Poll `list_deployments` until that Deployment is `done`, `error` or `cancelled`. A `pending`
+   Deployment may be waiting behind another build on the same Server.
+3. On `error`, read the log as in the diagnosis above. To stop a bad build, `cancel_deployment`
+   works while it is queued or building.
+4. After `done`, call `get_service_health` for `web`. `state` sums it up: `up` is healthy; `incident`
+   or `down` names the failing Uptime check or the breached Error-rate threshold in `openIncidents`.
+5. Report what changed. The agent cannot change a check or a threshold, so if one is wrong, it says
+   so and a person fixes it in the console.
+
+## Explain a Project config change
+
+**Role:** Reader.
+
+1. `request_plan` with the `environmentId` of `production`. It compares the
+   [Project config](/docs/guide/project-config) with what the Environment has saved and answers the
+   Plan; `status: "unchanged"` means there is nothing to apply. This spends the write budget.
+2. `get_project_config` with the `projectId`, to read the YAML the Plan comes from.
+3. Explain each step of the Plan: what would be created, changed or destroyed, and any notes such as a
+   variable with no value.
+4. Leave applying to a person: no tool applies or dismisses a Plan.
+
+## When to stop and ask
+
+An agent should stop and tell you, rather than retry, when it gets:
+
+- `Not found or not permitted.` or `This Agent's role does not include …`: an access decision. Widen
+  the grant or change the role in **Settings**, **Agents**;
+- `This Service has no source to deploy from.`: a person sets the source in the console;
+- a preview refusal naming the Instance's maximum or the Application's limit: ask with fewer minutes,
+  or delete a preview first.
+
+A 429 is different: wait the `Retry-After` seconds and carry on. Every call, including the refused
+ones, is in the [audit log](/docs/guide/audit-log).

@@ -1,0 +1,136 @@
+---
+title: Deploy your first app with the get-started wizard
+navTitle: Get started wizard
+seoTitle: Deploy your first app with the setup wizard
+description: Pick an app from the template catalogue, get a Server (buy one or bring your own) and press Deploy. The wizard does the rest and gives you a working address.
+lede: The get-started wizard is the shortest way from "I want this app" to a running app. You choose where it runs, Cloudgate sets up the Server and deploys it, and you get an address to open. No deployment experience needed.
+section: guide
+group: Deploy
+order: 1
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+howto:
+  name: Deploy an app with the get-started wizard
+  steps:
+    - { name: 'Pick an app', text: 'On the template catalogue website, open the app you want and press its Deploy button. The console opens the wizard.' }
+    - { name: 'Sign in', text: 'Sign in, or create an account. The wizard remembers which app you picked.' }
+    - { name: 'Choose where it runs', text: 'Use a Server you already have, get a server from Cloudgate (Hosted only), or connect your own server with the one command the wizard gives you.' }
+    - { name: 'Deploy', text: 'Fill in the few values the app asks for and press Deploy. Cloudgate applies the setup once the Server is ready.' }
+    - { name: 'Open the app', text: 'When it is running, press Open to visit the address Cloudgate made for you.' }
+faq:
+  - { q: 'Do I need my own domain name to start?', a: 'No. Cloudgate makes a free sslip.io address that works straight away over plain HTTP. Add your own domain later to get HTTPS.' }
+  - { q: 'Can I use a server I already rent?', a: 'Yes. Choose Use my own server, enter its address and SSH details, and run the one command the wizard shows on that server. You need SSH access to it.' }
+  - { q: 'Why did my app not start by itself?', a: 'Cloudgate applies the setup on its own only when the Plan holds nothing but what the wizard asked for. If anything else is in it, the Plan waits for you to review and Apply it, and the wizard says why.' }
+  - { q: 'Does the wizard work for every template?', a: 'It works for any app in the catalogue that the Server can take. If the app is not in the catalogue the console you use offers, the wizard says so.' }
+---
+
+The wizard lives at `/get-started` on the console. You normally reach it from a **Deploy** button on
+the [template catalogue](https://cgt.octabyte.io/), which opens it with that app already chosen.
+Everything it needs to remember is kept in the page address, so you can reload, go through
+payment or confirm your email and land back where you were.
+
+## What you can do
+
+- Deploy any app from the template catalogue in three steps, without writing any configuration.
+- Run it on a Server you already added, a server you buy from Cloudgate (Hosted only), or a server
+  you rent elsewhere, such as a VPS.
+- Get a working web address at once, with passwords and keys the app needs made for you.
+
+## Deploy an app
+
+<Steps>
+<Step title="Pick an app and sign in">
+On the template catalogue website, open the app and press its **Deploy** button. If you are not
+signed in, the console asks you to. **Create an account** keeps the app you picked: on the Hosted
+instance, following the link in the confirmation email signs you in and brings you back to the
+wizard.
+</Step>
+<Step title="Choose where it should run">
+The wizard asks **Where should Ghost run?** (with your app's name). It offers what fits best first:
+
+- If your Organization already has a Server that is ready, **Use fra-1** (with your Server's
+  name) puts the app there.
+- **Get a server from Cloudgate**, marked **Recommended**, buys a server for you. This is on the
+  Hosted instance only; see [Buy a Server from Cloudgate](/docs/guide/bought-servers).
+- **Use my own server** is for a server you already rent. You need its address and SSH access
+  to it.
+
+<Screenshot name="get-started-where" alt="The get-started wizard asking where the app should run, with the options Get a server from Cloudgate and Use my own server" caption="A Server you already have is offered first; otherwise you pick one of the two ways to get one." />
+</Step>
+<Step title="Connect your own server (if you chose it)">
+Fill in **Your server**: the address, SSH port, SSH user, and a name. If your Organization has no
+SSH key yet, press **Make a key**. The wizard then shows one line to run on your server, which adds
+Cloudgate's public key to `~/.ssh/authorized_keys`:
+
+```bash
+mkdir -p ~/.ssh && echo "ssh-ed25519 AAAA... cloudgate" >> ~/.ssh/authorized_keys
+```
+
+Copy the exact line from the wizard (it holds your real key), run it on the server, then press
+**Save and continue** and **Connect my server**. Progress shows **Signed in to your server**,
+then **Installing what apps need**, then **Ready**.
+</Step>
+<Step title="Or wait for your bought server">
+If you chose to buy one, pay at checkout. The wizard then shows **Payment**, **Creating your
+server**, **Setting it up** and **Ready to use**. Nothing deploys until the server is ready.
+Reloading the page is safe: the wizard picks up where it was.
+</Step>
+<Step title="Fill in the details and deploy">
+The last step asks only for the values the app needs. **Passwords and keys it needs are made for
+you.** A summary, **What Deploy makes**, lists the Server, a **New Project** named after the app
+and the **Web address** (**Made for you**). Press **Deploy Ghost** (with your app's name).
+</Step>
+<Step title="Open your app">
+When the app is running, the wizard shows its address, a button to open it, **Open the Project**,
+and **What next**. Open the address to finish the app's own first-run setup.
+</Step>
+</Steps>
+
+What you get: a new Project named after the app, with a `production` Environment on your Server,
+and the app's Services deployed in it. From here it is an ordinary Project: see
+[Projects and Environments](/docs/guide/projects-and-environments).
+
+<Callout type="note" title="When the app does not start by itself">
+Cloudgate applies the setup for you, as you, once the Server is ready, but only if the
+Environment's [Plan](/docs/guide/project-config) holds nothing but what the wizard asked for. If
+the Plan holds more, it is left for you to review and **Apply**, and the wizard says why. A
+refused Apply also says why.
+</Callout>
+
+## Add HTTPS with your own domain
+
+The address the wizard makes is a free `sslip.io` host, served over plain HTTP. To serve the app
+over HTTPS, add your own domain to its Service, for example `shop.northwind.example`, and point
+its DNS at the Server. See [Domains and HTTPS](/docs/guide/domains).
+
+## If you have no plan yet
+
+On the Hosted instance, an Organization without a plan starts the Starter free trial on the way:
+
+- **Use my own server** sends you to checkout first (**Start your 30-day free trial**). A card is
+  needed.
+- **Get a server from Cloudgate** starts the trial as part of the purchase. The server itself is
+  charged at once; it has no trial. See [Billing and plans](/docs/guide/billing).
+
+## What you cannot do
+
+<Callout type="limit" title="Who can use the wizard">
+The wizard adds a Server, so you need a role that may create Servers (owner or admin, or a custom
+role that allows it). A member without it is told to ask the Organization's owner or admin. See
+[Members and roles](/docs/guide/members-and-roles).
+</Callout>
+
+- Buying a server is offered only on the Hosted instance, and only where buying is set up.
+- The wizard always makes a new Project. To add a template to an existing Project, use
+  [Templates](/docs/guide/templates) in the console instead.
+- Cloudgate cannot apply the setup by itself for a Project whose config is kept in a repository;
+  you paste the template's part into your `cloudgate.yaml` instead.
+- An app installed from a template gets no updates from the catalogue afterwards.
+
+## Related pages
+
+- [Template catalogue in the console](/docs/guide/templates): set an app up inside a Project you
+  already have.
+- [Add a Server over SSH](/docs/guide/servers): what the setup installs on your own server.
+- [Buy a Server from Cloudgate](/docs/guide/bought-servers): sizes, locations and billing.
+- [Quickstart](/docs/quickstart): deploy your own code instead of a template.
+- [Pricing](/pricing) for the Hosted plans and the free trial.

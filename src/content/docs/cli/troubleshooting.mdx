@@ -1,0 +1,172 @@
+---
+title: Fix Cloudgate CLI errors
+seoTitle: Cloudgate CLI exit codes and common errors fixed
+description: What each Cloudgate CLI exit code means, and how to fix common errors such as not logged in, plain http refused, wrong Organization and missing values.
+lede: Every failure prints one Error line on stderr, at most one hint under it, and exits with a code that says what kind of failure it was. Start with the code, then find the message below.
+section: cli
+order: 4
+navTitle: Troubleshooting
+badges: ['Hosted and self-hosted', 'Beta']
+faq:
+  - { q: 'Why does my CI job exit 2 when it works on my laptop?', a: 'In CI nothing can answer a question, so anything the CLI would have asked is refused with exit 2, naming the flag it needs: usually <code>--project</code>, <code>--env</code>, <code>--service</code> or <code>--switch-source</code>.' }
+  - { q: 'Does Ctrl-C cancel my Deployment?', a: 'No. It stops the CLI watching and exits 130; the build carries on. Cancel it in the console, at the address the CLI prints.' }
+  - { q: 'Why does cloudgate status exit 0 when my Service is down?', a: 'Because it reports and does not judge: it exits 0 whenever it could read the Service. Read its <code>State</code> line, or <code>state</code> in <code>--json</code>.' }
+  - { q: 'My key expired. Do I need to log out first?', a: 'No. The CLI forgets a saved login the Instance no longer accepts and tells you to run <code>cloudgate login</code> again.' }
+---
+
+The CLI writes data to stdout and everything else, errors included, to stderr. With `--json`,
+stdout stays empty when a command fails, so a script never parses half an answer. The
+[command reference](/docs/cli/commands) lists what each command prints when it works.
+
+## What does each exit code mean?
+
+| Code | Meaning | First thing to check |
+|---|---|---|
+| `0` | It worked: the Deployment is done, or queued with `--detach` | |
+| `1` | It failed: the Instance refused, or the Deployment failed or was cancelled | The `Error:` line and its hint |
+| `2` | Wrong use: unknown flag, input missing and no one to ask, plain `http://` refused | The flag the message names |
+| `3` | Not logged in, or the login ended or was refused (any 401) | `cloudgate whoami` |
+| `130` | Stopped with Ctrl-C | Nothing: a build you were watching goes on |
+
+`cloudgate status` and `cloudgate logs --deployment -f` report without judging: they exit 0 when
+they could read the facts, even for a stopped Service or a failed Deployment.
+
+## Logging in and keys
+
+### Error: not logged in to https://cloudgate.octabyte.app
+
+No saved login for that Instance and no `CLOUDGATE_KEY` (exit 3). Run `cloudgate login`, adding
+`--instance <url>` for a self-hosted one. In CI, set `CLOUDGATE_KEY` to a
+[Personal key](/docs/guide/personal-keys).
+
+### Error: no login for … the Instance this folder is linked to
+
+The folder's link names an Instance you have not logged in to on this computer (exit 3). Run the
+`cloudgate login --instance <url>` the hint prints.
+
+### Error: your login to … has ended
+
+The saved key ran out (keys from `cloudgate login` end after 90 days) or was deleted in the console.
+The CLI has already forgotten it; run `cloudgate login` again (exit 3).
+
+### The Instance does not accept the key in CLOUDGATE_KEY
+
+The Personal key in `CLOUDGATE_KEY` has ended or was revoked (exit 3). Create a new one under
+**Settings**, **Account**, **Personal keys** and update the CI secret. An agent key never works
+here: it is accepted only at the [MCP endpoint](/docs/mcp) and the Gateway.
+
+### logout refuses with CLOUDGATE_KEY set
+
+`CLOUDGATE_KEY` is never saved, so there is nothing to log out of (exit 2). Delete that key in the
+console, or unset the variable to log out of a saved login.
+
+## Instance addresses
+
+### Error: http://… is plain http://, which sends your key unencrypted
+
+Plain `http://` is refused except for `localhost` and `127.0.0.1` (exit 2). Use the `https://`
+address, or pass `--allow-http` if you accept sending the key in clear, for example on a private
+network while a self-hosted Instance has no domain yet.
+
+### Error: … is not a Cloudgate
+
+The address did not answer as a Cloudgate Instance (exit 1). Give the address you open the console
+at, not the API's. The CLI follows no redirects, so use the final address.
+
+### Error: … runs Cloudgate 0.0.x, and this CLI needs 0.1.0 or newer
+
+The Instance is older than the CLI supports (exit 1). Upgrade the Instance; a newer Instance is
+always fine.
+
+### Error: … is not the Instance this folder is linked to
+
+`--instance` or `CLOUDGATE_INSTANCE` names a different Instance from the folder's link (exit 2).
+Leave the flag out, or run `cloudgate link --instance <url>` to link the folder to that Instance.
+
+### Error: could not reach …
+
+The network call failed (exit 1); the message ends with the reason, such as `ECONNREFUSED` or
+`ENOTFOUND`. Check the address, your network and any proxy.
+
+## Finding the Service
+
+### Error: no Project. Pass --project or set CLOUDGATE_PROJECT.
+
+With no terminal, or with `--yes`, a missing level is refused naming its flag (exit 2). Pass it, set
+the variable, or run `cloudgate link` in a terminal first.
+
+### Error: no Service with Config name "web" in …
+
+No Service in that Environment has that Config name (exit 1). The hint lists the ones that exist.
+`--service` takes the Config name, the name in the [Project config](/docs/guide/project-config),
+which can differ from the name the console shows.
+
+### Error: 2 Projects are named "storefront": …
+
+Names are matched ignoring case, and two match (exit 2). Pass the id of the one you mean; the
+message lists them.
+
+### "Check --org, CLOUDGATE_ORG or this folder's link"
+
+The key's owner is not a member of the Organization the run named (exit 1). Fix `--org`,
+`CLOUDGATE_ORG` or the link.
+
+### "Ask an owner of Northwind Labs for access."
+
+Your role or grant does not allow this (exit 1), for example deploying without permission to create
+Deployments. An Owner or Admin can change it; see [members and roles](/docs/guide/members-and-roles).
+
+## Deploying
+
+### Error: … is a Compose stack; cloudgate deploy uploads to Applications only
+
+`deploy`, `logs` and `vars` work on Applications only (exit 1). Deploy a Compose stack or a
+database from the console.
+
+### Error: … and deploying this folder switches it to uploaded files
+
+The Service builds from git or an image, and there is no terminal to ask (exit 2). Pass
+`--switch-source` if that is what you want.
+
+### Error: the Project config names … as …'s source, and it is kept in a repository
+
+The Project config in your repository owns that Service's source, so its next
+[Plan](/docs/guide/project-config) would undo the upload (exit 1, even with `--switch-source`). Mark
+the Service `managed: console` in the Project config first.
+
+### It says "waiting for Deployment … to finish"
+
+Another build of the same Service is pending or running, and the CLI never uploads during a build.
+It waits, then uploads. Past a Deployment held by a Plan, or one pending or running for more than 60
+minutes, it goes ahead with a warning.
+
+### Error: Deployment … failed after …
+
+The build or release failed (exit 1). Read its log with the command the hint prints,
+`cloudgate logs --deployment <id>`, and see [deployments](/docs/guide/deployments).
+
+### The files uploaded, but the deploy did not start
+
+Uploading and starting the Deployment are two calls. If the second fails, the CLI says the files are
+uploaded and exits 1: run `cloudgate deploy` again.
+
+### The upload is much bigger than expected
+
+The CLI names the five biggest folders above 100 MB. `node_modules` and build output are uploaded
+unless a `.gitignore` or `.cloudgateignore` lists them.
+
+## Variables
+
+### Error: no value for STRIPE_KEY
+
+`vars set KEY` found nothing on stdin, or was asked for a hidden value with `--no-input` or `CI` set
+(exit 2). Pipe it in: `printf %s "$VALUE" | cloudgate vars set STRIPE_KEY`.
+
+### Error: DATABASE_URL is linked to db.url
+
+The variable is wired to another Service's output and cannot be set from the CLI (exit 1). Change
+the wiring in the console; see [environment variables](/docs/guide/environment-variables).
+
+### I set a variable and nothing changed
+
+Setting a variable does not redeploy. Run `cloudgate deploy`.

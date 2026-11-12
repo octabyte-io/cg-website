@@ -1,0 +1,114 @@
+---
+title: Agents
+seoTitle: Create an Agent for Claude, Cursor or Codex
+description: Create an Agent so an AI coding tool can read and deploy your Services over MCP. Pick Reader or Operator, grant access, issue agent keys and connect a client.
+lede: An Agent is a member of your Organization that is not a person. Create one when you want an AI tool such as Claude Code, Cursor or Codex to read your Services or deploy them through the MCP endpoint.
+section: guide
+group: Team and access
+order: 3
+badges: ['Owner or Admin', 'Every plan']
+howto:
+  name: Create an Agent and connect a client
+  steps:
+    - { name: Open Agents, text: 'Open Settings and then Agents, and press Create an Agent.' }
+    - { name: Name it and pick a role, text: 'Give it a name such as deploy-bot and pick Reader or Operator.' }
+    - { name: Grant access, text: 'Tick the Projects, Environments and Services it may reach.' }
+    - { name: Choose the key expiry, text: 'Choose when its first key expires, then press Create Agent and copy the key.' }
+    - { name: Connect the client, text: 'Press Connect on its row and paste the configuration for your MCP client.' }
+faq:
+  - { q: Can an Agent apply a Plan or change settings?, a: 'No. An Agent can ask for a Plan but never applies one, and never changes settings, variables, access, Uptime checks or thresholds.' }
+  - { q: Does an Agent see my secrets?, a: 'No. Every tool result, logs included, passes through a mask that replaces stored secret values with dots.' }
+  - { q: What happens when the person who made an Agent leaves?, a: 'Nothing. An Agent outlives whoever created it; it belongs to the Organization.' }
+  - { q: Can I use a personal key for an agent instead?, a: 'No. The MCP endpoint refuses personal keys. Create an Agent and use its agent key.' }
+---
+
+An Agent has its own role, its own grant to the Projects, Environments and Services it may reach,
+and its own **agent keys**. It acts only through the MCP endpoint, the console's address plus
+`/mcp`, and every call it makes, allowed or refused, is a row in the [audit log](/docs/guide/audit-log).
+
+## What you can do
+
+- Create Agents with the Reader, Operator or Caller role.
+- Grant each one only the Projects, Environments and Services it needs.
+- Issue, rotate and revoke its agent keys.
+- Suspend an Agent at once, and resume it later.
+- Copy ready-made configuration for Claude Code, VS Code, Cursor and Codex CLI.
+
+## Agent roles
+
+| Role | What it can do |
+|---|---|
+| **Reader** (default) | Reads what it is granted: Services, Environments, Deployments, Deployment logs and Domains. Changes nothing. |
+| **Operator** | Everything a Reader can, and deploys, starts, stops and cancels Deployments of what it is granted. Cannot change settings, variables or access. |
+| **Caller** | Calls the AI models it is granted through the Gateway, and nothing else. Gets no tools over MCP. |
+
+## Create an Agent
+
+<Steps>
+<Step title="Open Agents">
+Open **Settings** > **Agents** and press **Create an Agent**.
+<Screenshot name="settings-agents" alt="Settings, Agents for Northwind Labs, with a deploy-bot Agent holding the Operator role, its grant to storefront and its keys" caption="Each Agent shows its role, what it can reach, its keys and when a client last connected." />
+</Step>
+<Step title="Name it and pick a role">
+Give it a **Name** that says what it is for, such as `deploy-bot` or `staging reader`; it is how
+the audit log names it. Pick a **Role**: Reader is selected by default.
+</Step>
+<Step title="Grant access">
+Under **Access**, tick what it may reach, for example the `storefront` Project's `staging`
+Environment. Access starts empty, and granting a Service grants its Project and Environment too.
+You can save it with nothing granted and grant it later.
+</Step>
+<Step title="Choose when its first key expires">
+Under **First key expires**, choose **In 30 days**, **In 90 days** (the default) or **In a year**.
+Press **Create Agent**.
+</Step>
+<Step title="Copy the key">
+The first key is shown once. Copy it into your MCP client's secret storage now.
+</Step>
+</Steps>
+
+## Connect an MCP client
+
+On the Agent's row, press **Connect**. The panel holds the configuration for **Claude Code**
+(`.mcp.json`), **VS Code** (`.vscode/mcp.json`), **Cursor** (`~/.cursor/mcp.json`), **Codex CLI**
+(`~/.codex/config.toml`) and any other client. Each sends the key as
+`Authorization: Bearer <agent key>` to your console's address plus `/mcp`.
+
+<Screenshot name="agent-connect" alt="The Connect panel for deploy-bot, with tabs for Claude Code, VS Code, Cursor, Codex CLI and other clients, showing a configuration snippet" caption="Pick your client and paste its snippet; the key stays in your client's secret storage." />
+
+Step-by-step client setup is in [Connect an MCP client](/docs/mcp/connect).
+
+## Rotate, suspend or delete an Agent
+
+- **Add key** issues another key with its own expiry. To rotate, add a key, switch the client to
+  it, then **Revoke** the old one. An expired key shows **Remove**.
+- **Suspend** refuses its next call through the MCP endpoint, and every one after, until you press
+  **Resume**.
+- **Change role** and **Manage access** change what it can do and reach.
+- **Delete** removes the Agent, its access and all its keys. Its audit trail stays.
+
+<Callout type="warn" title="Deleting an Agent cannot be undone">
+Every client using its keys stops working at once. To stop it for now, use **Suspend** instead.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Guard rails">
+- Every agent key expires: there is no "never".
+- An Agent can never be an owner or an admin.
+- An Agent asks for a Plan but never applies or dismisses one, and reads health but never
+  configures checks or thresholds.
+- Rate limits: 120 reads and 10 writes a minute per Agent, shared across its keys.
+- An agent key works only at the MCP endpoint and the Gateway, never on the REST API or for
+  sign-in.
+- Cloudgate does not give an Agent access to your git repository; you do that outside Cloudgate.
+</Callout>
+
+## Related pages
+
+- [Connect an MCP client](/docs/mcp/connect): set up Claude Code, Cursor, VS Code or Codex.
+- [MCP tools](/docs/mcp/tools): every tool an Agent can call.
+- [Guard rails](/docs/mcp/guard-rails): masking, rate limits and refusals.
+- [Audit log](/docs/guide/audit-log): every call an Agent made.
+- [Members and roles](/docs/guide/members-and-roles): how grants work for people.
+- [Cloudgate for AI agents](/ai-agents).

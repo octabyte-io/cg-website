@@ -1,0 +1,393 @@
+---
+// One API reference page per group of OpenAPI tags (src/data/api-reference.ts): an endpoint index,
+// then every operation with its access, parameters, request fields, responses and a curl example.
+import { Code } from 'astro:components';
+import Docs from '../../../layouts/Docs.astro';
+import { apiGroups, apiSections, HOSTED_BASE, statusText, type ApiGroup, type FieldRow } from '../../../data/api-reference';
+
+export function getStaticPaths() {
+  return apiGroups.map((g) => ({ params: { group: g.slug }, props: { g } }));
+}
+interface Props { g: ApiGroup }
+const { g } = Astro.props;
+const sections = apiSections(g);
+const single = sections.length === 1;
+const opDepth = single ? 2 : 3;
+const count = sections.reduce((n, s) => n + s.operations.length, 0);
+
+const headings = sections.flatMap((s) => [
+  ...(single ? [] : [{ depth: 2, slug: s.anchor, text: s.title }]),
+  ...s.operations.map((o) => ({ depth: opDepth, slug: o.anchor, text: o.summary })),
+]);
+
+// Prose from the document: escape it, then let `code` and *emphasis* through.
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const md = (s: string) =>
+  esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/(^|[\s(])\*([^*\s][^*]*)\*(?=[\s.,;:)]|$)/g, '$1<em>$2</em>');
+const notes = (r: { notes: string[] }) => md(r.notes.join(' '));
+const fieldName = (f: FieldRow) => f.name;
+const sectionTag = single ? 'h2' : 'h3';
+const subTag = single ? 'h3' : 'h4';
+const Op = sectionTag as 'h2' | 'h3';
+const Sub = subTag as 'h3' | 'h4';
+const schema = [
+  {
+    '@type': 'WebAPI',
+    name: `Cloudgate API: ${g.title}`,
+    description: g.description,
+    documentation: `https://cloudgate.octabyte.io/docs/api/${g.slug}`,
+    provider: { '@id': 'https://cloudgate.octabyte.io/#organization' },
+  },
+];
+---
+<Docs
+  title={g.title}
+  seoTitle={g.seoTitle}
+  description={g.description}
+  lede={g.summary}
+  section="api"
+  badges={g.badges ?? []}
+  headings={headings}
+  schema={schema}
+>
+  <p>{g.intro}</p>
+  <p>
+    Every request goes to <code>{HOSTED_BASE}</code> on the Hosted instance, or to your console address
+    followed by <code>/backend</code> when you self-host. Send a Personal key in <code>x-api-key</code> and the
+    Organization in <code>x-organization-id</code>; <a href="/docs/api/authentication">Authentication</a> shows how
+    to make the key, and <a href="/docs/api/errors">Errors</a> explains every refusal. The examples set
+    <code>CLOUDGATE_KEY</code> and <code>CLOUDGATE_ORG_ID</code> in the shell first. To do the same in the console,
+    read <a href={g.guide.href}>{g.guide.title}</a> in the user guide.
+  </p>
+
+  <nav class="api-index" aria-label={`${g.title} endpoints`}>
+    <p class="api-index-title">{count} endpoint{count === 1 ? '' : 's'} on this page</p>
+    {sections.map((s) => (
+      <div class="api-index-group">
+        {!single && <p class="api-index-tag"><a href={`#${s.anchor}`}>{s.title}</a></p>}
+        <ul>
+          {s.operations.map((o) => (
+            <li>
+              <a href={`#${o.anchor}`}>
+                <span class:list={['method', `method--${o.method}`]}>{o.method.toUpperCase()}</span>
+                <code class="api-index-path">{o.path}</code>
+                <span class="api-index-sum">{o.summary}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+
+  {sections.map((s) => (
+    <Fragment>
+      {!single && <h2 id={s.anchor}>{s.title}</h2>}
+      {s.operations.map((o) => (
+        <section class:list={['op', single && 'op--h2']} aria-labelledby={o.anchor}>
+          <Op id={o.anchor}>{o.summary}</Op>
+          <p class="op-line">
+            <span class:list={['method', `method--${o.method}`]}>{o.method.toUpperCase()}</span>
+            <code class="op-path">{o.path}</code>
+          </p>
+          {o.description && <p set:html={md(o.description)} />}
+          <p class="op-access"><strong>Who can call it:</strong> <span set:html={md(o.access)} /></p>
+
+          {o.params.length > 0 && (
+            <Fragment>
+              <Sub class="op-sub">Parameters</Sub>
+              <table class="api-table">
+                <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Type</th><th scope="col">Notes</th></tr></thead>
+                <tbody>
+                  {o.params.map((p) => (
+                    <tr>
+                      <td><code>{p.name}</code>{p.required && <span class="req">required</span>}</td>
+                      <td>{p.in}</td>
+                      <td class="api-type">{p.type}</td>
+                      <td set:html={notes(p)} />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Fragment>
+          )}
+
+          {(o.body.length > 0 || o.bodyNote) && (
+            <Fragment>
+              <Sub class="op-sub">Request body</Sub>
+              {o.bodyNote && <p class="op-note">{o.bodyNote}</p>}
+              {o.body.length > 0 && (
+                <table class="api-table">
+                  <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Notes</th></tr></thead>
+                  <tbody>
+                    {o.body.map((f) => (
+                      <tr class:list={[f.depth > 0 && `d${f.depth}`]}>
+                        <td><code>{fieldName(f)}</code>{f.required && <span class="req">required</span>}</td>
+                        <td class="api-type">{f.type}</td>
+                        <td set:html={notes(f)} />
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </Fragment>
+          )}
+
+          <Sub class="op-sub">Responses</Sub>
+          <dl class="op-responses">
+            {o.responses.map((r) => (
+              <div>
+                <dt><code>{r.status}</code> {statusText[r.status] ?? ''}</dt>
+                <dd set:html={md(r.meaning)} />
+              </div>
+            ))}
+            {o.errors.length > 0 && (
+              <div class="op-errors">
+                <dt>Refusals</dt>
+                <dd>
+                  {o.errors.map((e, i) => (
+                    <Fragment>{i > 0 && '; '}<code>{e.status}</code> <span set:html={md(e.meaning.replace(/\.$/, ''))} /></Fragment>
+                  ))}. <a href="/docs/api/errors">The error body</a>.
+                </dd>
+              </div>
+            )}
+          </dl>
+          {o.responses.some((r) => r.fields.length > 0) && (
+            o.responses.filter((r) => r.fields.length > 0).map((r) => (
+              <table class="api-table">
+                <caption>Fields of the <code>{r.status}</code> answer</caption>
+                <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Notes</th></tr></thead>
+                <tbody>
+                  {r.fields.map((f) => (
+                    <tr class:list={[f.depth > 0 && `d${f.depth}`]}>
+                      <td><code>{fieldName(f)}</code>{f.required && <span class="req">always</span>}</td>
+                      <td class="api-type">{f.type}</td>
+                      <td set:html={notes(f)} />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ))
+          )}
+
+          <Code code={o.curl} lang="bash" theme="github-dark-default" />
+        </section>
+      ))}
+    </Fragment>
+  ))}
+</Docs>
+
+<style>
+  .api-index {
+    margin-top: var(--space-6);
+    padding: var(--space-4) var(--space-5) var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .api-index-title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .api-index-group {
+    margin-top: var(--space-4);
+  }
+  .api-index-tag {
+    margin: 0 0 var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .api-index-tag a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .api-index ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .api-index li + li {
+    margin-top: 0;
+  }
+  .api-index li a {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.3rem var(--space-2);
+    margin-inline: calc(-1 * var(--space-2));
+    border-radius: 6px;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .api-index li a:hover {
+      background: var(--paper-2);
+    }
+    .api-index li a:hover .api-index-path {
+      color: var(--ink);
+    }
+  }
+  .api-index-path {
+    font-size: var(--text-xs);
+    color: var(--ink-2);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+  .api-index-sum {
+    font-size: var(--text-xs);
+    color: var(--muted);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .api-index .method,
+  .op-line .method {
+    min-width: 3.6rem;
+    font-size: 0.6875rem;
+  }
+
+  .op {
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--line);
+    scroll-margin-top: calc(var(--head-h, 64px) + var(--space-5));
+  }
+  .op > * + * {
+    margin-top: var(--space-3);
+  }
+  :global(.doc-body) .op {
+    margin-top: var(--space-6);
+  }
+  :global(.doc-body) h2 + .op,
+  .op--h2 {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .op-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .op-path {
+    font-size: var(--text-sm);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .op-access {
+    font-size: var(--text-sm);
+  }
+  :global(.doc-body) .op-sub {
+    margin-top: var(--space-5);
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  :global(.doc-body) h2.op-sub,
+  :global(.doc-body) h3.op-sub {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .op-note {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  :global(.doc-body) .api-table {
+    font-size: var(--text-xs);
+  }
+  :global(.doc-body) .api-table :is(th, td) {
+    padding: var(--space-2) var(--space-3);
+  }
+  .api-table td:first-child {
+    white-space: nowrap;
+  }
+  :global(.doc-body .api-table td code) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .api-table td:first-child code {
+    white-space: nowrap;
+  }
+  .api-table td:last-child {
+    min-width: 14rem;
+    overflow-wrap: anywhere;
+  }
+  .api-table tr.d1 td:first-child {
+    padding-left: calc(var(--space-3) + 0.9rem);
+  }
+  .api-table tr.d2 td:first-child {
+    padding-left: calc(var(--space-3) + 1.8rem);
+  }
+  .api-table tr:is(.d1, .d2) td:first-child code {
+    color: var(--muted);
+  }
+  .api-type {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+  .api-table caption {
+    caption-side: top;
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    font-size: var(--text-xs);
+    color: var(--muted);
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .req {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.6875rem;
+    color: var(--warn);
+  }
+  .op-responses {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+  .op-responses > div {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--line);
+  }
+  .op-responses > div:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .op-responses dt {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .op-responses dd {
+    margin: 0;
+  }
+  .op-errors dd {
+    color: var(--muted);
+  }
+  @media (max-width: 640px) {
+    .api-index li a {
+      grid-template-columns: 3.6rem minmax(0, 1fr);
+    }
+    .api-index-sum {
+      grid-column: 2;
+      text-align: left;
+      white-space: normal;
+      margin-top: -0.2rem;
+    }
+    .op-responses > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-1);
+    }
+  }
+</style>

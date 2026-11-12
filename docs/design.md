@@ -140,3 +140,13 @@ motion still keeps short colour and opacity fades (the reduce block narrows ever
 those properties). The theme switch is instant: `.theme-switching` holds every transition for the
 frame the theme flips. The review behind the latest values is `docs/animation-review.md`.
 Never animate the page's layout, and check 390px and 1440px for sideways scroll.
+
+## Docs (v4)
+
+The documentation at `/docs` (user guide, API reference, CLI and MCP references, self-hosting, help)
+reads quietly: a sidebar of every page, the article at a 72ch measure, and "On this page" contents
+whose marker slides to the section being read. No scroll reveals on text; only screenshots arrive.
+Motion answers the reader: search opens and closes (200/140ms), screenshots zoom (280/160ms), tab
+ink slides (260ms), the copy button swaps its icon. Console screenshots are real captures of the
+console with fictional data (the "Northwind Labs" organization), shipped in both themes. How to
+write a page: `docs/docs-authoring.md`.

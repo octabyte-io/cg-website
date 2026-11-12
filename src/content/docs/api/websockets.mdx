@@ -1,0 +1,79 @@
+---
+title: Live logs and terminals over WebSockets
+navTitle: WebSockets
+seoTitle: Cloudgate WebSockets for live logs, stats and terminals
+description: Stream Deployment logs, container logs, live container stats and a Server's setup, or open a shell, over Cloudgate's six WebSocket paths with a Personal key.
+lede: Anything that streams, such as a Deployment log, container stats or a shell, runs over WebSockets rather than REST. The sockets take the same Personal key as the API.
+section: api
+order: 4
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Can I follow a Deployment without a WebSocket?, a: 'Yes. Poll <code>GET /deployments/{deploymentId}</code> for its status and read the end of its log with <code>GET /deployments/{deploymentId}/logs</code>. The CLI does the same while it follows a Deployment.' }
+  - { q: Can an Agent open these sockets?, a: 'No. Agent keys are refused on every socket, as on every REST route.' }
+---
+
+## Where to connect
+
+The sockets are not served through the console's `/backend` address. They live on the API's own address,
+which the instance publishes as `apiUrl`:
+
+```bash
+curl https://cloudgate.octabyte.app/backend/settings/about
+```
+
+Use the `apiUrl` from the answer with `wss://` in place of `https://`. When `apiUrl` is null, the instance
+does not publish its sockets; follow a Deployment over REST instead (see the questions below).
+
+## Authenticate the socket
+
+Send the same two headers as a REST call on the upgrade request: `x-api-key` with a Personal key and
+`x-organization-id` with the Organization. A console session cookie also works. A socket with no valid
+credential is closed at once, and an Agent key is refused.
+
+```bash
+websocat -H "x-api-key: $CLOUDGATE_KEY" -H "x-organization-id: $CLOUDGATE_ORG_ID" \
+  "wss://<apiUrl host>/listen-deployment?deploymentId=<deployment id>"
+```
+
+Browsers cannot set headers on a WebSocket, so use a client that can, from a script or a terminal.
+
+## The six paths
+
+| Path | Query | Streams |
+|---|---|---|
+| `/listen-deployment` | `deploymentId` | A Deployment's log, from the first line, then each new line as it is written. It never closes by itself, even after the Deployment ends; close it when the status is final. |
+| `/listen-server-setup` | `serverId`, `start=true` to run it | A Server's setup run (Docker, Swarm, Traefik) and its output. Closing the socket stops watching; it does not cancel the setup. |
+| `/listen-docker-stats-monitoring` | `appName`, `appType` | Live `docker stats` readings for a Service's containers. |
+| `/docker-container-logs` | `containerId`, `serverId`, and optionally `tail` (default 100), `since`, `search`, `follow` | A container's or Swarm service's log. With `follow=false` it closes with code `4014` once the output ends. |
+| `/docker-container-terminal` | `containerId`, `serverId`, `activeWay` (the shell, default `sh`) | A shell inside a container. |
+| `/terminal` | `serverId` (`local` for the machine running Cloudgate) | A shell on a Server. |
+
+The terminals send raw output bytes. What you send is typed into the shell, except a frame that is a NUL
+byte followed by a JSON object such as `{"cols":120,"rows":40}`, which resizes the terminal.
+
+<Callout type="warn" title="A terminal is a real shell">
+  Whatever you type in `/terminal` or `/docker-container-terminal` runs on the Server or in the container,
+  with no undo. A container shell needs `service: update` on its Service; a Server shell needs
+  `server: read`, which only Owners and Admins hold by default; and `local` is for owners and admins of the
+  instance organization only.
+</Callout>
+
+## Close codes
+
+| Code | Meaning |
+|---|---|
+| `4000` | A query parameter is missing or invalid; the reason says which. |
+| `4003` | Not found or not permitted. An unknown id and one you may not see close the same way. |
+| `4010` | No longer authorized: your access was removed while the socket was open. |
+| `4012` | The Server did not answer. |
+| `4014` | The container log ended (with `follow=false`). |
+
+Access is checked again while a socket stays open, so a key revoked or a role changed mid-stream closes
+it with `4010`.
+
+## Related
+
+- [API overview](/docs/api) for the base URL, headers and errors.
+- [Deployments](/docs/api/deployments) for starting, cancelling and reading Deployments over REST.
+- [Servers and Cloud accounts](/docs/api/servers) for the containers and Swarm routes.
+- The [CLI](/docs/cli) follows a Deployment's log for you while it deploys.

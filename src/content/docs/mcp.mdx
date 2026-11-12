@@ -1,0 +1,119 @@
+---
+title: Let an AI agent work in Cloudgate over MCP
+seoTitle: Cloudgate MCP endpoint for AI coding agents
+description: How AI agents use Cloudgate's MCP endpoint as members of your Organization, with their own role, grant and agent key, and how to connect one in a few minutes.
+lede: Cloudgate serves an MCP endpoint at your console's address plus /mcp. A coding agent connects with an agent key and acts as an Agent, a member of your Organization with its own role, its own grant and an audit trail.
+section: mcp
+order: 1
+navTitle: Overview
+badges: ['Hosted and self-hosted', 'Owner or Admin to create Agents']
+faq:
+  - { q: 'Where is the MCP endpoint?', a: 'At your console''s address followed by <code>/mcp</code>: <code>https://cloudgate.octabyte.app/mcp</code> on the Hosted instance, or for example <code>https://cloud.northwind.example/mcp</code> on your own. There is nothing to enable; it answers 401 until an Agent has a key.' }
+  - { q: 'Can an agent use my Personal key?', a: 'No. The endpoint refuses a Personal key with 401 and asks for an agent key. An agent acts as its own Agent, never as you, so its calls are audited and limited on their own.' }
+  - { q: 'Can an agent change environment variables or apply a Plan?', a: 'No. No tool changes settings, variables or access, applies or dismisses a Plan, or changes an Uptime check or Error-rate threshold, whatever the Agent''s role.' }
+  - { q: 'Which AI clients work?', a: 'Any MCP client that can send an <code>Authorization</code> header over HTTP. The console''s Connect panel has ready configuration for Claude Code, VS Code, Cursor and Codex CLI, and a generic block for any other client.' }
+  - { q: 'Does an Agent count as a member on my plan?', a: 'Members are not counted on the Hosted plans. See <a href="/pricing">pricing</a>.' }
+---
+
+An AI coding agent such as Claude Code, Cursor or Codex can read your Services, deploy them, watch
+the build and check their health, through the same permission checks a person passes in the
+console. For the short tour, see [Cloudgate for AI agents](/ai-agents); this section is the
+reference.
+
+## What is an Agent?
+
+An **Agent** is a member of one Organization that an AI tool acts as. It is not a person, and it
+outlives whoever made it. Each Agent has:
+
+- **a role**: Reader (the default) reads; Operator also deploys, starts, stops and cancels; Caller
+  only calls AI models through the Gateway and gets no tools here. See [roles](/docs/mcp/guard-rails#which-tools-can-each-role-call).
+- **a grant**: the Projects, Environments and Services it may reach. It starts empty.
+- **agent keys**: one or more bearer keys, each shown once and each with an expiry of 30, 90 or 365
+  days. All of an Agent's keys share its rate limits.
+
+Owners and Admins create Agents in the console under **Settings**, **Agents**. The
+[Agents guide](/docs/guide/agents) covers suspending, changing a role and rotating keys.
+
+## What can an agent do here?
+
+With a Reader role it can find a Service and explain it: list Projects and Environments, read a
+Service, its Deployments, Deployment logs, Domains and health, and read the
+[Project config](/docs/guide/project-config) and its Plan. With an Operator role it can also:
+
+- deploy an Application or Compose stack and follow the build to its end;
+- start and stop a Service, and cancel a Deployment;
+- ask for a [requested preview](/docs/guide/previews) of a branch it pushed, which expires on its
+  own.
+
+All 21 tools, with their parameters and answers, are in the [tool reference](/docs/mcp/tools).
+
+## How does the endpoint work?
+
+| | |
+|---|---|
+| Address | Your console's address plus `/mcp`, the same origin you open the console on |
+| Authentication | `Authorization: Bearer <agent key>`. No OAuth flow |
+| Transport | `POST` with a JSON body; every answer is `application/json`. No event stream, no session |
+| Protocol revisions | `2026-07-28`, `2025-11-25`, `2025-06-18`, `2025-03-26` |
+| Methods | `initialize`, `tools/list` (only the tools the Agent's role may call), `tools/call` |
+| Limits | 120 reads and 10 writes a minute per Agent |
+
+Because the endpoint keeps no session, nothing needs to be sticky behind a load balancer. The
+details, and every refusal it can answer, are in [guard rails](/docs/mcp/guard-rails).
+
+## Connect an agent in three steps
+
+<Steps>
+  <Step title="Create an Agent">
+    In the console, open **Settings**, **Agents** and press **Create an Agent**. Name it, pick
+    **Operator** if it should deploy, tick what it may reach under **Access**, and press
+    **Create Agent**. Copy the key: it is shown once.
+  </Step>
+  <Step title="Put the key in your environment">
+    The client configuration reads the key from `CLOUDGATE_AGENT_KEY`, so the config file never
+    holds it:
+
+```bash
+export CLOUDGATE_AGENT_KEY=<agent key>
+```
+  </Step>
+  <Step title="Add Cloudgate to your client">
+    For Claude Code, save this as `.mcp.json` in your project, using your console's address:
+
+```json
+{
+  "mcpServers": {
+    "cloudgate": {
+      "type": "http",
+      "url": "https://cloudgate.octabyte.app/mcp",
+      "headers": { "Authorization": "Bearer ${CLOUDGATE_AGENT_KEY}" }
+    }
+  }
+}
+```
+
+VS Code, Cursor, Codex CLI and other clients are in [Connect a client](/docs/mcp/connect).
+  </Step>
+</Steps>
+
+Then ask the agent something it can check, such as "list my Cloudgate Projects". It should call
+`list_projects` and answer with the Projects you granted.
+
+## What an agent cannot do
+
+<Callout type="limit" title="Out of reach for every Agent">
+  No tool changes settings, environment variables or access, applies or dismisses a Plan, adds or
+  edits an Uptime check or Error-rate threshold, or creates, deletes or calls an AI model. An agent
+  key is refused on the REST API and on console sign-in; it works only at `/mcp` and the Gateway.
+</Callout>
+
+An Agent's grant reaches Cloudgate only. To push a fix and preview it, the AI tool needs its own
+write access to your git repository, which you arrange with your git provider.
+
+## Where to go next
+
+- [Connect a client](/docs/mcp/connect): create the Agent and configure each client.
+- [Tool reference](/docs/mcp/tools): all 21 tools.
+- [Guard rails](/docs/mcp/guard-rails): roles, limits, masking and the audit log.
+- [Workflows](/docs/mcp/workflows): fix and preview a branch, deploy and watch health.
+- [API reference](/docs/api): the REST API, for scripts using a Personal key.

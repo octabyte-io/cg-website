@@ -1,0 +1,95 @@
+---
+title: API errors and status codes
+navTitle: Errors
+seoTitle: Cloudgate API errors, status codes and error codes
+description: The JSON body of every Cloudgate API refusal, the HTTP status codes it uses, the error codes you will meet most, and what to do about each of them.
+lede: Every refusal from the Cloudgate API has the same JSON shape. Branch on its status and its code; the message is for people and may change.
+section: api
+order: 3
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Should my script read the message?, a: 'Show it to a person, but do not branch on it. The <code>code</code> field is the stable part; the wording of <code>message</code> can change between releases.' }
+  - { q: What does a 403 with no code mean?, a: 'Your role does not hold the permission the route needs. Ask an Owner or Admin of the Organization to change your role or grant it to a custom role you hold.' }
+  - { q: Why do I get 404 for something I can see in the console?, a: 'Check the <code>x-organization-id</code> header. Without it the key acts in your default Organization, where that id does not exist.' }
+---
+
+## The error body
+
+Every error answer is JSON with these fields:
+
+| Field | Always | What it holds |
+|---|---|---|
+| `statusCode` | Yes | The HTTP status, repeated. |
+| `error` | Yes | The status in words, such as `Conflict`. |
+| `message` | Yes | What went wrong, in a sentence for people. |
+| `path` | Yes | The path you called. |
+| `timestamp` | Yes | When the API answered, ISO 8601. |
+| `code` | When named | A stable name for the refusal, such as `DEPLOYMENT_IN_PROGRESS`. Branch on this. |
+| `details` | Validation only | One entry per field: `path` (like `aiModel.runtime`) and `message`. |
+| `pointer` | Config refusals | Where a Project config kept in a repository lives: `repository`, `path`, `branch`, `fileUrl`. |
+| `output` | Sometimes | A tool's own output behind a refusal, such as a failed command's text. |
+
+A request that fails validation looks like this:
+
+```json
+{
+  "statusCode": 400,
+  "error": "Bad Request",
+  "message": "Validation failed",
+  "details": [{ "path": "name", "message": "Too small: expected string to have >=1 characters" }],
+  "path": "/projects",
+  "timestamp": "2026-11-12T09:30:00.000Z"
+}
+```
+
+An unexpected failure is logged on the instance and answers 500 with no internal detail.
+
+## Status codes
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `400` | The request is malformed: a field is missing or invalid, or the action does not fit the item's state. | Fix the request; `details` names each field. |
+| `401` | No credential, or the key is not valid, expired or revoked. | Check `x-api-key`; make a new key if it expired. |
+| `402` | A payment did not go through (an upgrade on the Hosted instance). | Pay in the console, then retry. |
+| `403` | You are signed in but may not do this. | Read the code below; with no code, your role lacks the permission. |
+| `404` | Nothing with that id in this Organization. | Check the id and `x-organization-id`. |
+| `409` | It conflicts with the current state: a build is running, a Plan changed, something still depends on it. | Read the code; wait or change what it depends on, then retry. |
+| `500` | Cloudgate failed unexpectedly. | Retry later; if it repeats, tell your instance's admin or support. |
+| `503` | A Server or the platform host did not answer (code `HOST_UNREACHABLE`). | Check the Server is on and reachable over SSH. |
+
+## Codes you will meet most
+
+| Code | Status | Meaning |
+|---|---|---|
+| `NOT_ORGANIZATION_MEMBER` | 403 | `x-organization-id` names an Organization you do not belong to. |
+| `AGENT_NOT_ALLOWED_HERE` | 403 | An Agent key was sent. Agents use the [MCP endpoint](/docs/mcp), not REST. |
+| `PROJECT_ACCESS_NOT_GRANTED`, `ENVIRONMENT_ACCESS_NOT_GRANTED`, `SERVICE_ACCESS_NOT_GRANTED` | 403 | Your role allows the action, but you were not granted that Project, Environment or Service. |
+| `INSTANCE_AUTHORITY_REQUIRED` | 403 | The route changes the instance itself; only an owner or admin of the instance organization may. |
+| `ORGANIZATION_FROZEN` | 403 | Hosted only: the Organization is frozen for an unpaid invoice or a suspension. |
+| `PLAN_REQUIRED`, `ALLOWANCE_FULL` | 403 | Hosted only: the Organization needs a plan, or its plan has no room for another Server or Cloud Environment. |
+| `BUSINESS_REQUIRED` | 403 | Hosted only: the feature (SSO, SCIM, custom roles, forward auth) needs the Business plan. |
+| `DEPLOYMENT_IN_PROGRESS` | 409 | A build of the Application is running, and an upload would replace the files it reads. |
+| `PLAN_STALE`, `PLAN_NOT_OPEN` | 409 | The Plan changed or was already applied or dismissed since you read it. Check for changes again. |
+| `PLAN_DESTROY_NOT_CONFIRMED` | 409 | Applying the Plan would delete something, and the delete was not confirmed by name. |
+| `PROJECT_CONFIG_REPOSITORY_KEPT`, `CONFIG_UNREADABLE` | 409 | The Project config is kept in a repository, so change it there; `pointer` says where. |
+| `VARIABLE_IS_LINKED` | 409 | The variable is wired to another Service's output; change the link, not the value. |
+| `VARIABLE_NOT_SET` | 404 | You asked to unset a variable that is not set. |
+| `SERVER_HOST_KEY_CHANGED` | 409 | The Server's SSH host key is not the one recorded. If you reinstalled it, forget the host key and retry. |
+| `WORKLOAD_STILL_PRESENT`, `WORKLOAD_PRESENCE_UNKNOWN` | 409 | A delete could not confirm the containers are gone. Retry, or delete with `force=true` if the Server is gone for good. |
+| `HOST_UNREACHABLE` | 503 | Cloudgate could not reach the Server to do the work. |
+
+A 403 with no code, or with an `*_ACCESS_NOT_GRANTED` code, means the same thing for a person: ask an
+Owner or Admin. [Authentication](/docs/api/authentication) explains what each role may call, and
+[Members and roles](/docs/guide/members-and-roles) how to change one.
+
+## Retrying safely
+
+- **Retry** a 500, a 503 or a dropped connection on a read at any time.
+- **Before retrying a write**, read the item back: a create or a deploy may have landed even though the
+  answer did not reach you, and the API takes no `Idempotency-Key`.
+- **Do not retry** a 400, 401, 403 or 404 unchanged; it will fail the same way.
+- **A 409** usually clears on its own (a build finishes) or needs a fresh read (a Plan). Wait, read again,
+  then retry.
+
+The [overview](/docs/api) covers the base URL and headers; each group of endpoints, such as
+[Deployments](/docs/api/deployments), lists the refusals of every route.

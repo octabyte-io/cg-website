@@ -1,0 +1,174 @@
+---
+title: Compose stacks
+seoTitle: Deploy a Docker Compose stack with Cloudgate
+description: Deploy a Docker Compose file as a Compose stack, from the console or a repository, give its services Domains, and run it on a Server or a Stack VM.
+lede: A Compose stack runs a Docker Compose file as one Service. Use it for software that already ships a compose file, or for several containers that belong together.
+section: guide
+group: Services
+order: 2
+badges: ['Owner or Admin to create', 'Server, AWS and Google Cloud']
+howto:
+  name: Add a Compose stack
+  steps:
+    - { name: Open the Environment, text: 'Open the Environment and its Services tab, then press Add a Compose stack.' }
+    - { name: Name it, text: 'Give the stack a name and an optional description, and choose the Server it runs on.' }
+    - { name: Choose the source, text: 'Under Where the compose file comes from, pick A file written here or From a repository.' }
+    - { name: Choose how it is applied, text: 'Under Applied as, pick Docker Compose or Swarm stack, then create it.' }
+    - { name: Deploy, text: 'Write or connect the compose file on the stack Overview, then press Deploy.' }
+faq:
+  - { q: Does a git push deploy a Compose stack?, a: 'No. A Compose stack from a repository is cloned on every Deployment, but no push starts one: every deploy is one someone starts.' }
+  - { q: What is the difference between Docker Compose and Swarm stack?, a: 'Docker Compose brings the file up on one machine. A Swarm stack schedules it across the Swarm. You can change it later; the next deploy removes the old kind first and keeps the volumes.' }
+  - { q: Can a Compose stack run in AWS or Google Cloud?, a: 'Yes. In a Cloud account each stack runs on its own Stack VM inside the Environment network, made by a Plan and reached through the cloud tunnel.' }
+---
+
+Pick a Compose stack when the software you want already has a `docker-compose.yml`, or when you
+want to describe several containers in one file. For one container built from your code, an
+[Application](/docs/guide/applications) gives you more: previews, rollbacks and patches.
+
+## What you can do
+
+- Write the compose file in the console, or deploy it from a repository.
+- Apply it as **Docker Compose** on one machine or as a **Swarm stack**.
+- Give any service in the file a Domain and a port.
+- See the file Cloudgate actually deploys on the **Converted** tab.
+- Act on single containers, read logs and open a shell.
+- Run it on a Server, or in AWS or Google Cloud on its own Stack VM.
+- Ask Cloudgate's AI provider to draft one with **Draft one with AI**.
+
+## Add a Compose stack
+
+<Steps>
+<Step title="Open the Environment">
+Open the Environment, such as `production` in `storefront`, and its **Services** tab. Press
+**Add a Compose stack**.
+</Step>
+<Step title="Name it and pick its Server">
+Enter a **Name** and an optional **Description**, then choose the **Server**, such as `fra-1`.
+</Step>
+<Step title="Choose where the compose file comes from">
+Under **Where the compose file comes from**, choose:
+
+- **A file written here**: stored in Cloudgate and edited on the stack's own screen. Nothing is
+  cloned.
+- **From a repository**: cloned from a git provider on every Deployment. You set the connection on
+  the stack's screen next, with the path to the file.
+</Step>
+<Step title="Choose how it is applied">
+Under **Applied as**, choose **Docker Compose** (brings the file up on one machine) or
+**Swarm stack** (schedules it across the Swarm). You can change this later; the next deploy removes
+the old kind first and keeps its volumes.
+</Step>
+<Step title="Write the file and deploy">
+The stack opens on its **Overview**. Paste or write the file in the **Compose file** editor, which
+checks the YAML, save it, then press **Deploy**.
+<Screenshot name="compose-overview" alt="The Overview of a Compose stack, with its source card and the compose file in the editor" caption="Saving the file does not change the running stack: deploy to apply it." />
+</Step>
+</Steps>
+
+A stack's tabs are **Overview**, **Converted**, **Containers**, **Logs**, **Shell**,
+**Deployments**, **Domains**, **Health**, **Traces**, **Requests**, **Variables** and **Advanced**.
+
+<Callout type="note" title="Every deploy is started by someone">
+A stack from a repository is cloned again at each Deployment, but no push deploys a Compose stack.
+Press **Deploy** on the stack when you want the new commit to run.
+</Callout>
+
+## Draft a stack with AI
+
+**Draft one with AI**, on the same Services tab, describes what you want in words, shows suggestions
+and writes a compose file for the one you choose. It needs an AI provider in **Settings** > **AI**.
+The stack is created but not deployed: read its file, then deploy it.
+
+## See what Cloudgate deploys
+
+The **Converted** tab shows the file Cloudgate actually applies and what it changed. For example,
+when a Docker Compose stack's service has no `restart` policy, Cloudgate adds
+`restart: unless-stopped`.
+
+## Give a service in the stack a Domain
+
+Open the **Domains** tab and add a Domain such as `shop.northwind.example`. Choose which
+**Service** in the compose file it routes to, and the port that service listens on inside its
+container. Certificates work as they do for Applications: see [Domains](/docs/guide/domains).
+
+## Set variables for the compose file
+
+The **Variables** tab holds values the compose file substitutes, such as `${POSTGRES_PASSWORD}`.
+For Docker Compose they are written to a `.env` file beside the compose file; Swarm has no `.env`
+support, so a Swarm stack gets them in front of the deploy command. Project and Environment
+variables are available to reference by name, never inherited. See
+[Environment variables](/docs/guide/environment-variables).
+
+## Keep the stack to itself
+
+On **Advanced**, **Network isolation** decides whether the stack shares Cloudgate's network with
+every other Service. Turn on **Deploy onto its own network** to keep it apart; the next Deployment
+applies it.
+
+## Stop, remove containers or delete a stack
+
+| Action | What it does |
+|---|---|
+| **Stop** | Stops the stack's containers. |
+| **Start** | Starts them again. |
+| **Remove containers** | Docker Compose stacks only: removes the containers and keeps the network, the directory, the volumes and the record. |
+| **Delete stack** | Destroys the stack. Its volumes go only if you tick **Delete its volumes too**. |
+
+Use **Remove containers** before restoring a volume the stack uses: a volume cannot be restored
+while any container, running or exited, still references it.
+
+<Callout type="warn" title="Deleting volumes cannot be undone">
+**Delete its volumes too** removes the stack's named volumes with it. You confirm by typing the
+stack's name.
+</Callout>
+
+## Compose stacks in AWS and Google Cloud
+
+In an Environment whose Deploy target is a Cloud account, each Compose stack runs on its own
+**Stack VM** in that account and region, inside the Environment network. The Environment's next
+[Plan](/docs/guide/project-config) makes the VM; you choose its **Size** and its **Data disk (GB)**,
+where its named volumes live, snapshotted daily. A disk only grows.
+
+- **Stop** stops the VM; **Restart** is offered for a stack on a Stack VM.
+- Its Domains are rules on the Environment network's load balancer. Two services' Domains cannot
+  share a port.
+- Only the Docker Compose type runs there: a `type: stack` entry is refused.
+- The **Containers** tab's per-container actions are not offered on a Stack VM.
+- Delete takes a final snapshot of the data disk unless its data is deleted too.
+
+## Describe a stack in the Project config
+
+A stack whose file is in a repository can be written in the
+[Project config](/docs/guide/project-config):
+
+```yaml
+services:
+  analytics:
+    kind: compose
+    source:
+      github: northwind/analytics
+    file: deploy/docker-compose.yml
+    type: docker-compose
+```
+
+The config names the file; it never holds a copy. A change to the file's contents reaches the stack
+at its next Deployment, not as a Plan line. A stack whose file is written in Cloudgate stays
+console-managed: the config lists it by name and kind, and a Plan never changes or destroys it.
+
+## What you cannot do
+
+- Deploy a stack by pushing to its repository.
+- Reserve GPUs for a Compose stack. Its containers are not kept off a GPU Server's cards either.
+- Use previews, rollbacks or patches: those are for Applications.
+- Schedule volume backups for a stack from its own screen: the console's **Volume backups** tab is
+  on Applications and buckets.
+- Run a Swarm stack in a Cloud account, or move a stack to another Server.
+
+## Related pages
+
+- [Applications](/docs/guide/applications), for one container built from your code.
+- [Domains, TLS and CDN](/docs/guide/domains).
+- [Backups and volume restores](/docs/guide/backups).
+- [Templates](/docs/guide/templates), which set up whole apps for you.
+- [Servers](/docs/guide/servers) and [Cloud accounts](/docs/guide/cloud-accounts).
+- See what Cloudgate runs on the [features page](/features).

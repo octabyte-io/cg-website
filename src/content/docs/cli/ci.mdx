@@ -1,0 +1,159 @@
+---
+title: Deploy from CI with the Cloudgate CLI
+seoTitle: Deploy from GitHub Actions or GitLab CI
+description: Run cloudgate deploy in GitHub Actions or GitLab CI with a Personal key in CLOUDGATE_KEY. Copyable jobs, the flags CI needs, and what each exit code means.
+lede: A CI job deploys with the same CLI you run locally. It needs a Personal key in CLOUDGATE_KEY and the target named by flags or variables, because nothing can answer a question there.
+section: cli
+order: 3
+navTitle: CI recipes
+badges: ['Hosted and self-hosted', 'Applications only', 'Beta']
+howto:
+  name: Deploy from CI with the Cloudgate CLI
+  steps:
+    - { name: 'Create a Personal key', text: 'In the console, open Settings, then Account, and press Create a key under Personal keys. Copy the key; it is shown once.' }
+    - { name: 'Store it as a CI secret', text: 'Save the key as a masked secret named CLOUDGATE_KEY in your CI provider.' }
+    - { name: 'Name the target', text: 'Set CLOUDGATE_PROJECT, CLOUDGATE_ENV and CLOUDGATE_SERVICE, or pass --project, --env and --service.' }
+    - { name: 'Run the deploy', text: 'Run npx @octabyte-io/cloudgate@next deploy on Node 22 or newer. The job fails unless the Deployment ends done.' }
+faq:
+  - { q: 'Which key does a CI job use?', a: 'A <a href="/docs/guide/personal-keys">Personal key</a> in <code>CLOUDGATE_KEY</code>. It acts as the person who made it, with their role. An agent key does not work with the CLI: it is accepted only at the MCP endpoint and the Gateway.' }
+  - { q: 'Does the job wait for the build?', a: 'Yes, by default. <code>cloudgate deploy</code> prints the Deployment log and exits 0 only when the Deployment is done, so a failed build fails the job. Add <code>--detach</code> to exit as soon as it is queued.' }
+  - { q: 'Do I need to commit the .cloudgate folder?', a: 'No. The CLI adds <code>.cloudgate/</code> to <code>.gitignore</code>. In CI, name the Project, Environment and Service with flags or <code>CLOUDGATE_*</code> variables instead.' }
+  - { q: 'Why does the job stop with exit code 2 and mention --switch-source?', a: 'The Service builds from git or an image, and deploying a folder would switch it to uploaded files. With no terminal to ask, the CLI refuses unless you pass <code>--switch-source</code>.' }
+---
+
+In CI the CLI reads its key from `CLOUDGATE_KEY`, never saves it, and asks no question when `CI`
+is set: anything it would have asked is refused with exit 2, naming the flag it needed. The commands
+are the ones in the [command reference](/docs/cli/commands); this page has jobs you can copy.
+
+## What does a CI job need?
+
+| What | How |
+|---|---|
+| Node 22 or newer | The CI image or a setup step |
+| A Personal key | `CLOUDGATE_KEY`, stored as a masked secret |
+| The target | `--project`, `--env`, `--service`, or `CLOUDGATE_PROJECT`, `CLOUDGATE_ENV`, `CLOUDGATE_SERVICE` |
+| The Organization | `--org` or `CLOUDGATE_ORG`, only if the key's owner belongs to more than one |
+| A self-hosted Instance | `--instance` or `CLOUDGATE_INSTANCE`; leave it out for the Hosted instance |
+| `--switch-source` | Only if the Service builds from git or an image today |
+
+## Create a Personal key for CI
+
+In the console, open **Settings**, then **Account**, and press **Create a key** under
+**Personal keys**. Name it after the pipeline, choose when it **Expires**, and copy it: it is shown
+once. See [Personal keys](/docs/guide/personal-keys) for revoking and rotating.
+
+<Callout type="warn" title="A Personal key acts as you">
+  The key carries everything its owner can do. Anyone who can
+  read the CI secret can act as that person until the key ends or is revoked. Choose an expiry rather
+  than **Never**, and consider a dedicated member with a role that can deploy only what the pipeline
+  deploys; see [members and roles](/docs/guide/members-and-roles).
+</Callout>
+
+## Deploy from GitHub Actions
+
+Store the key as a repository secret named `CLOUDGATE_KEY`, then add a job:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci && npm run build
+      - run: npx --yes @octabyte-io/cloudgate@next deploy
+        env:
+          CLOUDGATE_KEY: ${{ secrets.CLOUDGATE_KEY }}
+          CLOUDGATE_PROJECT: storefront
+          CLOUDGATE_ENV: production
+          CLOUDGATE_SERVICE: web
+```
+
+The upload respects `.gitignore` and `.cloudgateignore`, so build output that `.gitignore` lists is
+left out. If the Application builds the code itself, skip the build step; if you upload built
+files, list in `.cloudgateignore` a `!` line for the output folder, such as `!dist/`.
+
+## Deploy from GitLab CI
+
+Store the key as a masked CI/CD variable named `CLOUDGATE_KEY`, then:
+
+```yaml
+# .gitlab-ci.yml
+deploy:
+  stage: deploy
+  image: node:22
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    CLOUDGATE_PROJECT: storefront
+    CLOUDGATE_ENV: production
+    CLOUDGATE_SERVICE: web
+  script:
+    - npx --yes @octabyte-io/cloudgate@next deploy
+```
+
+## Deploy each branch to its own Environment
+
+`--env` deploys the Service with the same Config name in another Environment, so one job can serve
+several branches. The Environment must already exist; the CLI never creates one.
+
+```bash
+cloudgate deploy --project storefront --service web --env "$TARGET_ENV"
+```
+
+For a short-lived copy of a branch, use [preview deployments](/docs/guide/previews) instead.
+
+## Deploy to a self-hosted Instance
+
+Add the Instance's address. A Personal key belongs to one Instance:
+
+```yaml
+env:
+  CLOUDGATE_KEY: ${{ secrets.CLOUDGATE_KEY }}
+  CLOUDGATE_INSTANCE: https://cloud.northwind.example
+```
+
+## Queue the deploy without waiting
+
+`--detach` exits 0 once the Deployment is queued. With `--json` it prints one object a later step
+can read:
+
+```bash
+cloudgate deploy --detach --json > deployment.json
+# {"deploymentId":"Xq7Tn2LwP9aRk4sVb1cHd","status":"pending","consoleUrl":"https://cloudgate.octabyte.app/applications/…/deployments"}
+```
+
+Follow it later with `cloudgate logs --deployment <id> -f`, which ends by itself when the Deployment
+does.
+
+## Set a secret from CI
+
+`vars set KEY` reads the value from stdin, so it never appears in the job's command line:
+
+```bash
+printf %s "$STRIPE_KEY" | cloudgate vars set STRIPE_KEY
+cloudgate deploy
+```
+
+Setting a variable redeploys nothing; the next `deploy` picks it up.
+
+## How does the job know it failed?
+
+By the exit code. With `--json`, stdout is empty on failure; the message is on stderr.
+
+| Code | Meaning in CI |
+|---|---|
+| `0` | The Deployment is done (or queued, with `--detach`) |
+| `1` | The Instance refused, or the Deployment failed or was cancelled |
+| `2` | Wrong use: a flag or value is missing and there is no one to ask |
+| `3` | The key is missing, ended or was refused |
+
+[Troubleshooting](/docs/cli/troubleshooting) lists the common errors and their fixes.

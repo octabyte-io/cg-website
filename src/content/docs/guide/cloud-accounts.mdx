@@ -1,0 +1,154 @@
+---
+title: Cloud accounts (AWS and Google Cloud)
+navTitle: Cloud accounts
+seoTitle: Deploy to AWS or Google Cloud with Cloudgate
+description: Connect an AWS account or Google Cloud project, see what Cloudgate creates there with OpenTofu, and how drift from hand changes is shown and put back.
+lede: A Cloud account links your Organization to one AWS account or Google Cloud project. Environments that deploy there get their Services built and run on the cloud's own services, created and kept in shape by Cloudgate.
+section: guide
+group: Where it runs
+order: 3
+badges: ['Owner or Admin', 'AWS', 'Google Cloud']
+howto:
+  name: Connect an AWS account
+  steps:
+    - { name: 'Start', text: 'In Settings, open Cloud accounts, press Connect and choose Connect an AWS account.' }
+    - { name: 'Name it', text: 'Enter a name and the 12-digit AWS account id.' }
+    - { name: 'Create the stack', text: 'Download the CloudFormation template and create a stack from it, unedited, in your AWS account.' }
+    - { name: 'Make an access key', text: 'Create an access key for the IAM user the stack made.' }
+    - { name: 'Check and connect', text: 'Enter the access key, the deploy role ARN and the task execution role ARN, then press Check and connect.' }
+faq:
+  - { q: 'Does a Cloud account have a region?', a: 'No. Each Environment that deploys to the Cloud account picks its own region.' }
+  - { q: 'Can I keep a change I made by hand in the AWS console?', a: 'No. Cloudgate shows it as drift, and the next Apply puts its own version back. To keep a change, write it into the Project config.' }
+  - { q: 'Can I download the OpenTofu state?', a: 'No. Cloudgate keeps the Infrastructure state encrypted in its own database. The console shows the list of resources it holds.' }
+  - { q: 'Does connecting a Cloud account cost anything on the Hosted plan?', a: 'Connecting one counts nothing. Each Environment that deploys to a cloud counts as one Cloud Environment against your plan.' }
+---
+
+A Cloud account holds one credential only that cloud understands, and no region. Once it is
+connected, choose it as an Environment's **Deploy target** with a region, and the Services you
+create there run on the cloud's own services. You pay the cloud for what runs there, directly.
+
+## What you can do
+
+- Connect an AWS account with a CloudFormation stack, or a Google Cloud project with a setup script.
+- Deploy `web`, `worker`, `web-private`, `cron` and `static` Applications, PostgreSQL, MySQL, Redis,
+  buckets and Compose stacks to that cloud.
+- See every cloud resource behind a Plan line, with its size and cost, before you Apply.
+- See drift from hand changes and put Cloudgate's version back.
+- Use an existing database or bucket made outside Cloudgate, which Cloudgate never changes.
+
+## Connect an AWS account
+
+<Steps>
+<Step title="Start">
+Open **Settings** > **Cloud accounts**, press **Connect** and choose **Connect an AWS account**.
+Enter a name and the **AWS account id** (12 digits; it cannot be changed later). Cloudgate generates
+an external id for this account.
+<Screenshot name="cloud-accounts" alt="The Cloud accounts settings of Northwind Labs listing an AWS account and a Google Cloud project with their last check" caption="Each account shows its last check and whether its permissions are up to date." />
+</Step>
+<Step title="Create the CloudFormation stack">
+Press **Download CloudFormation template** and create a stack from it in your AWS account,
+unedited. It makes a deploy role, a task execution role, a permissions boundary and an IAM user
+that can only assume the deploy role.
+</Step>
+<Step title="Make an access key">
+In AWS, create an access key for that IAM user.
+</Step>
+<Step title="Check and connect">
+Enter the **Access key id**, **Secret access key**, **Deploy role ARN** and **Task execution role
+ARN**, then press **Check and connect**. Cloudgate checks the role fully, creating nothing, and
+saves the Cloud account only if every step passes.
+</Step>
+</Steps>
+
+## Connect a Google Cloud project
+
+<Steps>
+<Step title="Start">
+Press **Connect** and choose **Connect a Google Cloud project**. Enter a name and the **Project
+id** (it cannot be changed later). Use a project dedicated to Cloudgate: its role can act as any
+service account in the project.
+</Step>
+<Step title="Run the setup script">
+Copy the setup script and run it in Cloud Shell. It turns on the APIs Cloudgate needs, makes a
+workload identity pool and provider that trust this Cloud account's own key, a custom role, a
+deploy service account and its bindings.
+</Step>
+<Step title="Check and connect">
+Enter the **Workload identity provider** and the **Deploy service account** the script printed,
+then press **Check and connect**.
+</Step>
+</Steps>
+
+No Google secret is stored. **New key** rotates the signing key pair; the old one is kept until a
+check with the new one passes.
+
+## Keep permissions up to date
+
+The list shows each account's last check and its **Permissions**. When a new Cloudgate version
+needs more, the account shows "Permissions out of date" and names the missing actions. Update the
+stack (AWS) or role (Google Cloud) from the new template or script, then press **Check now**.
+
+## What Cloudgate creates in your cloud
+
+| | AWS | Google Cloud |
+|---|---|---|
+| Per Environment | An Environment network: VPC, subnets and one load balancer | An Environment network with a load balancer |
+| `web`, `worker`, `web-private`, `cron` | ECS on Fargate | Cloud Run service, worker pool or job |
+| PostgreSQL, MySQL | RDS | Cloud SQL |
+| Redis | ElastiCache | Memorystore |
+| Bucket | S3 | Cloud Storage |
+| `static` site | S3 and CloudFront | Cloud Storage and Cloud CDN |
+| Compose stack | Its own Stack VM | Its own Stack VM |
+
+Each Service also gets its own image store, identity and a secret per variable. The Environment
+network is made by the first Plan that creates a cloud Service.
+
+<Callout type="warn" title="The network costs money while idle">
+An Environment network's load balancer costs about $24 a month on AWS and about $18 a month on
+Google Cloud, even with nothing running. Delete the Environment when you no longer need it.
+</Callout>
+
+## How changes are made: OpenTofu and Cloud runs
+
+Every cloud resource is made by a **Cloud run**: an OpenTofu plan and apply against Cloudgate's own
+**Infrastructure state**, one per Service and one per Environment network. The state is encrypted
+in Cloudgate's database and never downloadable; the console shows the list of resources it holds.
+
+A Cloud run can be cancelled while it waits or plans, never once its apply has begun. Stopping one
+keeps what was already made and ends it as an error. Without an Enterprise license, a self-hosted
+instance runs one Cloud run at a time.
+
+On the Hosted instance, cloud Services build in your account's own build service (CodeBuild on
+AWS, Cloud Build on Google Cloud). A self-hosted instance builds them on its own host.
+
+## Drift: changes made by hand
+
+Drift is a change someone made in the cloud's own console that Cloudgate did not make. A Plan lists
+it on its own, and **Apply** always puts Cloudgate's version back (the button reads, for example,
+"Apply: put AWS back"). A Cloud run that finds drift stops before changing anything, and the drift
+becomes the Environment's open Plan. See [Project config and Plans](/docs/guide/project-config).
+
+## What you cannot do
+
+<Callout type="limit" title="Owners and admins only">
+Connecting, checking and deleting Cloud accounts needs the owner or admin role. Members and Agents
+cannot.
+</Callout>
+
+- Keep a hand change in the cloud: it is drift, and Apply puts it back.
+- Download or edit the Infrastructure state.
+- Move a Service between a Server and a cloud, or between clouds.
+- Use a Registry for cloud Services, open a **Shell** tab, or read access logs for them.
+- Write DNS: Cloudgate shows the records for your Domains and checks them; you create them.
+- Delete a Cloud account while any Environment, Service or Environment network uses it. Deleting
+  one never removes the stack or script resources you made to let Cloudgate in.
+
+## Related pages
+
+- [Projects and Environments](/docs/guide/projects-and-environments): pick a Cloud account and region
+  as the Deploy target.
+- [Project config and Plans](/docs/guide/project-config): review cloud resources and costs before
+  Apply.
+- [Databases](/docs/guide/databases): RDS, Cloud SQL and existing databases.
+- [Domains and HTTPS](/docs/guide/domains) in a cloud.
+- [Pricing](/pricing): how Cloud Environments count, and [Security](/security).

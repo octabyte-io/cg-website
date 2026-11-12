@@ -1,0 +1,114 @@
+---
+title: Organizations
+seoTitle: Create and switch Organizations in Cloudgate
+description: Create a Cloudgate Organization, switch between the ones you belong to, choose your default, and learn what happens when one is frozen, lapsed or deleted.
+lede: An Organization is the top of everything in Cloudgate. Its Projects, Servers, members and settings belong to it alone. Create another when you need a separate set of all of them.
+section: guide
+group: Account
+order: 1
+badges: ['Owner or Admin to create', 'Hosted and self-hosted']
+howto:
+  name: Create an Organization
+  steps:
+    - { name: Open the switcher, text: 'Open the Organization switcher at the top of the console and press New organization.' }
+    - { name: Name it, text: 'Give it a name and press Create Organization. You become its owner and its only member.' }
+    - { name: Switch to it, text: 'Switch to the new Organization to add its Servers, Projects and members.' }
+faq:
+  - { q: How many Organizations can I have?, a: 'On the Hosted instance you can own one that pays for itself, and Business can pay for more. A self-hosted instance allows one unless it has an Enterprise license.' }
+  - { q: Can I hand an Organization to someone else?, a: 'No. The owner role is nontransferable. Add the other person as an admin, who can do everything except delete the Organization.' }
+  - { q: Does deleting an Organization delete my servers?, a: 'No. Cloudgate deletes its own records of everything in the Organization but does not touch the machines themselves.' }
+---
+
+Every resource belongs to one Organization, and members act inside it. Each Organization has its
+own Projects, Servers, members, integrations and settings; nothing is shared between two of them.
+
+## What you can do
+
+- Create a new Organization and become its owner.
+- Switch between the Organizations you belong to, and choose which one you land in at sign-in.
+- Rename an Organization, copy its id, or delete it.
+- On the Hosted instance, pay for several Organizations from one Business plan.
+
+## Create an Organization
+
+<Steps>
+<Step title="Open the switcher">
+Open the Organization switcher at the top of the console and press **New organization**. The same
+button is on **Settings** > **Organizations**.
+<Screenshot name="organizations" alt="Settings, Organizations, listing Northwind Labs as the default with the owner role and a second Organization" caption="You are here marks the current one; Default is where you land at sign-in." />
+</Step>
+<Step title="Name it">
+Give it a name and press **Create Organization**. You will be its owner, and it starts with its own
+members: only you. You stay in the Organization you are in.
+</Step>
+</Steps>
+
+Creating an Organization takes an owner or admin role in the one you are in.
+
+<Callout type="limit" title="How many you can have">
+- **Hosted**: a person can own one Organization that pays for itself. Organizations attached to a
+  Business plan do not count. See [Billing](/docs/guide/billing).
+- **Self-hosted**: one Organization, unless the instance has an Enterprise license. Extra
+  Organizations made before still work.
+</Callout>
+
+## Switch Organization and set a default
+
+Use **Switch Organization** in the switcher, or **Switch to it** on a row in **Settings** >
+**Organizations**. **Make default** sets where you land at sign-in. Switching ends every shell and
+log open in the Dock.
+
+## Ownership
+
+Every Organization has one owner, who can do everything, including delete it. The owner role
+cannot be transferred. An admin can do everything except delete the Organization. See
+[Members and roles](/docs/guide/members-and-roles).
+
+## When an Organization is frozen
+
+<Callout type="limit" title="Hosted only">
+On the Hosted instance, an Organization is frozen when its plan has lapsed (a failed payment that
+Stripe stopped retrying, a cancelled plan or trial that reached its end) or when Octabyte suspended
+it. The console shows a banner: "This Organization's plan has ended. Pay to continue." or
+"Suspended. Contact Octabyte."
+</Callout>
+
+While frozen:
+
+- Everything already running keeps running on your Servers and in your clouds.
+- Nothing new starts: no Deployment, Cron run, backup, Uptime check, threshold or cleanup.
+- Members can still sign in, see everything, pay, download configs and delete things.
+- Bought Servers are the exception: they are deleted when the Organization lapses.
+
+Paying again lifts a lapse; only Octabyte lifts a suspension.
+
+<Callout type="warn" title="A lapsed Organization is deleted after 30 days">
+An Organization that has lapsed, and is not suspended, is deleted 30 days after it lapsed. Pay
+before then to keep it.
+</Callout>
+
+## Delete an Organization
+
+Open **Settings** > **Organizations** and use **Delete Organization** in the danger zone, typing its
+name to confirm.
+
+<Callout type="warn" title="This cannot be undone">
+Everything in it goes: Projects, Environments, Services, Servers, members, integrations and
+settings. Cloudgate does not touch the machines themselves.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- You cannot delete your only Organization: you have to own at least one.
+- A Business Organization that pays for others cannot be deleted while any is attached.
+- The owner role cannot be transferred.
+</Callout>
+
+## Related pages
+
+- [Billing](/docs/guide/billing): plans, Attached Organizations and what a frozen Organization can do.
+- [Members and roles](/docs/guide/members-and-roles): invite people into an Organization.
+- [Self-hosting](/docs/self-host): one Organization without a license.
+- [Concepts](/docs/concepts): how Organizations, Projects and Environments fit together.
+- [Plans and prices](/pricing) and [self-hosted Cloudgate](/self-hosted).

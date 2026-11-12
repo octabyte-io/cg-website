@@ -1,0 +1,190 @@
+---
+title: Workers, cron services and private web services
+seoTitle: Workers, cron jobs and private web services
+description: Run a queue consumer as a worker, an internal API as a private web service, and nightly jobs as a cron service, on a Server, AWS or Google Cloud.
+lede: Not every Service serves the public web. A worker runs all the time with no address, a private web service answers only your other Services, and a cron service runs a command on a timetable.
+section: guide
+group: Services
+order: 4
+navTitle: Workers, cron, private
+badges: ['Set in the Project config', 'Server, AWS and Google Cloud']
+faq:
+  - { q: How do I turn a web Application into a worker?, a: 'Write kind worker for it in the Project config. A change of kind is a destroy plus a create, confirmed by name, so the Service is replaced and its variable values start again.' }
+  - { q: Is a failed cron run retried?, a: 'No. A failed run is recorded as failed and the next run is the next fire time. Runs may also overlap, so make the command guard against two copies if it must.' }
+  - { q: What happens to cron runs while Cloudgate is down?, a: 'Fire times missed while Cloudgate is down are not made up. When it starts again, the timetable fires from that moment on.' }
+  - { q: Who can reach a private web service?, a: 'On a Server, any Service on that Server, in any Project. In a Cloud account, only the Services of its own Environment. Nothing outside reaches it, and no token is asked of a caller.' }
+---
+
+These three are kinds of Application, written as `kind` in the
+[Project config](/docs/guide/project-config). An Application you add with **Add an Application** is
+a `web`; you change its kind in the config.
+
+| Kind | Runs | Reached by | Domain | Previews |
+|---|---|---|---|---|
+| `web` | all the time | the internet, at its Domains | Yes | Yes |
+| `worker` | all the time | nothing promised | No | No |
+| `web-private` | all the time | other Services, at its internal address | No | No |
+| `cron` | one run per fire time, then exits | nothing | No | No |
+
+## What you can do
+
+- Run a queue consumer, mail sender or poller as a **worker**.
+- Run an internal API as a **private web service** and give its address to the Services that call it.
+- Run a nightly report or cleanup as a **cron service**, pause it, and run it now.
+- Run a command inside an existing Application's container on a cron with **Schedules**.
+
+## Run a worker
+
+Write the Service with `kind: worker`. It takes every field a `web` takes except `port`:
+
+```yaml
+services:
+  mailer:
+    kind: worker
+    source:
+      github: northwind/storefront
+      path: /mailer
+    command: node
+    args: [mailer.js]
+    size: small
+    env: [QUEUE_URL, SMTP_PASSWORD]
+```
+
+Apply the Plan. The worker gets no generated sslip.io Domain. Its Deployments, logs, mounts,
+Schedules, published ports, Start and Stop, and **Replicas** (on **Advanced** > **Resources**) work
+as for any Application.
+
+<Callout type="note" title="Running is not the same as working">
+A worker reads as healthy while its process is up, and passes its container `HEALTHCHECK` if the
+image sets one. Cloudgate does not know whether it is taking jobs off the queue. Give the image a
+`HEALTHCHECK` that tests the work, or watch its logs and the queue.
+</Callout>
+
+- **AWS**: an ECS Fargate service with nothing routing to it; its security group lets nothing in.
+- **Google Cloud**: a Cloud Run worker pool. Its replicas are the instance count, and its CPU is
+  always on. Stop sets the count to zero and bills nothing for the pool.
+
+<Callout type="limit" title="An Environment with only workers still pays for a load balancer">
+The first cloud Service in an Environment makes the Environment network with its load balancer,
+even when that Service is a worker.
+</Callout>
+
+## Run a private web service
+
+Write the Service with `kind: web-private` and a `port`, which is required:
+
+```yaml
+services:
+  api:
+    kind: web-private
+    port: 4000
+    source:
+      github: northwind/api
+    env: [DATABASE_URL]
+```
+
+Other Services reach it at its **internal address**, shown with a copy control as
+**Internal address** on its Application card and on its **Domains** tab:
+
+| Where it runs | Internal address |
+|---|---|
+| Server | `http://<appName>:<port>`, such as `http://app-k3x9qa:4000` |
+| AWS | `http://<Config name>.cloudgate.internal:<port>` |
+| Google Cloud | its Cloud Run `run.app` URL, reached only from the Environment network |
+
+<Steps>
+<Step title="Copy the address">
+Open the private web service and copy its **Internal address**.
+</Step>
+<Step title="Give it to the caller">
+On the calling Service's **Variables** tab, set the variable it reads, for example
+`API_URL=http://app-k3x9qa:4000`, and list the name under the caller's `env` in the config.
+</Step>
+<Step title="Deploy the caller">
+Deploy the calling Service so its container gets the value.
+</Step>
+</Steps>
+
+The address changes only when the Service is replaced, by a kind change or a rename in the config.
+Copy the new one into each caller then.
+
+<Callout type="limit" title="Private means by network only">
+On a Server any Service on that Server can call it, other Projects' included. Cloudgate asks no
+token of a caller; if the API must know who calls, it checks that itself.
+</Callout>
+
+## Run a cron service
+
+Write the Service with `kind: cron`. `command` and `schedule` are required; `schedule` is a
+five-field cron expression read in `timezone` (UTC unless you set one):
+
+```yaml
+services:
+  nightly-report:
+    kind: cron
+    source:
+      github: northwind/storefront
+      path: /report
+    command: node dist/report.js
+    schedule: "0 3 * * *"
+    timezone: Europe/Berlin
+    timeout: 30m
+```
+
+Each firing is a **run**: a fresh container from the cron service's last successful build, which
+exits when the command does. Nothing fires before its first build succeeds.
+
+Its **Overview** has a **Timetable** card with the schedule, time zone, **Time limit** and
+**Next runs**. The timetable is "Set in the Project config; a plan changes it."
+
+<Steps>
+<Step title="Run it now">
+Press **Run now** to start one run. It works even while the timetable is paused.
+</Step>
+<Step title="Pause the timetable">
+Press **Stop** to pause the timetable in this Environment and stop runs in flight. **Start**
+resumes it.
+</Step>
+<Step title="Read a run's output">
+On a Server a cron service has no **Logs** tab: each run's output is its Deployment log, on the
+**Deployments** tab.
+</Step>
+</Steps>
+
+How the timetable behaves:
+
+- **Runs may overlap.** A run still going at the next fire time does not stop the next one.
+- **A run is never retried.** A failed run waits for the next fire time.
+- **Missed fire times are not made up** if Cloudgate was down. Runs happen only while Cloudgate is
+  up, on every target.
+- **Every run has a time limit**: `timeout` is 1 hour unless you set one, and at most 24 hours. A
+  run that reaches it is stopped and counts as failed.
+- **A run uses the last successful build.** Right after a push, a cron service can run older code
+  than a `web` from the same repository until its own build succeeds.
+
+In AWS a run is one ECS task; in Google Cloud, one execution of a Cloud Run job. Cloudgate's own
+timetable fires them in both, so nothing bills between runs but stored images and logs.
+
+## Run a command inside an Application on a cron
+
+Not every scheduled job needs its own Service. An Application's **Schedules** tab runs a command
+inside that Application's running container on a cron: press **Add a schedule** and set a
+**Name**, the **Command**, **Shell**, **Cron expression** and **Time zone**. The container must be running.
+
+## What you cannot do
+
+- Give a worker, private web service or cron service a Domain or a preview: the console and API
+  refuse it (`KIND_TAKES_NO_DOMAIN`, `KIND_TAKES_NO_PREVIEWS`).
+- Publish a port on a private web service, or set `port` on a worker.
+- Retry a failed cron run automatically, or keep two cron runs from overlapping.
+- Set replicas in the Project config: they are set per Environment in the console.
+- Change a kind without replacing the Service.
+
+## Related pages
+
+- [Applications](/docs/guide/applications): sources, builders, sizes and replicas.
+- [The Project config and Plans](/docs/guide/project-config).
+- [Environment variables](/docs/guide/environment-variables).
+- [Monitoring and logs](/docs/guide/monitoring).
+- [Cloud accounts](/docs/guide/cloud-accounts) for AWS and Google Cloud.
+- See every kind of Service on the [features page](/features).

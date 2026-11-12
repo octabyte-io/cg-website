@@ -1,0 +1,8 @@
+---
+interface Props { href: string; title: string; slice?: 1 | 2 | 3 }
+const { href, title, slice } = Astro.props;
+---
+<a class="doc-card" href={href} data-spotlight>
+  <span class="doc-card-title">{slice && <span class:list={['slice', `slice--${slice}`]} aria-hidden="true" />}{title}</span>
+  <span class="doc-card-text"><slot /></span>
+</a>

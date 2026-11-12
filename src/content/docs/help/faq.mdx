@@ -1,0 +1,149 @@
+---
+title: Frequently asked questions
+seoTitle: Cloudgate FAQ, answers to common questions
+description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, security and access, and AI agents over MCP.
+lede: Short, direct answers to the questions people ask most, grouped by topic. Each one links to the page that covers it in full.
+section: help
+order: 3
+navTitle: FAQ
+badges: ['Hosted and self-hosted']
+faqInBody: true
+faq:
+  - { q: What is Cloudgate?, a: 'A deployment platform you point at your own Servers and your own AWS or Google Cloud account. It builds and runs Applications, databases, Compose stacks and AI models there, with domains, certificates, backups and monitoring.' }
+  - { q: Do I need my own server?, a: 'You need a Server or a Cloud account. Any Ubuntu machine you can reach over SSH works; on the Hosted instance you can also buy one from Cloudgate in the console.' }
+  - { q: Is Cloudgate open source?, a: 'No. It is source-available under the Elastic License 2.0: free to use, self-host and change, but not to offer to others as a hosted service.' }
+  - { q: How much does the Hosted instance cost?, a: 'Starter is 15 USD a month and Business 35 USD a month, each with 3 Servers and 3 Cloud Environments and a 30-day free trial. An Add-on adds one of each for 5 USD.' }
+  - { q: Can I deploy without a Dockerfile?, a: 'Yes. Nixpacks, the default builder, works out how to build your code from its files. Railpack, buildpacks, static files and a ready-made Docker image are also options.' }
+  - { q: Can an AI agent deploy for me?, a: 'Yes, as an Agent with the Operator role over MCP. It can deploy, start, stop, cancel and ask for previews and Plans within its grant, but never apply a Plan or change settings.' }
+  - { q: Are my secrets safe?, a: 'Secrets are encrypted at rest, API answers show only whether one is set, and every Agent result passes a mask that replaces stored secrets with dots.' }
+---
+
+Can't find your question? [Troubleshooting](/docs/help/troubleshooting) covers things that go wrong,
+and [What Cloudgate can and cannot do](/docs/help/limits) lists every limit.
+
+## Getting started
+
+### What is Cloudgate?
+
+A deployment platform you point at your own Servers and your own AWS or Google Cloud account. It
+builds and runs Applications, databases, Compose stacks and AI models there, with domains,
+certificates, backups, monitoring and access control. Start with the [Quickstart](/docs/quickstart).
+
+### Do I need my own server?
+
+You need a Server or a Cloud account before anything deploys. Any Ubuntu machine you can reach over
+SSH as root, or as a user with passwordless sudo, works. On the Hosted instance you can also buy one
+from Cloudgate in the console. See [Servers](/docs/guide/servers) and [Bought Servers](/docs/guide/bought-servers).
+
+### Do I need a domain name?
+
+No. A free sslip.io address that points at your Server works straight away, over plain HTTP. Add your
+own domain when you want HTTPS. See [Domains](/docs/guide/domains).
+
+### Can I deploy without a Dockerfile?
+
+Yes. Nixpacks, the default builder, works out how to build your code from its files. Railpack, Heroku and
+Paketo buildpacks, static files, a Dockerfile or a ready-made Docker image are the other options.
+See [Applications](/docs/guide/applications).
+
+## Plans and pricing
+
+### How much does the Hosted instance cost?
+
+Starter is 15 USD a month and Business 35 USD a month. Each includes 3 Servers and 3 Cloud
+Environments; an Add-on adds one more of each for 5 USD. Members, Projects and Environments on
+Servers are not counted. See [pricing](/pricing).
+
+### Is there a free trial?
+
+Yes, 30 days on either plan. A card is needed to start it, and there is one trial per Organization,
+person and card. Buying a Server is charged at once, even during the trial. See [Billing](/docs/guide/billing).
+
+### What happens if I go over my plan's count?
+
+Only the next addition is refused. Nothing that already runs is switched off. Buy an Add-on, or
+upgrade, to add more.
+
+### What does Business add over Starter?
+
+Single sign-on, SCIM, custom roles, forward auth in front of your apps, and paying for other
+Organizations on the same plan. The counts are the same.
+
+## Self-hosting
+
+### Is Cloudgate open source?
+
+No. It is source-available under the Elastic License 2.0. You may use, self-host and change it, but
+you may not offer it to others as a hosted service, or get around its license checks. See
+[Self-hosting Cloudgate](/docs/self-host).
+
+### Is self-hosting free?
+
+Yes. The free version deploys everything Cloudgate can deploy, with one Organization and one build at
+a time per Server. An Enterprise license unlocks the rest. You pay only for the servers you run.
+
+### How do I get the source?
+
+The source repository is private today. Write to
+[support@octabyte.io](mailto:support@octabyte.io?subject=Access%20to%20self-host%20Cloudgate) and we
+reply with access and the install steps. See [Install Cloudgate](/docs/self-host/install).
+
+## Deploying
+
+### Can I deploy from my terminal or CI?
+
+Yes. The CLI, `cloudgate deploy`, uploads a folder to an Application and follows its Deployment. In
+CI, set `CLOUDGATE_KEY` to a Personal key. See the [CLI guide](/docs/cli) and [CI use](/docs/cli/ci).
+
+### Can I roll back a bad deploy?
+
+Yes, for an Application with **Keep rollback points** turned on: open its **Rollbacks** tab and press
+**Roll back** on an earlier point. Databases and Compose stacks have no rollback. See
+[Deployments and rollbacks](/docs/guide/deployments).
+
+### Can I move a Service to another Server?
+
+No. A Service's Server or Cloud account is fixed when it is made. To run it somewhere else, create a
+new Service in the new place.
+
+### Do Services inherit Project variables?
+
+No. A Service gets only its own variables and reads a Project or Environment value by naming it,
+such as `${{project.KEY}}`. See [Environment variables](/docs/guide/environment-variables).
+
+## Security and access
+
+### Are my secrets safe?
+
+Secrets are encrypted at rest, API answers say only whether a secret is set, and every Agent result
+passes a mask that replaces stored secrets with dots. See [Security](/security).
+
+### Can I limit a member to one Project?
+
+Yes. A member reaches only the Projects, Environments and Services an owner or admin grants under
+**Manage access**. Owners and admins reach everything. See [Members and roles](/docs/guide/members-and-roles).
+
+### Is there single sign-on?
+
+Yes, with OIDC providers, on the Business plan or with an Enterprise license on a self-hosted
+instance. SCIM provisioning comes with it. See [SSO and SCIM](/docs/guide/sso-and-scim).
+
+## AI agents
+
+### Can an AI agent deploy for me?
+
+Yes. Create an Agent with the Operator role and connect your AI tool to the MCP endpoint with its
+key. It can deploy, start, stop, cancel, and ask for previews and Plans within its grant. See
+[Agents](/docs/guide/agents) and [Connect an AI tool](/docs/mcp/connect).
+
+### What can an Agent never do?
+
+Apply a Plan, change variables, settings or access, configure health checks, or create an AI model.
+It never becomes an owner or admin, and every call it makes is in the audit log. See
+[MCP guard rails](/docs/mcp/guard-rails).
+
+### Can I run my own AI models?
+
+Yes. An AI model is an Application that serves one model with Ollama, vLLM or llama.cpp, optionally
+on whole GPUs, reached through Cloudgate's OpenAI-compatible Gateway. See
+[AI models](/docs/guide/ai-models) and the [AI agents overview](/ai-agents).

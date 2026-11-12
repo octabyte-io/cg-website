@@ -1,0 +1,394 @@
+[
+  {
+    "name": "home",
+    "title": "Organization home",
+    "route": "/",
+    "description": "The organization home for Northwind Labs, listing the Servers fra-1, nyc-edge and build-1 (all reachable) and the Projects storefront, analytics and ai-lab.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "get-started-where",
+    "title": "Get started: choose a server",
+    "route": "/get-started?template=ghost",
+    "description": "Step 1 of the Get started wizard for the Ghost template, offering the existing Servers fra-1 and nyc-edge or a new one.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "get-started-details",
+    "title": "Get started: set up the app",
+    "route": "/get-started?template=ghost&path=own&server=[serverId]&step=deploy",
+    "description": "Step 2 of the Get started wizard: Ghost’s settings filled in (sender hello@northwind.example, SMTP smtp.postmarkapp.com) to run on fra-1.",
+    "width": 2000,
+    "height": 1389
+  },
+  {
+    "name": "projects-list",
+    "title": "Projects",
+    "route": "/projects",
+    "description": "The Projects list with storefront (2 Environments), analytics and ai-lab.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "project-overview",
+    "title": "A Project",
+    "route": "/projects/[projectId]",
+    "description": "The storefront Project with its production and staging Environments and Project variables.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "project-config",
+    "title": "Project config",
+    "route": "/projects/[projectId]/config",
+    "description": "The storefront Project config (cloudgate.yaml) with web, the emails worker, the nightly-report cron, pg-main, cache, uploads and a linked DATABASE_URL: pg-main.url.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "plan-card",
+    "title": "Plan review",
+    "route": "/projects/[projectId]/config",
+    "description": "The open Plan for storefront’s production Environment: create the Redis queue (redis:7) and change emails’ description and add QUEUE_URL ← queue.url, with Dismiss and Apply.",
+    "width": 2000,
+    "height": 1389
+  },
+  {
+    "name": "environment-services",
+    "title": "Environment services",
+    "route": "/environments/[environmentId]",
+    "description": "The production Environment of storefront listing its Services: web, emails (worker), nightly-report (cron), pg-main (PostgreSQL), cache (Redis) and the uploads bucket.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-overview",
+    "title": "Application overview",
+    "route": "/applications/[applicationId]",
+    "description": "The web Application’s overview: a build of “Add gift card checkout” streaming, its GitHub source northwind-labs/storefront on main, and fra-1 as the Server.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-deployments",
+    "title": "Application deployments",
+    "route": "/applications/[applicationId]/deployments",
+    "description": "The web Application’s Deployments: one running, earlier ones done, one failed (Bump next to 15.5) and one cancelled.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "deployments-list",
+    "title": "Deployments",
+    "route": "/deployments",
+    "description": "Every Deployment in Northwind Labs over 7 days across web, emails, nightly-report and plausible, with running, done, error and cancelled states.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "deployment-log",
+    "title": "Deployment log",
+    "route": "/applications/[applicationId]/deployments",
+    "description": "A finished Deployment of web (“Cache product listing for 60s”, commit 4f2a91c by leo): times, the log file and the Nixpacks build log ending in Docker Deployed.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "deployment-log-failed",
+    "title": "Failed deployment log",
+    "route": "/applications/[applicationId]/deployments",
+    "description": "A failed Deployment of web (“Bump next to 15.5”): the build log ending in a TypeScript error and “Nixpacks build failed”.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-domains",
+    "title": "Application domains",
+    "route": "/applications/[applicationId]/domains",
+    "description": "The web Application’s Domains shop.northwind.example, www.northwind.example and api.northwind.example, HTTPS with Let’s Encrypt.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-add-domain",
+    "title": "Add a domain",
+    "route": "/applications/[applicationId]/domains",
+    "description": "The Add a domain dialog on the web Application.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-variables",
+    "title": "Application variables",
+    "route": "/applications/[applicationId]/variables",
+    "description": "The web Application’s variables with STRIPE_SECRET_KEY and SESSION_SECRET masked, and wired variables DATABASE_URL ← pg-main.url and REDIS_URL ← cache.url.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "application-advanced",
+    "title": "Application settings",
+    "route": "/applications/[applicationId]/advanced",
+    "description": "The web Application’s Advanced tab: resources, runtime, routing and Swarm settings.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "application-rollbacks",
+    "title": "Rollbacks",
+    "route": "/applications/[applicationId]/rollbacks",
+    "description": "The web Application’s rollback points: five image snapshots (ghcr.io/northwind/storefront-web) from successful Deployments.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "application-previews",
+    "title": "Previews",
+    "route": "/applications/[applicationId]/previews",
+    "description": "The web Application’s previews: a requested preview of feature/gift-cards and pull request #142 “Wishlist on product pages”, under *.preview.northwind.example.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "service-health",
+    "title": "Service health",
+    "route": "/applications/[applicationId]/health",
+    "description": "The web Application’s Health tab: an HTTPS uptime check of shop.northwind.example that is up, with a 6-minute incident (status 502) closed earlier today.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "database-overview",
+    "title": "Database overview",
+    "route": "/databases/postgres/[databaseId]",
+    "description": "The pg-main PostgreSQL 16 database in storefront / production.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "database-credentials",
+    "title": "Database credentials",
+    "route": "/databases/postgres/[databaseId]/credentials",
+    "description": "pg-main’s connection details: host postgres-57z7si, port 5432, database and user storefront, with the password hidden.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "database-backups",
+    "title": "Database backups",
+    "route": "/databases/postgres/[databaseId]/backups",
+    "description": "pg-main’s backups: a daily 03:00 schedule to Backups (R2) keeping 14 and a weekly one to Offsite (Wasabi).",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "database-create",
+    "title": "Add a database",
+    "route": "/environments/[environmentId]",
+    "description": "The Add a database dialog in the production Environment of storefront.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "compose-overview",
+    "title": "Compose stack",
+    "route": "/compose/[composeId]",
+    "description": "The plausible Compose stack (Plausible Analytics Community Edition) in analytics / production, with its compose file.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "bucket-screen",
+    "title": "Bucket",
+    "route": "/buckets/[bucketId]",
+    "description": "The uploads bucket on fra-1 in storefront / production, with its key and domains.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "ai-model-model-tab",
+    "title": "AI model",
+    "route": "/applications/[applicationId]/model",
+    "description": "The llama AI model’s Model tab: Ollama serving llama3.1:8b, the image tag and how a client calls it.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "servers-list",
+    "title": "Servers",
+    "route": "/servers",
+    "description": "The Servers list: fra-1 (203.0.113.10), nyc-edge (198.51.100.24) and the build server build-1, all reachable.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "server-overview",
+    "title": "Server overview",
+    "route": "/servers/[serverId]",
+    "description": "fra-1’s overview: ready to deploy with Docker 27.3.1 and Swarm, its Swarm services and the latest CPU, memory and disk sample.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "server-telemetry",
+    "title": "Server telemetry",
+    "route": "/servers/[serverId]/telemetry",
+    "description": "fra-1’s Telemetry: CPU, memory, disk and network charts from the stored samples.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "server-infrastructure",
+    "title": "Server infrastructure",
+    "route": "/servers/[serverId]/infrastructure",
+    "description": "fra-1’s Infrastructure tab: reachable as root on 203.0.113.10:22, with Docker 27.3.1, an active Swarm and cloudgate-network.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "servers-add",
+    "title": "Add a Server",
+    "route": "/servers",
+    "description": "The Add a Server dialog: name, address, SSH port, user and key.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "servers-buy",
+    "title": "Buy a Server",
+    "route": "/servers/buy",
+    "description": "The Buy a Server page: Locations on a map and the sizes with monthly prices.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "cloud-accounts",
+    "title": "Cloud accounts",
+    "route": "/settings/cloud-accounts",
+    "description": "Cloud accounts: the AWS account northwind-aws-prod (123456789012), its last check passed.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "monitoring",
+    "title": "Monitoring",
+    "route": "/monitoring",
+    "description": "Monitoring: the instance’s own PostgreSQL and Traefik healthy, and CPU, memory, disk and network for fra-1, nyc-edge and build-1.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "templates-list",
+    "title": "Templates",
+    "route": "/templates",
+    "description": "The Template catalogue: Activepieces, Automatisch, Baserow, Cal.com, Ghost and more, each with Set up.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "members",
+    "title": "Members",
+    "route": "/settings/members",
+    "description": "Members of Northwind Labs: Maya Chen (owner), Leo Park (admin), Priya Raman (release-manager) and a pending invitation for sam@example.com.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "members-invite",
+    "title": "Invite someone",
+    "route": "/settings/members",
+    "description": "The Invite someone dialog on Members.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "roles",
+    "title": "Roles",
+    "route": "/settings/roles",
+    "description": "Roles: the custom roles release-manager and on-call with their permissions.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "settings-agents",
+    "title": "Agents",
+    "route": "/settings/agents",
+    "description": "Agents: deploy-bot with the Operator role, reaching the storefront Project.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "agent-connect",
+    "title": "Connect an Agent",
+    "route": "/settings/agents",
+    "description": "The Connect panel for the Agent deploy-bot: the MCP endpoint and the config to paste into a coding agent.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "audit-log",
+    "title": "Audit log",
+    "route": "/settings/audit-log",
+    "description": "The Audit log: creates, deploys and a rollback by Maya Chen and Leo Park, and deploy-bot’s Agent calls, one of them refused.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "notifications",
+    "title": "Notifications",
+    "route": "/settings/notifications",
+    "description": "Notification channels: the Slack channel #ops-alerts subscribed to deploys, build errors, backups, server thresholds and incidents.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "git-providers",
+    "title": "Git providers",
+    "route": "/settings/git-providers",
+    "description": "Git providers: the GitHub App northwind-cloudgate and the GitLab group northwind.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "settings-destinations",
+    "title": "Backup destinations",
+    "route": "/settings/destinations",
+    "description": "Backup destinations: Backups (R2) on Cloudflare R2 and Offsite (Wasabi) in eu-central-2.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "billing",
+    "title": "Billing",
+    "route": "/settings/billing",
+    "description": "Billing on the Hosted instance: the Business plan with its Server allowance and usage, and recent invoices.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "sso",
+    "title": "Single sign-on",
+    "route": "/settings/sso",
+    "description": "Single sign-on: registering an OIDC provider such as Okta for northwind.example, and SCIM.",
+    "width": 2000,
+    "height": 1528
+  },
+  {
+    "name": "organizations",
+    "title": "Organizations",
+    "route": "/settings/organizations",
+    "description": "Organizations: Northwind Labs, the one Maya Chen lands in.",
+    "width": 2000,
+    "height": 1250
+  },
+  {
+    "name": "personal-keys",
+    "title": "Personal keys",
+    "route": "/settings/account",
+    "description": "The personal keys on Maya Chen’s account: laptop-cli and github-actions.",
+    "width": 2000,
+    "height": 1528
+  }
+]

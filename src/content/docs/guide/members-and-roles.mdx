@@ -1,0 +1,128 @@
+---
+title: Members and roles
+seoTitle: Invite members and set roles and access
+description: Invite people to your Cloudgate Organization, give them the owner, admin or member role, limit them to certain Projects and Services, and build custom roles.
+lede: Members are the people in an Organization. Their role decides what they can do; their access decides which Projects, Environments and Services they can see at all.
+section: guide
+group: Team and access
+order: 1
+navTitle: Members and roles
+badges: ['Owner or Admin', 'Custom roles: Business plan or Enterprise license']
+howto:
+  name: Invite someone to an Organization
+  steps:
+    - { name: Open Members, text: 'Open Settings and then Members, and press Invite someone.' }
+    - { name: Enter their details, text: 'Enter the email address they will sign in with, choose a Role and, optionally, a Team.' }
+    - { name: Create the invitation, text: 'Press Create invitation.' }
+    - { name: Send the link, text: 'Copy the invitation link and send it to them. They accept it to join.' }
+    - { name: Grant access, text: 'For the member role, press Manage access on their row and tick the Projects, Environments and Services they may reach.' }
+faq:
+  - { q: Does Cloudgate email the invitation?, a: 'Only when the instance has a mail sender configured. The console always shows the invitation link, so you can send it yourself. An invitation expires after 48 hours.' }
+  - { q: Can I transfer ownership of an Organization?, a: 'No. The owner role is nontransferable: it cannot be given to someone else or taken from the owner.' }
+  - { q: What happens to a removed member's work?, a: 'It stays where it is. Their account remains, their membership goes, and nothing they created is reassigned or deleted.' }
+  - { q: How many custom roles can I make?, a: 'Up to ten per Organization, on the Business plan on the Hosted instance or with an Enterprise license when self-hosted.' }
+---
+
+Every Organization has exactly one owner. Everyone else is an admin, a member, or holds a custom
+role. Members see only what you grant them; owners and admins see everything.
+
+## What you can do
+
+- Invite people by email and resend or revoke an invitation.
+- Change a member's role, or remove them.
+- Limit a member to certain Projects, Environments and Services.
+- Group people in Teams.
+- Build custom roles from the same permission table the backend checks (paid).
+
+## The built-in roles
+
+| Role | What it can do |
+|---|---|
+| **Owner** | Everything, including deleting the Organization. One per Organization; cannot be transferred. |
+| **Admin** | Everything except deleting the Organization. Reaches every Project. |
+| **Member** | Reads and updates the Services and Environments they are granted; deploys, cancels, backs up and restores them; adds Domains. Cannot create or delete a Project, an Environment or a Service, add Servers, or manage members. |
+
+Settings > **Members** has a **What each role can do** grid with the full list.
+
+## Invite someone
+
+<Steps>
+<Step title="Open Members">
+Open **Settings** > **Members** and press **Invite someone**.
+<Screenshot name="members" alt="Settings, Members for Northwind Labs, listing people with their role and member-since date, and pending invitations" caption="Each row has Change role, Manage access and Remove." />
+</Step>
+<Step title="Enter their details">
+Enter the **Email** they will sign in with, choose a **Role** (Member, Admin, or a custom role),
+and optionally a **Team**. Press **Create invitation**.
+
+<Screenshot name="members-invite" alt="The Invite someone dialog on the Members screen of Northwind Labs" caption="An invitation names the person's email address and the role they join with." />
+
+</Step>
+<Step title="Send them the link">
+The dialog shows **Send them this link**. Copy the invitation link and pass it on. If the instance
+has no mail sender, nothing was emailed and sending it is your job. The link stays in
+**Invitations** if you close the dialog.
+</Step>
+</Steps>
+
+They sign in, or create an account, and accept. An invitation expires after 48 hours; **Resend** it
+or revoke it from **Invitations**.
+
+## Grant access to Projects, Environments and Services
+
+A member reaches nothing until you grant it. On their row, press **Manage access** and tick what
+they may reach. A member reaches a Service through its Project and its Environment, so granting a
+Service grants the two above it. For example, grant `storefront` / `staging` / `web` to let someone
+work on staging without seeing production.
+
+Admins and the owner reach everything, so grants are not checked while someone holds those roles.
+
+## Change a role or remove a member
+
+- **Change role**: takes effect on their next request; they do not have to sign in again. You cannot
+  change your own role or the owner's.
+- **Remove**: their account stays, their membership of this Organization goes. A session they have
+  open stops being allowed to do anything on its next request.
+
+## Create a custom role
+
+<Callout type="limit" title="Business plan or Enterprise license">
+Custom roles need the Business plan on the Hosted instance, or an Enterprise license on a
+self-hosted instance. Without one, a custom role allows nothing, and people holding it can sign in
+but do nothing until you give them a built-in role.
+</Callout>
+
+<Steps>
+<Step title="Open Roles">
+Open **Settings** > **Roles** and press **Create a role**.
+
+<Screenshot name="roles" alt="The Roles screen with the custom roles release-manager and on-call and the permissions each allows" caption="Custom roles sit beside the built-in ones." />
+
+</Step>
+<Step title="Name it and tick what it allows">
+Give it a lower-case name, such as `deployer`, and tick the subjects and actions it allows. Every
+choice comes from the same permission table the backend's guards check.
+</Step>
+<Step title="Assign it">
+Save, then pick it in **Change role** on a member's row, or when you invite someone.
+</Step>
+</Steps>
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- The owner role cannot be transferred.
+- At most ten custom roles per Organization.
+- Teams group people only; they do not change what anyone can do.
+- On a self-hosted instance, only the first sign-up arrives without an invitation.
+- A member deactivated over SCIM cannot sign in; only the directory can reactivate them.
+- Agents are managed under Settings > **Agents**, not here.
+</Callout>
+
+## Related pages
+
+- [Agents](/docs/guide/agents): members that are not people, with their own roles and grants.
+- [SSO and SCIM](/docs/guide/sso-and-scim): let your identity provider sign people in and create members.
+- [Audit log](/docs/guide/audit-log): see who changed what.
+- [Personal keys](/docs/guide/personal-keys): a member's own credential for scripts.
+- [Security at Cloudgate](/security) and [plans and prices](/pricing).

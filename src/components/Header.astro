@@ -10,6 +10,7 @@ const nav = [
   { href: templatesHome, label: 'Templates' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/self-hosted', label: 'Self-host' },
+  { href: '/docs', label: 'Docs' },
 ];
 const here = Astro.url.pathname.replace(/\.html$/, '');
 ---
@@ -176,6 +177,7 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     font-size: var(--text-sm);
     color: var(--muted);
     text-decoration: none;
+    white-space: nowrap;
   }
   @media (hover: hover) and (pointer: fine) {
     .signin:hover {
@@ -246,7 +248,7 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
   }
 
   /* Below this the six links no longer fit on one line beside the actions. */
-  @media (max-width: 1100px) {
+  @media (max-width: 1160px) {
     .wide,
     .signin {
       display: none;

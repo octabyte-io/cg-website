@@ -1,0 +1,142 @@
+---
+title: How Cloudgate fits together
+seoTitle: How Cloudgate works, Projects to Services
+description: How Cloudgate is organized, from Organization to Project, Environment and Service, where Services run, and how Deployments, Plans and Agents fit in.
+lede: Eight words carry the whole model. Learn them once and every screen in the console, every CLI command and every page of this guide reads the same way.
+section: start
+order: 2
+navTitle: How it fits together
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Does a Service inherit its Project's variables?, a: 'No. A Service gets only its own variables. It reaches a Project or Environment value by naming it, as <code>${{project.KEY}}</code> or <code>${{environment.KEY}}</code>, and a reference to a name that is not set fails the deploy.' }
+  - { q: Can a Service move to another Server?, a: 'No. A Service''s place, a Server or a Cloud account, is fixed when it is created. Changing an Environment''s Deploy target changes only where new Services go.' }
+  - { q: Is a Server part of a Project?, a: 'No. Servers and Cloud accounts belong to the Organization, so every Project can deploy to them. An Environment names one as its Deploy target.' }
+---
+
+Cloudgate keeps everything in one tree: an **Organization** holds **Projects**, a Project holds
+**Environments**, and an Environment holds **Services**. Services run on **Servers** or in a
+**Cloud account**, both of which belong to the Organization. A **Deployment** is one attempt to
+build or run something, a **Plan** is what applying the Project's configuration would change, and an
+**Agent** is a member that is an AI tool rather than a person.
+
+## The model at a glance
+
+The diagram uses the example Organization from these docs: Northwind Labs, with a `storefront`
+Project in two Environments.
+
+<figure aria-labelledby="model-caption" style="margin:0;display:grid;gap:var(--space-3)">
+  <div style="border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--space-4);background:var(--paper-2);display:grid;gap:var(--space-3)">
+    <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Organization</strong> Northwind Labs: members, Agents, Servers, Cloud accounts, settings</p>
+    <div style="display:grid;gap:var(--space-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))">
+      <div style="border:1px solid var(--line);border-radius:var(--radius-md);padding:var(--space-3);background:var(--surface);display:grid;gap:var(--space-3)">
+        <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Project</strong> storefront: Project variables, Project config</p>
+        <div style="display:grid;gap:var(--space-2);grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))">
+          <div style="border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:var(--space-3);display:grid;gap:var(--space-2)">
+            <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Environment</strong> production, Deploy target fra-1</p>
+            <p style="margin:0;font-size:var(--text-sm)"><span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">web</span> <span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">pg-main</span></p>
+          </div>
+          <div style="border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:var(--space-3);display:grid;gap:var(--space-2)">
+            <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Environment</strong> staging, Deploy target nyc-edge</p>
+            <p style="margin:0;font-size:var(--text-sm)"><span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">web</span> <span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">pg-main</span></p>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--line);border-radius:var(--radius-md);padding:var(--space-3);background:var(--surface);display:grid;gap:var(--space-2);align-content:start">
+        <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Where Services run</strong>, shared by every Project</p>
+        <p style="margin:0;font-size:var(--text-sm)">Servers fra-1 and nyc-edge, over SSH</p>
+        <p style="margin:0;font-size:var(--text-sm)">A Cloud account: an AWS account or a Google Cloud project</p>
+      </div>
+    </div>
+  </div>
+  <figcaption id="model-caption" style="font-size:var(--text-sm);color:var(--muted)">Northwind Labs holds the storefront Project, which has a production and a staging Environment, each with its own web Application and pg-main database. The Servers and Cloud account belong to the Organization, not to any Project.</figcaption>
+</figure>
+
+The same tree as a list, for reading aloud or copying:
+
+- **Organization**: Northwind Labs
+  - Members and Agents, with roles and grants
+  - Servers (`fra-1`, `nyc-edge`) and Cloud accounts
+  - **Project**: `storefront`, with its Project variables and Project config
+    - **Environment**: `production`, deploying to `fra-1`
+      - **Services**: `web` (an Application), `pg-main` (a PostgreSQL database)
+    - **Environment**: `staging`, deploying to `nyc-edge`
+      - **Services**: `web`, `pg-main`
+
+## Organization
+
+The Organization is the boundary around everything else. Every Project, Server, Cloud account,
+member and setting belongs to exactly one Organization, and people act inside it with a role:
+owner, admin or member. On the Hosted instance the Organization is also what has a plan. See
+[Organizations](/docs/guide/organizations) and [Members and roles](/docs/guide/members-and-roles).
+
+## Project
+
+A Project groups the Services that ship together, such as a shop's website, API and database. It
+holds only Environments, plus its own variables that any Service beneath it can reference by name.
+Its **Project config** (a `cloudgate.yaml`, kept in Cloudgate or in your repository) can describe
+every Service it runs. See [Projects and Environments](/docs/guide/projects-and-environments).
+
+## Environment
+
+An Environment is a named slice of a Project, such as `production` or `staging`. It owns the
+Services and has its own variables. Its **Deploy target** says where new Services are created: a
+Server, or a Cloud account and a region. Two Environments of the same Project can run in different
+places.
+
+## Service
+
+A Service is one thing that runs. There are three kinds:
+
+- An **Application**, built from a git repository, a Docker image or uploaded files. Its kind can be
+  `web`, `worker`, `web-private`, `cron`, `static`, or an AI model.
+- A **Database**: PostgreSQL, MySQL, MariaDB, MongoDB, Redis or libSQL.
+- A **Compose stack**, from a Docker Compose file.
+
+A **Bucket** for files is a Service too. Services talk to each other through **Wired variables**,
+which fill in one Service's variable from another's Output (such as a database's `url`) at each
+deploy. See [Applications](/docs/guide/applications), [Databases](/docs/guide/databases) and
+[Environment variables](/docs/guide/environment-variables).
+
+## Server or Cloud account
+
+Every Service runs in one place, fixed when it is made:
+
+- A **Server** is a machine Cloudgate reaches over SSH. Its setup run installs Docker, a Swarm of
+  one and Traefik, which routes Domains and gets certificates. See [Servers](/docs/guide/servers).
+- A **Cloud account** is your AWS account or Google Cloud project. Cloudgate creates the cloud's own
+  services there (such as ECS, RDS, Cloud Run or Cloud SQL) with OpenTofu. See
+  [Cloud accounts](/docs/guide/cloud-accounts).
+
+On a self-hosted instance, the machine Cloudgate itself runs on, the **platform host**, can also be
+a deploy target.
+
+## Deployment
+
+A Deployment is one attempt at one thing, with its own log, status and timings: a build and
+release of an Application, a backup run, a cron run, or a run that creates cloud resources. A
+Deployment is `pending` while it waits, then `running`, and ends `done`, `error` or `cancelled`.
+See [Deployments and rollbacks](/docs/guide/deployments).
+
+## Plan
+
+A Plan is one Environment's list of what applying the Project config would create, change and
+destroy. A push to the config's branch, or **Check for changes**, makes one; nothing changes until
+someone presses **Apply**. See [Project config and Plans](/docs/guide/project-config).
+
+## Agent
+
+An Agent is a member of the Organization that is not a person: an AI tool connected over MCP. It
+has its own role (Reader, Operator or Caller), its own grant to the Projects, Environments and
+Services it may reach, and its own keys. It can deploy and read logs, but it never applies a Plan.
+See [Agents](/docs/guide/agents) and the [AI agents overview](/ai-agents).
+
+## What the model does not do
+
+<Callout type="limit" title="Fixed by design">
+  - Variables are never inherited down the tree. A Service names a Project or Environment value to use it.
+  - Nothing moves a Service between Servers or clouds. Make a new one in the new place.
+  - Changing an Environment's Deploy target moves nothing that already runs.
+  - Every Service belongs to one Environment, and a Server or Cloud account to one Organization.
+</Callout>
+
+Every term on this page, and the words Cloudgate avoids, are in the [glossary](/docs/glossary).

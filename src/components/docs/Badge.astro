@@ -1,0 +1,6 @@
+---
+// A small tag naming who or what something applies to: "Hosted only", "Business plan", "Operator".
+interface Props { tone?: 'plain' | 'brand' | 'live' | 'warn' }
+const { tone = 'plain' } = Astro.props;
+---
+<span class:list={['badge', `badge--${tone}`]}><slot /></span>

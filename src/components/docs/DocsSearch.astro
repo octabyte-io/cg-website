@@ -1,0 +1,13 @@
+---
+// The docs search dialog (opened by any [data-search-open], "/" or Ctrl/Cmd+K). Logic in src/scripts/docs.ts.
+---
+<dialog class="docs-search" aria-label="Search the docs">
+  <form method="dialog" class="docs-search-form" role="search">
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8.5 2a6.5 6.5 0 0 1 5.2 10.4l4 4-1.3 1.3-4-4A6.5 6.5 0 1 1 8.5 2Zm0 1.8a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Z" /></svg>
+    <input type="search" name="q" placeholder="Search guides, commands, tools and endpoints" autocomplete="off" spellcheck="false" aria-label="Search the docs" aria-controls="docs-search-results" />
+    <button type="submit" value="close" class="docs-search-close">Esc</button>
+  </form>
+  <ul id="docs-search-results" class="docs-search-results" role="listbox" aria-label="Results"></ul>
+  <p class="docs-search-empty" hidden>No page matches that. Try a shorter word, or a term like “deploy”, “domain” or “agent”.</p>
+</dialog>
+

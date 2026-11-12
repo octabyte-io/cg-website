@@ -1,0 +1,111 @@
+---
+title: Self-hosting Cloudgate
+seoTitle: Self-host Cloudgate, licence and what is free
+description: What self-hosting Cloudgate means, what the Elastic License 2.0 allows, what the free version includes, and what an Enterprise license unlocks.
+lede: A self-hosted instance is the same Cloudgate as the Hosted one, installed on an Ubuntu server you run. It is free under the Elastic License 2.0, and an Enterprise license unlocks the features larger teams ask for.
+section: self-host
+order: 1
+navTitle: Overview
+badges: ['Self-hosted only']
+faq:
+  - { q: Is Cloudgate open source?, a: 'No. It is source-available under the Elastic License 2.0. You may use, self-host and change it, but you may not offer it to others as a hosted service or get around its license checks.' }
+  - { q: Where do I get the source?, a: 'The source repository is private today. Write to <a href="mailto:support@octabyte.io">support@octabyte.io</a> for access; we reply with access and the install steps.' }
+  - { q: What happens when an Enterprise license ends?, a: 'Your settings are kept and nothing is deleted, but the licensed features stop. Owners and admins see a warning bar from 14 days before the end date.' }
+  - { q: Can I buy a server from Cloudgate on a self-hosted instance?, a: 'No. Bought Servers and Hosted plans exist only on the Hosted instance. A self-hosted instance deploys to the machine it runs on, to Servers you add over SSH, and to your AWS and Google Cloud accounts.' }
+---
+
+Self-hosting means you run Cloudgate itself: its console, its API and its database live on a server
+of yours, and you look after updates and backups. The apps you deploy run in the same places as on
+the Hosted instance, on Servers over SSH or in your AWS and Google Cloud accounts, and also on the
+machine Cloudgate runs on. For the comparison with the Hosted instance and the server it needs at a
+glance, see [Self-host Cloudgate](/self-hosted).
+
+## What you can do
+
+- Install Cloudgate on one Ubuntu 24.04 server with one script. See [Install Cloudgate](/docs/self-host/install).
+- Deploy onto that same server, and onto as many other Servers and Cloud accounts as you like. None are counted.
+- Run the platform's own settings: the console's domain, Traefik, disk clean-up and build limits. See [Instance settings](/docs/self-host/instance-settings).
+- Activate an Enterprise license for SSO, SCIM, custom roles, forward auth, branding, parallel builds and more Organizations.
+
+## The licence
+
+Cloudgate is licensed under the **Elastic License 2.0**. It is source-available, not open source.
+
+| You can | You cannot |
+|---|---|
+| Use Cloudgate inside your company, for any apps you run | Offer Cloudgate to others as a hosted or managed service |
+| Run it on as many of your own servers as you like | Remove, disable or get around its license checks |
+| Read the source and change it for your own use | Remove its license and copyright notices |
+
+The [license page](/license) explains the Elastic License 2.0 in plain English, with worked cases.
+
+## Get access to the source
+
+The Cloudgate source repository is private today. To self-host, write to
+[support@octabyte.io](mailto:support@octabyte.io?subject=Access%20to%20self-host%20Cloudgate) and say
+a little about what you plan to run. We reply with access and the install steps. Once you have
+access, the [install guide](/docs/self-host/install) takes you from a bare server to a signed-in
+console.
+
+## Free version and Enterprise license
+
+The free version deploys everything Cloudgate can deploy. An Enterprise license is a key you
+activate per Organization, in **Settings** > **License**; it unlocks these:
+
+| Feature | Free | Enterprise license |
+|---|---|---|
+| Applications, databases, Compose stacks, AI models | Yes | Yes |
+| Servers, AWS and Google Cloud accounts | Yes, not counted | Yes, not counted |
+| Agents and the MCP endpoint | Yes | Yes |
+| Audit log | Yes | Yes |
+| Organizations | One | More than one |
+| Builds | One at a time per Server | In parallel, up to the **Concurrent builds** setting |
+| Cloud runs | One at a time | In parallel, up to the **Cloud runs** setting |
+| Custom roles | No | Yes |
+| Single sign-on and SCIM | No | Yes |
+| Forward auth in front of your apps | No | Yes |
+| Branding (white-labelling) | No | Yes |
+
+Prices are agreed with each customer, and a 30-day trial key is available on request from
+[support@octabyte.io](mailto:support@octabyte.io?subject=Cloudgate%20Enterprise%20license). The
+[pricing page](/pricing) lists the Hosted plans beside it.
+
+<Callout type="limit" title="When a license ends">
+  Settings are kept and nothing is deleted, but each licensed feature stops: builds and Cloud runs
+  go back to one at a time, single sign-on stops signing people in (they can use **Forgot password**
+  where mail is set up), SCIM refuses new members, and forward auth keeps protecting what it protects
+  but refuses new setups and edits. Owners and admins see a bar across the console from 14 days
+  before the end date.
+</Callout>
+
+## Hosted-only and self-hosted-only
+
+Some parts of Cloudgate exist on only one kind of instance.
+
+| Only on the Hosted instance | Only on a self-hosted instance |
+|---|---|
+| Hosted plans, the free trial and Billing | The Enterprise license key (**Settings** > **License**) |
+| Buying a Server from Cloudgate | Deploying onto the machine Cloudgate runs on |
+| Cloud Services built in the cloud's own build service | Cloud Services built on the Cloudgate server |
+| | Platform settings: **Traefik**, **Instance**, **Maintenance** |
+| | **Branding** |
+
+## What self-hosting does not do
+
+<Callout type="limit" title="Your job, not Cloudgate's">
+  - Cloudgate does not update itself on a self-hosted install. You pull the new version and run the
+    install script again.
+  - Cloudgate backs up the databases and volumes you deploy, not itself. Back up its database and
+    secrets files yourself.
+  - The console and API answer on plain HTTP at ports 3000 and 4000 after install. Reach them over
+    an SSH tunnel or a private network if that is not acceptable.
+  - Without mail settings on the server, nothing is emailed. Invitations are passed on as a link,
+    and **Forgot password** does not work until mail is set up.
+</Callout>
+
+## Related pages
+
+- [Install Cloudgate on a server](/docs/self-host/install): requirements, the installer and the first sign-up.
+- [Instance settings](/docs/self-host/instance-settings): the license, branding, Traefik and maintenance.
+- [Single sign-on and SCIM](/docs/guide/sso-and-scim) and [custom roles](/docs/guide/members-and-roles): the licensed features in use.
+- [Security](/security): how secrets and access are handled.
