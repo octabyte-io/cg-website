@@ -505,10 +505,9 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--c);
+  border: 1px solid color-mix(in oklab, var(--c) 30%, var(--line));
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: color-mix(in oklab, var(--c) 5%, var(--surface));
   font-size: var(--text-sm);
   max-width: 72ch;
 }
@@ -520,7 +519,6 @@
 }
 .callout--limit {
   --c: var(--muted);
-  background: var(--paper-2);
 }
 .callout-icon {
   color: var(--c);
@@ -1016,6 +1014,10 @@
   .docs-search.is-closing::backdrop {
     animation: fade-out 140ms var(--ease-in-out) forwards;
   }
+  .docs-search.is-instant[open],
+  .docs-search.is-instant[open]::backdrop {
+    animation: none;
+  }
 }
 @keyframes search-in {
   from {
@@ -1218,4 +1220,13 @@
   .docs-search-results a {
     min-height: 44px;
   }
+}
+
+/* A wide table keeps readable columns and scrolls inside its frame instead of crushing every cell
+   into a word per line on a phone. */
+.table-scroll table:has(th:nth-child(4)) {
+  min-width: 40rem;
+}
+.table-scroll table:has(th:nth-child(4)) :is(th, td):first-child {
+  min-width: 10rem;
 }

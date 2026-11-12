@@ -7,7 +7,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Close a <dialog> after its exit animation (or at once with reduced motion). */
 function closeAnimated(d: HTMLDialogElement, ms: number): void {
   if (!d.open || d.classList.contains('is-closing')) return;
-  if (reduced) return d.close();
+  // A dialog opened from the keyboard is used many times a day: it opens and closes without motion.
+  if (reduced || d.classList.contains('is-instant')) return d.close();
   d.classList.add('is-closing');
   setTimeout(() => {
     d.classList.remove('is-closing');
@@ -278,8 +279,9 @@ function move(by: number): void {
   input.setAttribute('aria-activedescendant', a.id);
 }
 
-async function openSearch(): Promise<void> {
+async function openSearch(fromKey = false): Promise<void> {
   if (!dialog || !input || dialog.open) return;
+  dialog.classList.toggle('is-instant', fromKey);
   dialog.showModal();
   input.select();
   if (!index) {
@@ -293,12 +295,12 @@ async function openSearch(): Promise<void> {
 }
 
 if (dialog && input && results) {
-  document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', openSearch));
+  document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', () => openSearch()));
   document.addEventListener('keydown', (e) => {
     const typing = (e.target as Element).closest?.('input, textarea, [contenteditable]');
     if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
       e.preventDefault();
-      openSearch();
+      openSearch(true);
     }
   });
   input.addEventListener('input', render);
