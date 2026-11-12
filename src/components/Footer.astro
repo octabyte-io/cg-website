@@ -99,7 +99,8 @@ const year = new Date().getFullYear();
     font-weight: 700;
     font-size: 1.25rem;
     text-decoration: none;
-    margin-bottom: var(--space-4);
+    min-height: 44px;
+    margin-bottom: var(--space-3);
   }
   .about p {
     color: var(--muted);
@@ -123,9 +124,11 @@ const year = new Date().getFullYear();
     color: var(--muted);
     text-decoration: none;
   }
-  ul a:hover {
-    color: var(--ink);
-    text-decoration: underline;
+  @media (hover: hover) and (pointer: fine) {
+    ul a:hover {
+      color: var(--ink);
+      text-decoration: underline;
+    }
   }
   .legal {
     margin-top: var(--space-8);
@@ -150,8 +153,10 @@ const year = new Date().getFullYear();
   .legal a {
     color: var(--muted);
   }
-  .legal a:hover {
-    color: var(--ink);
+  @media (hover: hover) and (pointer: fine) {
+    .legal a:hover {
+      color: var(--ink);
+    }
   }
   @media (max-width: 860px) {
     .grid {
@@ -163,10 +168,16 @@ const year = new Date().getFullYear();
     ul {
       gap: 0;
     }
+    /* 44px rows; a label that wraps keeps its lines together and its distance from the next link. */
     ul a {
       display: inline-flex;
       align-items: center;
       min-height: 44px;
+      padding-block: var(--space-2);
+      line-height: 1.35;
+    }
+    .legal ul {
+      row-gap: 0;
     }
   }
 </style>

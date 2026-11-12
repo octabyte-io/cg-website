@@ -320,12 +320,11 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     background: linear-gradient(180deg, transparent, var(--beam-a) 30%, var(--beam-b) 55%, var(--beam-c) 75%, transparent);
     filter: blur(70px);
     opacity: 0.5;
-    animation: beam-in 1.4s var(--ease) both;
   }
   @keyframes beam-in {
     from {
       opacity: 0;
-      transform: translateX(-50%) scaleY(0.4);
+      transform: translateX(-50%) scaleY(0.6);
     }
   }
   .hero-inner {
@@ -393,6 +392,16 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   .hero .actions {
     justify-content: center;
   }
+  /* On a phone the two calls to action stack as one column of equal buttons. */
+  @media (max-width: 480px) {
+    .hero .actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      max-width: 22rem;
+      margin-inline: auto;
+    }
+  }
   .aside {
     font-size: var(--text-sm);
     color: var(--muted);
@@ -440,53 +449,58 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
       0 -2px 160px -60px var(--glow);
   }
 
-  /* ---- Hero: the one page-load sequence. Content is in the HTML at rest; these only animate it in. ---- */
+  /* ---- Hero: the one page-load sequence. Content is in the HTML at rest; these only animate it in.
+     One wave, settled by ~1.45s. The gate opens (keyhole, beam) at 0; the headline is the lead and
+     rises line by line on shrinking gaps (100, 170, 220ms); the lede and actions follow with less
+     travel; the aside only fades; the panel rises last, and its demo starts as it lands (HeroPanel). */
   @media (prefers-reduced-motion: no-preference) {
+    .beam {
+      animation: beam-in 1s var(--ease-out) both;
+    }
     .keyhole {
-      animation: key-in 1s var(--ease) both;
+      animation: key-in 700ms var(--ease-out) both;
     }
     .keyhole::before,
     .keyhole::after {
-      animation: ring 5.6s cubic-bezier(0.3, 0.6, 0.4, 1) 1.2s infinite;
+      animation: ring 5.6s var(--ease-out) 1.4s infinite;
     }
     .keyhole::after {
-      animation-delay: 4s;
+      animation-delay: 4.2s;
     }
     .hero h1 .line > span {
-      animation: line-up 850ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation: line-up 750ms var(--ease-out) both;
     }
     .hero h1 .line:nth-child(1) > span {
-      animation-delay: 220ms;
+      animation-delay: 100ms;
     }
     .hero h1 .line:nth-child(2) > span {
-      animation-delay: 320ms;
+      animation-delay: 170ms;
     }
     .hero h1 .line:nth-child(3) > span {
-      animation-delay: 420ms;
+      animation-delay: 220ms;
     }
     .hero .lede,
-    .hero .actions,
-    .hero .aside {
-      animation: rise-in 800ms var(--ease) both;
+    .hero .actions {
+      animation: rise-in 600ms var(--ease-out) both;
     }
     .hero .lede {
-      animation-delay: 620ms;
+      animation-delay: 380ms;
     }
     .hero .actions {
-      animation-delay: 720ms;
+      --rise: 8px;
+      animation-delay: 440ms;
     }
     .hero .aside {
-      animation-delay: 800ms;
+      animation: fade-in 500ms var(--ease-out) 500ms both;
     }
     .hero-product {
-      animation: panel-in 1.2s var(--ease) 900ms both;
+      animation: panel-in 900ms var(--ease-out) 540ms both;
     }
   }
   @keyframes key-in {
     from {
       opacity: 0;
-      transform: scale(0.72);
-      filter: blur(8px) brightness(1.8);
+      transform: scale(0.94);
     }
   }
   @keyframes ring {
@@ -510,13 +524,18 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   @keyframes rise-in {
     from {
       opacity: 0;
-      transform: translateY(14px);
+      transform: translateY(var(--rise, 12px));
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
     }
   }
   @keyframes panel-in {
     from {
       opacity: 0;
-      transform: translateY(56px);
+      transform: translateY(40px);
     }
   }
   /* The panel leans back and flattens as it scrolls into view, where the browser can tie it to scroll. */
@@ -618,6 +637,9 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     .marquee-track {
       animation: marquee 48s linear infinite;
     }
+  }
+  /* Pause to read, for a real pointer only: on touch a tap would leave it stuck paused. */
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
     .marquee:hover .marquee-track {
       animation-play-state: paused;
     }
@@ -644,6 +666,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   }
   .center-text {
     text-align: center;
+    margin-inline: auto;
   }
   .more {
     margin-top: var(--space-6);
@@ -779,7 +802,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     }
     38%,
     95% {
-      opacity: 0.45;
+      opacity: 0.78;
     }
   }
   @keyframes vb-step-line {
@@ -911,15 +934,16 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   .agents {
     align-items: center;
   }
+  /* Hairline-topped pairs, the same treatment as .facts elsewhere. */
   .guard {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-4) var(--space-5);
-    margin: var(--space-2) 0;
+    gap: var(--space-5) var(--space-6);
+    margin: var(--space-5) 0 var(--space-3);
   }
   .guard div {
-    padding-left: var(--space-4);
-    border-left: 2px solid var(--brand);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
   }
   .guard dt {
     font-weight: 600;
@@ -937,7 +961,8 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     line-height: 1.75;
     white-space: pre-wrap;
   }
-  @media (max-width: 560px) {
+  /* One column while the split's left side is narrow (beside the window), and on phones. */
+  @media (max-width: 560px), (min-width: 901px) and (max-width: 1180px) {
     .guard {
       grid-template-columns: 1fr;
     }
@@ -966,9 +991,11 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
       border-color 160ms var(--ease),
       box-shadow 160ms var(--ease);
   }
-  .logos a:hover {
-    border-color: var(--brand);
-    box-shadow: 0 10px 40px -20px var(--glow);
+  @media (hover: hover) and (pointer: fine) {
+    .logos a:hover {
+      border-color: var(--brand);
+      box-shadow: 0 10px 40px -20px var(--glow);
+    }
   }
   .logos img {
     flex: none;

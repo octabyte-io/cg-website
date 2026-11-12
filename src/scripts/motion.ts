@@ -3,13 +3,17 @@
 // and without this script (or with reduced motion) every element shows its final state.
 
 const reveal = '[data-reveal], [data-reveal-stagger], [data-play]';
+const DECAY = 0.88;
 
 function arm(): void {
-  // Stagger: each child of [data-reveal-stagger] waits ~70ms more than the one before.
+  // Stagger: the second child waits one step (~70ms), and each gap after that is a little shorter
+  // than the one before, so a group arrives as a wave rather than a metronome and a long list never
+  // keeps its last item waiting (the total stays under ~8 steps however many children there are).
   for (const parent of document.querySelectorAll<HTMLElement>('[data-reveal-stagger]')) {
     const step = Number(parent.dataset.revealStagger) || 70;
     Array.from(parent.children).forEach((child, i) => {
-      (child as HTMLElement).style.setProperty('--reveal-delay', `${i * step}ms`);
+      const delay = (step * (1 - DECAY ** i)) / (1 - DECAY);
+      (child as HTMLElement).style.setProperty('--reveal-delay', `${Math.round(delay)}ms`);
     });
   }
   for (const el of document.querySelectorAll<HTMLElement>('[data-reveal-delay]')) {
@@ -38,7 +42,11 @@ function arm(): void {
 
 function show(el: HTMLElement): void {
   el.classList.add('is-in');
-  if (el.hasAttribute('data-play')) el.classList.add('is-playing');
+  if (!el.hasAttribute('data-play')) return;
+  // An illustration inside a staggered group starts playing when its own tile has arrived.
+  const wait = parseFloat(el.style.getPropertyValue('--reveal-delay')) || 0;
+  if (wait) setTimeout(() => el.classList.add('is-playing'), wait);
+  else el.classList.add('is-playing');
 }
 
 // Spotlight: the card under a fine pointer gets --mx/--my, once per frame at most.

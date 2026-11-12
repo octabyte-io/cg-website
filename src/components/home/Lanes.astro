@@ -93,8 +93,9 @@ const { lanes } = Astro.props;
     pointer-events: none;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .wire {
-      animation: flow 1.6s linear infinite;
+    /* Calm, and only once the diagram is in view (not from page load, off screen). */
+    .is-playing .wire {
+      animation: flow 3.2s linear infinite;
     }
     .is-playing .packet {
       animation: packet 3.6s var(--ease-in-out) infinite;
@@ -105,7 +106,7 @@ const { lanes } = Astro.props;
     .is-playing .p3 {
       animation-delay: 2.4s;
     }
-    .gate::after {
+    .is-playing .gate::after {
       animation: gate-glow 3.6s var(--ease-in-out) infinite;
     }
   }

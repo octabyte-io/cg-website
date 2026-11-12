@@ -313,8 +313,10 @@ const tableId = `table-${c.id}`;
     text-decoration: none;
     color: var(--ink);
   }
-  .others a:hover {
-    border-color: var(--line-strong);
+  @media (hover: hover) and (pointer: fine) {
+    .others a:hover {
+      border-color: var(--line-strong);
+    }
   }
   .others strong {
     font-family: var(--font-display);

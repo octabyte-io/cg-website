@@ -57,9 +57,13 @@ const hasVisual = Astro.slots.has('visual');
   .slot {
     margin-top: var(--space-6);
   }
+  .copy,
+  .visual {
+    min-width: 0;
+  }
   @media (max-width: 960px) {
     .has-visual .inner {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

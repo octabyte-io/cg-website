@@ -79,8 +79,9 @@
   /* Motion (see the Motion section below and docs/design.md). */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-press: 140ms;
   --dur-fast: 180ms;
-  --dur-reveal: 900ms;
+  --dur-reveal: 600ms;
   --dur-play: 1400ms;
   --reveal-shift: 16px;
   --spot-ring: rgba(181, 176, 255, 0.75);
@@ -102,9 +103,9 @@
   --brand-hi: #4a35bd;
   --brand-tint: #ece9fc;
   --on-brand: #ffffff;
-  --live: #13865c;
+  --live: #0e7450;
   --live-tint: #e2f4ec;
-  --warn: #a15c00;
+  --warn: #955400;
   --slice-1: #6d57e0;
   --slice-2: #9181e8;
   --slice-3: #b6abf0;
@@ -129,9 +130,9 @@
     --brand-hi: #4a35bd;
     --brand-tint: #ece9fc;
     --on-brand: #ffffff;
-    --live: #13865c;
+    --live: #0e7450;
     --live-tint: #e2f4ec;
-    --warn: #a15c00;
+    --warn: #955400;
     --slice-1: #6d57e0;
     --slice-2: #9181e8;
     --slice-3: #b6abf0;
@@ -153,6 +154,8 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: 5rem;
+  /* Taps answer with each control's own :active state, not the browser's grey flash. */
+  -webkit-tap-highlight-color: transparent;
   /* Halos and beams bleed past the edges on purpose; never let them add a sideways scroll. */
   overflow-x: clip;
 }
@@ -248,7 +251,8 @@ pre {
   width: 100%;
   max-width: calc(var(--column) + 2 * var(--gutter));
   margin-inline: auto;
-  padding-inline: var(--gutter);
+  /* With viewport-fit=cover, keep content clear of the notch in landscape; backgrounds still bleed. */
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px));
 }
 
 .section {
@@ -317,7 +321,12 @@ pre {
   transition:
     background-color 160ms var(--ease),
     border-color 160ms var(--ease),
-    color 160ms var(--ease);
+    color 160ms var(--ease),
+    transform var(--dur-press) var(--ease-out);
+}
+/* Press feedback: a small give under the finger, released on the same quick curve. */
+.btn:active {
+  transform: scale(0.97);
 }
 .btn--primary {
   background: var(--brand);
@@ -327,8 +336,19 @@ pre {
     0 0 0 1px var(--brand-hi) inset,
     0 8px 30px -8px var(--glow);
 }
-.btn--primary:hover {
-  background: var(--brand-hi);
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover {
+    background: var(--brand-hi);
+  }
+}
+/* A long label on a small phone wraps inside its button instead of pushing the page sideways. */
+@media (max-width: 400px) {
+  .btn {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding-block: 0.55rem;
+  }
 }
 .btn--lg {
   min-height: 52px;
@@ -340,16 +360,32 @@ pre {
   border-color: var(--line-strong);
   color: var(--ink);
 }
-.btn--ghost:hover {
-  border-color: var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .btn--ghost:hover {
+    border-color: var(--ink);
+  }
 }
 .btn--on-night {
   background: transparent;
   border-color: var(--night-line);
   color: var(--night-ink);
 }
-.btn--on-night:hover {
-  border-color: var(--night-ink);
+@media (hover: hover) and (pointer: fine) {
+  .btn--on-night:hover {
+    border-color: var(--night-ink);
+  }
+}
+/* Controls, not content: no double-tap wait and no long-press selection of their labels. */
+a,
+button,
+summary,
+label {
+  touch-action: manipulation;
+}
+.btn,
+summary {
+  -webkit-user-select: none;
+  user-select: none;
 }
 .actions {
   display: flex;
@@ -534,6 +570,13 @@ pre {
 .steps .code {
   margin-top: var(--space-2);
 }
+/* On a phone a command wraps rather than hiding its end behind a sideways scroll. */
+@media (max-width: 520px) {
+  .steps .code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
 @media (max-width: 520px) {
   .steps > li {
     grid-template-columns: 1.75rem minmax(0, 1fr);
@@ -706,6 +749,26 @@ pre {
     2rem 0 0 var(--night-line);
   margin-right: 2.2rem;
 }
+/* Console screens and browsers are drawn on the page surface (terminals stay night in both
+   themes), and their bar follows the theme too. */
+.window.ui,
+.window.browser {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+}
+.window.ui .window-bar,
+.window.browser .window-bar {
+  border-bottom-color: var(--line);
+  color: var(--muted);
+}
+.window.ui .window-bar::before,
+.window.browser .window-bar::before {
+  background: var(--line-strong);
+  box-shadow:
+    1rem 0 0 var(--line-strong),
+    2rem 0 0 var(--line-strong);
+}
 
 /* An alternate band of the page, for rhythm between sections. */
 .band {
@@ -723,7 +786,7 @@ pre {
 /* ==========================================================================
    Motion (v3). Read with src/scripts/motion.ts and "Motion (v3)" in docs/design.md.
    - [data-reveal]          fades up once when it scrolls into view (.is-in).
-   - [data-reveal-stagger]  does the same for each child, ~70ms apart.
+   - [data-reveal-stagger]  does the same for each child, in steps that shrink (~70ms, then less).
    - [data-play]            gets .is-playing in view; illustrations start their animation then.
    - [data-spotlight]       a glow on the border and a faint fill that follow a fine pointer.
    Hidden starting states live under `.js` and prefers-reduced-motion: no-preference only, so
@@ -735,14 +798,13 @@ pre {
   .js [data-reveal-stagger]:not(.is-in) > * {
     opacity: 0;
     transform: translate3d(0, var(--reveal-shift), 0);
-    filter: blur(6px);
   }
+  /* No blur: blurring whole blocks (a grid's every tile at once) costs frames while scrolling. */
   .js [data-reveal],
   .js [data-reveal-stagger] > * {
     transition:
       opacity var(--dur-reveal) var(--ease-out),
-      transform var(--dur-reveal) var(--ease-out),
-      filter calc(var(--dur-reveal) * 0.7) var(--ease-out);
+      transform var(--dur-reveal) var(--ease-out);
     transition-delay: var(--reveal-delay, 0ms);
   }
 }
@@ -779,7 +841,8 @@ pre {
   border-radius: inherit;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 400ms var(--ease-out);
+  /* Leaves gently when the pointer goes... */
+  transition: opacity 300ms var(--ease-out);
 }
 [data-spotlight]::after {
   z-index: 2;
@@ -801,6 +864,8 @@ pre {
   [data-spotlight]:hover::after,
   [data-spotlight]:hover::before {
     opacity: 1;
+    /* ...and answers it at once when it arrives. */
+    transition-duration: 150ms;
   }
 }
 

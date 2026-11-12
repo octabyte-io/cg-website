@@ -19,16 +19,14 @@
     width: 100%;
     height: 0;
     pointer-events: none;
-    mix-blend-mode: screen;
-    mask-image: linear-gradient(to bottom, var(--ink) 82%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, var(--ink) 82%, transparent);
-  }
-  .hero-field[data-tone='light'] {
-    mix-blend-mode: multiply;
+    background: no-repeat 0 0 / 100% 100%;
+    /* No mix-blend-mode and no CSS mask: this layer repaints every frame, and blending or masking a
+       full-width layer makes the compositor redo the whole hero each frame (a third of frames over
+       budget at 1440px). The canvas fades its own bottom edge instead (see FADE below). */
   }
   @media (prefers-reduced-motion: no-preference) {
     .hero-field {
-      animation: field-in 1.6s var(--ease) 0.25s both;
+      animation: field-in 1s var(--ease-out) 0.2s both;
     }
   }
   @keyframes field-in {
@@ -92,6 +90,9 @@
     let raf = 0;
     let last = 0;
     let clock = 0;
+    let strandsBg = false;
+    let strandsVersion = 0;
+    let strandsUrl = '';
 
     // Position of an element inside the hero, ignoring CSS transforms (the load-in animation scales
     // and moves things, and the measurements must not depend on when they are taken).
@@ -165,6 +166,10 @@
     };
 
     const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+    // The bottom fifth of the field fades out, so it never ends on a hard edge.
+    const FADE = 0.18;
+    const edge = (y: number, l: Layout) => Math.min(1, Math.max(0, (l.h - y) / (l.h * FADE)));
 
     // The three lanes end along the top edge of the product panel, behind it.
     const laneEnds = (l: Layout) => {
@@ -293,6 +298,28 @@
         sctx.globalAlpha = 1;
         sctx.globalCompositeOperation = 'source-over';
       }
+      // Fade out the bottom edge (what a CSS mask used to do, at no per-frame cost).
+      const fadeTop = l.h * (1 - FADE);
+      const fade = sctx.createLinearGradient(0, fadeTop, 0, l.h);
+      fade.addColorStop(0, 'transparent');
+      fade.addColorStop(1, 'black');
+      sctx.globalCompositeOperation = 'destination-out';
+      sctx.fillStyle = fade;
+      sctx.fillRect(0, fadeTop, l.w, l.h - fadeTop);
+      sctx.globalCompositeOperation = 'source-over';
+      // Hand the still strands to the canvas's own CSS background, so each frame only clears and
+      // draws the moving light instead of also copying a full-size bitmap. Until the image is
+      // ready, frames draw the strands themselves.
+      strandsBg = false;
+      const version = ++strandsVersion;
+      strands.toBlob((blob) => {
+        if (!blob || version !== strandsVersion) return;
+        if (strandsUrl) URL.revokeObjectURL(strandsUrl);
+        strandsUrl = URL.createObjectURL(blob);
+        canvas.style.backgroundImage = `url(${strandsUrl})`;
+        strandsBg = true;
+        if (!running()) draw(0);
+      });
     };
 
     // How much a point sits behind the headline and copy: 1 clear, down to `floor` inside.
@@ -317,7 +344,7 @@
       if (!l) return;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(strands, 0, 0);
+      if (!strandsBg) ctx.drawImage(strands, 0, 0);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
       ctx.lineCap = 'round';
@@ -344,7 +371,7 @@
         at(f.bez, te, head);
         at(f.bez, Math.max(0, te - p.trail * 0.45), mid);
         at(f.bez, Math.max(0, te - p.trail), tail);
-        const a = p.alpha * fade * strength * clearOf(head.x, head.y, l, floor);
+        const a = p.alpha * fade * strength * clearOf(head.x, head.y, l, floor) * edge(head.y, l);
         if (a < 0.02) continue;
 
         ctx.strokeStyle = palette[p.color];
@@ -378,7 +405,23 @@
       last = now;
       clock += dt;
       draw(dt);
+      govern(dt);
       schedule();
+    };
+
+    // Frame budget: once the load sequence is over, if frames keep running long (a slow device),
+    // shed a quarter of the particles and check again; never below a sparse floor. Fast screens
+    // never trip it (at 60Hz a frame is 16.7ms, at 120Hz 8.3ms).
+    let slow = 0;
+    let sampled = 0;
+    const govern = (dt: number) => {
+      if (clock < 2.5) return;
+      sampled++;
+      if (dt > 0.021) slow++;
+      if (sampled < 45) return;
+      if (slow > 15 && particles.length > 120) particles.length = Math.max(120, Math.round(particles.length * 0.75));
+      slow = 0;
+      sampled = 0;
     };
 
     const schedule = () => {

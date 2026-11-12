@@ -705,9 +705,11 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
     font-size: var(--text-sm);
     text-decoration: none;
   }
-  .jump a:hover {
-    border-color: var(--brand);
-    color: var(--ink);
+  @media (hover: hover) and (pointer: fine) {
+    .jump a:hover {
+      border-color: var(--brand);
+      color: var(--ink);
+    }
   }
 
   /* ---- Bento ---- */
@@ -1443,9 +1445,11 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
     color: var(--ink);
     text-decoration: none;
   }
-  .next a:hover {
-    border-color: var(--brand);
-    color: var(--brand);
+  @media (hover: hover) and (pointer: fine) {
+    .next a:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
   }
 
   @media (max-width: 1000px) {

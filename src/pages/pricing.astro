@@ -549,6 +549,7 @@ const description =
   .group-label::after {
     content: '';
     flex: 1;
+    min-width: 2.5rem;
     height: 0.55rem;
     border-top: 1px solid var(--line-strong);
     border-right: 1px solid var(--line-strong);
@@ -1104,8 +1105,10 @@ const description =
     color: var(--muted);
     background: var(--surface);
   }
-  .compare tbody tr:not(.group):hover > * {
-    background-image: linear-gradient(var(--brand-tint), var(--brand-tint));
+  @media (hover: hover) and (pointer: fine) {
+    .compare tbody tr:not(.group):hover > * {
+      background-image: linear-gradient(var(--brand-tint), var(--brand-tint));
+    }
   }
   .tick {
     display: inline-block;

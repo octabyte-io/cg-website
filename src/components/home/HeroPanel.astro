@@ -97,8 +97,8 @@
     cursor: pointer;
     user-select: none;
     transition:
-      background-color 240ms var(--ease),
-      color 240ms var(--ease);
+      background-color 150ms var(--ease),
+      color 150ms var(--ease);
   }
   label:hover {
     color: var(--ink);
@@ -113,6 +113,9 @@
     outline-offset: 2px;
   }
   /* While the panel plays itself: time left on the current tab. */
+  /* While the panel plays itself: time left on the current tab. A still track (::before) and a
+     fill (::after) that grows by transform, so the bar never repaints while it runs. */
+  .tabs:global(.timing) input:checked + label::before,
   .tabs:global(.timing) input:checked + label::after {
     content: '';
     position: absolute;
@@ -121,16 +124,16 @@
     bottom: 5px;
     height: 2px;
     border-radius: 2px;
-    background:
-      linear-gradient(var(--brand), var(--brand)) left / 0% 100% no-repeat,
-      color-mix(in srgb, var(--brand) 16%, transparent);
+    background: color-mix(in srgb, var(--brand) 16%, transparent);
+  }
+  .tabs:global(.timing) input:checked + label::after {
+    background: var(--brand);
+    transform-origin: left;
     animation: tab-time var(--dwell, 6s) linear both;
   }
   @keyframes tab-time {
-    to {
-      background-size:
-        100% 100%,
-        auto;
+    from {
+      transform: scaleX(0);
     }
   }
   .pane {
@@ -148,13 +151,13 @@
     #way-console:checked ~ .pane--console,
     #way-agent:checked ~ .pane--agent,
     #way-cli:checked ~ .pane--cli {
-      animation: pane-in 420ms var(--ease) both;
+      animation: pane-in 200ms var(--ease-out) both;
     }
   }
   @keyframes pane-in {
     from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: translateY(4px);
     }
   }
   .pane .code {
@@ -247,7 +250,7 @@
     border-radius: inherit;
     background: linear-gradient(90deg, var(--beam-a), var(--brand));
     transform-origin: left;
-    animation: build 1.9s cubic-bezier(0.4, 0.1, 0.3, 1) both;
+    animation: build 1.9s var(--ease-in-out) both;
   }
   @keyframes build {
     from {
@@ -527,7 +530,7 @@
 
     const update = () => {
       const should = auto && inView && !document.hidden && !reduce.matches;
-      if (should && !playing) play(current, Math.max(0, 1100 - performance.now()));
+      if (should && !playing) play(current, Math.max(0, 1000 - performance.now()));
       else if (!should && playing) pause();
     };
 

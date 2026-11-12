@@ -133,8 +133,10 @@ const description =
     text-decoration: none;
     transition: border-color var(--dur-fast) var(--ease);
   }
-  .pick:hover {
-    border-color: var(--line-strong);
+  @media (hover: hover) and (pointer: fine) {
+    .pick:hover {
+      border-color: var(--line-strong);
+    }
   }
   .pick strong {
     font-family: var(--font-display);

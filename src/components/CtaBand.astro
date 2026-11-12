@@ -81,8 +81,10 @@ const {
     background: var(--night-brand);
     color: var(--night);
   }
-  .band :global(.btn--primary:hover) {
-    background: var(--night-brand-hi);
+  @media (hover: hover) and (pointer: fine) {
+    .band :global(.btn--primary:hover) {
+      background: var(--night-brand-hi);
+    }
   }
   .band :global(:focus-visible) {
     outline-color: var(--night-brand);

@@ -184,9 +184,10 @@ const description =
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-5);
   }
+  /* The text grows; the button sits on the card's foot so the three line up. */
   .route {
     display: grid;
-    align-content: start;
+    grid-template-rows: auto auto 1fr auto;
     gap: var(--space-3);
   }
   .route p {

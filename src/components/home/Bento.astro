@@ -448,7 +448,8 @@
       stroke-dashoffset: 1;
     }
     :global(.js) .t-preview:not(.is-playing) .pr-dot {
-      transform: scale(0);
+      transform: scale(0.5);
+      opacity: 0;
     }
     .branches .pr-dot {
       transform-box: fill-box;
@@ -487,7 +488,7 @@
 
     /* AI gateway: the wires flow, and a packet goes app, gateway, model every few seconds. */
     .t-ai.is-playing .gw-wire::before {
-      animation: wire-flow 1.2s linear infinite;
+      animation: wire-flow 2.4s linear infinite;
     }
     .t-ai.is-playing .gw-wire--1::after {
       animation: packet-1 4s var(--ease-in-out) 0.4s infinite;
@@ -495,7 +496,21 @@
     .t-ai.is-playing .gw-wire--2::after {
       animation: packet-2 4s var(--ease-in-out) 0.4s infinite;
     }
-    .t-ai.is-playing .gw-gate {
+    /* The packet's arrival brightens the gateway: a stronger glow on a pseudo-element whose
+       opacity animates, never the box-shadow itself (that repaints every frame). */
+    .gw-gate {
+      position: relative;
+    }
+    .gw-gate::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      box-shadow: 0 0 30px -2px var(--glow);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .t-ai.is-playing .gw-gate::after {
       animation: gate-hit 4s var(--ease-in-out) 0.4s infinite;
     }
   }
@@ -517,11 +532,11 @@
   }
   @keyframes pop {
     from {
-      transform: scale(0);
+      transform: scale(0.5);
       opacity: 0;
     }
     60% {
-      transform: scale(1.25);
+      transform: scale(1.12);
       opacity: 1;
     }
     to {
@@ -592,10 +607,10 @@
     34%,
     50%,
     100% {
-      box-shadow: 0 0 24px -8px var(--glow);
+      opacity: 0;
     }
     40% {
-      box-shadow: 0 0 30px -2px var(--glow);
+      opacity: 1;
     }
   }
 

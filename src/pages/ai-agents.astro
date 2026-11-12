@@ -1162,6 +1162,17 @@ const faq = [
   .gw-side {
     display: grid;
     gap: var(--space-5);
+    min-width: 0;
+  }
+  /* Beside the copy at laptop widths the column is narrow: let the node labels wrap. */
+  @media (max-width: 1180px) {
+    .gw-side .gw .node {
+      white-space: normal;
+    }
+    .gw-side .endpoint {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
   }
   .gw {
     display: grid;

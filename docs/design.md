@@ -99,9 +99,11 @@ The owner asked for the site to feel alive the way neon.com does, but premium an
 system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gzipped) and the
 "Motion" section at the end of `global.css`. Pages only add attributes:
 
-- **`data-reveal`**: fades up 16px out of a soft blur, once, when it scrolls into view.
-  `data-reveal-delay="120"` waits that many ms. **`data-reveal-stagger`** on a grid reveals each
-  child ~70ms after the one before (pass a number to change the step). One reveal per block: a
+- **`data-reveal`**: fades up 16px over 600ms, once, when it scrolls into view (no blur: blurring
+  whole blocks costs frames while scrolling). `data-reveal-delay="120"` waits that many ms.
+  **`data-reveal-stagger`** on a grid reveals each child one step (~70ms) after the first, then on
+  gaps that shrink by 0.88x, so a group reads as a wave and a long list never waits (pass a number
+  to change the step). A `data-play` child starts playing once its own reveal delay has passed. One reveal per block: a
   section head, a grid, a window; never per paragraph.
 - **`data-play`**: gets `.is-playing` once in view (and keeps it). Illustrations start their CSS
   animations from that class: the bento tiles on the home page, the Lanes packets, the vibe band.
@@ -112,7 +114,11 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
 - **Featured card**: `.plan--featured` and `.tier--ent` draw their border as a conic gradient from
   `--sweep`, which turns slowly (`@property`; without it the border just stays still).
 
-Rules: easing and durations are tokens (`--ease-out`, `--ease-in-out`, `--dur-*`). Animate
+Rules: easing and durations are tokens (`--ease-out`, `--ease-in-out`, `--dur-*`). Entrances use
+`--ease-out`; UI feedback stays at 150-300ms (buttons give `scale(0.97)` on `:active` over
+`--dur-press`); only the home hero's one load sequence runs longer (settled by ~1.45s). Nothing
+starts from `scale(0)`. Never put `mix-blend-mode`, a CSS mask or an animated `box-shadow` on a
+layer that repaints every frame. The audit behind these values is `docs/motion-audit.md`. Animate
 transform and opacity; loops are slow (4s and up) and quiet. Hidden starting states exist only
 under `.js` (set by the inline head script) and `prefers-reduced-motion: no-preference`, so without
 JavaScript, in print, or with reduced motion every element shows its final, static state.

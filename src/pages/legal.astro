@@ -94,8 +94,10 @@ const collection = {
     text-decoration: none;
     transition: border-color var(--dur-fast) var(--ease-out);
   }
-  .docs a:hover {
-    border-color: var(--line-strong);
+  @media (hover: hover) and (pointer: fine) {
+    .docs a:hover {
+      border-color: var(--line-strong);
+    }
   }
   .docs h3 {
     color: var(--brand);

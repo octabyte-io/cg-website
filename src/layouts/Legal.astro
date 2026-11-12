@@ -95,7 +95,7 @@ const hasIntro = Astro.slots.has('default');
   .toc {
     position: sticky;
     top: calc(64px + var(--space-5));
-    max-height: calc(100vh - 64px - var(--space-7));
+    max-height: calc(100svh - 64px - var(--space-7));
     overflow-y: auto;
     padding-right: var(--space-2);
   }
@@ -125,9 +125,11 @@ const hasIntro = Astro.slots.has('default');
     text-decoration: none;
     transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
   }
-  .toc a:hover {
-    color: var(--ink);
-    border-left-color: var(--brand);
+  @media (hover: hover) and (pointer: fine) {
+    .toc a:hover {
+      color: var(--ink);
+      border-left-color: var(--brand);
+    }
   }
   .toc .n {
     min-width: 1.5em;
@@ -243,7 +245,7 @@ const hasIntro = Astro.slots.has('default');
     margin: 0;
     padding: 0;
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
   .others li {
     display: grid;
@@ -255,6 +257,13 @@ const hasIntro = Astro.slots.has('default');
   }
   .others a {
     font-weight: 500;
+  }
+  /* A 44px tap target per document; the label sits at its foot, next to its summary. */
+  .others li a {
+    display: inline-flex;
+    align-items: flex-end;
+    justify-self: start;
+    min-height: 44px;
   }
   .others p {
     margin-top: var(--space-5);
