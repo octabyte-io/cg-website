@@ -164,7 +164,7 @@ const description =
   <section class="plans-section" aria-labelledby="plans-title">
     <div class="wrap">
       <h2 id="plans-title" class="visually-hidden">Plans</h2>
-      <div class="plans" data-reveal-stagger="90">
+      <div class="plans" data-reveal-stagger="80">
         <p class="group-label label-hosted">
           <span>Hosted at <a href={site.console}>cloudgate.octabyte.app</a>, run by Octabyte</span>
         </p>
@@ -172,7 +172,7 @@ const description =
           <article
             class:list={['plan', `plan--${p.id}`, { 'plan--featured': p.id === 'business' }]}
             data-spotlight
-            data-loop={p.id === 'business' ? '' : undefined}
+            data-play={p.id === 'business' ? '' : undefined}
             aria-labelledby={`plan-${p.id}`}
           >
             <h3 id={`plan-${p.id}`}>{p.name}</h3>
@@ -816,6 +816,7 @@ const description =
   @keyframes slot-text {
     from {
       opacity: 0;
+      transform: translate3d(0, 4px, 0);
     }
   }
   .uncounted {

@@ -129,7 +129,7 @@ const description =
           want to look after Cloudgate itself.
         </p>
       </div>
-      <div class="choice" data-reveal-stagger="90">
+      <div class="choice" data-reveal-stagger="80">
         <div class="side side--self">
           <div class="side-art" aria-hidden="true">
             <span class="box">Your server</span>
@@ -314,7 +314,7 @@ const description =
             <h2 id="install-title">How do you install it?</h2>
             <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
           </div>
-          <ol class="steps install-steps" data-reveal-stagger="90">
+          <ol class="steps install-steps" data-reveal-stagger="80">
             <li>
               <h3>Prepare the server</h3>
               <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
@@ -435,7 +435,7 @@ const description =
           source-available, not open source.
         </p>
       </div>
-      <div class="license" data-reveal-stagger="90">
+      <div class="license" data-reveal-stagger="80">
         <div class="lic lic--can panel" data-spotlight>
           <h3>You can</h3>
           <ul>
@@ -468,7 +468,7 @@ const description =
           larger teams ask for, and they stay on as long as the license is valid.
         </p>
       </div>
-      <div class="tiers" data-reveal-stagger="90">
+      <div class="tiers" data-reveal-stagger="80">
         <article class="tier tier--free" aria-labelledby="tier-free" data-spotlight>
           <div class="tier-head">
             <h3 id="tier-free">Free</h3>
@@ -483,7 +483,7 @@ const description =
             ))}
           </dl>
         </article>
-        <article class="tier tier--ent" aria-labelledby="tier-ent" data-spotlight data-loop>
+        <article class="tier tier--ent" aria-labelledby="tier-ent" data-spotlight data-play>
           <div class="tier-head">
             <h3 id="tier-ent">Enterprise license</h3>
             <p class="tier-price"><strong>Agreed with you</strong> 30-day trial key on request</p>
@@ -825,6 +825,7 @@ const description =
   @keyframes layer-fade {
     from {
       opacity: 0;
+      transform: translate3d(0, 6px, 0);
     }
   }
   .setup {

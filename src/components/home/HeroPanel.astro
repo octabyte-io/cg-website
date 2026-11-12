@@ -100,8 +100,10 @@
       background-color 150ms var(--ease),
       color 150ms var(--ease);
   }
-  label:hover {
-    color: var(--ink);
+  @media (hover: hover) and (pointer: fine) {
+    label:hover {
+      color: var(--ink);
+    }
   }
   input:checked + label {
     background: var(--paper-2);
@@ -112,7 +114,6 @@
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
-  /* While the panel plays itself: time left on the current tab. */
   /* While the panel plays itself: time left on the current tab. A still track (::before) and a
      fill (::after) that grows by transform, so the bar never repaints while it runs. */
   .tabs:global(.timing) input:checked + label::before,
@@ -263,8 +264,8 @@
     font-size: var(--text-sm);
     color: var(--muted);
     transition:
-      opacity 500ms var(--ease),
-      transform 500ms var(--ease);
+      opacity 400ms var(--ease-out),
+      transform 400ms var(--ease-out);
   }
   .url {
     font-family: var(--font-mono);
@@ -289,7 +290,7 @@
     opacity: 0;
   }
   .window:global(.playing) li:global(.ticked)::before {
-    animation: tick 420ms var(--ease) both;
+    animation: tick 400ms var(--ease-out) both;
   }
   .window:global(.playing) li:global(.building)::before {
     content: '';
@@ -306,13 +307,15 @@
     opacity: 0;
     transform: translateY(8px);
   }
+  /* The same pop as the bento's dots: from half size, a small overshoot, never from nothing. */
   @keyframes tick {
     from {
-      transform: scale(0.4);
+      transform: scale(0.5);
       opacity: 0;
     }
     60% {
-      transform: scale(1.15);
+      transform: scale(1.12);
+      opacity: 1;
     }
   }
   @keyframes spin {
@@ -326,7 +329,7 @@
     visibility: hidden;
   }
   .code :global(.ln.on:not(.typed)) {
-    animation: line-in 260ms var(--ease) both;
+    animation: line-in 260ms var(--ease-out) both;
   }
   .code :global(.ln.typing) {
     display: inline-block;

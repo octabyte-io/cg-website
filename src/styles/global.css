@@ -673,6 +673,9 @@ summary {
   }
 }
 
+/* Reduced motion: gentler, not zero. Animations land on their final frame and nothing moves, but
+   colour and opacity changes (hover, focus, the spotlight) keep their short fades: every
+   transition is narrowed to those properties, so a transform or size transition snaps. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -680,9 +683,18 @@ summary {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     animation-delay: 0s !important;
-    transition-duration: 0.01ms !important;
+    transition-property: opacity, color, background-color, border-color, text-decoration-color, fill, stroke !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* The theme switch is instant everywhere: while the header flips data-theme, no colour transition
+   may run, or buttons and tabs would trail the page by 150-300ms. */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
 
 /* ---- Rich surfaces (redesign) ---- */
@@ -826,7 +838,19 @@ summary {
   }
 }
 
-/* Spotlight: ring (::after) and inner glow (::before). [data-spotlight='ring'] keeps ::before free. */
+/* Spotlight: ring (::after) and inner glow (::before). [data-spotlight='ring'] keeps ::before free.
+   --mx/--my are registered as non-inherited, so the pointer moving updates the card and its two
+   pseudo-elements only, never a style recalc of everything inside the card. */
+@property --mx {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+@property --my {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: -200px;
+}
 [data-spotlight] {
   position: relative;
   isolation: isolate;
@@ -840,6 +864,8 @@ summary {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
+  --mx: inherit;
+  --my: inherit;
   opacity: 0;
   /* Leaves gently when the pointer goes... */
   transition: opacity 300ms var(--ease-out);
@@ -860,7 +886,7 @@ summary {
   z-index: -1;
   background: radial-gradient(420px circle at var(--mx) var(--my), var(--spot-fill), transparent 65%);
 }
-@media (pointer: fine) {
+@media (hover: hover) and (pointer: fine) {
   [data-spotlight]:hover::after,
   [data-spotlight]:hover::before {
     opacity: 1;
@@ -869,8 +895,8 @@ summary {
   }
 }
 
-/* The featured card's border: a slow sweep of the beam colours. Unregistered browsers see it still
-   (0deg and 360deg are the same picture, so the discrete fallback never jumps). */
+/* The featured card's border: the beam colours sweep round it once as it arrives, then rest.
+   Unregistered browsers see it still (0deg and 360deg are the same picture, so it never jumps). */
 @property --sweep {
   syntax: '<angle>';
   inherits: false;
@@ -909,11 +935,14 @@ summary {
   }
 }
 
-/* Featured cards (home and pricing plans, the Enterprise tier) set a conic border from --sweep. */
+/* Featured cards (home and pricing plans, the Enterprise tier) set a conic border from --sweep.
+   One turn when the card has arrived (they carry data-play), not a loop: a registered property
+   animates on the main thread and repaints the whole card, and a border circling forever beside
+   prices pulls the eye from what the visitor is reading. */
 @media (prefers-reduced-motion: no-preference) {
-  .plan--featured,
-  .tier--ent {
-    animation: sweep 8s linear infinite;
+  .plan--featured.is-playing,
+  .tier--ent.is-playing {
+    animation: sweep 2.4s var(--ease-in-out) 300ms both;
   }
 }
 

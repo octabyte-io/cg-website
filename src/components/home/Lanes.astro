@@ -25,7 +25,7 @@ const { lanes } = Astro.props;
       </g>
     </svg>
   </div>
-  <div class="lanes" data-reveal-stagger="90">
+  <div class="lanes" data-reveal-stagger="80">
     {lanes.map((lane, i) => (
       <article class="lane panel" data-spotlight>
         <div class="lane-head">
@@ -98,16 +98,16 @@ const { lanes } = Astro.props;
       animation: flow 3.2s linear infinite;
     }
     .is-playing .packet {
-      animation: packet 3.6s var(--ease-in-out) infinite;
+      animation: packet 4.2s var(--ease-in-out) infinite;
     }
     .is-playing .p2 {
-      animation-delay: 1.2s;
+      animation-delay: 1.4s;
     }
     .is-playing .p3 {
-      animation-delay: 2.4s;
+      animation-delay: 2.8s;
     }
     .is-playing .gate::after {
-      animation: gate-glow 3.6s var(--ease-in-out) infinite;
+      animation: gate-glow 4.2s var(--ease-in-out) infinite;
     }
   }
   @keyframes packet {

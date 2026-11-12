@@ -9,8 +9,9 @@ function arm(): void {
   // Stagger: the second child waits one step (~70ms), and each gap after that is a little shorter
   // than the one before, so a group arrives as a wave rather than a metronome and a long list never
   // keeps its last item waiting (the total stays under ~8 steps however many children there are).
+  // A step is held to 30-80ms: longer gaps read as a queue, not a group.
   for (const parent of document.querySelectorAll<HTMLElement>('[data-reveal-stagger]')) {
-    const step = Number(parent.dataset.revealStagger) || 70;
+    const step = Math.min(80, Math.max(30, Number(parent.dataset.revealStagger) || 70));
     Array.from(parent.children).forEach((child, i) => {
       const delay = (step * (1 - DECAY ** i)) / (1 - DECAY);
       (child as HTMLElement).style.setProperty('--reveal-delay', `${Math.round(delay)}ms`);
@@ -49,9 +50,9 @@ function show(el: HTMLElement): void {
   else el.classList.add('is-playing');
 }
 
-// Spotlight: the card under a fine pointer gets --mx/--my, once per frame at most.
+// Spotlight: the card under a hovering fine pointer gets --mx/--my, once per frame at most.
 function spotlight(): void {
-  if (!matchMedia('(pointer: fine)').matches) return;
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   let frame = 0;
   let card: HTMLElement | null = null;
   let x = 0;

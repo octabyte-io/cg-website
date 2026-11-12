@@ -57,7 +57,11 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
   button?.addEventListener('click', () => {
     const next = current() === 'light' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = next;
+    // Flip every colour in the same frame: no element may trail on its own hover transition.
+    const root = document.documentElement;
+    root.classList.add('theme-switching');
+    root.dataset.theme = next;
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
     // Keep the phone's status bar and browser chrome in step with the page.
     const paper = next === 'light' ? '#f7f6fb' : '#0b0912';
     document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', paper));
@@ -138,6 +142,12 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     background: transparent;
     color: var(--ink);
     cursor: pointer;
+    transition: transform var(--dur-press) var(--ease-out);
+  }
+  /* The same give under the finger as every .btn. */
+  .theme:active,
+  .menu summary:active {
+    transform: scale(0.97);
   }
   @media (hover: hover) and (pointer: fine) {
     .theme:hover {
@@ -185,6 +195,7 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
     font-size: var(--text-sm);
     cursor: pointer;
     list-style: none;
+    transition: transform var(--dur-press) var(--ease-out);
   }
   .menu summary::-webkit-details-marker {
     display: none;

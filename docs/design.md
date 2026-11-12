@@ -103,31 +103,40 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
   whole blocks costs frames while scrolling). `data-reveal-delay="120"` waits that many ms.
   **`data-reveal-stagger`** on a grid reveals each child one step (~70ms) after the first, then on
   gaps that shrink by 0.88x, so a group reads as a wave and a long list never waits (pass a number
-  to change the step). A `data-play` child starts playing once its own reveal delay has passed. One reveal per block: a
-  section head, a grid, a window; never per paragraph.
+  to change the step; it is held to 30-80ms). A `data-play` child starts playing once its own
+  reveal delay has passed. One reveal per block: a section head, a grid, a window; never per
+  paragraph.
 - **`data-play`**: gets `.is-playing` once in view (and keeps it). Illustrations start their CSS
   animations from that class: the bento tiles on the home page, the Lanes packets, the vibe band.
 - **Type-on**: a `<pre data-play>` whose lines are `<span class="ln" style="--i:n">` shows them in
   turn; `--type-step` sets the pace. The full text is always in the HTML.
-- **`data-spotlight`**: a border glow and faint fill that follow a fine pointer (cards, tiles,
-  panels, plans). `data-spotlight="ring"` when the element already uses `::before`.
+- **`data-spotlight`**: a border glow and faint fill that follow a hovering fine pointer (cards,
+  tiles, panels, plans); `--mx/--my` are non-inherited `@property`s so a move never restyles the
+  card's contents. `data-spotlight="ring"` when the element already uses `::before`.
 - **Off-screen rest**: every `[data-play]` illustration, and any loop marked **`data-loop`** (the
-  ticker, the CTA band's beam, the featured cards' sweep), gets `.is-offscreen` while it is out of
+  ticker, the CTA band's beam, the home hero), gets `.is-offscreen` while it is out of
   view, and its animations pause until it comes back. Loops cost nothing below the fold.
 - **`data-spy`** on a contents `<nav>` (changelog, legal documents): the link to the section being
   read gets `aria-current="location"`, styled like hover.
 - **Inner-page heroes**: `PageHero` plays one short load wave (heading, lede 80ms, buttons 140ms,
-  visual 200ms; settled by ~0.9s) and fades its beam in. Its `visual` slot never adds its own
-  `data-reveal`.
+  visual 200ms; 8-16px over 500-560ms, settled by ~0.75s, since it replays on every page) and
+  fades its beam in. Its `visual` slot never adds its own `data-reveal`.
 - **Featured card**: `.plan--featured` and `.tier--ent` draw their border as a conic gradient from
-  `--sweep`, which turns slowly (`@property`; without it the border just stays still).
+  `--sweep`, which turns once (2.4s) when the card arrives in view (`data-play`), then rests: a
+  registered property animates on the main thread and a border circling beside prices distracts
+  (`@property`; without it the border just stays still).
 
 Rules: easing and durations are tokens (`--ease-out`, `--ease-in-out`, `--dur-*`). Entrances use
 `--ease-out`; UI feedback stays at 150-300ms (buttons give `scale(0.97)` on `:active` over
 `--dur-press`); only the home hero's one load sequence runs longer (settled by ~1.45s). Nothing
-starts from `scale(0)`. Never put `mix-blend-mode`, a CSS mask or an animated `box-shadow` on a
+starts from `scale(0)`; nothing enters on opacity alone except ambient light (beams, the canvas)
+and terminal lines. Every press target (`.btn`, the theme switch, the menu button) gives the same
+`scale(0.97)`. Never put `mix-blend-mode`, a CSS mask or an animated `box-shadow` on a
 layer that repaints every frame. The audit behind these values is `docs/motion-audit.md`. Animate
 transform and opacity; loops are slow (4s and up) and quiet. Hidden starting states exist only
 under `.js` (set by the inline head script) and `prefers-reduced-motion: no-preference`, so without
-JavaScript, in print, or with reduced motion every element shows its final, static state.
+JavaScript, in print, or with reduced motion every element shows its final, static state; reduced
+motion still keeps short colour and opacity fades (the reduce block narrows every transition to
+those properties). The theme switch is instant: `.theme-switching` holds every transition for the
+frame the theme flips. The review behind the latest values is `docs/animation-review.md`.
 Never animate the page's layout, and check 390px and 1440px for sideways scroll.

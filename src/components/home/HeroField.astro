@@ -313,7 +313,10 @@
       // Hand the still strands to the canvas's own CSS background, so each frame only clears and
       // draws the moving light instead of also copying a full-size bitmap. Until the image is
       // ready, frames draw the strands themselves.
+      // Drop the old picture now: after a theme switch it would otherwise show the old theme's
+      // strands under the new ones until the new image is encoded.
       strandsBg = false;
+      canvas.style.backgroundImage = '';
       const version = ++strandsVersion;
       strands.toBlob((blob) => {
         if (!blob || version !== strandsVersion) return;

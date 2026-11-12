@@ -412,7 +412,7 @@
       animation: pop 0.5s var(--ease-out) 1.5s both;
     }
     .t-monitor.is-playing .spark-dot::after {
-      animation: pulse-ring 2.6s var(--ease-out) 2s infinite;
+      animation: pulse-ring 4s var(--ease-out) 2s infinite;
     }
 
     /* Build: log lines in turn, the last one turns green. */
@@ -429,15 +429,15 @@
 
     /* Backups: dots fill in order, the newest one pulses. */
     :global(.js) .t-db:not(.is-playing) .timeline li {
-      transform: scale(0.3);
-      opacity: 0.3;
+      transform: scale(0.5);
+      opacity: 0;
     }
     .t-db.is-playing .timeline li {
       animation: pop 0.5s var(--ease-out) both;
       animation-delay: calc(var(--i) * 0.16s + 0.2s);
     }
     .t-db.is-playing .timeline li.now::after {
-      animation: pulse-ring 2.8s var(--ease-out) 1.4s infinite;
+      animation: pulse-ring 4s var(--ease-out) 1.4s infinite;
     }
 
     /* Previews: the pull request branches off, then its preview pops. */
@@ -482,8 +482,8 @@
       opacity: 0;
     }
     .t-team.is-playing .people li {
-      animation: slide-in 0.6s var(--ease-out) both;
-      animation-delay: calc(var(--i) * 0.14s + 0.2s);
+      animation: slide-in 0.5s var(--ease-out) both;
+      animation-delay: calc(var(--i) * 70ms + 0.2s);
     }
 
     /* AI gateway: the wires flow, and a packet goes app, gateway, model every few seconds. */
