@@ -200,6 +200,8 @@ const input = dialog?.querySelector<HTMLInputElement>('input');
 const results = dialog?.querySelector<HTMLUListElement>('.docs-search-results');
 const empty = dialog?.querySelector<HTMLElement>('.docs-search-empty');
 let index: Doc[] | null = null;
+// A copy of the site served from a folder (a preview) sets data-root and data-ext on the dialog.
+const link = (u: string) => `${dialog?.dataset.root ?? '/'}${u.slice(1)}${dialog?.dataset.ext ?? ''}`;
 let picked = 0;
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -245,7 +247,7 @@ function render(): void {
     .map((h, i) => {
       const slug = h.heading ? `#${h.heading[1]}` : '';
       const where = h.heading ? `${h.doc.s}, ${h.heading[0]}` : h.doc.s;
-      return `<li role="presentation"><a role="option" id="r-${i}" href="${h.doc.u}${slug}" aria-selected="${i === 0}"><span class="r-title">${highlight(h.doc.t, terms)}</span><span class="r-where">${highlight(where, terms)}</span></a></li>`;
+      return `<li role="presentation"><a role="option" id="r-${i}" href="${link(h.doc.u)}${slug}" aria-selected="${i === 0}"><span class="r-title">${highlight(h.doc.t, terms)}</span><span class="r-where">${highlight(where, terms)}</span></a></li>`;
     })
     .join('');
   empty.hidden = !(q && hits.length === 0);
@@ -270,7 +272,7 @@ async function openSearch(): Promise<void> {
   input.select();
   if (!index) {
     try {
-      index = await (await fetch('/docs/search.json')).json();
+      index = await (await fetch(dialog.dataset.index ?? '/docs/search.json')).json();
     } catch {
       index = [];
     }
