@@ -9,15 +9,17 @@
 ---
 <div class="panel" role="group" aria-label="Three ways to deploy with Cloudgate" data-hero-panel>
   <div class="tabs">
+    <span class="ind" aria-hidden="true"></span>
     <input type="radio" name="way" id="way-console" checked />
-    <label for="way-console"><span class="slice"></span>In the console</label>
+    <label for="way-console"><span class="slice"></span><span class="txt" data-text="In the console">In the console</span></label>
     <input type="radio" name="way" id="way-agent" />
-    <label for="way-agent"><span class="slice slice--2"></span>From your AI agent</label>
+    <label for="way-agent"><span class="slice slice--2"></span><span class="txt" data-text="From your AI agent">From your AI agent</span></label>
     <input type="radio" name="way" id="way-cli" />
-    <label for="way-cli"><span class="slice slice--3"></span>From your terminal</label>
+    <label for="way-cli"><span class="slice slice--3"></span><span class="txt" data-text="From your terminal">From your terminal</span></label>
 
     <section class="pane pane--console" aria-label="Deploying a template in the console">
       <div class="window" data-wizard>
+        <div class="pane-body">
         <p class="win-title">Get started: deploy n8n</p>
         <ol class="checklist">
           <li class="done"><span>Your account</span><span class="state">Signed in</span></li>
@@ -36,11 +38,12 @@
           <p class="url">http://n8n-app.203-0-113-24.sslip.io</p>
           <p class="hint">Next: add your own domain for https.</p>
         </div>
+        </div>
       </div>
     </section>
 
     <section class="pane pane--agent" aria-label="An AI agent deploying over MCP">
-      <pre class="code" data-typed="you"><code><span class="d">you</span>    Fix the checkout bug and send me a preview.
+      <pre class="code" data-typed="you"><code class="pane-body"><span class="d">you</span>    Fix the checkout bug and send me a preview.
 <span class="d">agent</span>  Pushed fix-checkout. Asking Cloudgate for a preview.
 
 <span class="k">create_preview</span>  {'{'} applicationId: <span class="s">"shop-web"</span>, branch: <span class="s">"fix-checkout"</span> {'}'}
@@ -57,7 +60,7 @@
     </section>
 
     <section class="pane pane--cli" aria-label="Deploying a folder from the terminal">
-      <pre class="code" data-typed="$"><code><span class="d">$</span> npm install -g @octabyte-io/cloudgate
+      <pre class="code" data-typed="$"><code class="pane-body"><span class="d">$</span> npm install -g @octabyte-io/cloudgate
 <span class="d">$</span> cloudgate login
 <span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span>
 <span class="d">$</span> cd my-app
@@ -75,9 +78,44 @@
     padding: var(--space-3);
   }
   .tabs {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(3, auto) 1fr;
     gap: var(--space-1);
+  }
+  /* The active tab's fill. Without JavaScript each label paints its own; with it, one fill slides
+     between the tabs by its clip (the script sets the --ind-* insets), so it never pops. */
+  .ind {
+    display: none;
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--ind-h, 44px);
+    border-radius: var(--radius-sm);
+    background: var(--paper-2);
+    pointer-events: none;
+    clip-path: inset(
+      var(--ind-t, 0) var(--ind-r, 100%) var(--ind-b, 0) var(--ind-l, 0) round var(--radius-sm)
+    );
+  }
+  .tabs:global(.has-ind) .ind {
+    display: block;
+  }
+  .tabs:global(.has-ind.ind-ready) .ind {
+    transition: clip-path 260ms var(--ease-in-out);
+  }
+  .tabs:global(.has-ind) input:checked + label {
+    background: transparent;
+  }
+  /* The label holds the width of its bold self, so turning active never nudges its neighbours. */
+  .txt {
+    display: inline-grid;
+  }
+  .txt::after {
+    content: attr(data-text);
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: 500;
   }
   input {
     position: absolute;
@@ -130,40 +168,98 @@
   .tabs:global(.timing) input:checked + label::after {
     background: var(--brand);
     transform-origin: left;
-    animation: tab-time var(--dwell, 6s) linear both;
+    animation:
+      tab-time var(--dwell, 6s) linear both,
+      bar-in 240ms var(--ease-out) 120ms both;
+  }
+  .tabs:global(.timing) input:checked + label::before {
+    animation: bar-in 240ms var(--ease-out) 120ms both;
   }
   @keyframes tab-time {
     from {
       transform: scaleX(0);
     }
   }
+  @keyframes bar-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ---- Switching panes: a crossfade in one grid cell ----
+     Every pane sits in the same cell, so the stage is always as tall as the tallest pane and a
+     switch never changes the panel's height. The incoming pane (on top) fades its window in over
+     the outgoing one, whose window stays drawn underneath until it is covered: the stage is never
+     empty, and two dark terminals never dip to the panel's colour between them. Inside, the old
+     content drifts up 4px and fades (200ms; its fade on ease-in-out, so it is still half there
+     when the new content arrives) while the new content rises 6px in (280ms, 60ms later). No
+     blur on the way out: blurring a whole terminal cost about three frames a switch. All
+     transitions sit on :checked, so rapid clicks retarget from where things are. The exit drift
+     uses `translate` and the entry rise `transform`, so a pane that has left resets to its entry
+     position (once hidden) without a second class. */
   .pane {
     grid-column: 1 / -1;
     grid-row: 2;
-    display: none;
+    display: grid;
     margin-top: var(--space-2);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0s linear 360ms,
+      visibility 0s linear 360ms;
   }
   #way-console:checked ~ .pane--console,
   #way-agent:checked ~ .pane--agent,
   #way-cli:checked ~ .pane--cli {
-    display: block;
+    z-index: 1;
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity 240ms var(--ease-out),
+      visibility 0s;
   }
-  @media (prefers-reduced-motion: no-preference) {
+  .pane-body {
+    opacity: 0;
+    translate: 0 -4px;
+    transform: translateY(6px);
+    transition:
+      opacity 200ms var(--ease-in-out),
+      translate 200ms var(--ease-out),
+      transform 0s linear 360ms;
+  }
+  #way-console:checked ~ .pane--console .pane-body,
+  #way-agent:checked ~ .pane--agent .pane-body,
+  #way-cli:checked ~ .pane--cli .pane-body {
+    opacity: 1;
+    translate: none;
+    transform: none;
+    transition:
+      opacity 280ms var(--ease-out) 60ms,
+      transform 280ms var(--ease-out) 60ms,
+      translate 0s;
+  }
+  /* Reduced motion: no drift, no delay; the new pane fades in quickly over the old one. */
+  @media (prefers-reduced-motion: reduce) {
+    .pane-body,
+    #way-console:checked ~ .pane--console .pane-body,
+    #way-agent:checked ~ .pane--agent .pane-body,
+    #way-cli:checked ~ .pane--cli .pane-body {
+      translate: none;
+      transform: none;
+      transition: opacity 150ms var(--ease-out);
+    }
     #way-console:checked ~ .pane--console,
     #way-agent:checked ~ .pane--agent,
     #way-cli:checked ~ .pane--cli {
-      animation: pane-in 200ms var(--ease-out) both;
-    }
-  }
-  @keyframes pane-in {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
+      transition: opacity 150ms var(--ease-out);
     }
   }
   .pane .code {
     min-height: 330px;
     white-space: pre;
+  }
+  code.pane-body {
+    display: block;
   }
 
   .window {
@@ -172,9 +268,16 @@
     border-radius: calc(var(--radius-md) - 4px);
     background: var(--paper);
     padding: var(--space-5);
+  }
+  .window > .pane-body {
     display: grid;
     gap: var(--space-5);
     align-content: start;
+  }
+  /* Playing starts while the pane is hidden: its first frame must already be the playing state. */
+  .window:global(.instant),
+  .window:global(.instant) * {
+    transition: none !important;
   }
   .win-title {
     font-weight: 600;
@@ -337,7 +440,7 @@
     overflow: hidden;
     white-space: pre;
     width: 0;
-    animation: type var(--type, 600ms) steps(var(--n, 20), end) forwards;
+    animation: type var(--type, 600ms) steps(var(--steps, 20), end) var(--wait, 0ms) both;
   }
   .code :global(.caret) {
     display: inline-block;
@@ -354,7 +457,11 @@
       transform: translateX(-4px);
     }
   }
+  /* From the prompt (shown the moment the line appears), out to the whole line. */
   @keyframes type {
+    from {
+      width: calc(var(--p, 0) * 1ch);
+    }
     to {
       width: calc(var(--n, 20) * 1ch);
     }
@@ -370,7 +477,7 @@
       grid-template-columns: 1fr;
     }
     .pane {
-      grid-row: auto;
+      grid-row: 4;
     }
     .checklist li {
       grid-template-columns: 1.75rem 1fr;
@@ -393,10 +500,41 @@
   const root = document.querySelector<HTMLElement>('[data-hero-panel]');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
+  // One fill for the active tab, slid between the tabs by its clip (see .ind). Runs with or without
+  // reduced motion; under reduced motion the clip simply snaps.
+  if (root) {
+    const tabs = root.querySelector<HTMLElement>('.tabs')!;
+    const inputs = [...root.querySelectorAll<HTMLInputElement>('input[name="way"]')];
+    const labels = inputs.map((i) => root.querySelector<HTMLLabelElement>(`label[for="${i.id}"]`)!);
+    const place = () => {
+      const k = Math.max(0, inputs.findIndex((i) => i.checked));
+      const l = labels[k];
+      const h = Math.max(...labels.map((x) => x.offsetTop + x.offsetHeight));
+      const w = tabs.clientWidth;
+      tabs.style.setProperty('--ind-h', `${h}px`);
+      tabs.style.setProperty('--ind-t', `${l.offsetTop}px`);
+      tabs.style.setProperty('--ind-l', `${l.offsetLeft}px`);
+      tabs.style.setProperty('--ind-r', `${w - l.offsetLeft - l.offsetWidth}px`);
+      tabs.style.setProperty('--ind-b', `${h - l.offsetTop - l.offsetHeight}px`);
+    };
+    tabs.classList.add('has-ind');
+    place();
+    requestAnimationFrame(() => requestAnimationFrame(() => tabs.classList.add('ind-ready')));
+    inputs.forEach((i) => i.addEventListener('change', place));
+    // A resize (or the web font arriving) moves the tabs: follow without sliding.
+    new ResizeObserver(() => {
+      tabs.classList.remove('ind-ready');
+      place();
+      requestAnimationFrame(() => tabs.classList.add('ind-ready'));
+    }).observe(tabs);
+    (root as HTMLElement & { placeIndicator?: () => void }).placeIndicator = place;
+  }
+
   if (root && !reduce.matches) {
     const tabs = root.querySelector<HTMLElement>('.tabs')!;
     const inputs = [...root.querySelectorAll<HTMLInputElement>('input[name="way"]')];
     const labels = [...root.querySelectorAll<HTMLLabelElement>('label')];
+    const place = (root as HTMLElement & { placeIndicator?: () => void }).placeIndicator!;
     const wizard = root.querySelector<HTMLElement>('[data-wizard]')!;
     const steps = [...wizard.querySelectorAll<HTMLLIElement>('.checklist li')];
     const running = wizard.querySelector<HTMLElement>('[data-running]')!;
@@ -428,7 +566,10 @@
         code.append(line);
         if (i < groups.length - 1) code.append('\n');
         const text = line.textContent ?? '';
-        return { el: line, text, typed: prompt !== '' && text.startsWith(prompt) };
+        const typed = prompt !== '' && text.startsWith(prompt);
+        // The prompt and the spaces after it show at once; only what follows is typed.
+        const head = typed ? (text.match(/^\S+\s+/)?.[0].length ?? 0) : 0;
+        return { el: line, text, typed, head };
       });
     };
     const transcripts = [...root.querySelectorAll<HTMLElement>('pre[data-typed]')].map((pre) => ({
@@ -442,7 +583,12 @@
     let inView = false;
     let playing = false;
 
-    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    // A step due now runs now, in the same frame as the tab switch, so the incoming pane's first
+    // painted frame already shows its prompt (a timeout of 0 could let one empty frame through).
+    const later = (ms: number, fn: () => void) => {
+      if (ms <= 0) fn();
+      else timers.push(window.setTimeout(fn, ms));
+    };
     const clearTimers = () => {
       timers.forEach((t) => clearTimeout(t));
       timers = [];
@@ -461,57 +607,70 @@
       caret.remove();
     };
 
-    const playWizard = (lead: number) => {
+    // The labels show from the first frame (dimmed); only the ticks, the status and the result
+    // play. `instant` puts a pane that is just coming in straight into that start state.
+    const playWizard = (lead: number, instant: boolean) => {
+      if (instant) wizard.classList.add('instant');
       wizard.classList.add('playing');
+      if (instant) {
+        void wizard.offsetWidth;
+        wizard.classList.remove('instant');
+      }
       const [account, server, deploy] = steps;
-      later(lead + 350, () => account.classList.add('ticked'));
-      later(lead + 950, () => server.classList.add('ticked'));
-      later(lead + 1550, () => {
+      later(lead + 250, () => account.classList.add('ticked'));
+      later(lead + 800, () => server.classList.add('ticked'));
+      later(lead + 1350, () => {
         deploy.classList.add('building');
         running.hidden = true;
         building.hidden = false;
       });
-      later(lead + 3500, () => {
+      later(lead + 3300, () => {
         deploy.classList.remove('building');
         deploy.classList.add('ticked');
         building.hidden = true;
         running.hidden = false;
       });
-      later(lead + 3900, () => wizard.classList.add('finished'));
-      return lead + 3900;
+      later(lead + 3700, () => wizard.classList.add('finished'));
+      return lead + 3700;
     };
 
+    // The first line and its prompt show with the pane, a caret after them; typing starts 140ms
+    // later, then each line follows in turn.
+    const WAIT = 140;
     const playLines = (index: number, lead: number) => {
       const { pre, lines } = transcripts[index];
       pre.classList.add('playing');
-      let at = lead + 300;
+      let at = lead;
       for (const line of lines) {
-        const { el, text, typed } = line;
+        const { el, text, typed, head } = line;
         if (!text.trim()) {
           at += 140;
           continue;
         }
-        const typeMs = typed ? Math.min(1100, text.length * 24) : 0;
+        const typeMs = typed ? Math.min(1100, (text.length - head) * 24) : 0;
         later(at, () => {
           el.classList.add('on');
           if (typed) {
             el.style.setProperty('--n', String(text.length));
+            el.style.setProperty('--p', String(head));
+            el.style.setProperty('--steps', String(Math.max(1, text.length - head)));
             el.style.setProperty('--type', `${typeMs}ms`);
+            el.style.setProperty('--wait', `${WAIT}ms`);
             el.classList.add('typing', 'typed');
           }
           el.after(caret);
         });
-        if (typed) later(at + typeMs + 20, () => el.classList.remove('typing'));
-        at += typed ? typeMs + 380 : 300;
+        if (typed) later(at + WAIT + typeMs + 20, () => el.classList.remove('typing'));
+        at += typed ? WAIT + typeMs + 380 : 300;
       }
       return at;
     };
 
-    const play = (index: number, lead = 0) => {
+    const play = (index: number, lead = 0, switching = false) => {
       clearTimers();
       settle();
       current = index;
-      const end = index === 0 ? playWizard(lead) : playLines(index - 1, lead);
+      const end = index === 0 ? playWizard(lead, switching) : playLines(index - 1, lead);
       const dwell = Math.max(6000, end + 1800);
       tabs.style.setProperty('--dwell', `${dwell - lead}ms`);
       tabs.classList.remove('timing');
@@ -532,7 +691,8 @@
       waiting = false;
       const next = (current + 1) % inputs.length;
       inputs[next].checked = true;
-      play(next);
+      place();
+      play(next, 0, true);
     };
 
     const update = () => {
@@ -552,12 +712,13 @@
       waiting = false;
     };
 
-    // The visitor took over: stop for good and show everything as it is.
+    // The visitor took over: stop for good and show everything as it is. Panes are filled in once
+    // the crossfade has carried the old one out, so it never jumps to its final state mid-exit.
     const takeOver = () => {
       if (!auto) return;
       auto = false;
       pause();
-      settle();
+      window.setTimeout(settle, 360);
     };
     inputs.forEach((input) => {
       input.addEventListener('focus', takeOver);
