@@ -1,0 +1,177 @@
+---
+title: What Cloudgate can and cannot do
+seoTitle: Cloudgate limits, roles and what it does not do
+description: Every role and Agent permission, plan and licence gate, hosted-only and self-hosted-only feature, Server and cloud difference and hard limit, on one page.
+lede: One page for the questions that decide whether Cloudgate fits. Who can do what, what a plan or licence unlocks, what differs between a Server, AWS and Google Cloud, the numbers that are fixed, and what Cloudgate does not do at all.
+section: help
+order: 1
+navTitle: Can and cannot do
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Can a member create a Service?, a: 'No. The member role changes, deploys and backs up the Services it is granted, but creating or deleting a Service, Environment or Project takes an owner, an admin, or a custom role that allows it.' }
+  - { q: Can an Agent apply a Plan or change a variable?, a: 'No. An Agent can ask for a Plan and read it, and an Operator Agent can deploy, start, stop and cancel. No Agent applies a Plan, changes variables or settings, configures Uptime checks, or changes anyone''s access.' }
+  - { q: How many builds run at once?, a: 'Without an Enterprise license, one per Server; the others wait. With a license, the self-hosted server builds as many at once as its Concurrent builds setting, up to 100.' }
+  - { q: Is the REST API rate limited?, a: 'Not for Personal keys. The per-Agent limits apply to the MCP endpoint: 120 reads and 10 writes a minute. Sign-in and password routes are throttled per address.' }
+---
+
+Everything on this page is taken from how Cloudgate behaves today. Each section links to the user-guide
+pages that cover its topics in depth.
+
+## Who can do what
+
+Organizations have three built-in roles. **Owner** and **admin** reach everything in the
+Organization; a **member** reaches only the Projects, Environments and Services an owner or admin
+granted them. Agents have their own three roles. See [Members and roles](/docs/guide/members-and-roles)
+and [Agents](/docs/guide/agents).
+
+| Action | Owner | Admin | Member | Agent |
+|---|---|---|---|---|
+| Delete the Organization | Yes | No | No | No |
+| Rename the Organization, change billing | Yes | Yes | No | No |
+| Invite, remove and change roles of members | Yes | Yes | No | No |
+| Create Agents and their keys | Yes | Yes | No | No |
+| Create, rename and delete Projects; Project variables | Yes | Yes | No | No |
+| Create and delete Environments | Yes | Yes | No | No |
+| Rename an Environment; Environment variables | Yes | Yes | Granted ones | No |
+| Create and delete Services | Yes | Yes | No | No |
+| Change a Service: settings, variables, Domains, shell | Yes | Yes | Granted ones | No |
+| Deploy, cancel, start and stop | Yes | Yes | Granted ones | Operator role |
+| Backups, volume backups, schedules, restores | Yes | Yes | Granted ones | No |
+| Read Services, Deployments, logs and Domains | Yes | Yes | Granted ones | Reader and Operator |
+| Ask for a Plan | Yes | Yes | Granted ones | Reader and Operator |
+| Apply or dismiss a Plan | Yes | Yes | Only steps the role allows | No |
+| Configure Uptime checks, error-rate thresholds, traces | Yes | Yes | Granted ones | No |
+| Servers, Cloud accounts, registries, SSH keys, certificates | Yes | Yes | No | No |
+| Destinations, notification channels, git providers | Yes | Yes | No | No |
+| Read the audit log | Yes | Yes | No | No |
+| Call an AI model through the Gateway | Through a Caller Agent | Through a Caller Agent | No | Caller role |
+| Instance settings (self-hosted) | Instance organization only | Instance organization only | No | No |
+
+Owner is not transferable. An admin holds every right an owner does except deleting the
+Organization. A **custom role** can hold any mix of these rights; it needs the Business plan or an
+Enterprise license, and an Organization can have up to ten.
+
+<Callout type="limit" title="Agents are bounded on purpose">
+  An Agent is never an owner or admin and has no authority over the machine Cloudgate runs on. It
+  never applies or dismisses a Plan, changes variables, settings or access, configures health checks,
+  creates or deletes an AI model, or sets up a Template. It reads no access logs or traces. Every call
+  it makes, allowed or refused, is a row in the [audit log](/docs/guide/audit-log).
+</Callout>
+
+## What a plan or licence unlocks
+
+| Feature | Hosted Starter | Hosted Business | Self-hosted, free | Self-hosted, Enterprise license |
+|---|---|---|---|---|
+| Servers | 3, plus Add-ons | 3, plus Add-ons | Not counted | Not counted |
+| Cloud Environments | 3, plus Add-ons | 3, plus Add-ons | Not counted | Not counted |
+| Members, Projects, Environments on Servers | Not counted | Not counted | Not counted | Not counted |
+| Organizations | One you pay for yourself | One, plus others it pays for | One | More than one |
+| Custom roles | No | Yes | No | Yes |
+| Single sign-on and SCIM | No | Yes | No | Yes |
+| Forward auth | No | Yes | No | Yes |
+| Branding | No | No | No | Yes |
+| Audit log | Yes | Yes | Yes | Yes |
+
+An Add-on is one more Server and one more Cloud Environment. Going over a count refuses only the next
+addition; nothing running is switched off. See [Billing](/docs/guide/billing), [pricing](/pricing)
+and [Self-hosting](/docs/self-host).
+
+## Hosted-only and self-hosted-only
+
+| Only on the Hosted instance | Only on a self-hosted instance |
+|---|---|
+| Hosted plans, the 30-day free trial, Billing | Enterprise license key |
+| Bought Servers | Deploying onto the machine Cloudgate runs on |
+| Paying for other Organizations | Traefik, Instance and Maintenance settings |
+| Cloud Services built in CodeBuild or Cloud Build in your account | Cloud Services built on the Cloudgate server |
+| Nothing else | Branding |
+
+## Server, AWS and Google Cloud
+
+| What | Server | AWS | Google Cloud |
+|---|---|---|---|
+| Applications run on | Docker Swarm | ECS (Fargate) | Cloud Run |
+| PostgreSQL, MySQL | Containers | RDS | Cloud SQL |
+| Redis | Container | ElastiCache | Memorystore |
+| MongoDB, MariaDB, libSQL | Yes | No | No |
+| Compose stacks | On the Server | On their own Stack VM | On their own Stack VM |
+| Buckets | A Garage container | S3 | Cloud Storage |
+| Domains and certificates | Traefik, Let's Encrypt or your certificate | Always HTTPS, the cloud's certificate | Always HTTPS, the cloud's certificate |
+| Shell into a container | Yes | No | No |
+| Remove containers | Yes | No | No |
+| Runtime logs | Docker | CloudWatch | Google's log store |
+| Access logs (Requests) | Yes | No | No |
+| Database dumps to a Destination | Yes | No, the cloud's own backups | No, the cloud's own backups |
+| Container `HEALTHCHECK` | Yes | Yes | Never run |
+| Uses a container registry | Optional | No | No |
+| Drift detection | No | Yes | Yes |
+| Idle cost Cloudgate creates | None | About 24 USD a month per Environment network | About 18 USD a month per Environment network |
+
+In a cloud, Cloudgate never writes DNS: it shows the records to add and checks them. An AWS static
+site takes one Domain. See [Servers](/docs/guide/servers) and [Cloud accounts](/docs/guide/cloud-accounts).
+
+## Hard limits
+
+| Limit | Value |
+|---|---|
+| Builds at once, without a license | One per Server; the rest wait as `pending` |
+| Builds at once, with a license | Up to **Concurrent builds**, at most 100 |
+| Cloud runs at once, without a license | One per instance |
+| Agent reads (MCP) | 120 a minute, bursts of 60 |
+| Agent writes (MCP) | 10 a minute, bursts of 5 |
+| Agent tool call | 30 seconds, then abandoned |
+| Agent log read | 500 lines, and 1 MiB, per call |
+| Agent key lifetime | 30, 90 or 365 days; never unlimited |
+| Personal key from `cloudgate login` | 90 days |
+| REST API with a Personal key | No rate limit |
+| Sign-in, sign-up, password change | 3 requests per 10 seconds per IP address |
+| Password reset requests | 3 per minute per IP address |
+| Confirmation emails | One per address every 5 minutes |
+| Custom roles | 10 per Organization |
+| Docked shells and logs | 4 of each |
+| Requested previews | 60 minutes by default, at most 24 hours (instance setting), 3 at once per Application by default |
+| Cron run time limit | 1 hour by default, at most 24 hours |
+| Uptime check interval | 30 seconds to 1 hour; 3 downs in a row open an Incident by default |
+| Uptime probe history | 7 days |
+| Error-rate threshold | Window of 1, 5, 15 or 30 minutes; 5 % and 20 requests by default |
+| Trace retention | 1, 3 or 7 days |
+| Access logs | Rotated hourly, deleted within 30 days |
+| Token spend detail | Per-call rows 90 days; daily totals for the model's life |
+| Gateway request body | 16 MiB |
+| Container logs | 30 MB per container (three files of 10 MB) |
+| Size | `xsmall` (0.25 CPU, 512 MB) to `2xlarge` (8 CPU, 16 GB), or custom |
+| Config name | 63 characters |
+| Bought Server extra storage | 10 GB to 10 TB, grow only |
+| Branding custom CSS | 50,000 characters |
+| Unused Pending setups | Dropped after 30 days |
+| Lapsed Hosted Organization | Deleted after 30 days |
+
+## What Cloudgate does not do
+
+<Callout type="limit" title="By design, today">
+  - **Inherit variables.** A Service gets only its own; it names a Project or Environment value to use it.
+  - **Move a Service.** A Service's Server or Cloud account is fixed when it is made.
+  - **Write DNS records** or integrate with a CDN. It recognises a host behind Cloudflare, Bunny CDN,
+    Fastly or Arvancloud and says it cannot see past the proxy.
+  - **Keep a hand change in the cloud.** Applying a Plan puts Cloudgate's version back.
+  - **Change an Existing database**, or delete it with its Service.
+  - **Firewall a published port.** A database's external port is public; the password is its only protection.
+  - **Touch a machine when you delete its Server.** It only forgets it, and refuses while Services are on it.
+  - **Retry a cron run** or make up a run missed while Cloudgate was down.
+  - **Detect flapping or hold maintenance windows** for Incidents. Probes come from one place, the platform host.
+  - **Update a Template** after you set it up. It is a copy.
+  - **Roll back a database or Compose stack.** Rollbacks are for Applications.
+  - **Preview** a Docker-image or uploaded Application, a worker, a private web service or an AI
+    model. Pull-request previews are for GitHub only.
+  - **Give an Agent git access.** You arrange that outside Cloudgate.
+  - **Add or edit SAML providers** in the console. Only OIDC providers are added there.
+  - **Reset another person's password or two-factor** from the console.
+  - **Update a self-hosted native install** from the console.
+</Callout>
+
+## Related pages
+
+- [Troubleshooting](/docs/help/troubleshooting) for what to do when one of these limits bites.
+- [FAQ](/docs/help/faq) for short answers to common questions.
+- [MCP guard rails](/docs/mcp/guard-rails) for the Agent limits in full.
+- The [features](/features), [security](/security) and [self-hosted](/self-hosted) pages for the overview.

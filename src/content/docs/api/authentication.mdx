@@ -1,0 +1,120 @@
+---
+title: Authenticate API requests
+navTitle: Authentication
+seoTitle: Authenticate to the Cloudgate API with a Personal key
+description: Make a Personal key, send it in the x-api-key header with x-organization-id, see what each role may call, and revoke keys. Agent keys are refused here.
+lede: Every REST request carries a Personal key in the x-api-key header. The key acts as you, with your role in the Organization the request names.
+section: api
+order: 2
+badges: ['Hosted and self-hosted']
+howto:
+  name: Call the Cloudgate API with a Personal key
+  steps:
+    - { name: Make a Personal key, text: 'In the console, open your avatar, Account, Personal keys, and press Create a key. Copy the key; it is shown once.' }
+    - { name: Store it, text: 'Put the key in an environment variable such as CLOUDGATE_KEY, or in your CI secrets.' }
+    - { name: Find the Organization id, text: 'Call GET /backend/organizations with the key and note the id of the Organization to act in.' }
+    - { name: Send both headers, text: 'Send x-api-key with the key and x-organization-id with the Organization id on every request.' }
+faq:
+  - { q: Can I use Authorization Bearer instead of x-api-key?, a: 'No. The REST API reads the key from <code>x-api-key</code> only. <code>Authorization: Bearer</code> is how Agent keys reach the MCP endpoint and the AI Gateway.' }
+  - { q: Can a Personal key be limited to read-only?, a: 'No. A key has no scopes: it can do what you can do. To give a script less, give it to a person or a custom role with less, or use an Agent with a read-only role over MCP.' }
+  - { q: What happens to my keys if I leave an Organization?, a: 'The keys stay yours, but a request naming that Organization is refused with 403 <code>NOT_ORGANIZATION_MEMBER</code>.' }
+---
+
+## Make a Personal key
+
+A Personal key belongs to one person and acts as that person. There are two ways to make one:
+
+- **In the console.** Open your avatar, then **Account**. Under **Personal keys**, press **Create a key**,
+  give it a name and choose when it expires: in 30 days, in 90 days, in a year, or never. The key is shown
+  once; copy it then.
+- **With the CLI.** `cloudgate login` opens a code for you to approve in the console and stores a key
+  that expires 90 days after login. In CI, set `CLOUDGATE_KEY` instead; see [the CLI in CI](/docs/cli/ci).
+
+Keys are made, listed and revoked only from a signed-in console session. A key cannot make or list
+other keys, so revoking one in the console stops whoever holds it. The one exception: a key may delete
+itself, which is what `cloudgate logout` does. More on the console side in
+[Personal keys](/docs/guide/personal-keys).
+
+## Send the key and the Organization
+
+Send the key in `x-api-key` and the Organization id in `x-organization-id`:
+
+```bash
+curl https://cloudgate.octabyte.app/backend/projects \
+  -H "x-api-key: $CLOUDGATE_KEY" \
+  -H "x-organization-id: $CLOUDGATE_ORG_ID"
+```
+
+- Without `x-organization-id`, the key acts in your default Organization.
+- Naming an Organization you are not a member of is refused with 403 `NOT_ORGANIZATION_MEMBER`.
+- `GET /organizations` lists your Organizations with their ids; `POST /organizations/{id}/set-default`
+  changes your default.
+
+To check a key before you use it, ask who it belongs to:
+
+```bash
+curl https://cloudgate.octabyte.app/backend/users/me/whoami \
+  -H "x-api-key: $CLOUDGATE_KEY" \
+  -H "x-organization-id: $CLOUDGATE_ORG_ID"
+```
+
+The answer names your email, the Organization the request acts in, and the Personal key it carries.
+
+## What can a key do?
+
+Exactly what you can do in that Organization: a key has no scopes of its own. Your role decides, and
+each endpoint in this reference says which roles may call it.
+
+| Role | What it may do through the API |
+|---|---|
+| Owner | Everything, including deleting the Organization. |
+| Admin | Everything an Owner can, except deleting the Organization. |
+| Member | Read and change the Environments and Services granted to them, deploy and cancel Deployments, manage backups, schedules, volumes and Domains, read monitoring. Not Projects, Servers, Cloud accounts, registries, git providers, SSH keys, certificates, notifications or members. |
+| Custom role | What the role grants, statement by statement (for example `server: create`). Custom roles need the Business plan on the Hosted instance, or an Enterprise licence when self-hosted. |
+
+A Member's access is narrowed further by the Projects, Environments and Services granted to them. A
+request for something outside those grants is refused with 403 and a code such as
+`SERVICE_ACCESS_NOT_GRANTED`. See [Members and roles](/docs/guide/members-and-roles) for how grants work.
+
+Some routes act on the Cloudgate instance itself rather than an Organization: changing the console
+domain, Traefik files, cleanup. Those need an owner or admin of the instance organization, the first
+Organization made on the instance, and refuse anyone else with 403 `INSTANCE_AUTHORITY_REQUIRED`.
+
+## What a key cannot do
+
+<Callout type="limit" title="These need a signed-in console session">
+  Making, listing or revoking Personal keys (except a key deleting itself), turning two-factor sign-in on or
+  off, revoking a session and changing your sign-in email. A Personal key is refused on these with 403.
+</Callout>
+
+- **Agent keys are refused on every REST route** with 403 `AGENT_NOT_ALLOWED_HERE`, and the attempt is
+  written to the audit log. An Agent works only through the [MCP endpoint](/docs/mcp) and the AI Gateway.
+- **A banned account** is refused with 403 and a code, not a bare 401.
+- **On the Hosted instance, a frozen Organization** (an unpaid invoice, or a suspension) refuses most writes
+  with 403 `ORGANIZATION_FROZEN`. Reads, removals and paying still work.
+
+## Routes that need no key
+
+A few routes answer anyone, so a tool can check an address before it sends a key:
+
+| Route | Answers |
+|---|---|
+| `GET /settings/about` | That this is Cloudgate, its version, whether it is the Hosted instance, and the address for WebSockets. |
+| `GET /settings/health` | `{ "status": "ok" }` once the database answers. |
+| `GET /auth/sign-up-open` | Whether sign-up is open. |
+| `POST /auth/device/code`, `POST /auth/device/token` | The device login the CLI uses. |
+| `GET /schema/project-config/v1.json` | The JSON Schema of `cloudgate.yaml`. |
+
+## Revoke a key
+
+Revoke a key in the console under **Account**, **Personal keys**: it stops working at once. From a script,
+a key can revoke itself:
+
+```bash
+curl -X DELETE https://cloudgate.octabyte.app/backend/users/me/api-keys/<key id> \
+  -H "x-api-key: $CLOUDGATE_KEY"
+```
+
+The key's id is in the `whoami` answer. Every key you make and revoke is recorded in the audit log.
+Next, read [Errors](/docs/api/errors) for what each refusal means, or browse the
+[Account and Personal keys](/docs/api/account) endpoints.

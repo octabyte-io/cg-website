@@ -1,0 +1,88 @@
+---
+title: Templates
+seoTitle: Set up apps from the template catalogue
+description: Set up a ready-made app such as Ghost, n8n or Plausible from the template catalogue in a Project, review its Plan and Apply it. What templates can't do.
+lede: A Template is a ready-made Project config for a known app. Setting one up adds its Services to an Environment you choose, through a Plan you review first.
+section: guide
+group: Deploy
+order: 7
+badges: ['People only, not Agents']
+howto:
+  name: Set up a Template in a Project
+  steps:
+    - { name: 'Open Templates', text: 'In the rail, open Templates and find the app.' }
+    - { name: 'Set up', text: 'Press Set up and choose a Project and Environment, or make a new Project from the template.' }
+    - { name: 'Fill in the values', text: 'Enter a setup name, the values the template asks for, and the Domain hosts.' }
+    - { name: 'Review the Plan', text: 'Press Set up and review the Plan.' }
+    - { name: 'Apply', text: 'Read the Environment''s Plan and press Apply.' }
+faq:
+  - { q: 'Where can I see every template?', a: 'On the template catalogue website at cgt.octabyte.io, which has a page for each app with a Deploy button. The console''s Templates page lists the same catalogue.' }
+  - { q: 'Does my app get updates when the template changes?', a: 'No. Setting a template up copies its config into your Project. It keeps no link to the template and gets no updates from it.' }
+  - { q: 'Can an AI agent set up a template?', a: 'No. Only a person can set a template up.' }
+---
+
+The official catalogue is published at [cgt.octabyte.io](https://cgt.octabyte.io/), with a page
+for each app and a **Deploy** button that opens the [get-started wizard](/docs/guide/get-started).
+Inside the console, the **Templates** page lists the same catalogue so you can add an app to a
+Project you already have. Apps include Ghost, n8n, Plausible Analytics, Nextcloud, Vaultwarden,
+WordPress and more, and the catalogue keeps growing.
+
+## What you can do
+
+- Browse and search the catalogue in the console, and filter by tag.
+- Set an app up in an existing Project and Environment, or in a new Project.
+- Review exactly what it creates as a Plan before anything runs.
+- Cancel a setup you have not applied yet.
+
+## Set up a Template
+
+<Steps>
+<Step title="Find the app">
+Open **Templates** in the rail. Search by name or filter by **Tags**. Each card links the app's
+website, docs and source, and says where it runs.
+<Screenshot name="templates-list" alt="The Templates page with cards for apps from the catalogue, a search box and a tag filter" caption="Each card says where the app can run." />
+</Step>
+<Step title="Choose where it goes">
+Press **Set up**. Choose a Project and an Environment, for example `storefront / staging`. An
+Environment that cannot take the app is greyed out. Or choose **New Project from a template** and
+give the Project a name and a Deploy target.
+</Step>
+<Step title="Fill in the values">
+Give the setup a **Setup name**, fill in the values the template asks for, and pick the Domain
+hosts its web parts answer on.
+</Step>
+<Step title="Review and apply">
+Press **Set up and review the Plan**. Read the Environment's [Plan](/docs/guide/project-config):
+it lists the Services the template creates. Press **Apply**.
+</Step>
+</Steps>
+
+Until you apply it, the setup waits as a **Pending setup** on the Environment's **Services** tab,
+where **Cancel setup** drops it. A pending setup that is not applied is dropped after 30 days.
+
+## Set up a Template in a repository-kept config
+
+When the Project's config is kept in your repository, Cloudgate does not write to your repository.
+The setup shows the YAML to paste into your `cloudgate.yaml` instead. Commit it to the Config
+branch, and the next push's Plan creates the template's parts.
+
+## What you cannot do
+
+<Callout type="limit" title="People only">
+An Agent cannot set a template up. Setting one up needs permission to create Services in the
+Environment.
+</Callout>
+
+- A template is a copy: it keeps no link to the catalogue and receives no updates.
+- A template's Compose part is console-managed: you change it in the console, not in the config.
+- In a cloud, a template's Compose part runs on its own Stack VM, and you type its Domain host.
+- On a self-hosted instance the operator can mirror the catalogue or turn it off; the page then
+  says "Templates are off".
+
+## Related pages
+
+- [Deploy your first app with the get-started wizard](/docs/guide/get-started).
+- [Project config and Plans](/docs/guide/project-config): what Apply does.
+- [Compose stacks](/docs/guide/compose-stacks): how a template's Compose part runs.
+- [Domains and HTTPS](/docs/guide/domains) for the template's hosts.
+- [Features](/features) for everything else Cloudgate runs.

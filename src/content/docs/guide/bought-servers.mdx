@@ -1,0 +1,119 @@
+---
+title: Buy a Server from Cloudgate
+navTitle: Bought Servers
+seoTitle: 'Buy a ready-to-use Server from Cloudgate in the console'
+description: Buy a Server in the Cloudgate console by location and size, with optional backups and extra storage, billed monthly in advance on your Hosted plan invoice.
+lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you. No SSH keys or setup commands needed.
+section: guide
+group: Where it runs
+order: 2
+badges: ['Hosted only', 'Owner or Admin']
+howto:
+  name: Buy a Server
+  steps:
+    - { name: 'Open Buy a Server', text: 'In Servers, press Buy a Server.' }
+    - { name: 'Pick a location', text: 'Choose a location on the map. Show where I am highlights the nearest ones.' }
+    - { name: 'Pick a size', text: 'Choose a size sold in that location, and optionally backups and extra storage.' }
+    - { name: 'Buy', text: 'Check the summary of the monthly price and today''s charge, accept the terms and press Buy.' }
+    - { name: 'Wait until ready', text: 'The Server is created and set up by itself. It can take Services once it is Ready.' }
+faq:
+  - { q: 'Is a bought Server included in the free trial?', a: 'No. A bought Server is charged at once, even during the free trial.' }
+  - { q: 'How is a bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The summary shows the monthly price and today''s charge before you buy.' }
+  - { q: 'Can I make a bought Server bigger later?', a: 'Yes. Change size moves it up or down among the sizes sold in its location. The machine is powered off for a few minutes, and its disk is not grown.' }
+  - { q: 'What happens if a payment fails?', a: 'The Server is due for deletion 7 days after the failed invoice. A red bar shows the date. Pay before then to keep it.' }
+---
+
+A Bought Server is a Server Octabyte owns and runs for you. Once it is ready it works like any
+other [Server](/docs/guide/servers): you deploy Applications, databases and Compose stacks onto it.
+You do not need to make an SSH key or run the setup: Cloudgate does both.
+
+## What you can do
+
+- Buy a Server by location and size, from a world map.
+- Add backups of the Server, and extra storage from 10 GB to 10 TB.
+- Change its size up or down, turn backups on or off, and grow its storage later.
+- Delete it, with the unused part of the month credited.
+
+## Buy a Server
+
+<Steps>
+<Step title="Open the shop">
+In **Servers**, press **Buy a Server**. You can also get here from the
+[get-started wizard](/docs/guide/get-started) by choosing **Get a server from Cloudgate**.
+</Step>
+<Step title="Pick a location">
+Choose a location on the world map. **Show where I am** highlights the ones near you, using your
+browser's time zone; it is never sent anywhere.
+<Screenshot name="servers-buy" alt="The Buy a Server page with a world map of locations, a list of sizes and a price summary" caption="Pick a location, then a size; sizes not sold there are greyed out." />
+</Step>
+<Step title="Pick a size and extras">
+Choose a size sold in that location; sizes not sold there are greyed out. Optionally turn on
+backups and add extra storage, from 10 GB to 10 TB.
+</Step>
+<Step title="Check the summary and buy">
+The summary shows the monthly price, today's charge and the dates. Tick that you accept Octabyte's
+terms and acceptable-use policy, then press **Buy**. The first time, your bank may ask you to
+confirm the payment (3D Secure).
+</Step>
+<Step title="Wait until it is ready">
+The Server moves through **Waiting for payment**, **Creating**, **Setting up** and **Ready**. Its
+first setup run starts by itself. Nothing deploys onto it until it is ready.
+</Step>
+</Steps>
+
+If a purchase is left unpaid, **Finish paying** returns you to the payment, or you can cancel it.
+If creating the machine fails, you are refunded.
+
+## Change size, backups or storage
+
+Open the Server's **Settings** tab, **Bought Server** card.
+
+- **Change size**: move up or down among the sizes sold in its location (**Pay and change size**).
+  The machine is powered off for a few minutes. The disk is not grown.
+- **Extra storage**: grow it (**Pay and grow**). The filesystem is grown for you. Extra storage is
+  not in the backups.
+- **Backups**: **Pay and turn on backups**, or turn them off.
+
+A costlier change is charged now; a cheaper one is credited on the next invoice.
+
+<Callout type="warn" title="Turning off backups deletes them">
+**Turn off and delete backups** deletes every backup of the Server at once. Extra storage can only
+grow, never shrink.
+</Callout>
+
+## Delete a bought Server
+
+Removing it from the Server's **Settings** deletes the machine, its data and its backups. The
+unused part of the month is credited.
+
+<Callout type="warn" title="This cannot be undone">
+Unlike a Server you added over SSH, deleting a bought Server destroys the machine and everything on
+it. Back up the databases and volumes you need first; see [Backups](/docs/guide/backups).
+</Callout>
+
+## If a payment fails
+
+- A failed invoice sets a deletion date 7 days later; so does a suspension. A red "Due for
+  deletion on" bar shows the date. Costlier changes are refused until it is paid.
+- When the plan lapses, bought Servers are deleted at once.
+- A Server deleted for non-payment credits nothing. Its record stays, marked Deleted.
+
+## What you cannot do
+
+<Callout type="limit" title="Hosted only">
+Buying a Server is offered only on the Hosted instance, at cloudgate.octabyte.app. On a
+self-hosted instance, [add your own Server over SSH](/docs/guide/servers).
+</Callout>
+
+- Buy without being charged: there is no trial for a bought Server.
+- Pay with a prepaid card.
+- Shrink extra storage, or include it in the backups.
+- Change the size to one not sold in the Server's location.
+
+## Related pages
+
+- [Servers](/docs/guide/servers): what you can do with any Server once it is ready.
+- [Billing and plans](/docs/guide/billing): invoices, cards and how Servers count.
+- [Deploy your first app with the get-started wizard](/docs/guide/get-started).
+- [Backups](/docs/guide/backups) of databases and volumes.
+- [Pricing](/pricing) for the Hosted plans.

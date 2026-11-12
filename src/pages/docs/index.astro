@@ -1,0 +1,387 @@
+---
+// The docs home: the three ways in (console, agent, terminal) as the three slices, then the tasks
+// people come for, then reference and help. The hero window shows one deploy, said three ways.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import DocsSearch from '../../components/docs/DocsSearch.astro';
+import { breadcrumbSchema, faqSchema } from '../../data/schema';
+import { getDocsNav } from '../../data/docs-nav';
+import { apiGroups } from '../../data/api-reference';
+import { site } from '../../data/site';
+import '../../styles/docs.css';
+
+const trail = [{ name: 'Docs', path: '/docs' }];
+const nav = await getDocsNav();
+const has = new Set(nav.flatMap((s) => s.groups.flatMap((g) => g.links.map((l) => l.href))));
+// A link only shows once its page exists, so the home never points at a missing page.
+const only = <T extends { href: string }>(links: T[]) => links.filter((l) => !l.href.startsWith('/docs/') || has.has(l.href) || l.href.startsWith('/docs/api/'));
+
+const lanes = only([
+  {
+    slice: 1,
+    href: '/docs/guide/get-started',
+    title: 'User guide',
+    text: 'Every screen of the console, step by step: Servers, cloud accounts, Services, databases, domains, backups, monitoring and your team.',
+    way: 'In the console',
+  },
+  {
+    slice: 2,
+    href: '/docs/mcp',
+    title: 'MCP and agents',
+    text: 'Give an AI agent its own member account, role and key, connect it to the MCP endpoint, and see every tool it can call.',
+    way: 'From your agent',
+  },
+  {
+    slice: 3,
+    href: '/docs/cli',
+    title: 'CLI',
+    text: 'Install the cloudgate command, log in, deploy a folder, follow logs, set variables, and run it in CI.',
+    way: 'From your terminal',
+  },
+]);
+
+const tasks = only([
+  { href: '/docs/quickstart', title: 'Deploy your first app', text: 'Sign up, get a Server, press Deploy.' },
+  { href: '/docs/guide/servers', title: 'Add your own Server', text: 'Connect an Ubuntu machine over SSH.' },
+  { href: '/docs/guide/cloud-accounts', title: 'Connect AWS or Google Cloud', text: 'Deploy into an account you own.' },
+  { href: '/docs/guide/applications', title: 'Deploy from GitHub', text: 'Or GitLab, Bitbucket, Gitea, an image or a folder.' },
+  { href: '/docs/guide/domains', title: 'Add a custom domain', text: 'Point DNS, get a certificate.' },
+  { href: '/docs/guide/environment-variables', title: 'Set variables and secrets', text: 'Per Project, Environment or Service.' },
+  { href: '/docs/guide/databases', title: 'Create a database', text: 'PostgreSQL, MySQL, Redis and more.' },
+  { href: '/docs/guide/backups', title: 'Back up and restore', text: 'To any S3-compatible destination.' },
+  { href: '/docs/guide/deployments', title: 'Roll back a bad release', text: 'Return to an earlier Deployment.' },
+  { href: '/docs/guide/members-and-roles', title: 'Invite your team', text: 'Roles, grants and invitations.' },
+  { href: '/docs/mcp/connect', title: 'Connect an AI agent', text: 'Claude Code, Cursor, VS Code, Codex.' },
+  { href: '/docs/cli/ci', title: 'Deploy from CI', text: 'GitHub Actions and GitLab CI.' },
+]);
+
+const reference = only([
+  { href: '/docs/api', title: 'REST API', text: `${apiGroups.length ? `${apiGroups.length} groups of endpoints` : 'Endpoints'}, generated from the instance's OpenAPI document.` },
+  { href: '/docs/cli/commands', title: 'CLI commands', text: 'Every command, flag, variable and exit code.' },
+  { href: '/docs/mcp/tools', title: 'MCP tools', text: 'Every tool an agent can call, its parameters and its budget.' },
+  { href: '/docs/concepts', title: 'How Cloudgate fits together', text: 'Organization, Project, Environment, Service, Server, Deployment.' },
+  { href: '/docs/glossary', title: 'Glossary', text: 'The words Cloudgate uses, and what each one means.' },
+  { href: '/docs/help/limits', title: 'What Cloudgate can and cannot do', text: 'Limits, gates and what each role may do.' },
+]);
+
+const help = only([
+  { href: '/docs/help/troubleshooting', title: 'Troubleshooting', text: 'Builds that fail, Servers that will not set up, domains without certificates.' },
+  { href: '/docs/help/faq', title: 'Questions people ask', text: 'Short answers about plans, data, agents and self-hosting.' },
+  { href: '/docs/self-host', title: 'Self-host Cloudgate', text: 'Install it on your own Ubuntu server, free under the Elastic License 2.0.' },
+]);
+
+const faq = [
+  {
+    q: 'Where do I start with Cloudgate?',
+    a: 'Start with the <a href="/docs/quickstart">quickstart</a>: sign up, get a Server (buy one or connect your own with one command), and press Deploy. The <a href="/docs/guide/get-started">user guide</a> then covers every screen of the console.',
+  },
+  {
+    q: 'Can I use Cloudgate without the console?',
+    a: 'Yes. The <a href="/docs/cli">CLI</a> deploys a folder from your terminal or CI, AI agents work through the <a href="/docs/mcp">MCP endpoint</a>, and scripts can call the <a href="/docs/api">REST API</a> with a Personal key.',
+  },
+  {
+    q: 'Do these docs cover self-hosted Cloudgate?',
+    a: 'Yes. The console, CLI, MCP endpoint and API are the same on the hosted instance and on your own install; pages mark what is hosted only (billing, bought Servers) or self-hosted only (instance settings, the license).',
+  },
+];
+---
+
+<Base
+  title="Cloudgate docs: user guide, API, CLI and MCP reference"
+  description="Learn Cloudgate step by step: deploy apps, databases and AI models to your own servers or cloud, then go deeper with the REST API, CLI and MCP references."
+  schema={[breadcrumbSchema(trail), faqSchema(faq)]}
+>
+  <PageHero
+    title="Cloudgate documentation"
+    lede="Everything you can do in Cloudgate, how to do it, and where its edges are. Work in the console, hand the job to your AI agent, or script it from the terminal: the same Deployment, three ways in."
+    trail={trail}
+  >
+    <button class="btn btn--primary btn--lg hub-search" type="button" data-search-open aria-haspopup="dialog">
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8.5 2a6.5 6.5 0 0 1 5.2 10.4l4 4-1.3 1.3-4-4A6.5 6.5 0 1 1 8.5 2Zm0 1.8a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Z" /></svg>
+      Search the docs
+      <kbd class="docs-kbd">/</kbd>
+    </button>
+    <a class="btn btn--ghost btn--lg" href="/docs/quickstart">Read the quickstart</a>
+    <div class="window three" slot="visual" aria-label="One deploy of the storefront web Service, three ways" role="img">
+      <div class="window-bar">storefront / production / web</div>
+      <pre class="three-lines" data-play style="--type-step: 240ms"><span class="ln" style="--i:0"><span class="slice" aria-hidden="true"></span><span class="d">console</span>   press <span class="k">Deploy</span> on web</span>
+<span class="ln" style="--i:1"><span class="slice slice--2" aria-hidden="true"></span><span class="d">agent</span>     <span class="k">deploy_service</span> {"{"} serviceId: <span class="s">"web"</span> {"}"}</span>
+<span class="ln" style="--i:2"><span class="slice slice--3" aria-hidden="true"></span><span class="d">terminal</span>  $ <span class="k">cloudgate deploy</span> --env production</span>
+<span class="ln" style="--i:3"> </span>
+<span class="ln" style="--i:4"><span class="d">Deployment queued, building, releasing</span></span>
+<span class="ln live-line" style="--i:5"><span class="live">running</span>  https://shop.northwind.example</span></pre>
+    </div>
+  </PageHero>
+
+  <section class="section" aria-labelledby="ways-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="ways-title">Pick the way you work</h2>
+        <p class="lede">Each way in reaches the same Projects, Services and Deployments, under the same roles and the same audit log.</p>
+      </div>
+      <div class="lanes" data-reveal-stagger>
+        {lanes.map((l) => (
+          <a class="lane" href={l.href} data-spotlight>
+            <span class:list={['lane-slice', `lane-slice--${l.slice}`]} aria-hidden="true"></span>
+            <span class="lane-title">{l.title}</span>
+            <span class="lane-text">{l.text}</span>
+            <span class="lane-way">{l.way}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="tasks-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="tasks-title">What people come here to do</h2>
+        <p class="lede">The tasks asked about most, each a short page with the steps and a screenshot of the console.</p>
+      </div>
+      <ul class="tasks" data-reveal-stagger="40">
+        {tasks.map((t) => (
+          <li>
+            <a href={t.href}>
+              <span class="task-title">{t.title}</span>
+              <span class="task-text">{t.text}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ref-title">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="ref-title">Reference and background</h2>
+        <p class="lede">Exact names, parameters and limits, for when you are writing a script, a CI job or an agent's instructions.</p>
+      </div>
+      <div class="card-grid card-grid--3" data-reveal-stagger>
+        {reference.map((r) => (
+          <a class="doc-card" href={r.href} data-spotlight>
+            <span class="doc-card-title">{r.title}</span>
+            <span class="doc-card-text">{r.text}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="help-title">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="help-title">Stuck, or running your own?</h2>
+        <p class="lede">
+          If a page here does not answer it, email <a href={`mailto:${site.support}`}>{site.support}</a>.
+        </p>
+      </div>
+      <dl class="facts" data-reveal-stagger>
+        {help.map((h) => (
+          <div>
+            <dt><a href={h.href}>{h.title}</a></dt>
+            <dd>{h.text}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="hub-faq">
+    <div class="wrap hub-faq doc-faq" data-reveal>
+      <h2 id="hub-faq">Questions about these docs</h2>
+      <div>
+        {faq.map((f) => (
+          <details>
+            <summary><h3>{f.q}</h3></summary>
+            <p set:html={f.a} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand title="Try it while you read" />
+
+  <DocsSearch />
+  <script>
+    import '../../scripts/docs';
+  </script>
+</Base>
+
+<style>
+  .hub-search .docs-kbd {
+    background: color-mix(in srgb, var(--on-brand) 14%, transparent);
+    border-color: color-mix(in srgb, var(--on-brand) 30%, transparent);
+    color: var(--on-brand);
+  }
+  .three {
+    max-width: 560px;
+    margin-left: auto;
+  }
+  .three-lines {
+    margin: 0;
+    white-space: pre-wrap;
+    padding: var(--space-5);
+    color: var(--night-ink);
+    font-size: var(--text-sm);
+    line-height: 1.9;
+    overflow-x: hidden;
+  }
+  .three-lines .slice {
+    width: 0.45rem;
+    height: 0.8rem;
+    margin-right: 0.7rem;
+    vertical-align: -0.05rem;
+  }
+  .three-lines .k {
+    color: var(--code-key);
+  }
+  .three-lines .s {
+    color: var(--code-str);
+  }
+  .three-lines .d {
+    color: var(--code-dim);
+  }
+  .three-lines .live {
+    color: var(--code-str);
+  }
+  /* The three slices keep their dark-theme tones on the night window in both themes. */
+  .three .slice {
+    background: var(--night-brand);
+  }
+  .three .slice--2 {
+    background: color-mix(in srgb, var(--night-brand) 75%, var(--night));
+  }
+  .three .slice--3 {
+    background: color-mix(in srgb, var(--night-brand) 50%, var(--night));
+  }
+
+  .lanes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .lane {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    padding-top: calc(var(--space-6) + 6px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    text-decoration: none;
+    overflow: hidden;
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .lane:active {
+    transform: scale(0.99);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .lane:hover {
+      border-color: var(--line-strong);
+    }
+  }
+  /* The lane's slice runs across the top edge: full, 75% and 50% strength, as in the mark. */
+  .lane-slice {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: var(--slice-1);
+  }
+  .lane-slice--2 {
+    background: var(--slice-2);
+  }
+  .lane-slice--3 {
+    background: var(--slice-3);
+  }
+  /* Where you work sits at the foot of the card, so the title leads. */
+  .lane-way {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .lane-title {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: var(--text-2xl);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .lane-text {
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+  @media (max-width: 860px) {
+    .lanes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The heading stays in view beside the long task list on wide screens. */
+  @media (min-width: 901px) {
+    .band .split > .section-head {
+      position: sticky;
+      top: calc(var(--head-h) + var(--space-6));
+    }
+  }
+  .tasks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-6);
+  }
+  .tasks a {
+    display: grid;
+    gap: 0.1rem;
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+  }
+  .task-title {
+    font-weight: 600;
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .task-text {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tasks a:hover .task-title {
+      color: var(--brand);
+    }
+  }
+  @media (max-width: 560px) {
+    .tasks {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .facts dt a {
+    text-decoration: none;
+  }
+  .facts dt a:hover {
+    color: var(--brand);
+  }
+  .hub-faq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--space-7);
+  }
+  @media (max-width: 860px) {
+    .hub-faq {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+  }
+</style>

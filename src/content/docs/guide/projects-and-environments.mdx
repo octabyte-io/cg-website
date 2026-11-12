@@ -1,0 +1,138 @@
+---
+title: Projects and Environments
+seoTitle: Organize Services in Projects and Environments
+description: Group related Services in a Project, split it into Environments such as production and staging, choose where each Environment deploys, and delete safely.
+lede: A Project holds everything one product runs. Each Environment inside it, such as production or staging, owns its own Services, variables and Domains, and decides where new Services are created.
+section: guide
+group: Deploy
+order: 2
+navTitle: Projects and Environments
+badges: ['Owner or Admin to create Projects', 'Members can edit Environments']
+howto:
+  name: Create a Project and an Environment
+  steps:
+    - { name: 'Create the Project', text: 'Open Projects, press New Project, give it a name and press Create Project.' }
+    - { name: 'Add an Environment', text: 'In the Project, open the Environments tab and press New Environment.' }
+    - { name: 'Pick a Deploy target', text: 'Choose a Server, this Cloudgate host (self-hosted), or a Cloud account and region.' }
+    - { name: 'Create it', text: 'Press Create Environment. Add Services to it from its Services tab.' }
+faq:
+  - { q: 'Do Services inherit Project or Environment variables?', a: 'No. A Service gets only its own variables. It reaches a Project or Environment value by naming it, for example ${{project.REDIS_URL}}.' }
+  - { q: 'Does changing an Environment''s Deploy target move my Services?', a: 'No. The Deploy target only decides where new Services are created. Every existing Service keeps its own Server or Cloud account.' }
+  - { q: 'Can one Environment use both a Server and a cloud?', a: 'Its Deploy target is one place, but each Service keeps the place it was created in, so an Environment can hold Services on different Servers.' }
+---
+
+The model is **Organization, Project, Environment, Service**. A Project such as `storefront` holds
+Environments such as `production` and `staging`; each Environment holds Services such as `web`
+and `pg-main`. A Project contains only Environments and its own variables.
+
+## What you can do
+
+- Create, rename, tag and delete Projects.
+- Add Environments to a Project and choose each one's **Deploy target**.
+- Keep variables at Project, Environment and Service level and reference them by name.
+- See every Domain, Deployment and pending template setup of an Environment in one place.
+
+## Create a Project
+
+<Steps>
+<Step title="Open Projects">
+In the rail, open **Projects**. **Search Projects** finds one by name; **Manage tags** groups them.
+<Screenshot name="projects-list" alt="The Projects list of the Northwind Labs organization, with the storefront Project and its Environments" caption="Each row is a Project; open one to see its Environments." />
+</Step>
+<Step title="Name it">
+Press **New Project**, enter a name such as `storefront` and an optional description, then press
+**Create Project**.
+</Step>
+</Steps>
+
+The Project opens on its **Environments** tab. Its other tabs are **Config**, the
+[Project config](/docs/guide/project-config), and **Settings**, where you rename it, edit
+**Project variables** and delete it.
+
+## Add an Environment
+
+<Steps>
+<Step title="Start a new Environment">
+In the Project, open **Environments** and press **New Environment**. Give it a name such as
+`staging`.
+</Step>
+<Step title="Choose its Deploy target">
+The **Deploy target** is where new Services in this Environment are created:
+
+- a Server, such as `fra-1`;
+- **This Cloudgate host**, the machine Cloudgate itself runs on (self-hosted only);
+- a Cloud account, with the region you pick under **Choose the region**.
+</Step>
+<Step title="Create it">
+Press **Create Environment**. Add Services from its **Services** tab: **Add an Application**,
+**Add a database**, **Add a Compose stack** or **Add an AI model**.
+<Screenshot name="environment-services" alt="The production Environment of storefront, listing the web Application and the pg-main database with their health" caption="The Services tab lists everything the Environment runs, with health and token spend." />
+</Step>
+</Steps>
+
+An Environment has five tabs: **Services**, **Deployments**, **Variables** ("Variables any service
+in this Environment can reference by name"), **Domains** (every Domain in the Environment) and
+**Settings** (its details, Deploy target, Config branch and, in a cloud, its Environment network).
+
+## Change where new Services are created
+
+Open the Environment's **Settings**, change the **Deploy target** card and save. Changing it moves
+nothing that already runs: each Service keeps its own Server or Cloud account. A Plan made before
+the change can no longer be applied; make a new one.
+
+<Callout type="limit" title="Nothing moves a Service">
+A Service's place, a Server or a Cloud account, is fixed when it is created. To run it somewhere
+else, create a new Service there and delete the old one.
+</Callout>
+
+## Share variables between Services
+
+Variables are kept at three levels: Project (Project > **Settings** > **Project variables**),
+Environment (Environment > **Variables**) and Service. **They are not inherited.** A Service gets
+only its own keys, and reaches the others by naming them:
+
+```text
+CACHE_URL=${{project.REDIS_URL}}
+API_BASE=${{environment.API_BASE}}
+```
+
+A name that is not set fails that Service's next Deployment. More in
+[Environment variables](/docs/guide/environment-variables).
+
+## Delete an Environment or a Project
+
+<Callout type="warn" title="This cannot be undone">
+Deleting an Environment deletes every Service in it. Deleting a Project deletes all its
+Environments and everything deployed in them. You confirm by typing the name.
+</Callout>
+
+- Environment: **Settings** > **Delete this Environment**. In a cloud, its cloud Services go first,
+  then its Environment network. If that cannot finish, a **Delete incomplete** card offers to retry
+  or to forget the Environment, which drops it from Cloudgate and keeps no record of what is left
+  except the audit log.
+- Project: **Settings** > **Delete this Project**.
+
+## Who can do what
+
+| Action | Who |
+|---|---|
+| Create, rename, delete a Project; edit Project variables | Owner, admin, or a custom role that allows it |
+| Edit an Environment and its variables | Any member it is granted to (the member role includes it) |
+| Add a Service to an Environment | Owner, admin, or a custom role with Service create |
+
+## What you cannot do
+
+- Services do not inherit variables; they reference them by name.
+- Renaming a Project or Environment renames nothing deployed.
+- Changing the Deploy target moves no Service.
+- On the Hosted instance, you cannot create an Environment until the Organization has a Server or a
+  Cloud account, and the Cloudgate host is never a Deploy target.
+- Removing a Project variable that a Service references fails that Service's next Deployment.
+
+## Related pages
+
+- [Add and configure an Application](/docs/guide/applications) in an Environment.
+- [Describe a Project in cloudgate.yaml](/docs/guide/project-config) and review its Plans.
+- [Environment variables and wired variables](/docs/guide/environment-variables).
+- [Members and roles](/docs/guide/members-and-roles): grant someone one Project or Environment.
+- [Concepts](/docs/concepts) for the whole model, and [Features](/features) for an overview.

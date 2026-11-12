@@ -1,0 +1,171 @@
+---
+// Every docs page: the site header, then a sidebar of every docs page, the article, and the
+// "On this page" contents that follow the reader. Docs read quietly: no scroll reveals on text,
+// only screenshots arrive; motion answers the reader (search, zoom, tabs, copy, the contents marker).
+import Base from './Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Badge from '../components/docs/Badge.astro';
+import DocsSearch from '../components/docs/DocsSearch.astro';
+import { getDocsNav, getReadingOrder, sections } from '../data/docs-nav';
+import { breadcrumbSchema, faqSchema, howToSchema } from '../data/schema';
+import { site } from '../data/site';
+import '../styles/docs.css';
+
+interface Heading { depth: number; slug: string; text: string }
+interface Props {
+  title: string;
+  seoTitle?: string;
+  description: string;
+  lede: string;
+  section: string;
+  badges?: string[];
+  headings?: Heading[];
+  faq?: { q: string; a: string }[];
+  faqInBody?: boolean;
+  /** ISO date the page's content last changed. */
+  updated?: string;
+  howto?: { name: string; steps: { name: string; text: string }[] };
+  schema?: Record<string, unknown>[];
+}
+const { title, seoTitle, description, lede, section, badges = [], headings = [], faq, faqInBody = false, updated = '2026-11-12', howto, schema = [] } = Astro.props;
+const showFaq = !!faq?.length && !faqInBody;
+
+const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/docs';
+const nav = await getDocsNav();
+const order = await getReadingOrder();
+const at = order.findIndex((l) => l.href === here);
+const prev = at > 0 ? order[at - 1] : null;
+const next = at >= 0 && at < order.length - 1 ? order[at + 1] : null;
+
+const sectionTitle = sections.find((s) => s.id === section)?.title;
+const sectionHome = nav.find((s) => s.id === section)?.groups[0]?.links[0]?.href;
+const trail = [
+  { name: 'Docs', path: '/docs' },
+  ...(sectionTitle && sectionHome && sectionHome !== here ? [{ name: sectionTitle, path: sectionHome }] : []),
+  ...(here !== '/docs' ? [{ name: title, path: here }] : []),
+];
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+if (showFaq) toc.push({ depth: 2, slug: 'questions', text: 'Questions' });
+
+const article = {
+  '@type': 'TechArticle',
+  headline: title,
+  description,
+  url: new URL(here, site.url).href,
+  inLanguage: 'en',
+  datePublished: '2026-11-12',
+  dateModified: updated,
+  image: `${site.url}/og/default.png`,
+  author: { '@id': `${site.url}/#organization` },
+  isPartOf: { '@id': `${site.url}/#website` },
+  publisher: { '@id': `${site.url}/#organization` },
+  about: { '@type': 'SoftwareApplication', name: site.name, '@id': `${site.url}/#software` },
+};
+const pageSchema = [
+  breadcrumbSchema(trail),
+  article,
+  ...(faq?.length ? [faqSchema(faq)] : []),
+  ...(howto ? [howToSchema({ name: howto.name, description, steps: howto.steps })] : []),
+  ...schema,
+];
+---
+<Base title={seoTitle ?? title} description={description} schema={pageSchema}>
+  <div class="docs">
+    <aside class="docs-side" aria-label="Documentation">
+      <details class="docs-menu" open>
+        <summary class="docs-menu-toggle">
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 5h14v1.6H3V5Zm0 4.2h14v1.6H3V9.2Zm0 4.2h9v1.6H3v-1.6Z" /></svg>
+          <span>Docs menu</span>
+          <span class="docs-menu-here">{sectionTitle ?? 'Documentation'}</span>
+        </summary>
+        <div class="docs-menu-body">
+          <button class="docs-search-btn" type="button" data-search-open aria-haspopup="dialog">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8.5 2a6.5 6.5 0 0 1 5.2 10.4l4 4-1.3 1.3-4-4A6.5 6.5 0 1 1 8.5 2Zm0 1.8a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Z" /></svg>
+            <span>Search the docs</span>
+            <kbd class="docs-kbd">/</kbd>
+          </button>
+          <nav aria-label="Documentation pages" class="docs-nav">
+            <a class="docs-nav-home" href="/docs" aria-current={here === '/docs' ? 'page' : undefined}>Documentation home</a>
+            {nav.map((s) => (
+              <div class="docs-nav-section">
+                <p class="docs-nav-title">{s.title}</p>
+                {s.groups.map((g) => (
+                  <div class="docs-nav-group">
+                    {g.title && <p class="docs-nav-group-title">{g.title}</p>}
+                    <ul>
+                      {g.links.map((l) => (
+                        <li><a href={l.href} aria-current={l.href === here ? 'page' : undefined}>{l.title}</a></li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </nav>
+        </div>
+      </details>
+      <script is:inline>
+        // Small screens start with the menu shut, before first paint; wide screens keep it open.
+        if (matchMedia('(max-width: 1023px)').matches) document.currentScript.previousElementSibling.open = false;
+      </script>
+    </aside>
+
+    <article class="doc">
+      <header class="doc-head">
+        <Breadcrumbs trail={trail} />
+        <h1>{title}</h1>
+        <p class="doc-lede">{lede}</p>
+        {badges.length > 0 && (
+          <p class="doc-badges"><span class="visually-hidden">Applies to: </span>{badges.map((b) => <Badge tone="brand">{b}</Badge>)}</p>
+        )}
+      </header>
+      <div class="doc-body">
+        <slot />
+        {showFaq && (
+          <section class="doc-faq" aria-labelledby="questions">
+            <h2 id="questions">Questions</h2>
+            {faq.map((f) => (
+              <details>
+                <summary><h3>{f.q}</h3></summary>
+                <p set:html={f.a} />
+              </details>
+            ))}
+          </section>
+        )}
+      </div>
+      <nav class="pager" aria-label="Previous and next page">
+        {prev ? <a class="pager-link pager-prev" href={prev.href} data-spotlight><span>Previous</span><strong>{prev.title}</strong></a> : <span />}
+        {next && <a class="pager-link pager-next" href={next.href} data-spotlight><span>Next</span><strong>{next.title}</strong></a>}
+      </nav>
+      <p class="doc-help">
+        Something missing or wrong on this page? Email <a href={`mailto:${site.support}`}>{site.support}</a>, or
+        {' '}<a href={site.signUp}>start a free trial</a> and try it in the console.
+      </p>
+    </article>
+
+    {toc.length > 1 && (
+      <nav class="doc-toc" aria-label="On this page" data-spy>
+        <p class="doc-toc-title">On this page</p>
+        <div class="doc-toc-track">
+          <span class="doc-toc-marker" aria-hidden="true"></span>
+          <ol>
+            {toc.map((h) => (
+              <li class:list={[`d${h.depth}`]}><a href={`#${h.slug}`}>{h.text}</a></li>
+            ))}
+          </ol>
+        </div>
+      </nav>
+    )}
+  </div>
+
+  <DocsSearch />
+
+  <dialog class="shot-dialog" aria-label="Screenshot">
+    <form method="dialog"><button class="shot-dialog-close" type="submit" aria-label="Close">Close</button></form>
+    <img alt="" />
+  </dialog>
+
+  <script>
+    import '../scripts/docs';
+  </script>
+</Base>

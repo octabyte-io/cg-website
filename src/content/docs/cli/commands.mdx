@@ -1,0 +1,383 @@
+---
+title: CLI command reference
+seoTitle: 'Cloudgate CLI commands, flags and exit codes reference'
+description: Every Cloudgate CLI command with its usage line, arguments, flags and defaults, environment variables and JSON output, from login and deploy to templates.
+lede: Every command the cloudgate CLI has, what it prints and how it exits. Run cloudgate <command> --help for the same usage lines in your terminal.
+section: cli
+order: 2
+navTitle: Command reference
+badges: ['Hosted and self-hosted', 'Beta']
+faq:
+  - { q: 'Which commands print JSON?', a: '<code>whoami</code>, <code>instance list</code>, <code>status</code>, <code>vars list</code> and <code>deploy --detach</code> take <code>--json</code>. <code>logs</code> is text only. With <code>--json</code>, stdout is empty when the command fails.' }
+  - { q: 'Where does the CLI print errors?', a: 'On stderr, as <code>Error: &lt;message&gt;</code> with at most one hint line under it. Data goes to stdout and everything else, including <code>Using instance &lt;url&gt;</code>, goes to stderr.' }
+  - { q: 'Is there a command to read a variable''''s value?', a: 'No. There is no <code>vars get</code> or <code>vars pull</code>: values are never printed. <code>vars list</code> says only whether each one is set or linked to another Service.' }
+  - { q: 'Is there a command to update the CLI?', a: 'No. Update it with npm. The CLI prints a one-line notice at most once a day when a newer version is on npm.' }
+---
+
+The CLI groups its commands by what they act on: your login, the folder you are in, and templates.
+For a walk-through in order, read the [CLI guide](/docs/cli); for automation, see
+[CI recipes](/docs/cli/ci); for exit codes and error messages, see
+[troubleshooting](/docs/cli/troubleshooting).
+
+| Command | What it does |
+|---|---|
+| [`login`](#cloudgate-login) | Log in to an Instance through your browser |
+| [`logout`](#cloudgate-logout) | Log out and delete this computer's key |
+| [`whoami`](#cloudgate-whoami) | Show who you are logged in as, and where |
+| [`instance list`](#cloudgate-instance-list) | Show the Instances you are logged in to |
+| [`instance use`](#cloudgate-instance-use) | Switch the current Instance |
+| [`link`](#cloudgate-link) | Link this folder to a Service |
+| [`unlink`](#cloudgate-unlink) | Remove this folder's link |
+| [`deploy`](#cloudgate-deploy) | Upload this folder and deploy it |
+| [`status`](#cloudgate-status) | Show the Service and its latest Deployment |
+| [`logs`](#cloudgate-logs) | Show the Service's logs |
+| [`vars`](#cloudgate-vars) | List, set and unset the Service's variables |
+| [`template check`](#cloudgate-template-check) | Check templates as Cloudgate will read them |
+| [`template pack`](#cloudgate-template-pack) | Build the catalogue.zip a release publishes |
+
+## Global flags
+
+Every command accepts these:
+
+| Flag | What it does | Variable |
+|---|---|---|
+| `--instance <url>` | The Instance to use | `CLOUDGATE_INSTANCE` |
+| `--json` | Print the result as JSON (commands that support it) | |
+| `--no-input` | Never ask a question; refuse instead | `CI` (any value) |
+| `--no-color` | Print without colour | `NO_COLOR` |
+| `--allow-http` | Allow a plain `http://` Instance address other than `localhost` | |
+| `-h`, `--help` | Show help for a command | |
+| `--version` | Show the CLI's version | |
+
+## Target flags
+
+`link`, `deploy`, `status`, `logs` and `vars` find their Service with these. A flag wins over its
+variable, and both win over the folder's link.
+
+| Flag | Picks | Variable |
+|---|---|---|
+| `--org <name or id>` | Organization | `CLOUDGATE_ORG` |
+| `--project <name or id>` | Project | `CLOUDGATE_PROJECT` |
+| `--env <name or id>` | Environment | `CLOUDGATE_ENV` |
+| `--service <name or id>` | Service, by its Config name | `CLOUDGATE_SERVICE` |
+
+Each value is tried as an id, then as a name ignoring case; a name two share is refused with their
+ids. The Organization is picked for you when you belong to only one. The link fills a level only
+while the levels above it are the link's too, and its Service Config name always applies.
+
+## Environment variables
+
+| Variable | Effect |
+|---|---|
+| `CLOUDGATE_KEY` | A [Personal key](/docs/guide/personal-keys). Wins over any saved login, is never saved, and ignores the current Instance |
+| `CLOUDGATE_INSTANCE` | The Instance address |
+| `CLOUDGATE_ORG`, `CLOUDGATE_PROJECT`, `CLOUDGATE_ENV`, `CLOUDGATE_SERVICE` | The target, as the flags above |
+| `CLOUDGATE_CONFIG_DIR` | The settings folder, instead of `~/.config/cloudgate/` or `%APPDATA%\cloudgate\` |
+| `CLOUDGATE_NO_UPDATE_NOTIFIER` | No new-version notice |
+| `CI` | No questions, no spinner, no new-version notice |
+| `NO_COLOR` | No colour |
+
+## Log in
+
+### cloudgate login
+
+```text
+cloudgate login [--instance <url>]
+```
+
+Prints an address and a code. Open the address on any device, check the code and approve; this
+computer then gets a Personal key that ends in 90 days, and the Instance becomes the current one.
+Without `--instance` (or `CLOUDGATE_INSTANCE`) it logs in to `https://cloudgate.octabyte.app`; it
+never uses a folder link's Instance.
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--instance <url>` | Hosted instance | The Instance to log in to. `https://` is added when missing |
+| `--allow-http` | off | Allow a plain `http://` address |
+
+```text
+$ cloudgate login --instance cloud.northwind.example
+Using instance https://cloud.northwind.example
+Open https://cloud.northwind.example/device and enter the code  WDJB-MJHT
+Waiting for you to approve…
+✓ Logged in to https://cloud.northwind.example as sam@northwind.example
+  Your key is in the system keychain and ends on 2027-02-10.
+```
+
+The key goes in the system keychain; where there is none, in `credentials.json` in the settings
+folder, readable only by you. Logging in again on the same Instance replaces that login and deletes
+the old key. A denied or expired code exits 3 and saves nothing.
+
+### cloudgate logout
+
+```text
+cloudgate logout [--instance <url> | --all]
+```
+
+Deletes this computer's key on the Instance, then forgets the login. Without a flag it logs out of
+the Instance this folder would use: the link's, else the current one.
+
+| Flag | What it does |
+|---|---|
+| `--instance <url>` | Log out of this Instance instead |
+| `--all` | Log out of every saved Instance, carrying on past any that fail |
+
+If the Instance cannot be reached, the login is still forgotten here and the command prints
+`Error: its key was not deleted on <instance>: …` with a hint to delete it in the console, then
+exits 1. A key that had already ended is a clean logout. Not logged in prints
+`You are not logged in to <instance>; nothing to do.` and exits 0. With `CLOUDGATE_KEY` set it
+refuses (exit 2): delete that key in the console instead.
+
+### cloudgate whoami
+
+```text
+cloudgate whoami [--json]
+```
+
+Prints the Instance, your email, the Organization in use and when your key ends.
+
+```text
+$ cloudgate whoami
+Instance      https://cloudgate.octabyte.app
+Logged in as  sam@northwind.example
+Organization  Northwind Labs
+Key ends      2027-02-10 (in 90 days)
+```
+
+The key's end reads `YYYY-MM-DD (in N days)`, `(in less than a day)`, `(ended)`, or `never`.
+`--json` prints:
+
+```json
+{
+  "instance": "https://cloudgate.octabyte.app",
+  "email": "sam@northwind.example",
+  "organization": { "id": "…", "name": "Northwind Labs" },
+  "keyFrom": "login",
+  "keyEndsAt": "2027-02-10T09:14:00.000Z"
+}
+```
+
+`keyFrom` is `"login"` for a saved login and `"env"` for `CLOUDGATE_KEY`.
+
+### cloudgate instance list
+
+```text
+cloudgate instance list [--json]
+```
+
+Shows every Instance you are logged in to, under `INSTANCE` and `LOGGED IN AS`, marking the current
+one with `*`. It sends no request. `--json` prints one entry per Instance with `instance`, `email`,
+`current` and `keyEndsAt`. With none: `You are not logged in to any Instance. Run: cloudgate login`.
+
+### cloudgate instance use
+
+```text
+cloudgate instance use <url>
+```
+
+Makes a saved login the current Instance and prints `✓ Now using <url>`. Commands then use it when
+no `--instance`, `CLOUDGATE_INSTANCE` or folder link names another. Not logged in there exits 3 with
+the hint `Run: cloudgate login --instance <url>`.
+
+## This folder
+
+### cloudgate link
+
+```text
+cloudgate link [--org] [--project] [--env] [--service] [--yes]
+```
+
+Asks for the Organization, Project, Environment and Service, skipping any a flag answers, then
+saves `.cloudgate/link.json` and adds `.cloudgate/` to `.gitignore`. It never creates a Service and
+never changes the Project config.
+
+| Flag | What it does |
+|---|---|
+| Target flags | Answer that question without asking |
+| `--yes` | Ask nothing, and replace an existing link without asking |
+| `--instance <url>` | The Instance to link to |
+
+```bash
+cloudgate link --project storefront --env production --service web --yes
+# ✓ Linked ./ to web in production of Project storefront on cloudgate.octabyte.app
+```
+
+With no terminal, or with `--yes`, a missing value is refused naming its flag, for example
+`Error: no Project. Pass --project or set CLOUDGATE_PROJECT.` (exit 2).
+
+### cloudgate unlink
+
+```text
+cloudgate unlink
+```
+
+Deletes the link this folder uses: its own `.cloudgate/link.json`, or the nearest one above it. It
+sends no request and needs no login. The `.gitignore` line stays.
+
+```text
+$ cloudgate unlink
+✓ Removed this folder's link. Nothing changed on the Instance.
+```
+
+### cloudgate deploy
+
+```text
+cloudgate deploy [folder] [--env <name|id>] [--detach [--json]] [--switch-source]
+```
+
+Uploads a folder to its Application, starts a Deployment and prints the Deployment log until the
+Deployment ends. The folder is the one holding the nearest `.cloudgate/`, not the subfolder you
+stand in; `[folder]` names another, and that folder's own link picks the Service. With no link, a
+terminal asks the `link` questions first.
+
+| Flag | Default | What it does |
+|---|---|---|
+| Target flags | from the link | `--env` deploys the same Config name in another Environment |
+| `--detach` | off | Don't wait: print the Deployment and exit once it is queued |
+| `--json` | off | With `--detach` only: print the Deployment as JSON |
+| `--switch-source` | off | Switch a git or image source to uploaded files without asking. Needed in CI |
+| `--instance <url>` | | The Instance to deploy to |
+
+Left out of the upload: `.git/`, `.cloudgate/`, anything a `.gitignore` or `.cloudgateignore` in the
+folder lists, `.env` and `.env.*` except `.env.example`, and symlinks. File modes are not kept. The
+upload lands at the build root.
+
+```text
+$ cloudgate deploy --detach
+Deployment  Xq7Tn2LwP9aRk4sVb1cHd
+Status      pending
+Console     https://cloudgate.octabyte.app/applications/…/deployments
+```
+
+`--detach --json`:
+
+```json
+{ "deploymentId": "Xq7Tn2LwP9aRk4sVb1cHd", "status": "pending", "consoleUrl": "https://cloudgate.octabyte.app/applications/…/deployments" }
+```
+
+Watching ends on `✓ Deployment <id> done in 1m 42s` (exit 0), or
+`Error: Deployment <id> failed after <time>` with `Its log: cloudgate logs --deployment <id>`
+(exit 1). Ctrl-C stops watching (exit 130); the build goes on:
+
+```text
+Stopped watching. The build goes on.
+  Follow it:  cloudgate logs --deployment Xq7Tn2LwP9aRk4sVb1cHd -f
+  Cancel it:  https://cloudgate.octabyte.app/applications/…/deployments
+```
+
+Before it uploads, `deploy` refuses a Compose stack or a database (exit 1), asks before switching a
+git or image source (no terminal: exit 2 unless `--switch-source`), refuses a source a
+repository-kept [Project config](/docs/guide/project-config) owns, and waits for a pending or running
+build of the same Service.
+
+### cloudgate status
+
+```text
+cloudgate status [--json]
+```
+
+Shows the Service and its kind, Environment, Project, Instance, state, source, Domains and latest
+Deployment. It reports and does not judge: it exits 0 whenever it could read them, even when the
+Service is stopped or its last Deployment failed. It works on every kind of Service; a database
+shows its image and has no Domains or Deployment.
+
+```text
+$ cloudgate status
+Service      web (Application)
+Environment  production
+Project      storefront
+Instance     https://cloudgate.octabyte.app
+State        running
+Source       uploaded files
+Domains      shop.northwind.example
+Latest       Deployment Xq7Tn2LwP9aRk4sVb1cHd  done  4 minutes ago
+```
+
+`Source` also reads `github northwind-labs/storefront` or `image ghcr.io/northwind-labs/web:1`; a plain
+git URL is never printed. `--json` prints one object with `instance`, `organization`, `project`,
+`environment`, `service`, `state`, `source`, `domains` and `latestDeployment`.
+
+### cloudgate logs
+
+```text
+cloudgate logs [-f] [-n <lines>] [--deployment [id]]
+```
+
+Prints the last lines of the Service's Runtime log, on a Server or in a Cloud account (there, from
+the last hour at most). Only log lines go to stdout. Applications only, except that a Compose stack's
+Deployment logs can be read with `--deployment`.
+
+| Flag | Default | What it does |
+|---|---|---|
+| `-f`, `--follow` | off | Keep printing new lines until Ctrl-C |
+| `-n`, `--lines <lines>` | `100` | How many of the last lines, from 1 to 10000 |
+| `--deployment [id]` | | A Deployment log: the latest Deployment's, or `[id]`'s |
+| Target flags | from the link | |
+
+With `--deployment -f` it follows that Deployment from its first line and ends by itself when the
+Deployment does, printing `Deployment <id> done` or `failed` and exiting 0 either way. There is no
+`--json`.
+
+```bash
+cloudgate logs -f -n 50
+cloudgate logs --deployment Xq7Tn2LwP9aRk4sVb1cHd
+```
+
+### cloudgate vars
+
+```text
+cloudgate vars list [--json]
+cloudgate vars set KEY=VALUE [KEY=VALUE …]
+cloudgate vars set KEY
+cloudgate vars unset KEY [KEY …]
+```
+
+Lists, sets and unsets the Service's own runtime variables in one Environment. Values are never
+printed, not even in an error. Applications only.
+
+- `list` shows `NAME` and `VALUE`, where the value reads `set` or `linked to <service>.<output>`.
+  `--json` prints `[{ "name": "DATABASE_URL", "linkedTo": "db.url" }, { "name": "STRIPE_KEY", "linkedTo": null }]`.
+  With none: `No variables.`
+- `set KEY=VALUE` splits at the first `=`. `set KEY` asks for the value hidden, or reads it from
+  stdin with one trailing newline dropped.
+- `unset` removes the named variables. Only the names you give are touched.
+
+```bash
+printf %s "$STRIPE_KEY" | cloudgate vars set STRIPE_KEY
+# ✓ Set STRIPE_KEY on web in production. Run cloudgate deploy to pick it up.
+```
+
+Nothing redeploys. A variable linked to another Service's output is refused (exit 1). Project and
+Environment variables, build arguments and build secrets are managed in the console; see
+[environment variables](/docs/guide/environment-variables).
+
+## Templates
+
+These two commands are for template authors and send no request.
+
+### cloudgate template check
+
+```text
+cloudgate template check <path>
+```
+
+`<path>` is a `catalogue.zip`, a template folder, or a folder of template folders. Prints `✓ <id>`
+for each template Cloudgate would offer and `✗ <id>: <reason>` for each it would hide, and exits 1
+if any is hidden. A folder is checked as the `catalogue.zip` it would be packed into: `index.md` and
+`screenshots/` are skipped, and any other file a template does not have refuses the whole catalogue.
+
+### cloudgate template pack
+
+```text
+cloudgate template pack <folder> <out> [--revision <sha>]
+```
+
+Checks the templates exactly as `template check` does, then writes the `catalogue.zip` to `<out>`,
+leaving `index.md` and `screenshots/` out. If any template would be hidden it writes nothing and
+exits 1.
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--revision <sha>` | `unpublished` | The revision every template is published at, usually the release's commit |
+
+Both template commands arrived in 0.0.2-beta.2.

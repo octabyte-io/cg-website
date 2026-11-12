@@ -1,0 +1,37 @@
+---
+// Every page in src/content/docs, rendered in the docs layout at /docs/<its path>.
+import { getCollection, render } from 'astro:content';
+import Docs from '../../layouts/Docs.astro';
+import Screenshot from '../../components/docs/Screenshot.astro';
+import Steps from '../../components/docs/Steps.astro';
+import Step from '../../components/docs/Step.astro';
+import Callout from '../../components/docs/Callout.astro';
+import Badge from '../../components/docs/Badge.astro';
+import Tabs from '../../components/docs/Tabs.astro';
+import Tab from '../../components/docs/Tab.astro';
+import CardGrid from '../../components/docs/CardGrid.astro';
+import Card from '../../components/docs/Card.astro';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.filter((entry) => entry.id !== 'index').map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+---
+<Docs
+  title={d.title}
+  seoTitle={d.seoTitle}
+  description={d.description}
+  lede={d.lede}
+  section={d.section}
+  badges={d.badges}
+  headings={headings}
+  faq={d.faq}
+  faqInBody={d.faqInBody}
+  updated={d.updated}
+  howto={d.howto}
+>
+  <Content components={{ Screenshot, Steps, Step, Callout, Badge, Tabs, Tab, CardGrid, Card }} />
+</Docs>

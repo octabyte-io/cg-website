@@ -1,0 +1,467 @@
+---
+title: MCP tool reference
+seoTitle: 'Cloudgate MCP tools reference: all 21 tools and parameters'
+description: All 21 tools Cloudgate's MCP endpoint serves to AI agents, with parameters, what each answers, the role it needs, the budget it spends and its edge cases.
+lede: Every tool an Agent can call at /mcp, in the order tools/list shows them. Twelve read, nine write; a role filters the list, so an Agent never sees a tool it may not call.
+section: mcp
+order: 3
+navTitle: Tool reference
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: 'Is it safe for an agent to call deploy_service twice?', a: 'Yes. If a Deployment of the same Service is still waiting in the queue, the second call answers that Deployment''s id with <code>coalesced: true</code> and queues nothing. A build already running is not joined: a new one queues behind it.' }
+  - { q: 'Why can a Reader call request_plan?', a: 'It needs only read access to the Environment, and changes no Service. It does store a fresh Plan that replaces the open one, so it spends the write budget like a write tool.' }
+  - { q: 'Can an agent follow a build log live?', a: 'No. There is no streaming. It polls <code>list_deployments</code> or <code>get_preview</code> for the status, and reads the last lines with <code>read_deployment_log</code>.' }
+  - { q: 'What does a tool answer when it fails?', a: 'An MCP result with <code>isError: true</code>, a text message and <code>structuredContent</code> holding <code>code</code> (<code>refused</code> or <code>failed</code>), an optional <code>reason</code>, and <code>message</code>. See <a href="/docs/mcp/guard-rails#what-errors-can-a-call-return">errors</a>.' }
+---
+
+Each successful call answers one text item holding JSON. Ids come from earlier calls: the walk is
+`list_projects`, then `list_environments`, then `get_environment`, which names each Service's
+`serviceType` and `serviceId`. Stored secrets in any answer are replaced with `••••••`, and secrets
+are never returned; flags such as `hasEnv` say only whether one is set. Roles and budgets are
+explained in [guard rails](/docs/mcp/guard-rails); the same data is available to scripts through the
+[REST API](/docs/api).
+
+## Every tool at a glance
+
+| Tool | Kind | Reader | Operator |
+|---|---|---|---|
+| [`list_projects`](#list_projects) | read | yes | yes |
+| [`list_environments`](#list_environments) | read | yes | yes |
+| [`get_environment`](#get_environment) | read | yes | yes |
+| [`get_service`](#get_service) | read | yes | yes |
+| [`list_deployments`](#list_deployments) | read | yes | yes |
+| [`read_deployment_log`](#read_deployment_log) | read | yes | yes |
+| [`list_domains`](#list_domains) | read | yes | yes |
+| [`get_service_health`](#get_service_health) | read | yes | yes |
+| [`deploy_service`](#deploy_service) | write | no | yes |
+| [`start_service`](#start_service) | write | no | yes |
+| [`stop_service`](#stop_service) | write | no | yes |
+| [`cancel_deployment`](#cancel_deployment) | write | no | yes |
+| [`create_preview`](#create_preview) | write | no | yes |
+| [`list_previews`](#list_previews) | read | yes | yes |
+| [`get_preview`](#get_preview) | read | yes | yes |
+| [`extend_preview`](#extend_preview) | write | no | yes |
+| [`redeploy_preview`](#redeploy_preview) | write | no | yes |
+| [`delete_preview`](#delete_preview) | write | no | yes |
+| [`get_project_config`](#get_project_config) | read | yes | yes |
+| [`get_plan`](#get_plan) | read | yes | yes |
+| [`request_plan`](#request_plan) | write | yes | yes |
+
+A Caller sees none of them. Read tools spend the read budget (120 a minute, burst 60) and are
+annotated `readOnlyHint: true`; write tools spend the write budget (10 a minute, burst 5).
+
+### Common parameters
+
+| Parameter | Type | Values |
+|---|---|---|
+| `serviceType` | string | `application`, `compose`, `postgres`, `mysql`, `mariadb`, `mongo`, `redis`, `libsql`, `bucket`, as `get_environment` lists it. Some tools take fewer, noted below |
+| `serviceId` | string | A `serviceId` from `get_environment` |
+
+## Read tools
+
+### list_projects
+
+Lists the Projects this Agent has been granted, with how many of their Environments it can see.
+Start here.
+
+**Parameters:** none.
+
+**Returns:** a list of `{ projectId, name, description, createdAt, environmentCount }`.
+
+```json
+[
+  {
+    "projectId": "pZ1kq8…",
+    "name": "storefront",
+    "description": null,
+    "createdAt": "2026-09-02T10:14:00.000Z",
+    "environmentCount": 2
+  }
+]
+```
+
+### list_environments
+
+Lists the Environments of one Project that this Agent has been granted.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `projectId` | string | yes | A `projectId` from `list_projects` |
+
+**Returns:** a list of `{ environmentId, name, description, createdAt, projectId }`. An unknown
+Project, or one not granted, lists nothing rather than failing.
+
+### get_environment
+
+Reads one Environment and the Services in it that this Agent has been granted. Poll it to follow a
+Service's status.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `environmentId` | string | yes | An `environmentId` from `list_environments` |
+
+**Returns:** `environmentId`, `name`, `description`, `createdAt`, `projectId`, `hasEnv`, and
+`services`, each with `serviceType`, `serviceId`, `name`, `configName`, `description`, `status`,
+`createdAt` and `openIncidents` (a count). A Service's `status` is `idle`, `running`, `done`,
+`error` or `stopped`.
+
+```json
+{
+  "environmentId": "eV4r9t…",
+  "name": "production",
+  "description": null,
+  "createdAt": "2026-09-02T10:15:00.000Z",
+  "projectId": "pZ1kq8…",
+  "hasEnv": true,
+  "services": [
+    { "serviceType": "application", "serviceId": "aW3b7c…", "name": "web", "configName": "web", "description": null, "status": "done", "createdAt": "2026-09-02T10:20:00.000Z", "openIncidents": 0 },
+    { "serviceType": "postgres", "serviceId": "dB8m2x…", "name": "db", "configName": "db", "description": null, "status": "done", "createdAt": "2026-09-02T10:18:00.000Z", "openIncidents": 0 }
+  ]
+}
+```
+
+**Needs:** read on the Environment.
+
+### get_service
+
+Reads one Service's identity and status. Poll it to follow a start or stop.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | Any kind |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:** `serviceType`, `serviceId`, `name`, `appName`, `configName`, `description`, `status`,
+`createdAt`, `environment` (`environmentId`, `name`), `project` (`projectId`, `name`), its open
+Incidents, and the presence flags `hasEnv`, `hasBuildArgs`, `hasBuildSecrets` and
+`hasDatabasePassword`. Some fields apply to one kind and are `null` on every other:
+
+| Field | On | Holds |
+|---|---|---|
+| `aiModel` | an AI model | `runtime`, `model`, `gpus`, `endpoint` (the OpenAI-compatible base URL on the Gateway, `null` until the platform host URL is set) and `hasHfToken` |
+| `internalAddress` | a private web service | The base URL other Services reach it at, once its first deploy has applied |
+| `cloudPlace` | a Service in a Cloud account | `cloudAccountId`, `cloudAccountName`, `region` |
+| `bucketName`, `hasKey` | a bucket | The real bucket name Cloudgate made, and whether it has a key |
+
+**Needs:** read on the Service.
+
+### list_deployments
+
+Lists an Application's or Compose stack's Deployments, newest first. Poll it to follow a deploy.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | `application` or `compose`; a database has no Deployments |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:** a list of `{ deploymentId, title, description, status, createdAt, startedAt,
+finishedAt, previewDeploymentId }`. `status` is `pending`, `running`, `done`, `error` or
+`cancelled`.
+
+**Needs:** read on Deployments.
+
+### read_deployment_log
+
+Reads the last lines of a [Deployment](/docs/guide/deployments) log. Use it to find why a Deployment
+failed.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `deploymentId` | string | yes | A `deploymentId` from `list_deployments` |
+| `lines` | integer, at least 1 | no | How many lines from the end: default 100, at most 500 |
+
+**Returns:** `{ deploymentId, serviceType, serviceId, lines, log }`, with stored secrets in `log`
+masked.
+
+**Notes:** a request for more than 500 lines is answered at 500, not refused. A window larger than
+1 MiB fails with "This part of the log is larger than 1 MiB. Ask for fewer lines." There is no
+follow: poll. The logs of a schedule's or a backup's run are not readable here and answer as an
+unknown id.
+
+### list_domains
+
+Lists where an Application or Compose stack is served.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | `application` or `compose` |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:** a list of `{ domainId, host, path, https, port }`, where `port` is the container port
+the Domain routes to.
+
+**Needs:** read on Domains.
+
+### get_service_health
+
+Reads one Service's health, as its **Health** tab in the console shows it. Read-only: no tool
+changes a check or a threshold.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | Any kind |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:**
+
+- `state`: `incident`, `down`, `pending`, `up` or `unchecked`, summing up the rest;
+- `uptimeChecks`: each with its target, rule, interval, `lastProbe` (`probedAt`, `verdict`,
+  `latencyMs`, `errorClass`) and `upShare24h`. A keyword or header value is never returned, only
+  `hasKeyword` and `hasHeaderValue`;
+- `errorRate`: over 24 hours, totals and per Domain (`requests`, `errors`, `slow`, `errorRate`,
+  `slowShare`), or `available: false` with the reason;
+- `errorRateThreshold`: `percentage`, `windowMinutes`, `minRequests`, `enabled`;
+- `openIncidents` and `recentlyClosedIncidents` (the 10 most recently closed).
+
+**Needs:** read on the Service.
+
+### list_previews
+
+Lists an Application's [requested previews](/docs/guide/previews), newest first. Previews a pull
+request opened are not listed. An expired preview is listed until its copy is gone.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `applicationId` | string | yes | An Application's `serviceId` from `get_environment` |
+
+**Returns:** a list of preview objects:
+
+```json
+{
+  "previewDeploymentId": "rP6n1s…",
+  "applicationId": "aW3b7c…",
+  "branch": "fix/checkout-total",
+  "url": "https://preview-7.northwind.example",
+  "urlNote": null,
+  "status": "done",
+  "expired": false,
+  "expiresAt": "2026-11-12T15:40:00.000Z",
+  "latestDeploymentId": "Xq7Tn2LwP9aRk4sVb1cHd",
+  "requestedByYou": true,
+  "createdAt": "2026-11-12T14:40:00.000Z"
+}
+```
+
+**Needs:** read on Deployments, on the parent Application.
+
+### get_preview
+
+Reads one requested preview. Poll it to follow its build. An expired preview reads
+`expired: true` until its copy is gone, then answers not found.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `previewDeploymentId` | string | yes | From `create_preview` or `list_previews` |
+
+**Returns:** one preview object, as in `list_previews`.
+
+### get_project_config
+
+Reads one Project's [config](/docs/guide/project-config): the YAML that says which Services each
+Environment runs, keyed by Config name, as the Project keeps it. Read it to explain a Plan.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `projectId` | string | yes | A `projectId` from `list_projects` |
+
+**Returns:** `projectId` and `location`: `kind` (`cloudgate` or `repository`), `configText` (the
+text as written, comments included, with the Project's stored secrets masked), `textHash`, and for
+a repository `providerType`, `connectionName`, `repository` and `path`, plus `updatedAt`.
+
+**Needs:** a grant on the Project. Keep credentials out of the config text: the agent reads it as
+written.
+
+### get_plan
+
+Reads an Environment's Plan: what applying its Project's config would create, change and destroy
+there, field by field.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `environmentId` | string | yes | An `environmentId` from `list_environments` |
+
+**Returns:** `plan`: the open Plan, else the latest, else `null`. A Plan holds `planId`,
+`environmentId`, `source`, `status`, `textHash`, `commitSha`, `branch`, `createdAt`, `appliedAt`,
+`dismissedAt`, its `steps` (each with `action`, `configName`, `kind` and field changes), `notes`
+such as a variable with no value, and `heldBuilds`.
+
+**Needs:** read on the Environment. An agent cannot apply or dismiss a Plan; a person does that in
+the console.
+
+## Write tools
+
+### deploy_service
+
+Queues a build of an Application or a Compose stack and answers as soon as it is queued. Poll
+`list_deployments` for its status.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | `application` or `compose`; a database is started, not deployed |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+| `mode` | string | no | `deploy` (default) builds from the source as it is now; `redeploy` rebuilds an Application from the source it already has. A Compose stack always deploys |
+
+**Returns:**
+
+```json
+{
+  "deploymentId": "Xq7Tn2LwP9aRk4sVb1cHd",
+  "serviceType": "application",
+  "serviceId": "aW3b7c…",
+  "status": "pending",
+  "title": "Manual deployment",
+  "createdAt": "2026-11-12T14:02:11.000Z",
+  "coalesced": false,
+  "message": "Deployment `Xq7Tn2LwP9aRk4sVb1cHd` is queued; poll `list_deployments` for it."
+}
+```
+
+**Needs:** Operator (create Deployments). **Budget:** write.
+
+**Calling it twice is safe.** If a Deployment of the same Service is still waiting in the queue, the
+call answers that one with `coalesced: true` and queues nothing; a `deploy` on a queued `redeploy`
+turns it into a deploy. The edges:
+
+- A build that is already running is not joined: a new Deployment queues behind it.
+- A backend restart re-queues waiting Deployments before it answers anything, so a later call still
+  joins one.
+- Two calls arriving at the same instant can both queue.
+- Deploys from the console and from git webhooks never coalesce.
+
+Without a licence, each Server builds one Deployment at a time and the rest wait as `pending`, so
+poll rather than assume a queued build has started. A Service with no source fails with "This
+Service has no source to deploy from."
+
+### start_service
+
+Starts an Application, a Compose stack or a database, and answers as soon as the start is
+requested. Poll `get_environment` or `get_service` for its status.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | Any kind except `bucket`, which runs nothing to start or stop |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:** `{ serviceType, serviceId, requested, message }`, where `requested` is `start` and
+`message` is "Start requested. Poll get_environment or get_service for this Service's status."
+
+**Needs:** Operator. **Budget:** write.
+
+**Notes:** on an Application or database it answers `requested` once Swarm has the new replica
+count, which is not the same as running. On a Compose stack it runs the command to the end; a stack
+that takes longer than 30 seconds answers `failed` while the command finishes, so read that as
+"check the status". A Compose stack of the stack type is started by deploying it. A Service with
+nothing on its Server yet must be deployed first.
+
+### stop_service
+
+Stops an Application, a Compose stack or a database, and answers as soon as the stop is requested.
+Its data, Domains and configuration are kept.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | Any kind except `bucket` |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+
+**Returns:** `{ serviceType, serviceId, requested, message }`.
+
+**Needs:** Operator. **Budget:** write. The same timing notes as `start_service` apply.
+
+### cancel_deployment
+
+Cancels a Deployment that is queued or still building.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `deploymentId` | string | yes | From `list_deployments` or `deploy_service` |
+
+**Returns:** `{ deploymentId, serviceType, serviceId, status, finishedAt }`.
+
+**Needs:** Operator (cancel Deployments). **Budget:** write.
+
+**Notes:** a Deployment that has finished, or is already releasing its image, cannot be cancelled.
+The call then fails with "This Deployment cannot be cancelled now…"; poll `list_deployments`.
+
+### create_preview
+
+Asks for a requested preview: a copy of one Application built from a branch of its own repository,
+served at its own URL until it expires. Answers as soon as its build is queued.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `applicationId` | string | yes | An Application's `serviceId` from `get_environment` |
+| `branch` | string | yes | A branch of the Application's own repository, up to 255 characters, that git can check out |
+| `ttlMinutes` | integer, at least 1 | no | How many minutes from now it lives: default 60, refused over the Instance's maximum |
+
+**Returns:** a preview object (see `list_previews`) plus the queued `deploymentId` and a `message`.
+Poll `get_preview` or `list_deployments`, and read the build with `read_deployment_log`.
+
+**Needs:** Operator, on the parent Application. **Budget:** write.
+
+**Notes:**
+
+- Each call makes a new preview, even of the same branch.
+- The Application must allow requested previews. That switch is set in the console by a person who
+  may update the Application; no agent role can turn it on.
+- The Instance's maximum lifetime defaults to 24 hours. Asking for more fails, naming the limit.
+- An Application holds a limited number of requested previews. At the limit, the call fails and
+  tells the agent to delete one or wait for one to expire.
+
+### extend_preview
+
+Moves a preview's expiry to 60 minutes from now, or `ttlMinutes` from now. It is a new window from
+now, not added to what is left.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `previewDeploymentId` | string | yes | From `create_preview` or `list_previews` |
+| `ttlMinutes` | integer, at least 1 | no | Minutes from now: default 60, refused over the Instance's maximum |
+
+**Returns:** the preview object. **Needs:** Operator. **Budget:** write. An expired preview cannot be
+extended.
+
+### redeploy_preview
+
+Queues a rebuild of a preview from its branch as it is now, and answers the queued `deploymentId`.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `previewDeploymentId` | string | yes | From `create_preview` or `list_previews` |
+
+**Returns:** the preview object plus `deploymentId` and `message`. **Needs:** Operator.
+**Budget:** write.
+
+**Notes:** if the preview's build is still waiting in the queue, that one is answered and nothing
+more is queued. It never moves the expiry.
+
+### delete_preview
+
+Expires a preview now and answers at once with `expired: true`. Its builds are cancelled and its
+copy is torn down within about a minute, after which it answers not found.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `previewDeploymentId` | string | yes | From `create_preview` or `list_previews` |
+
+**Returns:** the preview object, with `expired: true`. **Needs:** Operator (cancel Deployments).
+**Budget:** write. Calling it again changes nothing.
+
+### request_plan
+
+Asks for a fresh Plan of an Environment, the console's **Check for changes**: it compares the
+Project's config with what the Environment has saved, and answers the Plan.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `environmentId` | string | yes | An `environmentId` from `list_environments` |
+
+**Returns:** the Plan, in the shape `get_plan` answers. A Plan with steps becomes the Environment's
+open Plan, replacing the one before; one with none answers `status: unchanged`.
+
+**Needs:** read on the Environment, so a **Reader can call it**. **Budget:** write, because it
+stores a Plan and replaces the open one.
+
+<Callout type="limit" title="It changes no Service">
+  `request_plan` only asks. Applying or dismissing a Plan is done by a person in the console; no
+  tool does it, whatever the Agent's role.
+</Callout>

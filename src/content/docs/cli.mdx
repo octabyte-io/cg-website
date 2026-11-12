@@ -1,0 +1,276 @@
+---
+title: Deploy from your terminal with the Cloudgate CLI
+seoTitle: Cloudgate CLI guide from install to first deploy
+description: Install the Cloudgate CLI, log in with a code, link a folder to a Service, deploy it, follow its logs, set variables, and run it in CI with a Personal key.
+lede: The CLI uploads a folder to an Application and follows its Deployment to the end. Use it when your code is on your machine or in a CI job rather than in a connected git repository.
+section: cli
+order: 1
+navTitle: CLI guide
+badges: ['Hosted and self-hosted', 'Applications only', 'Beta']
+howto:
+  name: Deploy a folder with the Cloudgate CLI
+  steps:
+    - { name: 'Install the CLI', text: 'Run npm install -g @octabyte-io/cloudgate@next on Node 22 or newer.' }
+    - { name: 'Log in', text: 'Run cloudgate login, open the address it prints, check the code and approve it in the console.' }
+    - { name: 'Link the folder', text: 'In the folder you deploy, run cloudgate link and pick the Organization, Project, Environment and Service.' }
+    - { name: 'Deploy', text: 'Run cloudgate deploy. It uploads the folder, starts a Deployment and prints its log until the Deployment ends.' }
+    - { name: 'Check the result', text: 'Run cloudgate status for the Service and its latest Deployment, and cloudgate logs for what it prints while it runs.' }
+faq:
+  - { q: 'Does cloudgate deploy upload my .env file?', a: 'No. <code>.env</code> and <code>.env.*</code> are left out, except <code>.env.example</code>, and the CLI says so. Put secrets in with <code>cloudgate vars set</code>. A <code>!.env</code> line in <code>.cloudgateignore</code> brings one back if you really mean it.' }
+  - { q: 'Can the CLI create a Service or a Project?', a: 'No. It deploys to Services that already exist. Make the Project, Environment and Application in the console first, then link the folder to it.' }
+  - { q: 'Does it ask before deploying to production?', a: 'No. There is no confirmation for any Environment. It does say where it is going, on one line, before it uploads anything.' }
+  - { q: 'Can I deploy a Compose stack or a database with it?', a: 'No. <code>cloudgate deploy</code>, <code>logs</code> and <code>vars</code> work on Applications only. <code>cloudgate status</code> reads any kind of Service, and <code>cloudgate logs --deployment</code> also reads a Compose stack''s Deployment logs.' }
+  - { q: 'Which Node version does it need?', a: 'Node 22 or newer. On an older Node it refuses to start and names both versions.' }
+---
+
+The CLI is `cloudgate`, published on npm as `@octabyte-io/cloudgate`. It logs in through your
+browser, remembers which Service a folder belongs to, uploads that folder and prints the
+Deployment log as it is written. It is early software: commands and flags can still change before
+1.0. For the short tour, see the [CLI overview](/cli); this page is the full walk-through, and
+[every command and flag](/docs/cli/commands) has its own reference.
+
+## Install the CLI
+
+Install it from npm on Node 22 or newer. The commands on these pages are in the beta on the npm
+`next` tag:
+
+```bash
+npm install -g @octabyte-io/cloudgate@next
+cloudgate --version
+```
+
+On an older Node it refuses to start and names both versions. It never updates itself: at most once
+a day it prints a line on stderr when a newer version is on npm, and never in CI or when output is
+not a terminal. Set `CLOUDGATE_NO_UPDATE_NOTIFIER=1` to silence it.
+
+```text
+A new version is out: 0.4.0 (you have 0.3.2).
+Update: npm install -g @octabyte-io/cloudgate@latest
+```
+
+<Callout type="limit" title="Beta">
+  The CLI is in beta. It deploys **Applications** by uploading files. A Compose stack, a database
+  or a Service that builds from git is deployed from the console, by a git push, or by an
+  [agent over MCP](/docs/mcp).
+</Callout>
+
+## Log in to Cloudgate
+
+Run `cloudgate login`, open the address it prints on any device, check the code and approve it.
+Without `--instance` it logs in to the Hosted instance, `https://cloudgate.octabyte.app`.
+
+```text
+$ cloudgate login
+Using instance https://cloudgate.octabyte.app
+Open https://cloudgate.octabyte.app/device and enter the code  WDJB-MJHT
+Waiting for you to approve…
+✓ Logged in to https://cloudgate.octabyte.app as sam@northwind.example
+  Your key is in the system keychain and ends on 2027-02-10.
+```
+
+Approving gives this computer a [Personal key](/docs/guide/personal-keys) that acts as you and
+ends 90 days after you log in. Because the code is approved in a browser, it works over SSH too:
+run the command on the server and approve on your laptop.
+
+The key goes in the system keychain. Where there is none, as on most servers, it goes in
+`credentials.json` in the settings folder, readable only by you, and the CLI says so on one line.
+The settings folder is `~/.config/cloudgate/` on Linux and macOS (or `$XDG_CONFIG_HOME/cloudgate/`)
+and `%APPDATA%\cloudgate\` on Windows; `CLOUDGATE_CONFIG_DIR` moves it.
+
+Check who you are logged in as, and where:
+
+```text
+$ cloudgate whoami
+Instance      https://cloudgate.octabyte.app
+Logged in as  sam@northwind.example
+Organization  Northwind Labs
+Key ends      2027-02-10 (in 90 days)
+```
+
+`cloudgate logout` deletes this computer's key on the Instance and forgets the login. Logging in
+again on the same Instance replaces the login and deletes the old key.
+
+## Link a folder to a Service
+
+Run `cloudgate link` in the folder you deploy. It asks for the Organization (skipped when you
+belong to one), the Project, the Environment and the Service, and remembers the answer:
+
+```text
+$ cloudgate link
+? Project
+  1) storefront
+  2) marketing-site
+  Pick 1-2: 1
+? Environment
+  1) staging
+  2) production
+  Pick 1-2: 2
+? Service
+  1) web
+  2) worker
+  Pick 1-2: 1
+✓ Linked ./ to web in production of Project storefront on cloudgate.octabyte.app
+```
+
+The link is `.cloudgate/link.json`, and the CLI adds `.cloudgate/` to `.gitignore`. It holds the
+Instance's address, the Organization, Project and Environment ids and the Service's **Config name**
+(its name in the [Project config](/docs/guide/project-config)), never a key. Every later command run
+in this folder, or any folder below it, goes to the same Service.
+
+- It never creates a Service and never changes the Project config. Make the Service in the console
+  first.
+- When a Project keeps its config in this folder's git `origin` repository, that Project is listed
+  first.
+- With no terminal, or with `--yes`, it asks nothing: pass `--project`, `--env` and `--service`
+  (and `--org` if you belong to more than one Organization), or it stops naming the first flag it
+  needs. Replacing an existing link needs `--yes`.
+- `cloudgate unlink` removes the link and changes nothing on the Instance.
+
+### Which Service does a command use?
+
+A flag wins over its variable, and both win over the folder's link:
+
+| Level | Flag | Variable |
+|---|---|---|
+| Organization | `--org <name or id>` | `CLOUDGATE_ORG` |
+| Project | `--project <name or id>` | `CLOUDGATE_PROJECT` |
+| Environment | `--env <name or id>` | `CLOUDGATE_ENV` |
+| Service | `--service <Config name or id>` | `CLOUDGATE_SERVICE` |
+
+A value is tried as an id first, then as a name ignoring case. If two share that name, the command
+refuses and lists their ids. The link's Service Config name always applies, so
+`cloudgate deploy --env staging` deploys the Service with the same Config name in `staging`.
+
+## Deploy the folder
+
+Run `cloudgate deploy`. It uploads the linked folder, starts a Deployment and prints the Deployment
+log until the Deployment ends. It exits 0 only when the Deployment is done.
+
+```text
+$ cloudgate deploy
+Using instance https://cloudgate.octabyte.app
+Deploying ./ to web in production of Project storefront on cloudgate.octabyte.app
+Uploading 214 files, 3.8 MB…
+Deployment Xq7Tn2LwP9aRk4sVb1cHd queued
+…the build log…
+✓ Deployment Xq7Tn2LwP9aRk4sVb1cHd done in 1m 42s
+```
+
+There is no confirmation for any Environment, production included. Ctrl-C stops watching, not the
+build: the CLI prints the command to follow it again and where to cancel it in the console.
+
+### What does cloudgate deploy upload?
+
+The folder as it is on disk, uncommitted and untracked files included, minus:
+
+- `.git/` and `.cloudgate/`, always;
+- anything any `.gitignore` in the folder lists, whether or not the folder is a git repository;
+- anything a `.cloudgateignore` lists (the same syntax, applied on top: its `!` lines bring back a
+  file a `.gitignore` left out);
+- `.env` and `.env.*` except `.env.example`, with a line naming them;
+- symlinks, with a warning naming each one. File modes are not kept.
+
+`node_modules` has no rule of its own: add it to `.gitignore` or `.cloudgateignore` if you do not
+want it uploaded. The CLI always says how many files and how many bytes it is sending; above 100 MB
+it warns and names the five biggest folders, then carries on.
+
+### What if the Service builds from git or an image?
+
+Deploying a folder switches the Service's source to uploaded files. In a terminal the CLI asks
+first; with no terminal it refuses unless you pass `--switch-source`. A Service whose source is set
+by a Project config kept in a repository is refused every time, even with `--switch-source`, because
+the next [Plan](/docs/guide/project-config) would put the git source back.
+
+### What if a build is already running?
+
+The CLI waits for it, printing `waiting for Deployment <id> to finish`, then uploads. It goes
+ahead with a warning past a Deployment held by a Plan, or one pending or running for more than 60
+minutes.
+
+## Check the Service and follow its logs
+
+`cloudgate status` shows the Service, where its source comes from, its Domains and its latest
+Deployment:
+
+```text
+$ cloudgate status
+Service      web (Application)
+Environment  production
+Project      storefront
+Instance     https://cloudgate.octabyte.app
+State        running
+Source       uploaded files
+Domains      shop.northwind.example
+Latest       Deployment Xq7Tn2LwP9aRk4sVb1cHd  done  4 minutes ago
+```
+
+`cloudgate logs` prints the last 100 lines of the Service's Runtime log, what it writes while it
+runs. `-f` keeps printing new lines until Ctrl-C, and `--deployment` reads a
+[Deployment](/docs/guide/deployments) log instead:
+
+```bash
+cloudgate logs -f                  # follow the Runtime log
+cloudgate logs -n 500              # the last 500 lines
+cloudgate logs --deployment -f     # follow the latest Deployment from its first line
+```
+
+Only log lines go to stdout, so `cloudgate logs | grep ERROR` works.
+
+## Set environment variables
+
+`cloudgate vars` lists, sets and unsets the Service's own runtime variables in one Environment.
+Values are never printed, and nothing redeploys until you deploy.
+
+```text
+$ cloudgate vars set STRIPE_KEY
+Value for STRIPE_KEY (hidden):
+✓ Set STRIPE_KEY on web in production. Run cloudgate deploy to pick it up.
+
+$ cloudgate vars list
+NAME           VALUE
+DATABASE_URL   linked to db.url
+STRIPE_KEY     set
+```
+
+`cloudgate vars set KEY=VALUE` also works, but leaves the value in your shell history; `vars set KEY`
+asks for it hidden, or reads it from stdin. A variable wired to another Service's output, such as
+`DATABASE_URL` above, cannot be set here. Shared Project and Environment variables, build arguments
+and build secrets stay in the console: see [environment variables](/docs/guide/environment-variables).
+
+## Use the CLI in CI
+
+Set `CLOUDGATE_KEY` to a [Personal key](/docs/guide/personal-keys) and name the target with flags or
+variables. The key wins over any saved login, is never saved, and nothing asks a question when `CI`
+is set:
+
+```bash
+CLOUDGATE_KEY=$CLOUDGATE_KEY npx @octabyte-io/cloudgate@next deploy \
+  --project storefront --env production --service web
+```
+
+[CI recipes](/docs/cli/ci) has complete GitHub Actions and GitLab CI jobs.
+
+## Use a self-hosted Instance
+
+Pass your console's address to `login` once. It becomes the current Instance, and every link made
+afterwards records it:
+
+```bash
+cloudgate login --instance cloud.northwind.example
+```
+
+An address without a scheme gets `https://`. Plain `http://` is refused except for `localhost` and
+`127.0.0.1`; `--allow-http` allows it anywhere, and sends your key unencrypted. Before it sends a key,
+the CLI checks that the address answers as a Cloudgate Instance of version 0.1.0 or newer.
+
+Logged in to more than one Instance? `cloudgate instance list` shows them and
+`cloudgate instance use <url>` switches. A command uses `--instance`, then `CLOUDGATE_INSTANCE`,
+then the folder's link, then the current Instance, then the Hosted instance. More on running your own
+in [self-hosting](/self-hosted).
+
+## Where to go next
+
+- [Command reference](/docs/cli/commands): every command, flag, output and exit code.
+- [CI recipes](/docs/cli/ci): GitHub Actions and GitLab CI.
+- [Troubleshooting](/docs/cli/troubleshooting): exit codes and common errors.
+- [Deployments](/docs/guide/deployments): what happens after the upload.

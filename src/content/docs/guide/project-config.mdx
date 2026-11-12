@@ -1,0 +1,221 @@
+---
+title: Project config and Plans
+navTitle: cloudgate.yaml and Plans
+seoTitle: Describe a Project in cloudgate.yaml with Plans
+description: Describe a Project's Services in one cloudgate.yaml, kept in Cloudgate or your repository, and review each Plan of creates, changes and destroys before Apply.
+lede: The Project config is one YAML file that says what a Project runs. You change the file; Cloudgate shows a Plan for each Environment, and nothing happens until you Apply it.
+section: guide
+group: Deploy
+order: 6
+badges: ['Members can read and plan', 'Applying needs permission on each Service']
+howto:
+  name: Change a Project's config and apply the Plan
+  steps:
+    - { name: 'Open the config', text: 'Open the Project and its Config tab.' }
+    - { name: 'Edit the text', text: 'Change the YAML, for example add a Service or change a size.' }
+    - { name: 'Save and plan', text: 'Press Save and plan. Cloudgate plans each Environment; nothing is applied.' }
+    - { name: 'Review the Plan', text: 'Read each Environment''s Plan: what it creates, changes and destroys, and any drift.' }
+    - { name: 'Apply', text: 'Press Apply on the Plan of the Environment you want to change.' }
+faq:
+  - { q: 'Does a push to my repository change what runs?', a: 'No. A push to the Config branch makes a Plan, which waits for someone to Apply it. Nothing is applied by itself.' }
+  - { q: 'Can I put secret values in cloudgate.yaml?', a: 'No. The config holds variable names only. Values are set in the console, encrypted at rest, and never written to the file.' }
+  - { q: 'Can an AI agent apply a Plan?', a: 'No. An Agent can ask for a Plan and read it, but only a person can Apply or dismiss one.' }
+  - { q: 'What happens to a field Cloudgate does not know?', a: 'The Plan is refused and names the field, so a typo never passes silently.' }
+---
+
+The Project config describes each Service by its Config name: its kind, size, source, build,
+port and variable names. It is kept either in Cloudgate, edited on the Project's **Config** tab,
+or in your repository as `cloudgate.yaml` (or `cloudgate.yml`) at the root, unless you name another
+path.
+
+A **Plan** is one Environment's list of what applying the config would create, change and
+destroy. Each Environment has at most one open Plan.
+
+## What you can do
+
+- Describe Applications (`web`, `web-private`, `worker`, `cron`, `static`), PostgreSQL, MySQL,
+  Redis, buckets and Compose stacks in one file.
+- Link variables to another Service's Outputs, such as a database's URL.
+- Keep the file in Cloudgate or in your repository, and move it either way.
+- Review each Environment's Plan, including drift in a cloud, and Apply or dismiss it.
+
+## An example cloudgate.yaml
+
+A shop with a web app, a background worker, a nightly report, PostgreSQL, Redis and a bucket for
+uploads:
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    description: The storefront
+    size: small
+    source:
+      github: northwind-labs/storefront
+      path: apps/web
+    build:
+      type: nixpacks
+    port: 3000
+    env:
+      - SESSION_SECRET
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+      - S3_BUCKET: uploads.name
+      - S3_ENDPOINT: uploads.endpoint
+      - AWS_ACCESS_KEY_ID: uploads.access_key_id
+      - AWS_SECRET_ACCESS_KEY: uploads.secret_access_key
+    build_args: [NEXT_PUBLIC_SITE_URL]
+
+  jobs:
+    kind: worker
+    size: xsmall
+    source:
+      github: northwind-labs/storefront
+      path: apps/jobs
+    command: node
+    args: [dist/worker.js]
+    env:
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+
+  nightly-report:
+    kind: cron
+    source:
+      github: northwind-labs/storefront
+      path: apps/jobs
+    command: node dist/report.js
+    schedule: "0 3 * * *"
+    timezone: Europe/Berlin
+    timeout: 30m
+    env:
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    size: small
+    version: "18"
+    database: storefront
+    user: storefront
+
+  cache:
+    kind: redis
+    version: "8"
+
+  uploads:
+    kind: bucket
+```
+
+What the fields mean:
+
+- **Config names** (`web`, `pg-main`) are lower-case letters, digits and hyphens, starting with a
+  letter, at most 63 characters. A Plan matches entries by Config name, so a renamed entry reads as
+  a new Service to create and the old one to destroy.
+- `env` lists **names only**. `SESSION_SECRET` is set in the console. `DATABASE_URL: pg-main.url`
+  is a [wired variable](/docs/guide/environment-variables): Cloudgate fills it from `pg-main`'s
+  `url` Output at each Deployment and never saves it.
+- `size` is `xsmall` to `2xlarge`, or `{ cpu: 1, memory: 2 GB }`. See
+  [Applications](/docs/guide/applications) for the table.
+- A database `version` is its image tag and must be quoted: `"18"` runs `postgres:18`.
+- `source` takes `github`, `gitlab`, `gitea` or `bitbucket` with `owner/repo`, a `git` URL (no
+  credentials in it), or an `image`.
+- `build.type` is `nixpacks`, `railpack`, `dockerfile`, `heroku_buildpacks` or
+  `paketo_buildpacks`.
+- `kind: compose` names a compose file in a repository (`source`, `file`, `type`). The file's
+  contents stay in the repository.
+
+Kinds the config cannot describe yet, such as MongoDB, MariaDB and libSQL, appear as
+`kind: mongo` with `managed: console`. A Plan never changes or destroys a console-managed entry.
+
+<Callout type="tip" title="Validation in your editor">
+The first line points your editor at the published JSON Schema, so it completes field names and
+flags mistakes as you type. On a self-hosted instance, use your console's address in its place.
+</Callout>
+
+## Edit a config kept in Cloudgate
+
+<Steps>
+<Step title="Open the Config tab">
+Open the Project, for example `storefront`, and its **Config** tab.
+<Screenshot name="project-config" alt="The Config tab of the storefront Project with the cloudgate.yaml text and each Environment's plan card below" caption="The text above, one plan card per Environment below." />
+</Step>
+<Step title="Edit and plan">
+Change the text and press **Save and plan**. Cloudgate plans each Environment below; nothing is
+applied, and the text is stored only when a Plan of it is applied. **Discard edits** throws the
+change away.
+</Step>
+<Step title="Review the Plan">
+Each Environment's Plan lists **Creates**, **Changes** and **Destroys**, plus drift, notes, held
+builds and major version upgrades. In a cloud, each line can show the real resources it makes,
+with CPU, memory and cost.
+<Screenshot name="plan-card" alt="An open Plan for storefront production listing one Service to create and one change to a size" caption="Review what each line does before you apply." />
+</Step>
+<Step title="Apply">
+Press **Apply**. Creates run first, then changes, then destroys, each as its own step. Or press
+**Dismiss** to drop the Plan.
+</Step>
+</Steps>
+
+<Callout type="warn" title="Destroys cannot be undone">
+A destroy asks you to type the Service's name. For a database you can also choose to delete its
+data with no final snapshot, and for a bucket to delete its files. Those are gone for good.
+</Callout>
+
+## Keep the config in your repository
+
+On the **Config** tab, **Move to a repository** asks for the git provider connection, the
+repository and the path. Each Environment reads the file from its **Config branch** (Environment >
+**Settings**; empty means the default branch), so `staging` can read `develop` while `production`
+reads `main`.
+
+From then on, a push to the Config branch makes a Plan for that Environment, and **Check for
+changes** makes one on demand. The console shows the file read-only and never writes to your
+repository. **Move into Cloudgate** brings it back, keeping the copy from the default branch or
+from an Environment's branch. A move applies nothing; it shows each Environment's Plan first.
+
+<Callout type="limit" title="Repository-kept configs">
+A config in a repository needs a connected git provider; a custom git URL cannot keep one. While
+the config is in a repository, adding a new variable name in the console is refused: add it to
+the file.
+</Callout>
+
+## Drift in a cloud
+
+Drift is a change someone made by hand in the AWS or Google Cloud console. A Plan lists it on its
+own. Applying always puts Cloudgate's version back (the button reads, for example, "Apply: put AWS
+back"). A cloud change that finds drift stops before changing anything, and the drift becomes the
+open Plan. To keep a hand change, write it into the config. See
+[Cloud accounts](/docs/guide/cloud-accounts).
+
+## Plan states
+
+| State | Meaning |
+|---|---|
+| open | Waiting for Apply or Dismiss. One per Environment. |
+| applied | Every step ran. |
+| partly applied | Some steps ran; the results say which failed. |
+| dismissed | Someone dropped it. |
+| superseded | A newer Plan replaced it. |
+| unchanged | The config matched what runs; nothing to do. |
+
+A Plan whose commit or settings moved on since it was made is refused; make a new one.
+
+## What you cannot do
+
+- A push never applies by itself; a person always presses **Apply**.
+- An Agent can ask for a Plan but never applies or dismisses one.
+- A field Cloudgate does not know refuses the Plan.
+- The config never holds variable values, replica counts or per-Environment settings such as
+  Domains and branches.
+- One Service you may not change refuses the whole Apply.
+
+## Related pages
+
+- [Projects and Environments](/docs/guide/projects-and-environments): Config branch and Deploy
+  target.
+- [Wired variables and secrets](/docs/guide/environment-variables).
+- [Deployments](/docs/guide/deployments): why a build is held by a Plan.
+- [Templates](/docs/guide/templates) add ready-made entries to your config.
+- [Ask for a Plan from an AI agent](/docs/mcp/tools), and [AI agents on Cloudgate](/ai-agents).

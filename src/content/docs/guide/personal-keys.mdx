@@ -1,0 +1,93 @@
+---
+title: Personal keys
+seoTitle: Create a personal key for scripts and CI
+description: Create a personal key that lets a script, CI job or the Cloudgate CLI act as you on the REST API, choose when it expires, and revoke it the moment it leaks.
+lede: A personal key lets a script sign in as you without your password. Create one for CI, a deploy pipeline or a script that calls the Cloudgate API.
+section: guide
+group: Team and access
+order: 2
+badges: ['Every member', 'Acts with your role']
+howto:
+  name: Create a personal key
+  steps:
+    - { name: Open your account, text: 'Open Settings and then Account, and find Personal keys.' }
+    - { name: Start a key, text: 'Press Create a key.' }
+    - { name: Name it, text: 'Name it after what will use it, add an optional prefix and choose when it expires: In 90 days is the default.' }
+    - { name: Copy it, text: 'Press Create key, copy the key now, and press I have copied it. It is never shown again.' }
+faq:
+  - { q: What can a personal key do?, a: 'Everything you can do, in your default Organization or the one a request names. It is not limited to a scope.' }
+  - { q: Can an AI agent use my personal key?, a: 'No. The MCP endpoint and the Gateway refuse personal keys. Create an Agent and use its agent key instead.' }
+  - { q: How long does a key last?, a: 'You choose: in 30 days, in 90 days (the default), in a year, or never. A key made by cloudgate login lasts 90 days.' }
+---
+
+A personal key carries everything your role allows, in your default Organization, or in the one a
+request names with the `x-organization-id` header. The CLI uses one in CI as `CLOUDGATE_KEY`.
+
+## What you can do
+
+- Create keys for scripts, CI and the CLI, each with its own name and expiry.
+- See when each key was last used.
+- Revoke a key; it stops working immediately.
+
+## Create a personal key
+
+<Steps>
+<Step title="Open Personal keys">
+Open **Settings** > **Account**. Under **Personal keys**, press **Create a key**.
+<Screenshot name="personal-keys" alt="Settings, Account, Personal keys, listing a deploy-pipeline key with its prefix, created date, last use and expiry" caption="Each key shows how it starts, when it was last used and when it expires." />
+</Step>
+<Step title="Name it and choose its expiry">
+In **Create a personal key**, give it a **Name** after what will use it, such as `Deploy pipeline`,
+so you know which one to revoke later. Add an optional **Prefix**, such as `cg_ci`, to make it
+recognisable in a log or a secrets store. Under **Expires**, choose **In 30 days**, **In 90 days**
+(the default), **In a year** or **Never**.
+</Step>
+<Step title="Copy it">
+Press **Create key**. **Your new personal key** is shown once: copy it into your secrets store, then
+press **I have copied it**.
+</Step>
+</Steps>
+
+Use it in a request with the `x-api-key` header. On a self-hosted instance, use your own console's address:
+
+```bash
+curl -H "x-api-key: $CLOUDGATE_KEY" https://cloudgate.octabyte.app/backend/users/me/whoami
+```
+
+The [API authentication](/docs/api/authentication) page has the details, and
+[CLI in CI](/docs/cli/ci) shows how the CLI reads `CLOUDGATE_KEY`.
+
+<Callout type="warn" title="A key that never expires">
+A key set to **Never** keeps everything you can do until someone revokes it, including after it
+leaks. Prefer an expiry and make a new key before it lapses.
+</Callout>
+
+## Log in the CLI without copying a key
+
+`cloudgate login` shows a code; approve it in the console at `/device`. That makes a personal key
+for the CLI that lasts 90 days.
+
+## Revoke a key
+
+On the key's row, press **Revoke**, then **Revoke key**. It stops working immediately.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- A personal key cannot be narrowed to some Projects or actions: it acts with your whole role.
+- The MCP endpoint and the Gateway refuse personal keys; Agents use agent keys.
+- Keys are created and listed from a signed-in console session; a key cannot create or list keys.
+- A key is shown once. If you lose it, revoke it and create another.
+- Removing you from an Organization ends what your keys can do there.
+</Callout>
+
+Your **Account** page also holds your **Profile**, **Password**, **Two-factor** sign-in (with 10
+backup codes) and **Sessions**, where you can sign out every other session.
+
+## Related pages
+
+- [Agents](/docs/guide/agents): give an AI tool its own member and agent keys.
+- [CLI in CI](/docs/cli/ci): deploy from a pipeline with a personal key.
+- [API authentication](/docs/api/authentication): headers, Organizations and errors.
+- [Members and roles](/docs/guide/members-and-roles): what your role lets a key do.
+- [The Cloudgate CLI](/cli).

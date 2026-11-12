@@ -147,6 +147,10 @@ const hasIntro = Astro.slots.has('default');
     max-width: 68ch;
     min-width: 0;
   }
+  /* Geist's zero is wide, so ch overstates the measure: cap running text near 75 characters. */
+  .doc :global(:is(p, li)) {
+    max-width: 55ch;
+  }
   .intro {
     padding-bottom: var(--space-6);
     margin-bottom: var(--space-6);

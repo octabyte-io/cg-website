@@ -1,0 +1,170 @@
+---
+title: API reference
+seoTitle: REST API reference and OpenAPI document
+description: 'Call the Cloudgate REST API with a Personal key: base URL, the Organization header, errors, pagination, limits, the OpenAPI document and every endpoint.'
+lede: The REST API does everything the console does, for scripts and CI. It is the same API the console and the CLI call, described by an OpenAPI document you can download.
+section: api
+order: 1
+navTitle: Overview
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Is there an API version in the URL?, a: 'No. Paths start right after <code>/backend</code>, with no <code>/v1</code>. The OpenAPI document is version 1.0.0, and a Cloudgate instance serves the document that matches the version it runs.' }
+  - { q: Can an Agent key call the REST API?, a: 'No. An Agent key is refused on every REST route with 403 <code>AGENT_NOT_ALLOWED_HERE</code>. Agents work through the <a href="/docs/mcp">MCP endpoint</a> and the AI Gateway only.' }
+  - { q: Is the REST API rate-limited?, a: 'No. Cloudgate sets no rate limit on REST requests made with a Personal key or a console session. The MCP endpoint has its own limits per Agent.' }
+  - { q: Where do I find my Organization id?, a: '<code>GET /organizations</code> lists the Organizations you belong to, each with its <code>id</code>. <code>GET /users/me/whoami</code> shows the one a request acts in.' }
+---
+import { apiGroups, apiOperationCount, excludedApi, HOSTED_BASE } from '../../data/api-reference';
+
+## What can I do with the API?
+
+Anything you can do in the console: create Projects and Environments, add Servers, deploy Applications,
+make databases, add Domains, read logs and health, invite members. The console and the
+[Cloudgate CLI](/docs/cli) call these same routes, so nothing here is a separate, smaller surface.
+The reference lists {apiOperationCount()} endpoints in {apiGroups.length} groups, generated from the
+OpenAPI document of the current release.
+
+If you want an AI agent to work with Cloudgate, give it an Agent and connect it over
+[MCP](/docs/mcp) instead. The REST API is for people and the scripts they run with their own key.
+
+## Base URL
+
+The API lives under `/backend` on the same address as the console. There is no `/api` prefix and no
+version in the path.
+
+| Where Cloudgate runs | Base URL |
+|---|---|
+| Hosted instance | `https://cloudgate.octabyte.app/backend` |
+| Self-hosted | Your console address followed by `/backend`, for example `https://cloud.example.com/backend` |
+
+So listing Projects on the Hosted instance is a `GET` to `/backend/projects` there. The paths under
+`/api/auth` belong to the sign-in system (sessions, SSO, SCIM for your identity provider) and are not
+part of this API.
+
+## Authenticate with a Personal key
+
+Every request sends a **Personal key** in the `x-api-key` header. Make one in the console under your
+avatar, **Account**, **Personal keys**, **Create a key**, or run `cloudgate login`, which makes a key that
+lasts 90 days. A Personal key acts as you, with your role, and has no scopes of its own.
+
+```bash
+export CLOUDGATE_KEY="<your Personal key>"
+curl https://cloudgate.octabyte.app/backend/users/me/whoami \
+  -H "x-api-key: $CLOUDGATE_KEY"
+```
+
+[Authentication](/docs/api/authentication) covers making, checking and revoking keys, what each role
+may call, and the few routes that need a signed-in console session instead.
+
+<Callout type="limit" title="Agent keys do not work here">
+  An Agent key is refused on every REST route with 403 and the code `AGENT_NOT_ALLOWED_HERE`. Agents act
+  through the [MCP endpoint](/docs/mcp) and the AI Gateway only.
+</Callout>
+
+## Choose the Organization
+
+Name the Organization a request acts in with the `x-organization-id` header. Without it, the key acts in
+your default Organization. Naming one you are not a member of is refused with 403
+`NOT_ORGANIZATION_MEMBER`. Find the ids with `GET /organizations`:
+
+```bash
+curl https://cloudgate.octabyte.app/backend/organizations \
+  -H "x-api-key: $CLOUDGATE_KEY"
+
+export CLOUDGATE_ORG_ID="<the id of Northwind Labs>"
+curl https://cloudgate.octabyte.app/backend/projects \
+  -H "x-api-key: $CLOUDGATE_KEY" \
+  -H "x-organization-id: $CLOUDGATE_ORG_ID"
+```
+
+Every example in this reference sends both headers, so set the two variables once in your shell or CI.
+
+## Requests and responses
+
+- **JSON in, JSON out.** Send bodies as `application/json`; the one upload route (a drop deployment)
+  takes a multipart form. Ids are strings and times are ISO 8601 strings.
+- **Validation.** Every body and query is checked against the same schema the OpenAPI document shows.
+  A missing or invalid field is refused with 400 before anything changes.
+- **Secrets are never sent back.** Where a response would hold a password, token or key, it holds a
+  boolean such as `hasToken` instead: set or not set. On a write, leave the field out to keep the stored
+  value, send `""` to clear it, or send a new value to replace it.
+- **Status codes.** `200` for reads and actions, `201` when a route creates something, `202` when it
+  starts work that finishes later, `204` when there is nothing to send back.
+- **Long requests.** The console's proxy waits up to four minutes for the API to answer; work that takes
+  longer, such as a Deployment, is started by the request and followed afterwards.
+
+## Errors
+
+Every refusal has the same JSON body: `statusCode`, `error`, `message`, `path` and `timestamp`, plus a
+`code` when the refusal has a name, `details` for validation and `pointer` for a refusal caused by a
+Project config kept in a repository. Branch on `code`, never on `message`.
+
+```json
+{
+  "statusCode": 409,
+  "error": "Conflict",
+  "message": "Deployment Kq8mTz2xLp4vRb7NcYw3s is running, and an upload would replace the files it builds from; upload again once it has finished",
+  "code": "DEPLOYMENT_IN_PROGRESS",
+  "path": "/applications/Vx3kQ9mT2pLr8sZbN4cYw/drop",
+  "timestamp": "2026-11-12T09:30:00.000Z"
+}
+```
+
+[Errors](/docs/api/errors) lists the status codes, the codes you will meet most and what to do about each.
+
+## Pagination
+
+Most list routes return the whole list as an array. Three kinds of list page instead:
+
+| Route | Parameters | Next page |
+|---|---|---|
+| `GET /deployments` (the Organization's Deployments) | `limit` 1 to 100, default 20; filters `status`, `projectId` | Pass the answer's `nextCursor` as `cursor`; it is null on the last page |
+| `GET /audit-logs` | `limit` 1 to 500, default 50; `offset`; filters `actor`, `from`, `to` | Raise `offset` by `limit` |
+| Service health lists | `page` from 1, `limit` 1 to 100, default 20 | The answer says `totalPages`, `hasNextPage` and `hasPreviousPage` |
+
+## Rate limits and retries
+
+There is no rate limit on REST requests made with a Personal key or a console session. The
+[MCP endpoint](/docs/mcp/guard-rails) has its own limits per Agent.
+
+There is no `Idempotency-Key` header. Retrying a create can make a second item, and every deploy request
+queues a new Deployment rather than joining one already waiting, so retry a write only when you know the
+first attempt did not land. Partial writes such as `PATCH /applications/{id}/variables` change only the
+keys you name and leave the rest alone.
+
+## Live logs and terminals
+
+Deployment logs, container logs, live container stats, a Server's setup and shells run over WebSockets,
+not REST. They take the same Personal key and Organization headers on the upgrade request.
+[WebSockets](/docs/api/websockets) lists the six paths and what each streams.
+
+## The OpenAPI document
+
+The reference is generated from Cloudgate's OpenAPI 3 document, version `1.0.0`. Download the public copy
+at [/docs/api/openapi.json](/docs/api/openapi.json) for code generators, Postman or Insomnia. It names
+the Hosted and Self-hosted base URLs and the `x-api-key` scheme.
+
+Your own instance also serves its document, matched to the version it runs: an interactive explorer at
+`/backend/docs` and the JSON at `/backend/docs-json` (YAML at `/backend/docs-yaml`). Both need you to be
+signed in, with a console session or a Personal key; anyone else gets 401.
+
+## Endpoint groups
+
+<CardGrid cols={3}>
+  {apiGroups.map((g) => (
+    <Card href={`/docs/api/${g.slug}`} title={g.title}>{g.summary}</Card>
+  ))}
+</CardGrid>
+
+## What is not in this reference
+
+Some routes in Cloudgate's own document are left out of the public copy because you never call them:
+
+<ul>
+  {excludedApi.map((e) => (
+    <li><strong>{e.what}.</strong> {e.why}</li>
+  ))}
+</ul>
+
+Three other surfaces have their own docs: the [MCP endpoint](/docs/mcp) at `/mcp` for Agents, the AI
+Gateway at `/ai/<application id>/v1` (OpenAI-compatible calls to an AI model, with an Agent key), and the
+[CLI](/docs/cli), which wraps this API for the common jobs.

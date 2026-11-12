@@ -1,0 +1,197 @@
+---
+title: What an AI agent can and cannot do in Cloudgate
+seoTitle: MCP guard rails, roles, rate limits and audit
+description: 'The limits every Cloudgate Agent works inside: roles, grants, rate limits, secret masking, the audit log, protocol revisions and the errors a call returns.'
+lede: An Agent passes the same permission check a person does, inside its grant, under its own rate limits, with every call written to the audit log. This page lists each limit and what the endpoint answers when one is reached.
+section: mcp
+order: 4
+navTitle: Guard rails
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: 'Can an agent apply a Plan or change environment variables?', a: 'No. No tool applies or dismisses a Plan, changes settings, variables or access, or changes an Uptime check or Error-rate threshold, whatever the Agent''s role. An agent can ask for a Plan with <code>request_plan</code> and tell you what would change; a person applies it in the console.' }
+  - { q: 'What happens when an agent hits the rate limit?', a: 'It gets HTTP 429 with a <code>Retry-After</code> header in whole seconds, and the call spends nothing. The first 429 after an hour without one raises the <strong>Agent rate limited</strong> notification.' }
+  - { q: 'Does the secret mask catch everything?', a: 'No. It replaces every stored secret of 6 characters or more, wherever it appears. It cannot hide a secret Cloudgate never stored (a token a build fetches and prints), an encoded copy of a stored value, or a value shorter than 6 characters.' }
+  - { q: 'Is the Operator role the same as the operator in error messages?', a: 'No. Operator is an Agent role. When a tool''s message says "an operator", it means a person with access to your Organization in the console, usually an Owner or Admin.' }
+  - { q: 'Where do I see what an agent did?', a: 'In the <a href="/docs/guide/audit-log">audit log</a>: one row per call, allowed, refused or failed. The Agent''s row in Settings, Agents links to its entries and to its refused ones.' }
+---
+
+These rules are built into the endpoint; none of them is a setting. For the tools themselves, see
+the [tool reference](/docs/mcp/tools); for creating Agents and keys, see
+[Connect a client](/docs/mcp/connect) and the [Agents guide](/docs/guide/agents).
+
+<Callout type="note" title="Two meanings of operator">
+  **Operator** with a capital O is an Agent role, the one that may deploy. In the endpoint's
+  messages, "an operator" in lower case is a person managing Cloudgate in the console: for an
+  Agent's key, role or suspension, an Owner or Admin of your Organization; for an Instance-wide
+  limit, such as the longest a preview may live, whoever runs the Instance (Octabyte on the Hosted
+  instance, you when self-hosting).
+</Callout>
+
+## Which tools can each role call?
+
+An Agent has one of three roles. `tools/list` shows only the tools its role may call.
+
+| Role | May | Tools |
+|---|---|---|
+| **Reader** (default) | Read Services, Environments, Deployments, Deployment logs and Domains | The 12 read tools, plus `request_plan` |
+| **Operator** | Everything a Reader can, and deploy, start, stop and cancel | All 21 |
+| **Caller** | Call the AI models it is granted through the Gateway | None: the tool list is empty and every call is refused |
+
+A Reader can call `request_plan` because asking for a Plan needs only read access to the
+Environment. It still spends the **write** budget, because it stores a Plan that replaces the
+Environment's open one. Change an Agent's role with **Change role** on its row; see
+[members and roles](/docs/guide/members-and-roles) for how agent roles relate to people's.
+
+## What is a grant?
+
+The grant is the list of Projects, Environments and Services an Agent may reach, ticked under
+**Access** when you create it and changed later with **Manage access**. It starts empty. Every tool
+answers only within it: `list_projects` lists granted Projects, `get_environment` shows granted
+Services, and anything outside the grant answers exactly as something that does not exist:
+
+```text
+Not found or not permitted. This is an access decision, not a failure. Retrying, or trying another tool or id, will not change it. Tell the operator what you needed.
+```
+
+The answer is the same, byte for byte, whether the id is unknown, belongs to another Organization, or
+is not granted, so an agent cannot probe for what exists.
+
+## What can no Agent ever do?
+
+Whatever its role and grant:
+
+- apply or dismiss a [Plan](/docs/guide/project-config);
+- change settings, [environment variables](/docs/guide/environment-variables), domains or access;
+- add, edit, turn off or remove an Uptime check or an Error-rate threshold, so it cannot silence an
+  Incident;
+- create, delete or call an AI model through a tool, or read its token spend;
+- turn on requested previews for an Application;
+- use its key anywhere but `/mcp` and the Gateway: the REST API and console sign-in refuse it.
+
+An Agent's grant also never reaches your git provider. If it pushes branches, that access is one you
+gave the AI tool directly.
+
+## How fast can an agent call tools?
+
+Each Agent has two budgets, shared by all its keys:
+
+| Budget | Rate | Burst | Spent by |
+|---|---|---|---|
+| Reads | 120 a minute | 60 | Every read tool |
+| Writes | 10 a minute | 5 | `deploy_service`, `start_service`, `stop_service`, `cancel_deployment`, `create_preview`, `extend_preview`, `redeploy_preview`, `delete_preview`, `request_plan` |
+
+Each budget refills continuously, so after a burst a call comes back every few seconds rather than
+at the turn of the minute. Over budget, the call is answered:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 4
+Content-Type: application/json
+```
+
+with the message `Rate limit reached for this Agent. Wait 4 seconds before the next call.` It spends
+nothing and writes a `refused` audit row with reason `rate-limit`.
+
+The first 429 after an hour without one raises the **Agent rate limited** notification on the
+channels that subscribe to it; later ones are counted on the Agent's row ("Rate-limited N times in
+the last hour"). An agent that keeps hitting the limit is usually in a loop. Budgets are held in
+memory, so a backend restart refills them.
+
+<Callout type="limit" title="One build at a time without a licence">
+  On a self-hosted Instance without a licence, each Server builds one Deployment at a time; the rest
+  wait as `pending`. An agent that deploys three Services on one Server gets three ids at once and
+  three builds in sequence.
+</Callout>
+
+## What does the secret mask hide?
+
+Every tool answer, Deployment logs included, passes through one mask before the agent sees it. It
+replaces every **stored secret** reachable from what the tool is about with `••••••`: environment
+variables, build arguments, registry and git credentials, database passwords and backup destination
+keys. Secrets are never returned as fields; `hasEnv`, `hasBuildArgs`, `hasBuildSecrets`,
+`hasDatabasePassword`, `hasKey`, `hasHfToken`, `hasKeyword` and `hasHeaderValue` say only whether one
+is set. An AI model's upstream secret is never present, not even as a flag.
+
+The mask cannot hide:
+
+- what a build prints that Cloudgate never stored, such as a token the build fetches and echoes;
+- an encoded or escaped copy of a stored value;
+- a value shorter than 6 characters.
+
+A stored value of 6 characters or more is masked **wherever it appears**. A build argument
+`NODE_ENV=production` masks every "production" in the log, so a log full of `••••••` usually means a
+common word is stored as a secret. Treat anything an Agent can read as readable by whoever runs the
+agent.
+
+## What does the audit log record?
+
+Every call writes one row to the [audit log](/docs/guide/audit-log): the tool, the outcome and, for a
+refusal or failure, the reason.
+
+| Outcome | Reasons |
+|---|---|
+| `succeeded` | |
+| `refused` | `permission`, `grant`, `rate-limit`, `suspended`, `credential-expired`, `unsupported-revision`, `unknown-tool`, `batch-refused` |
+| `failed` | `invalid-arguments`, `preview-limit`, or none (the row holds the detail) |
+
+A call with arguments the tool does not accept is `failed` with `invalid-arguments` and spends no
+budget. `create_preview` and `extend_preview` also leave the row the same request over the REST API
+would. The Agent's row in **Settings**, **Agents** links to its entries, and to its refused ones on
+their own.
+
+## Which requests are refused before any tool runs?
+
+| Request | Answer |
+|---|---|
+| Any request with an `Origin` header | 403, before the key is read |
+| Unknown, revoked or disabled key | 401 `This key is not valid.` with `WWW-Authenticate: Bearer error="invalid_token"` |
+| A Personal key | 401 `This endpoint takes an agent key, and this is a personal key. Create an Agent in the console and use its key.` |
+| An expired agent key | 401 `This agent key expired on 2026-11-01. An operator can issue a new one in the console.` |
+| A suspended Agent | 403 `This Agent has been suspended by an operator.` |
+| Anything but `POST` | 405 |
+| A body that is not `application/json` | 415 |
+| A 2025-era request whose `Accept` does not name both `application/json` and `text/event-stream` | 406 |
+
+An expired key and a suspended Agent write an audit row naming the Agent; an unknown key or a
+Personal key cannot, because there is no Agent to name. Browsers always send `Origin`; MCP clients do not. If a proxy in front of Cloudgate adds `Origin`,
+it must stop doing so for `/mcp`. A suspended Agent spends no budget.
+
+## What errors can a call return?
+
+A tool that cannot answer returns an MCP result with `isError: true`, its message as text, and
+`structuredContent` of `{ "code": "refused" | "failed", "reason"?, "message" }`.
+
+| Case | Message | Retry? |
+|---|---|---|
+| Outside the grant, unknown, or another Organization's | `Not found or not permitted.` plus the access sentence | No |
+| The role lacks a permission | `This Agent's role does not include deployment:create.` plus the access sentence | No |
+| A Caller calls a tool | `This Agent's role only calls AI models through the Gateway and holds no tool here.` plus the access sentence | No |
+| A failure the tool explains | Its own words, such as `This Deployment cannot be cancelled now: …` | Depends on the message |
+| Anything else | `The call failed. The detail is in audit entry <id>.` | A person reads the audit entry |
+| Over 30 seconds | `The call did not finish within 30 seconds and was abandoned. The detail is in audit entry <id>.` | Check the status first |
+
+The access sentence, appended to access decisions only, is: "This is an access decision, not a
+failure. Retrying, or trying another tool or id, will not change it. Tell the operator what you
+needed." A rate limit carries no such sentence, because waiting does change the answer.
+
+An agent never sees an internal error message: it gets the audit entry's id, and the detail is in
+the audit log. When a call runs past 30 seconds, the work it started carries on, so an agent should
+read the status before trying again.
+
+## Which MCP protocol revisions are served?
+
+| Era | Revisions | Transport |
+|---|---|---|
+| 2026 | `2026-07-28` | Per-request envelope |
+| 2025 | `2025-11-25`, `2025-06-18`, `2025-03-26` | Streamable HTTP |
+
+A 2025-era request naming a revision older than `2025-03-26`, including `2024-11-05` and its
+HTTP+SSE transport, is refused with 400 and JSON-RPC error `-32602` listing the served revisions. An
+unserved 2026-era revision gets 400 and `-32022`. A request with no `MCP-Protocol-Version` header and
+no `initialize` is taken as `2025-03-26`. JSON-RPC batching exists only on `2025-03-26`, and a batch
+is refused as a whole if any call in it is refused.
+
+Every answer is `application/json`: no event stream, no `Mcp-Session-Id`, no session to keep sticky
+behind a load balancer. The server names itself `cloudgate` with Cloudgate's version, and declares
+`tools` with `listChanged: false`. No OAuth discovery is served. Dropping a revision is announced in
+the [changelog](/changelog), never a side effect of an upgrade.

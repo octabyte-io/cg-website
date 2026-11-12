@@ -1,0 +1,209 @@
+---
+title: Put your first app online
+seoTitle: 'Cloudgate quickstart: put your first app online in minutes'
+description: Deploy your first app with Cloudgate in minutes, from an app template in the get-started wizard, your own code in the console, or a folder with the CLI.
+lede: Three ways to a running app, from the quickest to the most hands-on. Pick the tab that matches what you have, a ready-made app, your own code in git, or a folder on your computer.
+section: start
+order: 1
+navTitle: Quickstart
+badges: ['Hosted and self-hosted', 'Owner or Admin']
+howto:
+  name: Deploy an app template with the get-started wizard
+  steps:
+    - { name: Pick an app, text: 'On the templates website, open an app and press its Deploy button. Sign in to Cloudgate or create an account.' }
+    - { name: Choose where it runs, text: 'Use a Server you already have, get a server from Cloudgate (Hosted only), or connect your own server over SSH.' }
+    - { name: Fill in the details, text: 'Answer the values the app asks for. Passwords and keys it needs are made for you.' }
+    - { name: Deploy, text: 'Press Deploy. Cloudgate makes a Project with a production Environment, applies the setup once the Server is ready, and shows the address.' }
+    - { name: Open the app, text: 'Press Open to visit the app at its free sslip.io address, then add your own domain for HTTPS.' }
+faq:
+  - { q: Do I need a domain name to start?, a: 'No. A free sslip.io address works straight away, over plain HTTP. Add your own domain later and Cloudgate gets a Let''s Encrypt certificate for it.' }
+  - { q: Do I need my own server?, a: 'You need a Server or a Cloud account before anything can deploy. On the Hosted instance the wizard can buy one for you; otherwise bring any Ubuntu machine you can reach over SSH as root or a user with passwordless sudo.' }
+  - { q: Can a member who is not an owner or admin use the wizard?, a: 'Only with a Server that already exists. Adding or buying a Server needs an owner or admin, and the wizard tells a member to ask one.' }
+  - { q: How long does it take?, a: 'Buying a server and setting it up usually takes a few minutes, and you can leave the page while it carries on. Connecting your own server takes as long as its setup run: installing Docker, a Swarm and Traefik.' }
+---
+
+Cloudgate deploys onto a Server (a machine it reaches over SSH) or into your AWS or Google Cloud
+account. Before your first app runs, you need one of those, a Project with an Environment, and the
+app itself. Each path below does those three things for you, in a different amount of detail. If
+the words are new, [How it fits together](/docs/concepts) explains the model in two minutes.
+
+## What you can do from here
+
+- Deploy an app from the template catalogue with the get-started wizard, including getting a server.
+- Deploy your own code from GitHub, GitLab, Bitbucket, Gitea, any git URL or a Docker image in the console.
+- Deploy a folder from your computer or a CI job with the CLI.
+
+## Deploy your first app
+
+<Tabs group="quickstart">
+<Tab label="App template (wizard)">
+
+The get-started wizard is the shortest path. It starts from an app in the
+[template catalogue](https://cgt.octabyte.io/), such as Ghost, Umami or n8n, and ends with that app
+running at an address you can open.
+
+<Steps>
+<Step title="Pick an app and sign in">
+
+On the [templates website](https://cgt.octabyte.io/), open an app and press its **Deploy** button.
+It opens the console at `/get-started` with that app chosen. If you are not signed in, sign in or
+press **Create an account**; you come back to the wizard afterwards. On the Hosted instance, the
+link in the confirmation email signs you in and returns you here.
+
+<Screenshot name="get-started-where" alt="The get-started wizard asking where the app should run, with the options Get a server from Cloudgate, marked Recommended, and Use my own server." caption="The first question is where the app runs. A Ready Server you already have is offered first." />
+
+</Step>
+<Step title="Choose where it runs">
+
+The wizard asks **Where should** the app **run?**
+
+- If your Organization already has a Ready Server, press **Use** followed by its name, for example **Use fra-1**.
+- **Get a server from Cloudgate** (Hosted only): pick a location and a size, then **Buy**. The
+  wizard shows **Payment**, **Creating your server**, **Setting it up** and **Ready to use**. You can
+  leave the page; it carries on.
+- **Use my own server**: for a machine you already rent, such as a VPS. Fill in **Your server**
+  (address, SSH port, SSH user, name). If the Organization has no SSH key yet, press **Make a key**,
+  then copy the one-line command the wizard shows and run it on the server. It adds the key to
+  `~/.ssh/authorized_keys`. Press **Save and continue**, then **Connect my server**. Progress reads
+  **Signed in to your server**, **Installing what apps need**, then **Ready**.
+
+</Step>
+<Step title="Fill in the details">
+
+Answer the values the app asks for. Passwords and keys it needs are made for you. The summary,
+**What Deploy makes**, lists the Server, a **New Project** named after the app, and a web address
+marked **Made for you**.
+
+<Screenshot name="get-started-details" alt="The details step of the get-started wizard: the app's settings, and a What Deploy makes summary listing the Server, a New Project and a Web address made for you." caption="Everything the wizard is about to create is listed before you press Deploy." />
+
+</Step>
+<Step title="Deploy and open it">
+
+Press **Deploy** followed by the app's name. Cloudgate creates the Project with a `production`
+Environment on that Server and, once the Server is ready, applies the setup as you. When it is
+running, press **Open** to visit it, or **Open the Project** to see what was made.
+
+</Step>
+</Steps>
+
+<Callout type="limit" title="Who can do this">
+  Adding or buying a Server takes an owner or admin. A member can finish the wizard only on a Server
+  that already exists. Buying a Server is on the Hosted instance only, and Cloudgate charges for it
+  at once, even during a free trial. With no Hosted plan, connecting your own server starts the
+  30-day free trial first.
+</Callout>
+
+</Tab>
+<Tab label="Your own code (console)">
+
+Your own code needs four things made by hand, in this order. Each step links to the guide page that
+covers it in full.
+
+<Steps>
+<Step title="Add a Server">
+
+Open **Servers** and press **Add a Server**. If you have no SSH key yet, open **Manage SSH keys**
+and press **Generate one**, then put the line it shows in the machine's `~/.ssh/authorized_keys`.
+Fill in the address, the SSH user (root, or a user with passwordless sudo) and the key, and press
+**Add Server**. On the Server's **Infrastructure** tab, press **Check now**, then **Run setup**.
+Setup installs Docker, a Swarm and Traefik. See [Add a Server](/docs/guide/servers).
+
+<Screenshot name="servers-list" alt="The Servers screen listing the Servers fra-1 and nyc-edge with their status." caption="Servers are shared by every Project in the Organization." />
+
+</Step>
+<Step title="Make a Project and an Environment">
+
+Open **Projects**, press **New Project**, name it (for example `storefront`) and press
+**Create Project**. On its **Environments** tab press **New Environment**, call it `production`,
+choose your Server as the **Deploy target**, and press **Create Environment**. See
+[Projects and Environments](/docs/guide/projects-and-environments).
+
+</Step>
+<Step title="Add an Application">
+
+In the Environment, on **Services**, press **Add an Application**, name it `web` and pick the Server.
+On its **Overview**, open the **Source** card and press **Change source**: pick a connected git
+provider and a repository and branch, **Any git URL**, or a **Docker image**. Nixpacks, the default
+builder, works out how to build the code; a Dockerfile works too. See [Applications](/docs/guide/applications).
+
+</Step>
+<Step title="Deploy and give it an address">
+
+Press **Deploy** and watch the Deployment log. Then on the **Domains** tab press **Add a domain**
+and **Generate one for me** for a free sslip.io address, or type your own host. See
+[Domains](/docs/guide/domains).
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab label="A folder (CLI)">
+
+The CLI uploads a folder to an Application that already exists and follows its Deployment to the
+end. Make the Server, Project, Environment and Application in the console first (the previous tab),
+then:
+
+<Steps>
+<Step title="Install the CLI">
+
+You need Node 22 or newer.
+
+```bash
+npm install -g @octabyte-io/cloudgate@next
+```
+
+</Step>
+<Step title="Log in">
+
+```bash
+cloudgate login
+```
+
+Open the address it prints, check the code and approve it in the console. Add
+`--instance <address>` for a self-hosted instance; without it, the CLI logs in to the Hosted
+instance.
+
+</Step>
+<Step title="Deploy the folder">
+
+In your project folder:
+
+```bash
+cloudgate deploy
+```
+
+The first time, it asks which Organization, Project, Environment and Service the folder belongs to
+and remembers the answer. It leaves out what `.gitignore` lists and your `.env` files, uploads the
+rest, and prints the Deployment log until the Deployment ends. Then `cloudgate status` shows the
+Service and its Domains. See the [CLI guide](/docs/cli).
+
+</Step>
+</Steps>
+
+</Tab>
+</Tabs>
+
+## What you have now
+
+A Project, with a `production` Environment, holding one running Service on a Server. The Service
+has a Deployment with its log, and an address. From here:
+
+- Add your own domain with HTTPS: [Domains](/docs/guide/domains).
+- Add a database and wire it in: [Databases](/docs/guide/databases) and [Environment variables](/docs/guide/environment-variables).
+- Deploy on every git push, or keep the whole Project in a `cloudgate.yaml`: [Project config](/docs/guide/project-config).
+- Let an AI agent deploy and read logs within limits you set: [Agents](/docs/guide/agents).
+
+## What you cannot do yet
+
+<Callout type="limit" title="Before your first app">
+  - Nothing deploys until the Organization has a Server or a Cloud account. On the Hosted instance
+    an Environment cannot even be made before that.
+  - The sslip.io address is plain HTTP. HTTPS needs a Domain you own.
+  - The wizard starts from an app template only. Your own code goes through the console, a git
+    push or the CLI.
+  - The CLI deploys Applications only, and never creates a Service, Project or Environment.
+</Callout>
+
+For a list of everything Cloudgate does and does not do, see
+[What Cloudgate can and cannot do](/docs/help/limits). The [features page](/features) has the
+overview, and [pricing](/pricing) the Hosted plans.

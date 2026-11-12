@@ -1,0 +1,194 @@
+---
+title: Backups and restore
+seoTitle: Back up databases and volumes to S3 storage
+description: Add an S3-compatible Destination, schedule database dumps and volume backups, restore a dump or tarball, and set backup retention for RDS, Cloud SQL and caches.
+lede: Cloudgate writes database dumps and volume tarballs off the machine to any S3-compatible bucket you add as a Destination, on a cron. In a Cloud account the cloud keeps its own backups instead.
+section: guide
+group: Data
+order: 2
+badges: ['Owner or Admin for Destinations', 'Members can back up and restore']
+howto:
+  name: Schedule database dumps
+  steps:
+    - { name: Add a Destination, text: 'In Settings, Destinations, press Add a destination, fill in the endpoint, bucket and keys, and press Test connection.' }
+    - { name: Open the database Backups tab, text: 'Open the database, such as pg-main, and its Backups tab.' }
+    - { name: Add a schedule, text: 'Under Scheduled dumps press Add a schedule. Choose the database, the Destination, a prefix, a cron expression and how many dumps to keep.' }
+    - { name: Run it once, text: 'Press Run now on the new row and check that the dump appears under Dumps in the destination.' }
+faq:
+  - { q: Where can Cloudgate store backups?, a: 'In any S3-compatible bucket: AWS S3, MinIO or another provider. Cloudgate reaches it with rclone. Add it once as a Destination for the whole Organization.' }
+  - { q: Can I back up Redis?, a: 'Not with a dump: Redis has no dump or restore command in Cloudgate. In ElastiCache or Memorystore the cloud keeps its own snapshots or backups.' }
+  - { q: How do I restore a database in AWS or Google Cloud?, a: 'In the cloud console. The Backups tab shows the retention and restore window, with a link; a restore there makes a new instance, so the console has no Restore button.' }
+  - { q: Does a Deployment back up my volumes?, a: 'No. A Deployment leaves a volume where it is. Only a volume backup copies it off its Server.' }
+---
+
+The examples back up the PostgreSQL database `pg-main` and the `uploads` volume of the `web`
+Application in `storefront` to a Destination named `Nightly backups`.
+
+## What you can do
+
+- Add S3-compatible buckets as **Destinations** for the whole Organization.
+- Schedule database dumps, keep the newest few, run one now, and restore one.
+- Schedule volume backups of an Application's or a bucket's volumes, and restore a tarball.
+- Set how long AWS or Google Cloud keeps a cloud database's automated backups.
+
+## Add a Destination
+
+<Steps>
+<Step title="Open Destinations">
+Open **Settings** > **Destinations** and press **Add a destination**.
+<Screenshot name="settings-destinations" alt="The Destinations settings page listing a backup bucket with its name, bucket, endpoint and region" caption="Destinations are shared by every Project in the Organization." />
+</Step>
+<Step title="Describe the bucket">
+Fill in **Name** (only you see it), **Endpoint** (with its scheme), **Region** (empty if your
+provider has none), **Bucket**, **Provider**, **Access key** and **Secret access key**. The secret
+is stored encrypted and never shown again.
+</Step>
+<Step title="Test and save">
+Press **Test connection**, then save. Cloudgate reaches the bucket with rclone, so anything
+S3-compatible works.
+</Step>
+</Steps>
+
+<Callout type="tip" title="Keep backups off the machine">
+A Destination on another provider or region survives losing the Server the data is on. That is the
+point of writing backups off it.
+</Callout>
+
+## Schedule database dumps
+
+<Steps>
+<Step title="Open the Backups tab">
+Open the database, such as `pg-main`, and its **Backups** tab.
+</Step>
+<Step title="Add a schedule">
+Under **Scheduled dumps** press **Add a schedule** and set:
+
+- **Database**: the database inside this engine to dump.
+- **Destination**: where the dumps are written.
+- **Prefix**: the path in the bucket.
+- **Cron expression**: five fields, such as `0 2 * * *` for every day at 02:00.
+- **Keep the newest**: older dumps under the prefix are deleted after each successful run. Empty
+  keeps every one.
+- **Run on the cron**: off keeps the schedule without firing it.
+<Screenshot name="database-backups" alt="The Backups tab of pg-main, with one scheduled dump and the dumps found in the destination" caption="The list below the schedules is read straight from the bucket." />
+</Step>
+<Step title="Run it once">
+Press **Run now** on the row. **Pause** and **Resume** stop and restart the cron. Every run is
+listed on the Environment's **Deployments** tab as a database backup with its log.
+</Step>
+</Steps>
+
+Engines dump differently: MySQL dumps run as root, and a libSQL backup is a tar of its data
+directory. Redis has no dump, so its **Backups** tab says Cloudgate cannot back it up.
+
+## Restore a database dump
+
+<Callout type="warn" title="A restore replaces what is in the database now">
+Restoring writes the dump over the database's current contents, with no copy of what was there.
+Take a fresh dump first if you might need it.
+</Callout>
+
+<Steps>
+<Step title="Find the dump">
+On the **Backups** tab, under **Dumps in the destination**, choose the Destination and press
+**Restore** on the file.
+</Step>
+<Step title="Name the database">
+The dialog's steps are **Choose the dump**, **Name the database** and **Replace its contents**.
+Name the database inside the engine that the dump goes into.
+</Step>
+<Step title="Confirm">
+Type the database's name to confirm and restore.
+</Step>
+</Steps>
+
+## Back up a volume
+
+Volume backups copy a named Docker volume off its Server as a tarball.
+
+<Steps>
+<Step title="Open Volume backups">
+Open the Application, such as `web`, and its **Volume backups** tab. For a bucket on a Server, use
+the volume backups on the bucket's own screen.
+</Step>
+<Step title="Add a backup">
+Press **Add a backup** and set **Name**, **Volume**, **Destination**, **Prefix**,
+**Cron expression** and **Keep the newest**.
+</Step>
+<Step title="Decide whether to stop the Service">
+Tick **Stop the service while the backup runs** for a volume that is written to all the time, such
+as a database's. A volume tarred while being written can produce a tarball that will not restore;
+stopping costs downtime and is the only way to be certain.
+</Step>
+<Step title="Run it now">
+Press **Run now** on the row to check it. The outcome lands in the run history below.
+</Step>
+</Steps>
+
+## Restore a volume
+
+<Steps>
+<Step title="Stop what uses the volume">
+A volume cannot be restored while any container, running or exited, references it. **Stop** the
+Application; for a Docker Compose stack, use **Remove containers**.
+</Step>
+<Step title="Start the restore">
+On the **Volume backups** tab, press **Restore a volume** under **Restore**, or **Restore** on a
+backup row.
+</Step>
+<Step title="Choose and confirm">
+Go through **Choose the tarball**, **Confirm the volume** and **Replace its contents**. The
+tarball is unpacked over the volume on the Server.
+</Step>
+<Step title="Start it again">
+**Start** the Application, or the stack.
+</Step>
+</Steps>
+
+<Callout type="warn" title="The volume's current contents are replaced">
+A volume restore keeps no copy of what was in the volume. Only tarballs still in the Destination
+are offered: a backup that keeps the newest five has already deleted the rest.
+</Callout>
+
+## Backups of databases in AWS and Google Cloud
+
+A database in a Cloud account has no dump schedules: "Dump backups to a Destination are
+Server-only for now." Its **Backups** tab shows what the cloud keeps, read live: the retention
+and, where the cloud reports one, the earliest and latest restorable time.
+
+| Database | Card | Range |
+|---|---|---|
+| RDS (PostgreSQL, MySQL) | **Backup retention**, in days | 1 to 35; it cannot be turned off here |
+| ElastiCache (Redis) | **Snapshot retention**, in days | 0 to 35; 0 turns snapshots off |
+| Cloud SQL (PostgreSQL, MySQL) | **Backup retention**, daily backups kept | 1 to 365; point-in-time recovery is on beside them |
+| Memorystore (Redis) | **Backup retention**, in days | 0 to 365; 0 turns backups off |
+
+To restore, use the cloud's own console, linked from the tab. A restore there makes a new instance.
+Deleting a cloud database takes a final snapshot unless you ask to delete its data too.
+
+## Who can do what
+
+| Action | Who |
+|---|---|
+| Add, test, delete a Destination | Owner or admin |
+| Schedule, run, pause and restore dumps and volume backups | Members granted the Service, owners and admins |
+
+Two backups or restores of the same volume never run at once: the second is refused with a 409
+naming the busy volume, and a scheduled backup waits its turn.
+
+## What you cannot do
+
+- Dump Redis, or schedule dumps for a database in a Cloud account.
+- Restore a cloud database from the Cloudgate console.
+- Restore a volume while a container still references it.
+- Schedule volume backups from a Compose stack's own screen: the **Volume backups** tab is on
+  Applications and on buckets.
+- Count on a Deployment to back anything up.
+
+## Related pages
+
+- [Databases](/docs/guide/databases): engines, credentials and cloud differences.
+- [Buckets](/docs/guide/buckets), whose volume on a Server you can back up.
+- [Compose stacks](/docs/guide/compose-stacks) and Remove containers.
+- [Members and roles](/docs/guide/members-and-roles).
+- [Cloudgate's features](/features), including backups.

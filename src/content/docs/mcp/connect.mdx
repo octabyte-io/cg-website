@@ -1,0 +1,202 @@
+---
+title: Connect an AI client to Cloudgate
+seoTitle: Connect Claude Code, Cursor or Codex over MCP
+description: Create an Agent, choose its role and grant, copy its agent key, and add Cloudgate's MCP endpoint to Claude Code, VS Code, Cursor, Codex CLI or another client.
+lede: Connecting takes an Agent in the console and a few lines of client configuration. The configuration names the key's environment variable rather than holding the key, so it is safe to commit.
+section: mcp
+order: 2
+navTitle: Connect a client
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+howto:
+  name: Connect an AI coding client to Cloudgate over MCP
+  steps:
+    - { name: 'Open Agents', text: 'In the Cloudgate console, open Settings, then Agents, and press Create an Agent.' }
+    - { name: 'Choose name, role and access', text: 'Name the Agent, pick Reader or Operator, tick the Projects, Environments or Services it may reach under Access, and choose when the first key expires.' }
+    - { name: 'Copy the agent key', text: 'Press Create Agent and copy the key. It is shown once.' }
+    - { name: 'Set CLOUDGATE_AGENT_KEY', text: 'Set the environment variable CLOUDGATE_AGENT_KEY to the key where you start the client.' }
+    - { name: 'Add the client configuration', text: 'Paste the configuration for your client from the Connect panel, with your console address plus /mcp as the URL.' }
+    - { name: 'Check the connection', text: 'Ask the agent to list your Cloudgate Projects, and check the Agent''s row for Last connected.' }
+faq:
+  - { q: 'Is there a configuration for Claude Desktop?', a: 'The Connect panel has none. It offers Claude Code, VS Code, Cursor, Codex CLI and a generic block. Any client that can send an <code>Authorization</code> header to an HTTP MCP server can use the generic one.' }
+  - { q: 'I lost the agent key. Can I see it again?', a: 'No. Cloudgate keeps only a hash of it. Press <strong>Add key</strong> on the Agent''s row for a new one, point the client at it, then revoke the old one.' }
+  - { q: 'Can I commit the configuration file?', a: 'Yes. None of the snippets holds the key: they read it from <code>CLOUDGATE_AGENT_KEY</code>, or in VS Code from its secret storage.' }
+  - { q: 'Can one Agent be used from two machines?', a: 'Yes. Give each machine its own key with <strong>Add key</strong> so you can revoke one without the other. All of an Agent''s keys share its rate limits.' }
+---
+
+You need to be an Owner or Admin of the Organization to create an Agent. The steps below use the
+fictional Northwind Labs organization, its `storefront` Project and the `web` Service in
+`production`. What an Agent is, and why it is not you, is in the [MCP overview](/docs/mcp).
+
+## Create an Agent
+
+<Steps>
+  <Step title="Open the Agents settings">
+    In the console, open **Settings**, then **Agents**. Each Agent is one row, with its role, what
+    it reaches, its keys and when a client last connected.
+
+    <Screenshot name="settings-agents" alt="The Agents page in Settings, listing two Agents of Northwind Labs with their roles, keys and last connection" caption="Each row shows what the Agent reaches and when a client last connected with one of its keys." />
+  </Step>
+  <Step title="Name it and choose a role">
+    Press **Create an Agent**. Under **Name**, say what it is for, such as `deploy-bot`: it is how
+    the audit log names it. Under **Role**, pick:
+
+    - **Reader** (the default) to let it read Services, Environments, Deployments, Deployment logs and Domains, and change nothing;
+    - **Operator** to let it also deploy, start, stop and cancel Deployments of what it is granted;
+    - **Caller** only for an app that calls your AI models through the Gateway. A Caller gets no MCP tools.
+
+    A Reader can still call `request_plan`, which spends the write budget. See
+    [guard rails](/docs/mcp/guard-rails#which-tools-can-each-role-call).
+  </Step>
+  <Step title="Grant what it may reach">
+    Under **Access**, tick the Projects, Environments or Services it may reach. Access starts empty,
+    and granting a Service grants its Environment and Project too. For an agent that fixes the
+    storefront, tick `web` in `production` of `storefront`, nothing more. You can save with nothing
+    ticked and grant later with **Manage access**.
+  </Step>
+  <Step title="Choose when the key expires, and copy it">
+    Under **First key expires**, pick 30 days, 90 days (the default) or a year. There is no
+    never-expiring agent key. Press **Create Agent** and copy the key: this is the only time it is
+    readable. The Connect panel appears under it.
+  </Step>
+</Steps>
+
+<Callout type="warn" title="Treat the key as a password">
+  Anyone holding the key acts as the Agent until it expires or you revoke it. Keep it out of files
+  you commit; the configurations below read it from the environment.
+</Callout>
+
+## Add Cloudgate to your client
+
+The Connect panel shows one tab per client, with your console's address already filled in. The
+address is your console's origin plus `/mcp`: `https://cloudgate.octabyte.app/mcp` on the Hosted
+instance, and here `https://cloud.northwind.example/mcp` for a self-hosted one.
+
+<Screenshot name="agent-connect" alt="The Connect panel for the deploy-bot Agent, with tabs for Claude Code, VS Code, Cursor, Codex CLI and Any other client" caption="The panel never shows the key; it names the CLOUDGATE_AGENT_KEY variable instead." />
+
+<Tabs group="mcp-client">
+  <Tab label="Claude Code">
+In `.mcp.json` at the root of your project. Set `CLOUDGATE_AGENT_KEY` to the key in the environment
+you start Claude Code from; it asks once before it uses a project's `.mcp.json`.
+
+```json
+{
+  "mcpServers": {
+    "cloudgate": {
+      "type": "http",
+      "url": "https://cloud.northwind.example/mcp",
+      "headers": { "Authorization": "Bearer ${CLOUDGATE_AGENT_KEY}" }
+    }
+  }
+}
+```
+
+Connected with Claude Code 2.1.278.
+  </Tab>
+  <Tab label="VS Code">
+In `.vscode/mcp.json`. VS Code asks for the key the first time it starts the server and keeps it in
+its own secret storage, so no environment variable is needed.
+
+```json
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "cloudgate-agent-key",
+      "description": "Cloudgate agent key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "cloudgate": {
+      "type": "http",
+      "url": "https://cloud.northwind.example/mcp",
+      "headers": { "Authorization": "Bearer ${input:cloudgate-agent-key}" }
+    }
+  }
+}
+```
+
+Checked against VS Code's documentation at 1.138.0.
+  </Tab>
+  <Tab label="Cursor">
+In `~/.cursor/mcp.json`. Set `CLOUDGATE_AGENT_KEY` to the key in the environment you start Cursor
+from.
+
+```json
+{
+  "mcpServers": {
+    "cloudgate": {
+      "url": "https://cloud.northwind.example/mcp",
+      "headers": { "Authorization": "Bearer ${env:CLOUDGATE_AGENT_KEY}" }
+    }
+  }
+}
+```
+
+Checked against Cursor's documentation at 3.6.31.
+  </Tab>
+  <Tab label="Codex CLI">
+In `~/.codex/config.toml`. Set `CLOUDGATE_AGENT_KEY` to the key in the environment you start Codex
+from; Codex sends it as the bearer token.
+
+```toml
+[mcp_servers.cloudgate]
+url = "https://cloud.northwind.example/mcp"
+bearer_token_env_var = "CLOUDGATE_AGENT_KEY"
+```
+
+Read back by Codex CLI 0.155.1; its documentation confirms the header.
+  </Tab>
+  <Tab label="Any other client">
+Any MCP client that speaks Streamable HTTP and can send a header. Replace `<agent key>` with the
+key, or with your client's way of reading `CLOUDGATE_AGENT_KEY`.
+
+```json
+{
+  "url": "https://cloud.northwind.example/mcp",
+  "headers": { "Authorization": "Bearer <agent key>" }
+}
+```
+
+The client must not send an `Origin` header, and a client on a 2025 protocol revision must send an
+`Accept` header naming both `application/json` and `text/event-stream`. MCP clients do both already.
+  </Tab>
+</Tabs>
+
+Set the variable before you start the client, for example in your shell profile:
+
+```bash
+export CLOUDGATE_AGENT_KEY=<agent key>
+```
+
+## Check that it is connected
+
+Ask the agent "list my Cloudgate Projects". It should call `list_projects` and answer with the
+Projects you granted, and the Agent's row in the console changes **Last connected** from
+"No client has connected yet" to a time. If it does not:
+
+| What you see | Why | Fix |
+|---|---|---|
+| 401 "This key is not valid." | The key is wrong, revoked, or the variable is not set where the client starts | Check `CLOUDGATE_AGENT_KEY` in that environment |
+| 401 "…this is a personal key." | A Personal key was used | Use the Agent's key |
+| 401 "This agent key expired on …" | The key ran out | **Add key** on the Agent's row |
+| 403 "…suspended by an operator." | Someone suspended the Agent | **Resume** on its row |
+| 403 before any tool runs | Something in front of Cloudgate adds an `Origin` header | Stop adding it for `/mcp` |
+| The tool list is empty | The Agent's role is Caller | Change its role to Reader or Operator |
+| Empty lists, or "Not found or not permitted." | Nothing is granted | **Manage access** on its row |
+
+More refusals, with what each means, are in [guard rails](/docs/mcp/guard-rails#what-errors-can-a-call-return).
+
+## Give an agent access to your repository
+
+Cloudgate's grant reaches Projects, Environments and Services, never your git provider. An agent
+that pushes a fix and then asks for a [requested preview](/docs/guide/previews) of its branch needs
+write access to the repository the Application builds from. Give the AI tool that access with your
+git provider, scoped as you see fit; nothing in Cloudgate asks for it.
+
+## Rotate or revoke a key
+
+Press **Add key** on the Agent's row, put the new key in the client, then **Revoke** the old one. The
+Agent's other keys keep working throughout. The **Connect** action on the row shows the client
+configuration again, but never a key. The [Agents guide](/docs/guide/agents) covers suspending and
+deleting an Agent, and the [audit log](/docs/guide/audit-log) shows every call each key made.

@@ -338,7 +338,7 @@ const description =
           <input type="radio" name="ci" id="ci-sh" />
           <label for="ci-sh">Any CI job</label>
         </div>
-        <pre class="code pane pane--gh"><code><span class="k">name</span>: Deploy
+        <pre class="code pane pane--gh" tabindex="0" aria-label="GitHub Actions workflow"><code><span class="k">name</span>: Deploy
 <span class="k">on</span>:
   <span class="k">push</span>:
     <span class="k">branches</span>: [<span class="s">main</span>]
@@ -357,7 +357,7 @@ const description =
           <span class="k">CLOUDGATE_PROJECT</span>: <span class="s">shop</span>
           <span class="k">CLOUDGATE_ENV</span>: <span class="s">production</span>
           <span class="k">CLOUDGATE_SERVICE</span>: <span class="s">web</span></code></pre>
-        <pre class="code pane pane--sh"><code><span class="d"># in your CI job</span>
+        <pre class="code pane pane--sh" tabindex="0" aria-label="Shell CI job"><code><span class="d"># in your CI job</span>
 <span class="s">export</span> CLOUDGATE_KEY=<span class="d">&lt;Personal key from your secrets&gt;</span>
 <span class="s">export</span> CLOUDGATE_PROJECT=<span class="s">shop</span>
 <span class="s">export</span> CLOUDGATE_ENV=<span class="s">production</span>

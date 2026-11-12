@@ -1,9 +1,16 @@
 import type { APIRoute } from 'astro';
 import { site, plans, addOn, trialDays, deployUrl } from '../data/site';
 import { templatesHome } from '../data/template-links';
+import { getDocsNav } from '../data/docs-nav';
+import { getCollection } from 'astro:content';
 
 // llms.txt (https://llmstxt.org): a plain summary an AI assistant can read in one request.
-export const GET: APIRoute = () => {
+export const GET: APIRoute = async () => {
+  const docsNav = await getDocsNav();
+  const docsMeta = new Map((await getCollection('docs')).map((e) => [`/docs/${e.id}`, e.data.description]));
+  const docLines = docsNav
+    .map((s) => `### ${s.title}\n\n` + s.groups.flatMap((g) => g.links).map((l) => `- [${l.title}](${site.url}${l.href})${docsMeta.get(l.href) ? `: ${docsMeta.get(l.href)}` : ''}`).join('\n'))
+    .join('\n\n');
   const planLines = plans.map((p) => `- ${p.name}: $${p.price} a month. ${p.includes.join('; ')}.`).join('\n');
 
   const body = `# ${site.name}
@@ -48,9 +55,16 @@ ${planLines}
 - [Contact](${site.url}/contact): support, sales and security contacts
 - [Legal](${site.url}/legal): terms of service, privacy policy, acceptable use, cookies, subprocessors and the DPA
 
+## Documentation
+
+- [Documentation home](${site.url}/docs): the user guide, API reference, CLI and MCP references
+
+${docLines}
+
 ## Optional
 
-- [Full site text](${site.url}/llms-full.txt): every page above as plain text, in one file
+- [Full site text](${site.url}/llms-full.txt): every marketing page above as plain text, in one file
+- [Full docs text](${site.url}/llms-docs.txt): every documentation page as Markdown, in one file
 - [Sitemap](${site.url}/sitemap-index.xml)
 
 ## App templates

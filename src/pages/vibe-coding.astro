@@ -944,9 +944,8 @@ const faq = [
     justify-self: start;
     padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-sm);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--warn);
+    background: color-mix(in oklab, var(--warn) 6%, var(--surface));
+    border: 1px solid color-mix(in oklab, var(--warn) 35%, var(--line));
     font-size: var(--text-sm);
   }
   .alert strong {

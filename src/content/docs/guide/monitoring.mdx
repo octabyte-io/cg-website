@@ -1,0 +1,153 @@
+---
+title: Monitoring, uptime and logs
+seoTitle: Monitor Servers, uptime, errors and logs
+description: Watch Server CPU and memory, add Uptime checks and an Error-rate threshold, follow Incidents, and read traces, runtime logs and access logs for your Services.
+lede: Cloudgate samples your Servers, probes your Services and keeps the logs you need to find out what went wrong. Start here when something is slow, down, or failing.
+section: guide
+group: Operate
+order: 2
+navTitle: Monitoring
+badges: ['Members read', 'Configuring a check needs update on the Service']
+howto:
+  name: Add an Uptime check to a Service
+  steps:
+    - { name: Open the Health tab, text: 'Open the Application and its Health tab.' }
+    - { name: Add a check, text: 'Under Uptime checks, press Add an Uptime check.' }
+    - { name: Choose the target, text: 'Pick HTTP and a Domain, or TCP and a published port, and set the interval and expected statuses.' }
+    - { name: Save, text: 'Save the check. After 3 downs in a row by default, an Incident opens and your channels hear about it.' }
+faq:
+  - { q: How often am I notified about one problem?, a: 'Twice: once when the Incident or Server threshold breach opens and once when it closes, with the reason. There is no repeat while it stays open.' }
+  - { q: Where do Uptime checks run from?, a: 'From the host Cloudgate itself runs on, not from several places on the internet. A failure means that host could not reach the Service.' }
+  - { q: Why does my Service show no error rate?, a: 'Error rate is counted per Domain from Traefik. A Service without a Domain, every Database, and a Server whose Traefik does not keep request metrics have none.' }
+  - { q: Can an Agent change my alerts?, a: 'No. An Agent can read a Service''s health but never adds, edits or turns off a check or threshold.' }
+---
+
+Monitoring has three layers: the **Server** (CPU, memory, disk, network), the **Service** (Uptime
+checks, Error rate, Incidents, traces) and the **logs** (runtime logs and access logs). Problems
+become an **Incident** and reach the channels you set up in
+[Notifications](/docs/guide/notifications).
+
+## What you can do
+
+- Watch live and stored CPU, memory, disk and network for every Server.
+- Get notified when a Server's CPU or memory crosses a threshold.
+- Probe a Domain over HTTP, or a port over TCP, and open an Incident when it is down.
+- Open an Incident when too many of a Service's requests fail with a 5xx.
+- Turn on traces for an Application or a Compose stack.
+- Read a Service's runtime log, and every request Traefik answered.
+
+## Watch Server metrics
+
+Open **Monitoring** in the rail. It shows CPU, memory, disk and network for every Server, live and
+from the samples Cloudgate stores. Sampling is off until you start it for a Server.
+
+<Steps>
+<Step title="Start sampling">
+On a Server's card, press **Start sampling**. Set **Sample every**, **Keep samples for** (days),
+and **Run the cleanup** (a cron expression that deletes older samples).
+<Screenshot name="monitoring" alt="The Monitoring screen of Northwind Labs, with CPU, memory, disk and network charts for the fra-1 and nyc-edge Servers" caption="Every Server on one screen, live and from stored samples." />
+</Step>
+<Step title="Set thresholds">
+Set **Notify above CPU** and **Notify above memory** as percentages. `0` means off.
+</Step>
+<Step title="Choose containers">
+Optionally, set **Sample containers every**, **Collect container metrics for** and **Never collect
+for**. An exclusion beats an inclusion.
+</Step>
+</Steps>
+
+Cloudgate reads the figures over SSH. Later, **Save changes** edits the settings and **Stop keeping
+a history** stops storing samples; samples already stored are kept.
+
+### How Server thresholds notify
+
+A breach opens on the first sample above the threshold and closes on the first sample at or under
+it. Each breach is announced exactly twice, when it opens and when it closes, to every channel
+subscribed to **A Server crossed a threshold**. Setting the threshold to `0` while breached closes
+it. A breach is not an Incident and keeps no history.
+
+## Add an Uptime check
+
+<Steps>
+<Step title="Open the Health tab">
+Open the Service, for example `web`, and its **Health** tab.
+<Screenshot name="service-health" alt="The Health tab of the web Application, with an HTTP Uptime check on shop.northwind.example, its error rate and incident history" caption="Uptime checks, Error rate and Incident history on one tab." />
+</Step>
+<Step title="Add a check">
+Under **Uptime checks**, press **Add an Uptime check**. Choose the **Kind**: HTTP reads a
+Domain's status line, TCP only asks whether a published port accepts a connection. The kind is
+fixed once the check is added.
+</Step>
+<Step title="Set the rule">
+Set **Interval (seconds)** (30 seconds to an hour), **Timeout (seconds)**, **Expected statuses**
+(such as `2xx` or `301`; redirects are not followed), an optional **Required keyword** and one
+header. **Downs in a row before an Incident opens** is 3 by default.
+</Step>
+</Steps>
+
+The check probes from the host Cloudgate runs on. **Turn off** pauses it and closes an open
+Incident; **Turn on** resumes it.
+
+## Alert on a high error rate
+
+**Error rate** is the share of a Service's requests that Traefik answered with a 5xx, per Domain,
+over the last 24 hours. It needs **Request metrics** turned on for that Server's Traefik, which
+restarts Traefik.
+
+To be told when it climbs, press **Add a threshold** under **Error-rate threshold**:
+
+| Field | Default | Choices |
+|---|---|---|
+| **Error rate (%)** | 5 | any percentage |
+| **Window** | 5 minutes | 1, 5, 15 or 30 minutes |
+| **Minimum requests in the window** | 20 | a quieter window is not judged |
+
+A Service has at most one threshold. A Database has none.
+
+## Follow an Incident
+
+An Incident is the stretch during which one Uptime check is down or one Error-rate threshold is
+breached. It opens, is announced once, and closes on recovery, a Stop of the Service, or the check
+being turned off, announced once more with the reason. **Incident history** on the Health tab
+lists every Incident, its opening error and its close reason.
+
+## Turn on traces
+
+Open the **Traces** tab of an Application or a Compose stack and press **Turn on**. Choose how long
+traces are kept: 1, 3 or 7 days, 3 by default. It takes effect at the next Deployment, when
+Cloudgate gives the Service where to send OpenTelemetry traces. The trace store runs on the same
+Server, and Cloudgate never instruments your code: an app that sends nothing has no traces.
+
+## Read runtime and access logs
+
+- **Runtime log**: the **Logs** tab of a Service shows what it writes. On a Server it is Docker's
+  output; in a cloud it comes from CloudWatch or Google's log store, a few seconds behind. Dock it
+  to keep it open while you move around the console.
+- **Access log**: **Requests** in the rail, or a Service's **Requests** tab, lists one line per
+  request Traefik answered, with filters by Service, status and method, and a requests-per-hour
+  chart. It needs request logging on that Server, which restarts Traefik. Query values are hidden.
+  Files are rotated hourly and deleted within 30 days.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- Uptime checks run from one place, the host Cloudgate runs on.
+- There is no flap detection and no maintenance window. Probes and samples are kept for a week.
+- A Database takes only a TCP check, after you publish a port, and has no Error rate.
+- Traces are not available for Databases or preview deployments.
+- Access logs and traces are not available for Services in a Cloud account.
+- Agents read health, but never configure checks or thresholds, and read no access log or traces.
+</Callout>
+
+Reading health and logs needs `read` on the Service; adding or changing a check, threshold or
+traces needs `update` on it. Starting sampling on the host Cloudgate runs on is for owners and
+admins.
+
+## Related pages
+
+- [Notifications](/docs/guide/notifications): choose where Incidents and threshold breaches go.
+- [Domains](/docs/guide/domains): the hosts Uptime checks and Error rate work on.
+- [Servers](/docs/guide/servers): request logging and request metrics on a Server's Traefik.
+- [Agents](/docs/guide/agents): what an Agent can read from health.
+- [Troubleshooting](/docs/help/troubleshooting).
+- [All Cloudgate features](/features).

@@ -1,0 +1,191 @@
+---
+title: Instance settings for self-hosted owners
+seoTitle: Self-hosted Cloudgate instance settings guide
+description: Run a self-hosted Cloudgate instance from its console, from the Enterprise license and branding to Traefik, disk maintenance, build limits, registries and SSH keys.
+lede: A self-hosted instance has settings the Hosted one keeps to itself, for the machine Cloudgate runs on. This page walks through each one, who may change it, and which ones to leave alone.
+section: self-host
+order: 3
+navTitle: Instance settings
+badges: ['Self-hosted only', 'Owner or Admin of the Instance organization']
+faq:
+  - { q: Who can change the instance settings?, a: 'The owners and admins of the Instance organization, the first Organization on the instance. People only: an Agent never can, even one in that Organization.' }
+  - { q: Why does the console still build one Deployment at a time after I raised Concurrent builds?, a: 'The setting is saved, but it takes effect only while an Enterprise license is active. Without one, each Server builds one Deployment at a time.' }
+  - { q: Can I update Cloudgate from the console?, a: 'Not on a native install. <strong>Update and restart</strong> is turned off there. Pull the new version and run the install script again.' }
+---
+
+The settings in this page live under **Settings**, in the **Platform** group (**Traefik**,
+**Instance**, **Maintenance**) and the **Enterprise** group (**License**, **Branding**). The
+Platform group is hidden on the Hosted instance. For installing the instance in the first place,
+see [Install Cloudgate](/docs/self-host/install).
+
+## What you can do
+
+- Activate or release an Enterprise license for an Organization.
+- Rename and recolour the console with your own branding.
+- Serve the console on a domain, and see the instance's version and health.
+- Set how many builds and Cloud runs the server runs at once, and how long a Requested preview may live.
+- Edit Traefik's files, restart it, and turn on request metrics.
+- Reclaim disk and schedule nightly clean-ups.
+- Connect container registries, and manage the SSH keys Cloudgate signs in to Servers with.
+
+<Callout type="limit" title="Who may change these">
+  Traefik, Instance and Maintenance control the machine every Organization shares, so only owners and
+  admins of the **Instance organization** (the first Organization made on the instance) may change
+  them. Registries and SSH keys belong to each Organization and take its owner or admin. No Agent can
+  change any setting.
+</Callout>
+
+## Activate an Enterprise license
+
+<Steps>
+<Step title="Turn on enterprise features">
+
+Open **Settings** > **License** and switch on **Use enterprise features in this Organization**.
+Activation is refused while that switch is off.
+
+</Step>
+<Step title="Paste the key and activate">
+
+Paste the key you were sent (it looks like `CG-XXXX-XXXX-XXXX`) and press **Activate**. Cloudgate
+checks it with the license server before storing it. The status reads **Licensed**, with the date
+the license runs until.
+
+
+</Step>
+</Steps>
+
+A license unlocks custom roles, single sign-on, SCIM, forward auth, more than one Organization,
+branding, and parallel builds and Cloud runs. **Release the key** frees it, also on the license
+server, so you can activate it on another instance. Owners and admins see a bar across the console
+from 14 days before the license ends.
+
+<Callout type="limit" title="When it lapses">
+  Settings are kept and nothing is deleted. The licensed features stop: builds and Cloud runs go back
+  to one at a time, branding becomes read-only, and new Organizations, custom roles, SSO sign-ins,
+  SCIM additions and forward auth changes are refused.
+</Callout>
+
+## Brand the console
+
+**Settings** > **Branding** replaces Cloudgate's look across the instance. It needs an active
+Enterprise license.
+
+- **Name and marks**: **Name** (replaces Cloudgate in the tab title, beside the mark and on the
+  sign-in screen), **Logo URL** and **Favicon URL**.
+- **Colors**: **Primary** (buttons, the focus ring, the first chart series; their label is white, so
+  choose a dark enough colour) and **Accent** (links and highlights). One colour serves both themes,
+  so check it in light and dark.
+- **Error pages**: your own text for **Page not found** and **Page failed**, and a **Support URL**.
+- **Custom CSS**: a stylesheet loaded on every signed-in page, up to 50,000 characters.
+
+Empty a field and save to put Cloudgate's own back.
+
+## Check the instance and its health
+
+**Settings** > **Instance** shows:
+
+- **This instance**: the version, mode and image tag running, and the newest published version.
+- **Public address**: the address people reach this instance on. Cloudgate does not detect it.
+- **Health**: whether PostgreSQL and Traefik answer.
+
+
+## Serve the console on a domain
+
+**Settings** > **Instance** > **Console domain** routes a hostname to the console through Traefik,
+over HTTPS with a Let's Encrypt certificate (give an email) or **One of your own certificates**.
+The **Console routing** card under it says whether that hostname's origin is trusted yet.
+
+Sign-in on the new hostname is refused until its origin is trusted. Add it in **Settings** >
+**Single sign-on** > **Trusted origins** (licensed), or in `TRUSTED_ORIGINS` in
+`/etc/default/cloudgate-backend` followed by `systemctl restart cloudgate-backend`. Live screens
+(logs, shells, setup output) also need the API on the same hostname, and the address the console
+calls is built in, so that part is a rebuild of the console, not a setting.
+
+## Set build and Cloud run limits
+
+| Card | What it sets |
+|---|---|
+| **Concurrent builds** | How many Deployments this server builds at once, 1 to 100. Each is a full image build using CPU, memory and disk. |
+| **Cloud runs** | How many Cloud runs this server runs at once (each is an OpenTofu process of about 0.8 GB), and a **Time limit, in minutes** after which a run is stopped and ends as an error. |
+| **Requested preview lifetime** | The longest a Requested preview may be asked to live, in minutes. 1,440 (24 hours) by default. Lowering it does not shorten previews already running. |
+
+<Callout type="limit" title="Needs a license">
+  Without an active Enterprise license, both counts are saved but the server still builds one
+  Deployment at a time per Server and runs one Cloud run at a time.
+</Callout>
+
+## Work with Traefik
+
+**Settings** > **Traefik** is the Traefik container that serves every app on the Cloudgate server.
+
+- **Files**: **Main configuration** (`traefik.yml`), **Shared middlewares** (including the
+  redirect to HTTPS every HTTPS domain uses) and **This console's router**.
+- Its environment variables and published ports.
+- **Publish the dashboard on 8080**: opens Traefik's dashboard with no password. Leave it off on a public server.
+- **Restart Traefik**: needed after editing `traefik.yml`, which is read once at start. It interrupts live traffic.
+- **Request metrics**: lets Traefik count requests, which is what each Service's Error rate is read from. Turning it on restarts Traefik.
+
+Remote Servers have the same switches for their own Traefik on their **Settings** tab. See
+[Monitoring](/docs/guide/monitoring) for what request metrics feed.
+
+## Keep the disk clean
+
+**Settings** > **Maintenance** shows Docker's **Disk usage** and two ways to reclaim it.
+
+- **Reclaim disk**: **Remove stopped containers**, **Remove unused images**, **Remove unused
+  volumes**, **Empty the build cache** and **Delete metrics**, each on its own. Each Docker command
+  first waits up to 10 minutes for any build or pull to finish.
+- **On a schedule**: **Prune Docker every night at 23:50** (on by default; never touches volumes)
+  and **Rotate Traefik's access log**.
+
+<Callout type="warn" title="Unused volumes include stopped databases">
+  **Remove unused volumes** deletes every volume no container uses, including the data of a database
+  you stopped. It cannot be undone, which is why it never runs on a schedule.
+</Callout>
+
+## Settings to leave alone
+
+<Callout type="warn" title="Do not press these on a server you care about">
+  - **Prune everything** and **Run every cleanup** (Maintenance): both take images a rollback point may still need.
+  - **Update and restart** (Instance): turned off on a native install; upgrade with the install script instead.
+  - **Restart Cloudgate** (Instance): refused on a native install; use `systemctl restart cloudgate-backend cloudgate-console`.
+  - **Empty the build queue** (Instance): drops every Deployment waiting to start. A build already running is not touched.
+</Callout>
+
+## Connect a registry
+
+**Settings** > **Registries** > **Connect a registry** stores a login for pulling and pushing images:
+a name, whether it is **Hosted by someone else** (such as Docker Hub) or **One you run**, the
+hostname, an image prefix, a username and a password or access token. Press **Test connection**
+before you save. An Application's build can then push its image there instead of keeping it on the
+build Server. Cloud Services never use a registry.
+
+## Manage SSH keys
+
+SSH keys belong to the Organization and are managed from **Servers** > **Manage SSH keys**: press
+**Generate one** or **Paste one I have**. Each key shows the line that goes in a machine's
+`~/.ssh/authorized_keys`. A Server's **Access** tab changes which key it uses, and shows its host key
+fingerprint. See [Servers](/docs/guide/servers).
+
+## The machine Cloudgate runs on
+
+The **platform host** is the machine Cloudgate itself runs on. It has no Server row of its own, so
+an Environment can choose **This Cloudgate host** as its Deploy target. On **Servers**, the **This
+host** card opens a shell on it; only owners and admins of the Instance organization see it. Its
+GPU setup, metrics and Traefik are the Instance organization's too.
+
+## What you cannot do here
+
+<Callout type="limit" title="Not in the console">
+  - Reset another person's password or two-factor. That needs mail settings, or root on the server.
+  - Update a native install.
+  - Change `CLOUDGATE_PUBLIC_HOST`. That is a rebuild with the install script.
+  - Give the platform host's settings to another Organization's owners, or to any Agent.
+</Callout>
+
+## Related pages
+
+- [Install Cloudgate](/docs/self-host/install) and [Self-hosting Cloudgate](/docs/self-host).
+- [Single sign-on and SCIM](/docs/guide/sso-and-scim), [Members and roles](/docs/guide/members-and-roles) and the [Audit log](/docs/guide/audit-log).
+- [Deployments](/docs/guide/deployments) for the build queue, and [Previews](/docs/guide/previews).
+- [Self-host Cloudgate](/self-hosted) for the overview.

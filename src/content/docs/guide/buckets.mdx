@@ -1,0 +1,167 @@
+---
+title: Buckets
+seoTitle: S3-compatible buckets for your Services
+description: Add an S3-compatible bucket in the Project config, link its name, endpoint and key to your Services, allow browser uploads, and back it up on a Server.
+lede: A bucket is a Service that holds files your other Services read and write, and runs nothing itself. The same config gives you a Garage bucket on a Server, S3 on AWS, or Cloud Storage on Google Cloud.
+section: guide
+group: Services
+order: 3
+badges: ['Created by the Project config', 'Server, AWS and Google Cloud']
+howto:
+  name: Add a bucket and link it to a Service
+  steps:
+    - { name: Write the bucket in the Project config, text: 'Add an entry with kind bucket, such as uploads, to the Project config.' }
+    - { name: Link its Outputs, text: 'Under the Service that uses it, link variables to the bucket Outputs: name, region, endpoint, path_style, access_key_id and secret_access_key.' }
+    - { name: Apply the Plan, text: 'Save the config or push it, review the Plan in each Environment and press Apply.' }
+    - { name: Deploy the Service, text: 'Deploy the linked Service so its container gets the values.' }
+faq:
+  - { q: How do I create a bucket in the console?, a: 'You do not press a button for it: a bucket is created by the Project config. Add an entry with kind bucket and apply the Plan.' }
+  - { q: Why are the key variables empty on AWS?, a: 'On AWS a bucket has no key. Each Service reaches it with its own task role, so variables linked to access_key_id and secret_access_key are left unset and the AWS SDK finds its credentials by itself.' }
+  - { q: Does deleting a bucket delete its files?, a: 'Only if you tick Also delete its files. A bucket that still holds files is otherwise kept, and the Delete report names it.' }
+---
+
+The examples use a bucket named `uploads` in the `storefront` Project and the `web` Application
+that stores customer images in it.
+
+## What you can do
+
+- Add a bucket in the [Project config](/docs/guide/project-config) and link it to any number of
+  Services.
+- Read the same six Outputs on every target, so one codebase works on a Server and in a cloud.
+- Allow web pages to upload straight from a browser.
+- Give a bucket on a Server its own Domain, and rotate its key.
+- Back up and restore a bucket on a Server.
+- Use a bucket you already have in a cloud, as given.
+
+## Add a bucket
+
+A bucket is created only by the Project config. The console has no add button for it.
+
+<Steps>
+<Step title="Write it in the Project config">
+Add an entry with `kind: bucket`, and link its Outputs under the Service that uses it:
+
+```yaml
+version: 1
+services:
+  uploads:
+    kind: bucket
+  web:
+    kind: web
+    source:
+      github: northwind/storefront
+    env:
+      - S3_BUCKET: uploads.name
+      - AWS_REGION: uploads.region
+      - S3_ENDPOINT: uploads.endpoint
+      - S3_FORCE_PATH_STYLE: uploads.path_style
+      - AWS_ACCESS_KEY_ID: uploads.access_key_id
+      - AWS_SECRET_ACCESS_KEY: uploads.secret_access_key
+```
+</Step>
+<Step title="Review and apply the Plan">
+Save the config in Cloudgate, or push it to the Config branch. Each Environment shows a Plan that
+creates the bucket; press **Apply**.
+</Step>
+<Step title="Deploy the Service">
+Deploy `web`. Each linked value reaches its container at the deploy and is never saved on the
+Service.
+</Step>
+</Steps>
+
+## What each Output is
+
+| Output | On a Server | On AWS |
+|---|---|---|
+| `name` | the bucket's real name, made by Cloudgate | the same |
+| `region` | `us-east-1` | the Environment's region |
+| `endpoint` | the bucket's Domain while it has one, else its internal URL | `https://s3.<region>.amazonaws.com` |
+| `access_key_id`, `secret_access_key` | the bucket's key | no value: the Service's task role gives access |
+| `path_style` | `"true"` | `"false"` |
+
+There is no `url`. On Google Cloud the bucket is a Cloud Storage bucket with its own key, shared
+by every Service that links it.
+
+<Callout type="warn" title="Do not pass the keys to your S3 client by hand on AWS">
+On AWS the key variables are left unset, not set to empty. An app that builds its client with
+`credentials` from those variables gets an undefined key. Leave `credentials` out and let the SDK
+find the task role, so the same code works everywhere.
+</Callout>
+
+## Open a bucket's screen
+
+A bucket has one screen, reached from its Environment's **Services** tab. It shows its
+**Real name**, **Region** and **Access**, and these cards:
+
+- **Key**: the one key every linking Service reads and writes with, and **Rotate key**.
+- **Browser uploads**: the web origins trusted to upload straight from a browser.
+- **Domains**: where a bucket on a Server answers S3 requests from the internet.
+- **Volume backups** and **Restore**, on a Server.
+
+<Screenshot name="bucket-screen" alt="The screen of the uploads bucket, with its real name, region, key card and browser uploads card" caption="The oldest Domain is the bucket's endpoint." />
+
+## Let a browser upload to the bucket
+
+On **Browser uploads**, press **Add origin** and enter the origin as a browser sends it, such as
+`https://shop.northwind.example`, with no path. Origins are set per Environment and start empty.
+
+## Give a bucket on a Server a Domain
+
+A bucket on a Server is reached only from that Server until you press **Add a domain** on its
+**Domains** card. Presigned URLs and browser uploads need it: a browser cannot reach the internal
+URL.
+
+## Rotate a bucket's key
+
+Press **Rotate key** on the **Key** card. Cloudgate makes a new key, then deploys every Service
+that links the bucket again with it. If that fails, the Services are put back on the old key.
+
+<Callout type="warn" title="Rotating redeploys">
+Every Service that links this bucket's key is deployed again. Plan it like a deploy.
+</Callout>
+
+## Where a bucket lives
+
+| Target | What Cloudgate makes |
+|---|---|
+| Server | its own Garage storage container and volume, S3-compatible |
+| AWS | an S3 bucket, versioning off, Block Public Access on; no key |
+| Google Cloud | a Cloud Storage bucket with its own service account and key |
+
+On AWS a presigned URL is signed with the task role's short-lived credentials, so it stops working
+when they expire. Make one just before it is used.
+
+## Use a bucket you already have
+
+When a Plan would create a bucket in a Cloud account, choose **Use an existing bucket** on that
+line and name it. Cloudgate never changes it. On Google Cloud you add one access grant yourself; the
+bucket's **Access** card shows the exact command and checks it. Deleting the Service leaves the
+bucket and its files as they were.
+
+## Delete a bucket
+
+Remove the entry from the Project config, or delete it from its screen with **Delete bucket**,
+confirming its name. A bucket that holds files is kept and named in the report unless you tick
+**Also delete its files**.
+
+<Callout type="warn" title="Deleted files are gone">
+**Also delete its files** removes every file in the bucket. There is no copy unless you made a
+volume backup.
+</Callout>
+
+## What you cannot do
+
+- Create a bucket from a console button: use the Project config.
+- Link a bucket in another place: a Service and its bucket must be on the same Server, or in the
+  same Cloud account and region. The Plan refuses it and names the variable.
+- Use a key on AWS: access is the Service's own role.
+- Change a bucket's policy, CORS or versioning from a linked Service.
+- Count on a presigned URL on AWS lasting more than about an hour.
+
+## Related pages
+
+- [The Project config and Plans](/docs/guide/project-config).
+- [Wired variables](/docs/guide/environment-variables).
+- [Volume backups and restore](/docs/guide/backups).
+- [Databases](/docs/guide/databases), linked the same way.
+- [Cloud accounts](/docs/guide/cloud-accounts).

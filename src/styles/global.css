@@ -42,6 +42,10 @@
   --beam-b: #b5b0ff;
   --beam-c: #ffc4a3;
   --glow: rgba(141, 120, 255, 0.35);
+  /* Buttons lift with a neutral shadow on dark surfaces; a coloured halo there reads as decoration. */
+  --btn-shadow: rgba(0, 0, 0, 0.5);
+  /* The night surfaces stay dark in both themes, so their buttons always take the neutral shadow. */
+  --night-shadow: rgba(0, 0, 0, 0.5);
   --grid-line: rgba(181, 176, 255, 0.06);
   --panel-top: rgba(255, 255, 255, 0.06);
   --radius-lg: 22px;
@@ -110,6 +114,7 @@
   --slice-2: #9181e8;
   --slice-3: #b6abf0;
   --glow: rgba(109, 87, 224, 0.22);
+  --btn-shadow: rgba(109, 87, 224, 0.22);
   --grid-line: rgba(90, 68, 207, 0.07);
   --panel-top: rgba(255, 255, 255, 0.9);
   --spot-ring: rgba(90, 68, 207, 0.7);
@@ -137,6 +142,7 @@
     --slice-2: #9181e8;
     --slice-3: #b6abf0;
     --glow: rgba(109, 87, 224, 0.22);
+  --btn-shadow: rgba(109, 87, 224, 0.22);
     --grid-line: rgba(90, 68, 207, 0.07);
     --panel-top: rgba(255, 255, 255, 0.9);
     --spot-ring: rgba(90, 68, 207, 0.7);
@@ -205,6 +211,10 @@ h3 {
 
 p {
   margin: 0;
+  text-wrap: pretty;
+}
+/* Short copy in lists and definitions avoids a one-word last line too. */
+:is(li, dd, figcaption, td) {
   text-wrap: pretty;
 }
 
@@ -334,7 +344,7 @@ pre {
   font-weight: 600;
   box-shadow:
     0 0 0 1px var(--brand-hi) inset,
-    0 8px 30px -8px var(--glow);
+    0 8px 30px -8px var(--btn-shadow);
 }
 @media (hover: hover) and (pointer: fine) {
   .btn--primary:hover {

@@ -1,0 +1,11 @@
+---
+// Alternatives for the same step (one MCP client or another, macOS or Linux). Children are <Tab label>.
+// Without JavaScript every panel shows under its own label; with it, a tab list picks one, and the
+// choice is remembered per `group` so every Tabs with the same group follows it.
+interface Props { group?: string }
+const { group } = Astro.props;
+---
+<div class="tabs" data-tabs={group ?? ''}>
+  <div class="tabs-list" role="tablist" hidden></div>
+  <div class="tabs-panels"><slot /></div>
+</div>

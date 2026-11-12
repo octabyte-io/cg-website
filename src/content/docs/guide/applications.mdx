@@ -1,0 +1,171 @@
+---
+title: Applications
+seoTitle: Add and configure an Application to deploy
+description: Create an Application from git, a Docker image or uploaded files, pick a builder, a kind and a size, and set its port, replicas and health check.
+lede: 'An Application is a Service Cloudgate builds from a source and runs as a container. This page covers adding one and the settings you are most likely to change: source, builder, kind, size, ports and health.'
+section: guide
+group: Deploy
+order: 3
+badges: ['Owner or Admin to create', 'Members can change settings']
+howto:
+  name: Add an Application and deploy it
+  steps:
+    - { name: 'Add the Application', text: 'In an Environment, open Services, press Add an Application, name it and pick its Server.' }
+    - { name: 'Set its source', text: 'On its Overview, open the Source card, press Change source and choose a git provider, a git URL, a Docker image or uploaded files.' }
+    - { name: 'Pick a builder', text: 'On the Build card, choose the Builder: Nixpacks by default, or Railpack, Dockerfile, Static files, Heroku or Paketo buildpacks.' }
+    - { name: 'Deploy', text: 'Press Deploy. Follow the Deployment log until it is done.' }
+faq:
+  - { q: 'Which builder should I choose?', a: 'Start with Nixpacks, the default: it detects most languages without configuration. Use Dockerfile when your repository already has one, and Static files for a site that is only HTML, CSS and JavaScript.' }
+  - { q: 'Can I move an Application to another Server?', a: 'No. Its Server or Cloud account is fixed when it is created. Create a new Application on the other Server and delete the old one.' }
+  - { q: 'How do I run more than one copy?', a: 'Set Replicas on the Advanced tab, in the Resources card. The count is kept per Environment in the console, never in cloudgate.yaml. Zero stops it without deleting anything.' }
+  - { q: 'Is a health check the same as an uptime check?', a: 'No. The health check is the container''s own HEALTHCHECK, set under Advanced. An Uptime check is a request from outside, set on the Health tab.' }
+---
+
+An Application is one kind of Service; the others are databases and Compose stacks. Each
+Application has a **kind** (`web`, `worker`, `web-private`, `cron` or `static`) that decides
+whether it gets an address, and a **Size** that caps its CPU and memory.
+
+## What you can do
+
+- Build from GitHub, GitLab, Bitbucket, Gitea, any git URL, a ready-made Docker image, or a `.zip`
+  of your files.
+- Choose how it is built: Nixpacks, Railpack, Dockerfile, Static files, Heroku buildpacks or
+  Paketo buildpacks.
+- Deploy on every push, or only when you press **Deploy**.
+- Set size, replicas, ports, mounts, run command, redirects and the container health check.
+- Deploy, restart, stop, start and delete it.
+
+## Add an Application
+
+<Steps>
+<Step title="Create it">
+Open the Environment, for example `storefront / production`, then **Services** > **Add an
+Application**. Enter a name such as `web`, an optional description, and the **Server** it runs on.
+It is not deployed yet: set where its code comes from, then deploy.
+</Step>
+<Step title="Set its source">
+On the Application's **Overview**, the **Source** card has **Change source**. Choose one:
+
+- **GitHub**, **GitLab**, **Bitbucket** or **Gitea**: pick the repository, the **Branch** and the
+  **Build path** (the folder to build). Turn **Deploy automatically** on to build on every push,
+  and choose **Deploy on** a push or a tag. These need a connected git provider.
+- **Any git URL**: a **Clone URL** over SSH or HTTPS, the **Branch**, an **SSH key** for a
+  private repository, and **Clone submodules**.
+- **Docker image**: the **Image** with its tag and, for a private one, the **Registry** and its
+  credentials (**Test connection** checks them). Nothing is built.
+- **Uploaded files**: a `.zip` **Archive** and its **Build path**.
+
+<Screenshot name="application-overview" alt="The Overview of the web Application in storefront production, with its Source card showing a GitHub repository and branch" caption="The Source and Build cards on the Overview decide what is built and how." />
+
+<Screenshot name="git-providers" alt="Settings, Git providers, with the GitHub App northwind-cloudgate and the GitLab group northwind connected" caption="A connected Git provider lets you pick a repository and branch instead of typing a URL." />
+
+</Step>
+<Step title="Pick a builder">
+On the **Build** card, choose the **Builder**:
+
+| Builder | Use it when |
+|---|---|
+| **Nixpacks** (default) | You want Cloudgate to detect the language and build it. |
+| **Railpack** | You prefer Railpack's detection; you can pin its version. |
+| **Dockerfile** | Your repository has a Dockerfile. Set the Dockerfile, context and target stage. |
+| **Static files** | It is a built site. Set the **Publish directory** and **Single-page app**. |
+| **Heroku buildpacks** | Your app already builds on Heroku. |
+| **Paketo buildpacks** | You use Cloud Native Buildpacks. |
+
+**Push the image to** sends the built image to a connected registry, or keeps it on the build
+Server.
+</Step>
+<Step title="Deploy">
+Press **Deploy**. A Deployment is queued and its log streams live. A `web` Application on a Server
+gets a generated `sslip.io` Domain you can open at once. See
+[Deployments](/docs/guide/deployments).
+</Step>
+</Steps>
+
+## Choose the kind of Application
+
+The kind is set in the [Project config](/docs/guide/project-config) with `kind:`.
+
+| Kind | What it is | Address |
+|---|---|---|
+| `web` | A web app answering HTTP; default port 3000. | Domains, and a generated `sslip.io` one on a Server |
+| `worker` | Always running, no port: a queue consumer or bot. | None, and no previews |
+| `web-private` | Answers HTTP only to other Services; port required. | An internal address, such as `http://api:4000` on a Server |
+| `cron` | Runs a command on a timetable, in a fresh container each run. | None |
+| `static` | A built site of files. | Domains |
+
+Changing the kind of an existing Application deletes it and creates it again; the Plan asks you
+to confirm by typing its name. More in [Workers, private web services and cron](/docs/guide/workers-and-cron).
+
+## Set its size and replicas
+
+A **Size** caps how much CPU and memory each copy may use:
+
+| Size | CPU | Memory |
+|---|---|---|
+| `xsmall` | 0.25 | 512 MB |
+| `small` | 0.5 | 1 GB |
+| `medium` | 1 | 2 GB |
+| `large` | 2 | 4 GB |
+| `xlarge` | 4 | 8 GB |
+| `2xlarge` | 8 | 16 GB |
+
+You can also give a custom CPU and memory pair. On a Server a size is a cap only; it reserves
+nothing. Change it on the **Advanced** tab, **Resources** card (the config owns it when the config
+sets a size). **Replicas** sets how many copies run; zero stops it without deleting anything.
+Replicas are kept per Environment in the console, never in the config.
+
+## Set the port and published ports
+
+The **Container port** is the port your app listens on inside the container (**Advanced** >
+**Routing**). On a Server, saving a new port moves the Domains on the old port with it. To expose
+a port directly on the Server, outside the Domains, use **Published ports** >
+**Publish a port**.
+
+## Set a health check
+
+The container's own `HEALTHCHECK` lives under **Advanced** > **Docker Swarm**, with the other Swarm
+settings. Google Cloud Run never runs an image's
+`HEALTHCHECK`. An [Uptime check](/docs/guide/monitoring), which calls your Domain from outside and
+opens an Incident when it is down, is separate and set on the **Health** tab.
+
+## Other settings
+
+The **Advanced** tab also holds the **Runtime** run command (command and arguments), redirects and
+basic-auth users under **Routing**, volumes and mounts (**Add a mount**), and the **Danger zone**.
+Other tabs: **Variables**, **Domains**, **Logs**, **Shell**, **Schedules** (commands on a cron
+inside the running container), **Volume backups**, **Rollbacks**, **Previews** and **Patches**
+(replace, create or remove a file before the build).
+
+## Restart, stop or delete it
+
+The header holds **Deploy**, **Redeploy** (builds the source it already has), **Restart** on a
+Server or **Reload** in a cloud, and **Stop** / **Start**. Stopping in a cloud warns what still
+bills.
+
+<Callout type="warn" title="Deleting an Application">
+**Advanced** > **Danger zone** > **Delete this Application** asks you to type its name. Its volumes
+are kept unless you tick **Delete its volumes too**, which deletes their data for good.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Roles">
+Creating an Application needs the owner or admin role, or a custom role that allows creating
+Services; the member role cannot. The **Shell** tab needs permission to update the Service.
+</Callout>
+
+- An Application cannot move to another Server or cloud.
+- A `worker` cannot have a Domain or previews; a `web-private` cannot have a public Domain.
+- A Docker image source is never built, so it has no previews or patches.
+- In a Cloud account there is no **Shell** tab.
+- Uploading files is refused while a build of that Application is running.
+
+## Related pages
+
+- [Deployments and rollbacks](/docs/guide/deployments): the queue, the log and going back.
+- [Domains and HTTPS](/docs/guide/domains): give the Application your own address.
+- [Environment variables](/docs/guide/environment-variables), including wired variables from a
+  database.
+- [Databases](/docs/guide/databases) to give the Application a PostgreSQL or Redis.
+- [Features](/features) for the full list of builders and Service kinds.

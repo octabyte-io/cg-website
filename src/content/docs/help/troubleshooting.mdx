@@ -1,0 +1,182 @@
+---
+title: Troubleshooting Cloudgate
+seoTitle: Troubleshoot Cloudgate builds, Servers and domains
+description: Fixes for common Cloudgate problems, from failed builds, queued Deployments and Server setup errors to missing certificates, CLI exit codes, Agent refusals and 429s.
+lede: Each problem below is a question you might type into search, with what causes it and how to fix it. Start with the Deployment log or the error text; most answers are in one of them.
+section: help
+order: 2
+navTitle: Troubleshooting
+badges: ['Hosted and self-hosted']
+faq:
+  - { q: Where do I see why a build failed?, a: 'In the Deployment log. Open the Service''s <strong>Deployments</strong> tab and the failed Deployment, or run <code>cloudgate logs --deployment</code>. With an AI provider set up, <strong>Explain this log</strong> asks it what went wrong.' }
+  - { q: Why does my Deployment stay pending?, a: 'Without an Enterprise license each Server builds one Deployment at a time, so the next one waits for the current build. A <code>held</code> Deployment waits for a Plan instead.' }
+  - { q: What does Not found or not permitted mean for an Agent?, a: 'The Service or Environment does not exist, belongs to another Organization, or is not in the Agent''s grant. It is an access decision: retrying will not change it. An owner or admin widens the grant under <strong>Manage access</strong>.' }
+---
+
+If your problem is not here, check [What Cloudgate can and cannot do](/docs/help/limits): some
+refusals are limits rather than faults. For a self-hosted instance, also see
+[Install Cloudgate](/docs/self-host/install).
+
+## Why did my build fail?
+
+The Deployment log says. Open the Service's **Deployments** tab and press the failed Deployment; the
+**Clone**, **Build**, **Push** and **Update** phases show where it stopped. From a terminal, run
+`cloudgate logs --deployment`. If your Organization has an [AI provider](/docs/guide/ai-models) set up,
+**Explain this log** sends the lines to it and shows what it thinks went wrong.
+
+<Screenshot name="deployment-log-failed" alt="A failed Deployment of web titled Bump next to 15.5, its build log ending in a TypeScript error and Nixpacks build failed" caption="The cause is almost always in the last lines of the build log." />
+
+Common causes:
+
+- **A variable reference that is not set.** The log names it, for example
+  `DATABASE_URL refers to ${{project.DATABASE_URL}}, but DATABASE_URL is not set on the Project.`
+  Set the value on the Project or Environment, or change the reference. Variables are never
+  inherited; a Service reads a Project or Environment value only by naming it. See
+  [Environment variables](/docs/guide/environment-variables).
+- **The builder could not work out the app.** Nixpacks is the default builder. Pick another on the
+  **Build** card: **Dockerfile**, **Railpack**, **Static files** or buildpacks.
+- **A Project variable was removed** that a Service still references. That Service's next deploy fails until you put it back or change the reference.
+- **A Cloudgate restart cut it off.** The log ends with "Cut off by a Cloudgate restart before this
+  build finished". It is not restarted by itself: deploy again.
+
+To put a Service back on an earlier version, see [Deployments and rollbacks](/docs/guide/deployments).
+
+## Why is my Deployment waiting in the queue?
+
+A `pending` Deployment is waiting for a build slot. Without an Enterprise license each Server builds
+one Deployment at a time, and the rest wait their turn. With a license, a self-hosted instance builds
+up to its **Concurrent builds** setting.
+
+Other reasons a Deployment does not start:
+
+- **It is `held`.** A push changed both the code and its entry in the Project config. It waits until
+  the Environment's Plan is applied or dismissed, or until you press **Build now with saved settings**.
+- **The Organization is frozen.** A lapsed or suspended Hosted plan starts no new work. A banner says
+  so; pay or choose a plan in **Settings** > **Billing**.
+- **It is behind a stuck build.** Press **Cancel** on the running Deployment. On a self-hosted
+  instance, **Settings** > **Instance** > **Empty the build queue** drops every waiting Deployment.
+
+Deploys from the console or a git push are never merged: each press queues its own Deployment.
+
+## Why does my Server's setup fail?
+
+Open the Server's **Infrastructure** tab. **Reaching this Server** shows SSH's own words for why a
+connection failed, and the readiness findings say what is missing.
+
+- **Cloudgate could not reach that Server.** Check the address and SSH port on the **Settings** tab,
+  that the key on the **Access** tab is in the machine's `~/.ssh/authorized_keys`, and that no
+  provider firewall blocks the SSH port. "All configured authentication methods failed" means the
+  key was refused. Press **Check now** after each fix.
+- **Privilege: neither root nor sudo.** Setup refuses to run unless the SSH user is root or has
+  passwordless sudo. Point the Server at root, or give the user passwordless sudo.
+- **The host key changed.** Cloudgate refuses to connect with "The host key of Server … changed, so
+  Cloudgate did not connect". If you reinstalled the machine, press **Forget host key** on the
+  **Access** tab and connect again. If you did not, something may be intercepting the connection:
+  compare the fingerprint with `ssh-keygen -lf` on the machine first.
+- **Docker did not install.** Setup installs Docker from `get.docker.com` only if it is missing, and
+  stops if it is still missing afterwards. Make sure the machine can reach it, or install Docker
+  yourself and press **Check now**.
+
+**Run setup again** is safe: every step checks before it acts. Closing the page or the Dock never
+stops a running setup, and nothing starts one but a confirmed press. See [Servers](/docs/guide/servers).
+
+## Why does my domain have no certificate?
+
+On a Server, Traefik asks Let's Encrypt for the certificate when you save a Domain with
+**Serve over HTTPS** and **Let's Encrypt**. It cannot get one when:
+
+- **DNS does not point at the Server yet.** The DNS helper under the Domain shows the record to add
+  and checks it. Add the record, wait for it to resolve, and save the Domain again.
+- **A CDN or proxy sits in front.** If the DNS check names Cloudflare, Bunny CDN, Fastly or
+  Arvancloud, Cloudgate cannot see past the proxy. When the CDN ends TLS itself, turn
+  **Serve over HTTPS** off in Cloudgate.
+- **Let's Encrypt cannot issue for that host.** Add your own certificate in **Settings** >
+  **Certificates** and choose **Stored certificate** on the Domain.
+
+In a Cloud account, a Domain is always HTTPS with the cloud's certificate, and Cloudgate never writes
+DNS for you. Its status stays **Waiting for DNS** until the validation and pointing records it shows
+are in place. A free sslip.io address is plain HTTP. See [Domains](/docs/guide/domains).
+
+## Why does a Compose stack's new domain answer 404?
+
+Docker Compose stacks are routed by container labels, which change only when the stack is deployed.
+Press **Deploy** on the stack after adding or editing a Domain. The **Converted** tab shows the
+labels Cloudgate added.
+
+## What do the CLI's exit codes mean?
+
+| Code | Meaning | What to do |
+|---|---|---|
+| `0` | It worked: the Deployment is done, or queued with `--detach` | Nothing |
+| `1` | It failed: the instance refused, or the Deployment failed or was cancelled | Read the `Error:` line and the hint under it; `cloudgate logs --deployment` shows the log |
+| `2` | Wrong use: an unknown flag, a missing value with no one to ask, or plain `http://` refused | Add the missing flag, such as `--project` or `--switch-source` in CI |
+| `3` | Not logged in, or the login ended or was refused | Run `cloudgate login`, or check `CLOUDGATE_KEY` |
+| `130` | Stopped with Ctrl-C | A build you stopped watching goes on |
+
+A refusal that ends with "Ask an owner of" your Organization "for access" means your role or grant
+does not cover that Service. See the [CLI guide](/docs/cli) and [CI use](/docs/cli/ci).
+
+## Why does my Agent get "Not found or not permitted"?
+
+The target does not exist, belongs to another Organization, or is outside the Agent's grant. The
+answer is the same in all three cases on purpose, so an Agent cannot learn what exists beyond its
+grant. It is an access decision, and retrying, or trying another tool or id, will not change it.
+
+Fix it in **Settings** > **Agents**: **Manage access** on the Agent's row adds the Project,
+Environment or Service. If the answer is "This Agent's role does not include" a permission, use
+**Change role**: a Reader cannot deploy, and a Caller only calls AI models. Every refusal is in the
+[audit log](/docs/guide/audit-log) with its reason. See [Agents](/docs/guide/agents).
+
+## Why am I getting 429 Too Many Requests?
+
+- **An Agent over its budget.** Each Agent may make 120 reads and 10 writes a minute across all its
+  keys. The answer says "Rate limit reached for this Agent. Wait" a number of seconds, with a
+  `Retry-After` header. Wait that long; a refused call costs nothing. The first one in an hour sends
+  the **An Agent was rate limited** notification. See [MCP guard rails](/docs/mcp/guard-rails).
+- **Too many sign-in attempts.** Sign-in, sign-up and password changes allow 3 requests every 10
+  seconds from one IP address, and password-reset requests 3 a minute. Wait and try again.
+- **Another confirmation email too soon.** One goes to each address every 5 minutes; the message
+  says how long to wait.
+
+## Why can I not add a Server or an Environment?
+
+- **Your role.** Adding a Server takes an owner or admin; members are told to ask one.
+- **Your Hosted plan is full or missing.** The refusal names `PLAN_REQUIRED` or `ALLOWANCE_FULL`.
+  Start a plan, or buy an Add-on in **Settings** > **Billing**. See [Billing](/docs/guide/billing).
+- **No place to deploy yet.** On the Hosted instance, an Environment cannot be made until the
+  Organization has a Server or a Cloud account.
+
+## Why can I not restore a volume?
+
+A restore refuses while any container still uses the volume. Press **Stop** on an Application first.
+For a Docker Compose stack, Stop leaves its containers in place, so press **Remove containers**,
+restore, then **Start**. Only one backup, restore or delete may work on a volume at a time; a second
+one is refused until the first ends. See [Backups](/docs/guide/backups).
+
+## Why is the Requests screen or Error rate empty?
+
+Both read the Server's Traefik, which keeps neither by default. Turn on **Request logging** (for the
+Requests screen) or **Request metrics** (for Error rate) on the Server's **Settings** tab; each
+restarts Traefik. The Requests screen also offers **Turn on request logging** for the Server you pick. Services in a Cloud account have no Requests screen. See
+[Monitoring](/docs/guide/monitoring).
+
+## Self-hosted: why is sign-in refused on my console domain?
+
+A stock install trusts only the address it was installed with, so sign-in on a new console domain is
+refused with `INVALID_ORIGIN`. Add the origin under **Settings** > **Single sign-on** >
+**Trusted origins** (licensed), or to `TRUSTED_ORIGINS` in `/etc/default/cloudgate-backend` and restart
+`cloudgate-backend`. If sign-in then works but logs and shells stay blank, the API is on a different
+hostname from the console; see [Instance settings](/docs/self-host/instance-settings#serve-the-console-on-a-domain).
+
+## Self-hosted: I forgot my password and no email arrives
+
+Nothing is emailed until mail is set up on the server, and no console screen resets another
+person's password. Whoever has root sets `MAIL_PROVIDER` (`smtp` or `resend`) and its settings in
+`/etc/default/cloudgate-backend`, runs `systemctl restart cloudgate-backend`, and you ask for the
+link again.
+
+## Related pages
+
+- [What Cloudgate can and cannot do](/docs/help/limits) and the [FAQ](/docs/help/faq).
+- [Deployments and rollbacks](/docs/guide/deployments), [Servers](/docs/guide/servers) and [Domains](/docs/guide/domains).
+- To report a security problem, see [Security](/security#report). For anything else, write to [support@octabyte.io](mailto:support@octabyte.io).

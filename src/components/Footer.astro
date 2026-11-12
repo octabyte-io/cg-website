@@ -15,6 +15,17 @@ const columns = [
     ],
   },
   {
+    title: 'Docs',
+    links: [
+      { href: '/docs', label: 'Documentation' },
+      { href: '/docs/quickstart', label: 'Quickstart' },
+      { href: '/docs/guide/get-started', label: 'User guide' },
+      { href: '/docs/api', label: 'API reference' },
+      { href: '/docs/cli', label: 'CLI guide' },
+      { href: '/docs/mcp', label: 'MCP and agents' },
+    ],
+  },
+  {
     title: 'Run it',
     links: [
       { href: '/pricing', label: 'Pricing' },
@@ -88,7 +99,7 @@ const year = new Date().getFullYear();
   }
   .grid {
     display: grid;
-    grid-template-columns: 1.4fr repeat(4, 1fr);
+    grid-template-columns: 1.4fr repeat(5, 1fr);
     gap: var(--space-7);
   }
   .brand {
