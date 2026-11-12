@@ -22,10 +22,12 @@ interface Props {
   headings?: Heading[];
   faq?: { q: string; a: string }[];
   faqInBody?: boolean;
+  /** ISO date the page's content last changed. */
+  updated?: string;
   howto?: { name: string; steps: { name: string; text: string }[] };
   schema?: Record<string, unknown>[];
 }
-const { title, seoTitle, description, lede, section, badges = [], headings = [], faq, faqInBody = false, howto, schema = [] } = Astro.props;
+const { title, seoTitle, description, lede, section, badges = [], headings = [], faq, faqInBody = false, updated = '2026-11-12', howto, schema = [] } = Astro.props;
 const showFaq = !!faq?.length && !faqInBody;
 
 const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/docs';
@@ -51,6 +53,10 @@ const article = {
   description,
   url: new URL(here, site.url).href,
   inLanguage: 'en',
+  datePublished: '2026-11-12',
+  dateModified: updated,
+  image: `${site.url}/og/default.png`,
+  author: { '@id': `${site.url}/#organization` },
   isPartOf: { '@id': `${site.url}/#website` },
   publisher: { '@id': `${site.url}/#organization` },
   about: { '@type': 'SoftwareApplication', name: site.name, '@id': `${site.url}/#software` },

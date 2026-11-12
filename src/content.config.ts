@@ -31,6 +31,8 @@ const docs = defineCollection({
       .optional(),
     /** Questions answered on the page, emitted as FAQPage JSON-LD and rendered at the end. */
     faq: z.array(z.object({ q: z.string(), a: z.string() })).optional(),
+    /** When the page's content last changed (ISO date); set it when you change a page's facts. */
+    updated: z.string().default('2026-11-12'),
     /** The page already answers its `faq` in the body (the FAQ page): emit the JSON-LD, skip the block. */
     faqInBody: z.boolean().default(false),
   }),

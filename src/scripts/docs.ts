@@ -27,10 +27,21 @@ for (const h of document.querySelectorAll<HTMLElement>('.doc-body :is(h2, h3)[id
 }
 
 // ---- Tables scroll inside a frame ----
+const tableNames = new Map<string, number>();
 for (const t of document.querySelectorAll<HTMLTableElement>('.doc-body table')) {
   if (t.parentElement?.classList.contains('table-scroll')) continue;
   const w = document.createElement('div');
   w.className = 'table-scroll';
+  // A region that may scroll sideways must be reachable from the keyboard.
+  w.tabIndex = 0;
+  w.setAttribute('role', 'region');
+  // Each region needs its own name: the nearest heading above it, numbered when one heading has several.
+  let h: Element | null = t;
+  while (h && !/^H[2-4]$/.test(h.tagName)) h = h.previousElementSibling ?? h.parentElement;
+  const base = `${(h?.textContent ?? 'Table').replace(/#$/, '').trim()}, table`;
+  const n = (tableNames.get(base) ?? 0) + 1;
+  tableNames.set(base, n);
+  w.setAttribute('aria-label', n > 1 ? `${base} ${n}` : base);
   t.replaceWith(w);
   w.append(t);
 }
@@ -46,6 +57,7 @@ for (const pre of document.querySelectorAll<HTMLPreElement>('.doc-body pre')) {
   if (lang && !['plaintext', 'text', 'txt'].includes(lang)) wrap.dataset.lang = lang;
   pre.replaceWith(wrap);
   wrap.append(pre);
+  pre.tabIndex = 0;
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'copy-btn';

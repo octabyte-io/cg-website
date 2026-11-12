@@ -262,6 +262,10 @@
 .doc-body li {
   max-width: 72ch;
 }
+.doc-body :not(pre) > code {
+  /* Long paths and URLs break rather than push a phone's page sideways. */
+  overflow-wrap: anywhere;
+}
 .doc-body strong {
   color: var(--ink);
   font-weight: 600;
@@ -691,7 +695,7 @@
 }
 .tabs-list button {
   flex: none;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 var(--space-3);
   border: 0;
   background: none;
@@ -1193,5 +1197,25 @@
   /* Wide screens: the menu is always open (the inline script never shuts it here). */
   .docs-menu-body {
     display: block;
+  }
+}
+
+/* Touch: every control in the docs is at least 44px tall under a finger. */
+@media (pointer: coarse) {
+  .docs-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .tabs-list button,
+  .docs-search-close {
+    min-height: 44px;
+  }
+  .copy-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .docs-search-results a {
+    min-height: 44px;
   }
 }
