@@ -46,7 +46,7 @@ const hasIntro = Astro.slots.has('default');
   </PageHero>
 
   <div class="wrap legal" data-reveal>
-    <nav class="toc" aria-labelledby="toc-title">
+    <nav class="toc" data-spy aria-labelledby="toc-title">
       <h2 id="toc-title">On this page</h2>
       <ol>
         {sections.map((s, i) => (
@@ -130,6 +130,11 @@ const hasIntro = Astro.slots.has('default');
       color: var(--ink);
       border-left-color: var(--brand);
     }
+  }
+  /* The section being read (motion.ts marks it), the same treatment as hover. */
+  .toc a[aria-current='location'] {
+    color: var(--ink);
+    border-left-color: var(--brand);
   }
   .toc .n {
     min-width: 1.5em;

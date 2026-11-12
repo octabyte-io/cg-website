@@ -8,7 +8,7 @@ const {
   text = `Every plan starts with a ${trialDays}-day free trial. Bring a server, buy one from us, or connect AWS or Google Cloud.`,
 } = Astro.props;
 ---
-<section class="band" aria-labelledby="cta-title">
+<section class="band" aria-labelledby="cta-title" data-loop>
   <div class="beam" aria-hidden="true"></div>
   <div class="wrap inner" data-reveal>
     <h2 id="cta-title">{title}</h2>

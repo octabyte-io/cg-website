@@ -514,24 +514,39 @@
       tabs.classList.remove('timing');
       void tabs.offsetWidth; // restart the progress bar
       later(lead, () => tabs.classList.add('timing'));
-      later(dwell, () => {
-        const next = (index + 1) % inputs.length;
-        inputs[next].checked = true;
-        play(next);
-      });
+      later(dwell, advance);
       playing = true;
+    };
+
+    // Leaving the screen never cuts a pane off halfway and restarts it later (that read as a stall
+    // and a jump). The pane plays out; only the move to the next tab waits until the panel is back.
+    let waiting = false;
+    const advance = () => {
+      if (!inView || document.hidden) {
+        waiting = true;
+        return;
+      }
+      waiting = false;
+      const next = (current + 1) % inputs.length;
+      inputs[next].checked = true;
+      play(next);
+    };
+
+    const update = () => {
+      const should = auto && inView && !document.hidden && !reduce.matches;
+      if (!should) return;
+      if (!playing) play(current, Math.max(0, 1000 - performance.now()));
+      else if (waiting) {
+        waiting = false;
+        later(500, advance);
+      }
     };
 
     const pause = () => {
       clearTimers();
       tabs.classList.remove('timing');
       playing = false;
-    };
-
-    const update = () => {
-      const should = auto && inView && !document.hidden && !reduce.matches;
-      if (should && !playing) play(current, Math.max(0, 1000 - performance.now()));
-      else if (!should && playing) pause();
+      waiting = false;
     };
 
     // The visitor took over: stop for good and show everything as it is.
@@ -550,10 +565,12 @@
 
     new IntersectionObserver(
       (entries) => {
-        inView = entries.some((e) => e.isIntersecting);
+        // Start once a fifth of the panel shows; count it as gone only when it has fully left.
+        const e = entries[entries.length - 1];
+        inView = playing ? e.isIntersecting : e.intersectionRatio >= 0.2;
         update();
       },
-      { threshold: 0.2 },
+      { threshold: [0, 0.2] },
     ).observe(root);
     document.addEventListener('visibilitychange', update);
   }

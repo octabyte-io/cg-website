@@ -75,5 +75,58 @@ function spotlight(): void {
   );
 }
 
+// Loops rest off screen: a [data-play] illustration or a [data-loop] surface gets .is-offscreen
+// while it is out of view, and the CSS pauses its animations (they resume where they stopped).
+function rest(): void {
+  if (!('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) e.target.classList.toggle('is-offscreen', !e.isIntersecting);
+    },
+    { rootMargin: '120px 0px' },
+  );
+  document.querySelectorAll<HTMLElement>('[data-play], [data-loop]').forEach((el) => io.observe(el));
+}
+
+// Contents that follow the reader: in a [data-spy] nav, the link to the section being read gets
+// aria-current="location". Read on scroll at most once a frame; only a change touches the DOM.
+function spy(): void {
+  for (const nav of document.querySelectorAll<HTMLElement>('[data-spy]')) {
+    const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'));
+    const pairs = links
+      .map((a) => [a, document.getElementById(decodeURIComponent(a.hash.slice(1)))] as const)
+      .filter((p): p is readonly [HTMLAnchorElement, HTMLElement] => p[1] !== null);
+    if (!pairs.length) continue;
+    let current: HTMLAnchorElement | null = null;
+    let frame = 0;
+    const update = (): void => {
+      frame = 0;
+      const line = innerHeight * 0.3;
+      let next: HTMLAnchorElement | null = null;
+      for (const [a, target] of pairs) {
+        if (target.getBoundingClientRect().top <= line) next = a;
+        else break;
+      }
+      // At the very bottom the last section may never reach the line: it is the one being read.
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) next = pairs[pairs.length - 1][0];
+      if (next === current) return;
+      current?.removeAttribute('aria-current');
+      next?.setAttribute('aria-current', 'location');
+      current = next;
+      // A contents list that scrolls on its own keeps the marked link in its view.
+      if (next && nav.scrollHeight > nav.clientHeight + 1) {
+        const top = next.getBoundingClientRect().top - nav.getBoundingClientRect().top + nav.scrollTop;
+        if (top < nav.scrollTop || top + next.offsetHeight > nav.scrollTop + nav.clientHeight) {
+          nav.scrollTop = top - nav.clientHeight / 3;
+        }
+      }
+    };
+    addEventListener('scroll', () => (frame ||= requestAnimationFrame(update)), { passive: true });
+    update();
+  }
+}
+
 arm();
 spotlight();
+rest();
+spy();

@@ -220,19 +220,19 @@ const description =
           as one.
         </p>
       </div>
-      <figure class="host" aria-hidden="true" data-reveal>
+      <figure class="host" aria-hidden="true" data-reveal data-play>
         <div class="host-frame">
           <p class="host-label">Ubuntu 24.04 host</p>
           <div class="host-grid">
-            <div class="layer l-systemd">
+            <div class="layer l-systemd" style="--i:0">
               <p class="layer-name">systemd</p>
               <div class="units"><span>Console</span><span>API</span></div>
             </div>
-            <div class="layer l-pg">
+            <div class="layer l-pg" style="--i:1">
               <p class="layer-name">PostgreSQL</p>
               <div class="units"><span>cloudgate</span></div>
             </div>
-            <div class="layer l-swarm">
+            <div class="layer l-swarm" style="--i:2">
               <p class="layer-name">Docker Swarm, one node</p>
               <div class="units">
                 <span class="traefik">Traefik</span>
@@ -241,7 +241,7 @@ const description =
                 <span class="app app--empty">next deploy</span>
               </div>
             </div>
-            <div class="layer l-tools">
+            <div class="layer l-tools" style="--i:3">
               <p class="layer-name">Build and cloud tools</p>
               <div class="units"><span>Nixpacks</span><span>OpenTofu</span></div>
             </div>
@@ -453,6 +453,9 @@ const description =
           </ul>
         </div>
       </div>
+      <p class="more">
+        <a class="text-link" href="/license">The Elastic License 2.0 in plain English, with worked cases</a>
+      </p>
     </div>
   </section>
 
@@ -480,7 +483,7 @@ const description =
             ))}
           </dl>
         </article>
-        <article class="tier tier--ent" aria-labelledby="tier-ent" data-spotlight>
+        <article class="tier tier--ent" aria-labelledby="tier-ent" data-spotlight data-loop>
           <div class="tier-head">
             <h3 id="tier-ent">Enterprise license</h3>
             <p class="tier-price"><strong>Agreed with you</strong> 30-day trial key on request</p>
@@ -792,6 +795,37 @@ const description =
     border-style: dashed !important;
     background: transparent !important;
     color: var(--muted) !important;
+  }
+  /* In view, the host fills up the way the installer leaves it: each layer lands in turn on the
+     empty frame, and the free slot for your next deploy arrives last. Static without JS or with
+     reduced motion. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(.js) .host:not(.is-playing) .layer,
+    :global(.js) .host:not(.is-playing) .app--empty,
+    :global(.js) .host:not(.is-playing) .ufw {
+      opacity: 0;
+    }
+    .host.is-playing .layer {
+      animation: layer-in 560ms var(--ease-out) both;
+      animation-delay: calc(250ms + var(--i) * 130ms);
+    }
+    .host.is-playing .app--empty {
+      animation: layer-fade 500ms var(--ease-out) 1000ms both;
+    }
+    .host.is-playing .ufw {
+      animation: layer-fade 500ms var(--ease-out) 850ms both;
+    }
+  }
+  @keyframes layer-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(0.98);
+    }
+  }
+  @keyframes layer-fade {
+    from {
+      opacity: 0;
+    }
   }
   .setup {
     grid-template-columns: repeat(3, minmax(0, 1fr));

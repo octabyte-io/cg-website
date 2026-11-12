@@ -57,6 +57,7 @@
     width: number;
     alpha: number;
     spark: boolean;
+    gone?: boolean;
     color: number;
   }
 
@@ -82,6 +83,7 @@
     let layout: Layout | null = null;
     let fibres: Fibre[] = [];
     let particles: Particle[] = [];
+    let target = 0; // how many particles to keep; lowered on slow devices
     let palette: string[] = [];
     let sprites: HTMLCanvasElement[] = [];
     let glow: HTMLCanvasElement | null = null;
@@ -237,6 +239,7 @@
       const count = narrow ? 150 : Math.round(330 * Math.min(1, l.w / 1440));
       const old = particles;
       particles = [];
+      target = count;
       for (let i = 0; i < count; i++) {
         // Three fifths of the light falls in, two fifths fan out.
         const pool = i % 5 >= 3 ? fibres.filter((f) => f.lane >= 0) : fibres.filter((f) => f.lane < 0);
@@ -364,7 +367,12 @@
       for (const p of particles) {
         const f = fibres[p.fibre];
         p.t += p.speed * dt;
-        if (p.t > 1) p.t -= 1;
+        if (p.t > 1) {
+          p.t -= 1;
+          // A shed particle leaves only here, where its fade is zero, so thinning never shows.
+          if (particles.length > target) p.gone = true;
+        }
+        if (p.gone) continue;
         // Incoming light speeds up as it nears the keyhole; outgoing light eases as it lands.
         const te = f.lane < 0 ? p.t * (0.55 + 0.45 * p.t) : 1 - Math.pow(1 - p.t, 1.5);
         const fade = Math.pow(Math.sin(Math.PI * p.t), 0.6);
@@ -395,13 +403,14 @@
       }
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
+      if (particles.length > target) particles = particles.filter((p) => !p.gone);
     };
 
     const running = () => visible && !document.hidden && !reduce.matches;
 
     const frame = (now: number) => {
       raf = 0;
-      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 0.016;
       last = now;
       clock += dt;
       draw(dt);
@@ -419,7 +428,7 @@
       sampled++;
       if (dt > 0.021) slow++;
       if (sampled < 45) return;
-      if (slow > 15 && particles.length > 120) particles.length = Math.max(120, Math.round(particles.length * 0.75));
+      if (slow > 15 && target > 120) target = Math.max(120, Math.round(target * 0.75));
       slow = 0;
       sampled = 0;
     };
@@ -434,9 +443,22 @@
       last = 0;
     };
 
+    // Only redraw from scratch when the geometry really moved. The demo panel below changes height
+    // as it plays, and the phone address bar comes and goes; reallocating the canvas for those
+    // clears it for a frame and shows as a hitch in the light.
+    const same = (a: Layout, b: Layout) =>
+      a.w === b.w &&
+      a.h === b.h &&
+      Math.abs(a.focus.x - b.focus.x) < 1 &&
+      Math.abs(a.focus.y - b.focus.y) < 1 &&
+      Math.abs(a.target.x - b.target.x) < 1 &&
+      Math.abs(a.target.y - b.target.y) < 1 &&
+      a.target.w === b.target.w;
+
     const resize = () => {
       const next = measure();
       if (!next) return;
+      if (layout && same(layout, next) && Math.min(2, window.devicePixelRatio || 1) === dpr) return;
       const narrowChanged = !layout || layout.w < 700 !== next.w < 700;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.style.height = `${next.h}px`;

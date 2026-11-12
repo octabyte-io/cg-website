@@ -172,6 +172,7 @@ const description =
           <article
             class:list={['plan', `plan--${p.id}`, { 'plan--featured': p.id === 'business' }]}
             data-spotlight
+            data-loop={p.id === 'business' ? '' : undefined}
             aria-labelledby={`plan-${p.id}`}
           >
             <h3 id={`plan-${p.id}`}>{p.name}</h3>
@@ -237,7 +238,7 @@ const description =
         </p>
       </div>
       <div class="counts-grid" data-reveal>
-        <figure class="meter panel">
+        <figure class="meter panel" data-play>
           <figcaption>An example Organization on Starter</figcaption>
           <div class="meter-rows">
             {meter.map((m) => (
@@ -247,14 +248,14 @@ const description =
                   <span class="meter-num"><strong>{m.used}</strong> of {m.allowed}</span>
                 </div>
                 <div class="slots" aria-hidden="true">
-                  {slots(m.allowed).map((i) => <span class:list={['slot', { 'slot--used': i < m.used }]}></span>)}
+                  {slots(m.allowed).map((i) => <span class:list={['slot', { 'slot--used': i < m.used }]} style={`--i:${i}`}></span>)}
                 </div>
               </div>
             ))}
           </div>
           <div class="refused">
             <div class="slots slots--try" aria-hidden="true">
-              <span class="slot slot--used"></span><span class="slot slot--used"></span><span class="slot slot--used"></span>
+              <span class="slot slot--used" style="--i:0"></span><span class="slot slot--used" style="--i:1"></span><span class="slot slot--used" style="--i:2"></span>
               <span class="slot slot--over"></span>
             </div>
             <p>Adding a fourth Server is refused and an Add-on is offered. The three already running keep running.</p>
@@ -435,7 +436,8 @@ const description =
         <h2 id="compare-title">How do the plans compare?</h2>
         <p class="lede">
           Every way of running Cloudgate deploys the same things. The differences are who runs it,
-          what is counted, and the identity features larger companies ask for.
+          what is counted, and the identity features larger companies ask for. Weighing other
+          platforms too? See <a href="/compare">how Cloudgate compares with Heroku, Vercel, Render and Coolify</a>.
         </p>
       </div>
       <div class="cmp" data-reveal>
@@ -756,6 +758,65 @@ const description =
   .refused p {
     font-size: var(--text-sm);
     color: var(--ink-2);
+  }
+  /* In view, the example plays once: each meter fills slot by slot, then the try row fills its
+     three and the fourth Server arrives already refused, with a short shake of the head. The
+     final state is the static drawing, so without JS or with reduced motion nothing changes. */
+  .slot--used,
+  .slot--over {
+    transform-origin: left center;
+  }
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(.js) .meter:not(.is-playing) .slot--used {
+      transform: scaleX(0);
+    }
+    :global(.js) .meter:not(.is-playing) .slot--over,
+    :global(.js) .meter:not(.is-playing) .refused p {
+      opacity: 0;
+    }
+    .meter.is-playing .meter-rows .slot--used {
+      animation: slot-fill 420ms var(--ease-out) both;
+      animation-delay: calc(var(--i) * 90ms + 150ms);
+    }
+    .meter.is-playing .slots--try .slot--used {
+      animation: slot-fill 360ms var(--ease-out) both;
+      animation-delay: calc(var(--i) * 70ms + 750ms);
+    }
+    .meter.is-playing .slot--over {
+      animation:
+        slot-try 260ms var(--ease-out) 1050ms both,
+        slot-refuse 420ms var(--ease-in-out) 1310ms;
+    }
+    .meter.is-playing .refused p {
+      animation: slot-text 500ms var(--ease-out) 1400ms both;
+    }
+  }
+  @keyframes slot-fill {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes slot-try {
+    from {
+      opacity: 0;
+      transform: translate3d(10px, 0, 0);
+    }
+  }
+  @keyframes slot-refuse {
+    20% {
+      transform: translate3d(-4px, 0, 0);
+    }
+    45% {
+      transform: translate3d(3px, 0, 0);
+    }
+    70% {
+      transform: translate3d(-1.5px, 0, 0);
+    }
+  }
+  @keyframes slot-text {
+    from {
+      opacity: 0;
+    }
   }
   .uncounted {
     margin: 0;

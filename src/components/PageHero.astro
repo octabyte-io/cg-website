@@ -66,4 +66,42 @@ const hasVisual = Astro.slots.has('visual');
       grid-template-columns: minmax(0, 1fr);
     }
   }
+
+  /* Load: one short wave, settled by ~0.9s. The heading leads, the lede and buttons follow on
+     shrinking gaps, the visual lands last and the beam fades in under all of it (no movement).
+     Only with JS and no reduced-motion preference; otherwise the hero is simply there. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(.js) .copy > * {
+      animation: ph-rise 600ms var(--ease-out) both;
+    }
+    :global(.js) .copy > :global(.lede) {
+      animation-delay: 80ms;
+    }
+    :global(.js) .copy > .slot {
+      animation-delay: 140ms;
+    }
+    :global(.js) .visual {
+      animation: ph-rise-far 700ms var(--ease-out) 200ms both;
+    }
+    :global(.js) .beam {
+      animation: ph-fade 1s var(--ease-out) both;
+    }
+  }
+  @keyframes ph-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+  @keyframes ph-rise-far {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+    }
+  }
+  @keyframes ph-fade {
+    from {
+      opacity: 0;
+    }
+  }
 </style>

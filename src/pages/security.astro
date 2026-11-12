@@ -49,7 +49,7 @@ const description =
   >
     <a class="btn btn--primary" href="#report">Report a vulnerability</a>
     <a class="btn btn--ghost" href="#agents-title">How agents are kept in bounds</a>
-    <div class="window audit" slot="visual" aria-hidden="true" data-reveal>
+    <div class="window audit" slot="visual" aria-hidden="true">
       <div class="window-bar">Audit log for the agent deploy-bot</div>
       <ol class="rows" data-play>
         <li class="ln" style="--i:0"><span class="tool">read_deployment_log</span><span class="ok">succeeded</span></li>
@@ -69,6 +69,7 @@ const description =
         <p class="lede">
           On infrastructure you own. Cloudgate deploys to your Servers over SSH and into your own AWS
           or Google Cloud account; your apps and their data are not on a shared platform of ours.
+          See <a href="/features#where-it-runs">what runs where on each of them</a>.
         </p>
       </div>
       <dl class="facts one" data-reveal-stagger>

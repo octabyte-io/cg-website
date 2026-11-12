@@ -124,7 +124,7 @@ const faq = [
         </div>
       </div>
       <div class="toast">
-        <span class="tick">✓</span>
+        <span class="tick"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M3.5 8.5l3 3 6-7" pathLength="1" /></svg></span>
         <span><strong>Your app is live</strong><small>Send the address to anyone</small></span>
       </div>
     </div>
@@ -523,6 +523,35 @@ const faq = [
     background: var(--live-tint);
     color: var(--live);
     font-weight: 700;
+  }
+  .tick path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+  }
+  /* The payoff of the page in one beat: once the hero has settled, the "live" notice arrives and
+     its check draws. Once per visit, on load; static without JS or with reduced motion. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    :global(.js) .toast {
+      animation: toast-in 520ms var(--ease-out) 1000ms both;
+    }
+    :global(.js) .tick path {
+      animation: tick-draw 420ms var(--ease-out) 1300ms both;
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0) scale(0.96);
+    }
+  }
+  @keyframes tick-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
   }
 
   /* ---- How ---- */

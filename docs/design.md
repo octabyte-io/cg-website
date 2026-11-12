@@ -111,6 +111,14 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
   turn; `--type-step` sets the pace. The full text is always in the HTML.
 - **`data-spotlight`**: a border glow and faint fill that follow a fine pointer (cards, tiles,
   panels, plans). `data-spotlight="ring"` when the element already uses `::before`.
+- **Off-screen rest**: every `[data-play]` illustration, and any loop marked **`data-loop`** (the
+  ticker, the CTA band's beam, the featured cards' sweep), gets `.is-offscreen` while it is out of
+  view, and its animations pause until it comes back. Loops cost nothing below the fold.
+- **`data-spy`** on a contents `<nav>` (changelog, legal documents): the link to the section being
+  read gets `aria-current="location"`, styled like hover.
+- **Inner-page heroes**: `PageHero` plays one short load wave (heading, lede 80ms, buttons 140ms,
+  visual 200ms; settled by ~0.9s) and fades its beam in. Its `visual` slot never adds its own
+  `data-reveal`.
 - **Featured card**: `.plan--featured` and `.tier--ent` draw their border as a conic gradient from
   `--sweep`, which turns slowly (`@property`; without it the border just stays still).
 

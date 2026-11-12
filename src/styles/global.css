@@ -916,3 +916,14 @@ summary {
     animation: sweep 8s linear infinite;
   }
 }
+
+/* Off screen, loops rest: motion.ts sets .is-offscreen on [data-play] and [data-loop] while they
+   are out of view, and every animation inside holds its frame until they come back. */
+.is-offscreen,
+.is-offscreen::before,
+.is-offscreen::after,
+.is-offscreen *,
+.is-offscreen *::before,
+.is-offscreen *::after {
+  animation-play-state: paused !important;
+}

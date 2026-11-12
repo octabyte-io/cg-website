@@ -212,28 +212,34 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
   >
     <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
     <a class="btn btn--ghost" href={templatesHome}>Deploy a template</a>
-    <div slot="visual" class="hero-map panel" aria-hidden="true">
-      <div class="hm-col">
+    <div slot="visual" class="hero-map panel" aria-hidden="true" data-play>
+      <div class="hm-col hm-in">
         <p class="hm-label">Ways in</p>
         <span class="hm-node"><span class="slice"></span>Console</span>
         <span class="hm-node"><span class="slice slice--2"></span>AI agent</span>
         <span class="hm-node"><span class="slice slice--3"></span>Terminal</span>
       </div>
-      <svg class="hm-wires" viewBox="0 0 60 180" preserveAspectRatio="none">
+      <svg class="hm-wires hm-left" viewBox="0 0 60 180" preserveAspectRatio="none">
         <path class="w1" d="M0 52 C 32 52, 28 112, 60 112" />
         <path class="w2" d="M0 112 H60" />
         <path class="w3" d="M0 172 C 32 172, 28 112, 60 112" />
+        <path class="hm-pk" d="M0 52 C 32 52, 28 112, 60 112" pathLength="100" />
+        <path class="hm-pk" d="M0 112 H60" pathLength="100" />
+        <path class="hm-pk" d="M0 172 C 32 172, 28 112, 60 112" pathLength="100" />
       </svg>
       <div class="hm-gate">
         <Mark size={44} />
         <span>Cloudgate</span>
       </div>
-      <svg class="hm-wires" viewBox="0 0 60 180" preserveAspectRatio="none">
+      <svg class="hm-wires hm-right" viewBox="0 0 60 180" preserveAspectRatio="none">
         <path class="w1" d="M0 112 C 32 112, 28 52, 60 52" />
         <path class="w2" d="M0 112 H60" />
         <path class="w3" d="M0 112 C 32 112, 28 172, 60 172" />
+        <path class="hm-pk" d="M0 112 C 32 112, 28 52, 60 52" pathLength="100" />
+        <path class="hm-pk" d="M0 112 H60" pathLength="100" />
+        <path class="hm-pk" d="M0 112 C 32 112, 28 172, 60 172" pathLength="100" />
       </svg>
-      <div class="hm-col">
+      <div class="hm-col hm-out">
         <p class="hm-label">Where it runs</p>
         <span class="hm-node"><span class="slice"></span>Your Server</span>
         <span class="hm-node"><span class="slice slice--2"></span>AWS</span>
@@ -664,6 +670,119 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
   }
   .w3 {
     stroke: var(--slice-3);
+  }
+  /* The map at work: one deploy at a time comes in by one way, passes the gate and goes out to a
+     place, and the next one pairs them differently (console to AWS, agent to Google Cloud,
+     terminal to your Server), so it reads as "any way in, any place". 7.2s for the three routes,
+     2.4s each; every piece is hidden at both 0% and 100%, so the loop has no seam. */
+  .hm-pk {
+    fill: none;
+    stroke: var(--brand-hi);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 22 200;
+    stroke-dashoffset: 22;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+  }
+  .hm-node {
+    position: relative;
+  }
+  .hm-node::after,
+  .hm-gate::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid var(--brand);
+    box-shadow: 0 0 22px -6px var(--glow);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hm-gate {
+    position: relative;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-map.is-playing .hm-pk {
+      animation: hm-pk 7.2s var(--ease-in-out) infinite both;
+    }
+    .hero-map.is-playing .hm-node::after {
+      animation: hm-node 7.2s var(--ease-out) infinite both;
+    }
+    .hero-map.is-playing .hm-gate::after {
+      animation: hm-gate 2.4s var(--ease-out) infinite both;
+      animation-delay: 0.75s;
+    }
+    /* In: route k leaves its way in at k x 2.4s. Out: the gate sends it on 0.8s later, to the
+       next place down (wrapping round). */
+    .hero-map.is-playing .hm-left .hm-pk:nth-of-type(5),
+    .hero-map.is-playing .hm-in .hm-node:nth-of-type(2)::after {
+      animation-delay: 2.4s;
+    }
+    .hero-map.is-playing .hm-left .hm-pk:nth-of-type(6),
+    .hero-map.is-playing .hm-in .hm-node:nth-of-type(3)::after {
+      animation-delay: 4.8s;
+    }
+    .hero-map.is-playing .hm-right .hm-pk:nth-of-type(5) {
+      animation-delay: 0.8s;
+    }
+    .hero-map.is-playing .hm-right .hm-pk:nth-of-type(6) {
+      animation-delay: 3.2s;
+    }
+    .hero-map.is-playing .hm-right .hm-pk:nth-of-type(4) {
+      animation-delay: 5.6s;
+    }
+    .hero-map.is-playing .hm-out .hm-node:nth-of-type(2)::after {
+      animation-delay: 1.4s;
+    }
+    .hero-map.is-playing .hm-out .hm-node:nth-of-type(3)::after {
+      animation-delay: 3.8s;
+    }
+    .hero-map.is-playing .hm-out .hm-node:nth-of-type(1)::after {
+      animation-delay: 6.2s;
+    }
+  }
+  @keyframes hm-pk {
+    0% {
+      stroke-dashoffset: 22;
+      opacity: 0;
+    }
+    1.5% {
+      opacity: 1;
+    }
+    9% {
+      opacity: 1;
+    }
+    11%,
+    100% {
+      stroke-dashoffset: -100;
+      opacity: 0;
+    }
+  }
+  @keyframes hm-node {
+    0% {
+      opacity: 0;
+    }
+    3%,
+    14% {
+      opacity: 1;
+    }
+    24%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes hm-gate {
+    0% {
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    40%,
+    100% {
+      opacity: 0;
+    }
   }
   .hm-gate {
     display: grid;
