@@ -24,31 +24,31 @@ build or run something, a **Plan** is what applying the Project's configuration 
 The diagram uses the example Organization from these docs: Northwind Labs, with a `storefront`
 Project in two Environments.
 
-<figure aria-labelledby="model-caption" style="margin:0;display:grid;gap:var(--space-3)">
-  <div style="border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:var(--space-4);background:var(--paper-2);display:grid;gap:var(--space-3)">
-    <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Organization</strong> Northwind Labs: members, Agents, Servers, Cloud accounts, settings</p>
-    <div style="display:grid;gap:var(--space-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))">
-      <div style="border:1px solid var(--line);border-radius:var(--radius-md);padding:var(--space-3);background:var(--surface);display:grid;gap:var(--space-3)">
-        <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Project</strong> storefront: Project variables, Project config</p>
-        <div style="display:grid;gap:var(--space-2);grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))">
-          <div style="border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:var(--space-3);display:grid;gap:var(--space-2)">
-            <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Environment</strong> production, Deploy target fra-1</p>
-            <p style="margin:0;font-size:var(--text-sm)"><span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">web</span> <span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">pg-main</span></p>
+<figure class="model" aria-labelledby="model-caption">
+  <div class="model-org">
+    <p class="model-label"><strong>Organization</strong> Northwind Labs: members, Agents, Servers, Cloud accounts, settings</p>
+    <div class="model-row">
+      <div class="model-box">
+        <p class="model-label"><strong>Project</strong> storefront: Project variables, Project config</p>
+        <div class="model-envs">
+          <div class="model-env">
+            <p class="model-label"><strong>Environment</strong> production, Deploy target fra-1</p>
+            <p><span class="model-svc">web</span> <span class="model-svc">pg-main</span></p>
           </div>
-          <div style="border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:var(--space-3);display:grid;gap:var(--space-2)">
-            <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Environment</strong> staging, Deploy target nyc-edge</p>
-            <p style="margin:0;font-size:var(--text-sm)"><span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">web</span> <span style="display:inline-block;border-radius:var(--radius-sm);padding:0 var(--space-2);background:var(--brand-tint);color:var(--ink)">pg-main</span></p>
+          <div class="model-env">
+            <p class="model-label"><strong>Environment</strong> staging, Deploy target nyc-edge</p>
+            <p><span class="model-svc">web</span> <span class="model-svc">pg-main</span></p>
           </div>
         </div>
       </div>
-      <div style="border:1px solid var(--line);border-radius:var(--radius-md);padding:var(--space-3);background:var(--surface);display:grid;gap:var(--space-2);align-content:start">
-        <p style="margin:0;font-size:var(--text-sm);color:var(--muted)"><strong style="color:var(--ink)">Where Services run</strong>, shared by every Project</p>
-        <p style="margin:0;font-size:var(--text-sm)">Servers fra-1 and nyc-edge, over SSH</p>
-        <p style="margin:0;font-size:var(--text-sm)">A Cloud account: an AWS account or a Google Cloud project</p>
+      <div class="model-box">
+        <p class="model-label"><strong>Where Services run</strong>, shared by every Project</p>
+        <p>Servers fra-1 and nyc-edge, over SSH</p>
+        <p>A Cloud account: an AWS account or a Google Cloud project</p>
       </div>
     </div>
   </div>
-  <figcaption id="model-caption" style="font-size:var(--text-sm);color:var(--muted)">Northwind Labs holds the storefront Project, which has a production and a staging Environment, each with its own web Application and pg-main database. The Servers and Cloud account belong to the Organization, not to any Project.</figcaption>
+  <figcaption id="model-caption">Northwind Labs holds the storefront Project, which has a production and a staging Environment, each with its own web Application and pg-main database. The Servers and Cloud account belong to the Organization, not to any Project.</figcaption>
 </figure>
 
 The same tree as a list, for reading aloud or copying:

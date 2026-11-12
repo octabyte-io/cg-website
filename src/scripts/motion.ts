@@ -36,7 +36,9 @@ function arm(): void {
         }
       }
     },
-    { threshold: [0, 0.15, 0.3], rootMargin: '0px 0px -10% 0px' },
+    // Small steps as well, so a block many screens tall still gets a callback once a fifth of the
+    // viewport is filled by it (the changelog timeline never reached 15% of itself).
+    { threshold: [0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.3], rootMargin: '0px 0px -10% 0px' },
   );
   targets.forEach((el) => io.observe(el));
 }

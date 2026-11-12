@@ -145,6 +145,10 @@ const description =
     min-width: 0;
     max-width: 72ch;
   }
+  /* Geist's zero is wide, so ch overstates the measure: cap running text near 75 characters. */
+  .timeline :global(:is(p, li)) {
+    max-width: 58ch;
+  }
   .timeline :global(h2) {
     font-size: var(--text-2xl);
     letter-spacing: -0.03em;
