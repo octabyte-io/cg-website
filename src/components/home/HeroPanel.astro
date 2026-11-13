@@ -68,7 +68,10 @@
 <span class="d">  Uploading 214 files (skipping .env and .git)</span>
 <span class="d">  Building with Nixpacks</span>
 <span class="d">  Deployment</span> <span class="s">done</span>
-<span class="d">$</span> cloudgate logs --follow</code></pre>
+<span class="d">$</span> cloudgate logs --follow
+<span class="d">  Listening on port 3000</span>
+<span class="d">  GET /</span> <span class="s">200</span> <span class="d">14 ms</span>
+<span class="d">  GET /recipes</span> <span class="s">200</span> <span class="d">22 ms</span></code></pre>
     </section>
   </div>
 </div>
@@ -485,13 +488,40 @@
     .state {
       grid-column: 2;
       text-align: left;
+      font-size: var(--text-xs);
+    }
+    /* The wizard is the tallest pane and sets the stage's height for all three, so on a phone
+       it is set tighter, and the terminal and the transcript are not left with a tall empty end. */
+    .window {
+      min-height: 0;
+      padding: var(--space-4);
+    }
+    .window > .pane-body {
+      gap: var(--space-4);
+    }
+    .checklist li {
+      row-gap: 0;
+      padding: var(--space-2) var(--space-3);
+    }
+    .url {
+      font-size: var(--text-xs);
     }
     .building {
       justify-content: flex-start;
     }
+    /* On a phone the terminal and the transcript fit the width: the type steps down with the
+       screen so a command fits on one line, and anything longer wraps instead of scrolling
+       sideways. A line being typed is clipped at the edge until it finishes, then wraps. */
     .pane .code {
-      font-size: var(--text-xs);
+      font-size: min(var(--text-xs), 2.75vw);
       min-height: 0;
+      padding: var(--space-4);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow-x: hidden;
+    }
+    .code :global(.ln.typing) {
+      max-width: 100%;
     }
   }
 </style>
