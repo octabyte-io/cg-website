@@ -5,6 +5,7 @@ seoTitle: Describe a Project in cloudgate.yaml with Plans
 description: Describe a Project's Services in one cloudgate.yaml, kept in Cloudgate or your repository, and review each Plan of creates, changes and destroys before Apply.
 lede: The Project config is one YAML file that says what a Project runs. You change the file; Cloudgate shows a Plan for each Environment, and nothing happens until you Apply it.
 section: guide
+updated: '2026-11-13'
 group: Deploy
 order: 6
 badges: ['Members can read and plan', 'Applying needs permission on each Service']
@@ -21,6 +22,7 @@ faq:
   - { q: 'Can I put secret values in cloudgate.yaml?', a: 'No. The config holds variable names only. Values are set in the console, encrypted at rest, and never written to the file.' }
   - { q: 'Can an AI agent apply a Plan?', a: 'No. An Agent can ask for a Plan and read it, but only a person can Apply or dismiss one.' }
   - { q: 'What happens to a field Cloudgate does not know?', a: 'The Plan is refused and names the field, so a typo never passes silently.' }
+  - { q: 'Can I edit the config from my editor?', a: 'Yes, for a config kept in Cloudgate. <code>cloudgate link --whole-project</code> downloads it as a working copy, and <code>cloudgate config plan</code> sends it back as a Plan. An edit made from an older version is refused, so it never undoes a teammate''s change.' }
 ---
 
 The Project config describes each Service by its Config name: its kind, size, source, build,
@@ -37,6 +39,8 @@ destroy. Each Environment has at most one open Plan.
   Redis, buckets and Compose stacks in one file.
 - Link variables to another Service's Outputs, such as a database's URL.
 - Keep the file in Cloudgate or in your repository, and move it either way.
+- Edit a Cloudgate-kept config from a folder on your computer with the CLI, and build apps from
+  that folder's subfolders.
 - Review each Environment's Plan, including drift in a cloud, and Apply or dismiss it.
 
 ## An example cloudgate.yaml
@@ -120,7 +124,10 @@ What the fields mean:
   [Applications](/docs/guide/applications) for the table.
 - A database `version` is its image tag and must be quoted: `"18"` runs `postgres:18`.
 - `source` takes `github`, `gitlab`, `gitea` or `bitbucket` with `owner/repo`, a `git` URL (no
-  credentials in it), or an `image`.
+  credentials in it), an `image`, or a `folder`: a subfolder of a
+  [Project folder](#edit-the-config-from-a-project-folder), such as `{ folder: apps/web }`. A
+  `web`, `worker`, `static` or `cron` can take a `folder`; a `web-private` cannot, and a `folder` is
+  never combined with another source key.
 - `build.type` is `nixpacks`, `railpack`, `dockerfile`, `heroku_buildpacks` or
   `paketo_buildpacks`.
 - `kind: compose` names a compose file in a repository (`source`, `file`, `type`). The file's
@@ -161,6 +168,77 @@ Press **Apply**. Creates run first, then changes, then destroys, each as its own
 <Callout type="warn" title="Destroys cannot be undone">
 A destroy asks you to type the Service's name. For a database you can also choose to delete its
 data with no final snapshot, and for a bucket to delete its files. Those are gone for good.
+</Callout>
+
+## Native settings for Swarm, AWS and Google Cloud
+
+An entry the config describes can carry a `native` block with settings Cloudgate's own fields do
+not cover, written in the platform's own spelling. Each value is laid over what Cloudgate writes
+for the Service, never adds a resource, and shows as its own Plan line marked native.
+
+```yaml
+services:
+  web:
+    kind: web
+    source: { folder: apps/web }
+    native:
+      docker:
+        StopGracePeriod: 30000000000   # nanoseconds, as docker service inspect shows it
+      aws:
+        "aws_ecs_service.service":
+          health_check_grace_period_seconds: 60
+```
+
+| Block | Where it applies | What it holds |
+|---|---|---|
+| `native.docker` | A Server | `Labels`, `HealthCheck`, `RestartPolicy`, `UpdateConfig`, `RollbackConfig`, `StopGracePeriod` and `Ulimits`, as the Docker Engine API takes them. A `cron` takes `Labels`, `StopGracePeriod` and `Ulimits`; a `bucket` takes `Labels` |
+| `native.aws` | AWS | `hashicorp/aws` arguments, keyed by the OpenTofu address the Plan's cloud lines show, such as `"aws_db_instance.database"`. The ECS container is `"aws_ecs_task_definition.service".container_definitions`, in ECS's camelCase |
+| `native.gcp` | Google Cloud | `hashicorp/google` arguments, keyed the same way, such as `"google_cloud_run_v2_service.service"` or `"google_sql_database_instance.database"` |
+
+Every Plan checks every block on every Deploy target, so a typo shows on a Server's staging Plan
+rather than on the first deploy to AWS. A refusal names the full path and the reason: an address
+the entry's kind does not make, an argument the pinned provider does not have, an OpenTofu
+meta-argument, or a [locked setting](/docs/glossary#locked-setting) such as `tags`, `region`,
+labels in `traefik.*`, `com.docker.*` or `io.cloudgate.*`, or CPU and memory (use `size`). An exact
+cloud size, such as an RDS instance class or a Cloud SQL tier, wins over `size`.
+
+<Callout type="warn" title="Check custom Swarm settings before you apply">
+  The config owns the seven Swarm settings whether or not `native.docker` is written: a key left
+  out means Cloudgate's default for the kind. A described Service with custom Swarm settings saved
+  and no block shows each one going back to its default, and applying that Plan resets them. Before
+  you apply it, copy the values from the Service's Swarm settings into `native.docker`. A Cron
+  service's saved health check, restart policy, update config or rollback config now fails its
+  runs: clear them.
+</Callout>
+
+## Edit the config from a Project folder
+
+A config kept in Cloudgate can also be edited as a file on your computer, with the
+[CLI](/docs/cli#deploy-a-whole-project-from-one-folder). `cloudgate link --whole-project` makes the
+folder a **Project folder** and downloads the config into it as `cloudgate.yaml`: a working copy.
+Cloudgate keeps the config, never reads the working copy on its own, and the console still edits
+it. The CLI adds `/cloudgate.yaml` to `.gitignore`, so the copy is never committed.
+
+- `cloudgate config plan` sends the working copy as a Plan for each Environment, prints it and
+  applies it on a yes. `cloudgate deploy` there does the same, then builds each app whose `source`
+  is a `folder`.
+- `cloudgate config pull` replaces the working copy with the current config.
+
+An entry with `source: { folder: apps/web }` is built from that subfolder after the whole folder is
+uploaded. Applying the Plan that creates such an app queues no Deployment: it waits for its first
+upload, since there is nothing to build before one.
+
+### What is the Config version?
+
+Every Project config has a **Config version**, a counter that every Apply moves, a console **Save**
+included. Storing the text it already holds moves nothing. A working copy remembers the version it
+was downloaded at, and a Plan sent from it names that version. When the config has moved on since,
+the Plan is refused with `CONFIG_VERSION_STALE`, saying when and by whom it changed, and nothing is
+stored, so your copy never undoes a teammate's change. Pull, make your edits again, and plan.
+
+<Callout type="limit" title="Cloudgate-kept configs only">
+A Project whose config is kept in a repository cannot have a Project folder. Edit `cloudgate.yaml`
+in the repository, or use **Move into Cloudgate** first.
 </Callout>
 
 ## Keep the config in your repository
@@ -217,5 +295,6 @@ A Plan whose commit or settings moved on since it was made is refused; make a ne
   target.
 - [Wired variables and secrets](/docs/guide/environment-variables).
 - [Deployments](/docs/guide/deployments): why a build is held by a Plan.
+- [Deploy a whole Project from one folder](/docs/cli#deploy-a-whole-project-from-one-folder) with the CLI.
 - [Templates](/docs/guide/templates) add ready-made entries to your config.
 - [Ask for a Plan from an AI agent](/docs/mcp/tools), and [AI agents on Cloudgate](/ai-agents).

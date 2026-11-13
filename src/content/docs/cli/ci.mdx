@@ -4,6 +4,7 @@ seoTitle: Deploy from GitHub Actions or GitLab CI
 description: Run cloudgate deploy in GitHub Actions or GitLab CI with a Personal key in CLOUDGATE_KEY. Copyable jobs, the flags CI needs, and what each exit code means.
 lede: A CI job deploys with the same CLI you run locally. It needs a Personal key in CLOUDGATE_KEY and the target named by flags or variables, because nothing can answer a question there.
 section: cli
+updated: '2026-11-13'
 order: 3
 navTitle: CI recipes
 badges: ['Hosted and self-hosted', 'Applications only', 'Beta']
@@ -110,6 +111,17 @@ cloudgate deploy --project storefront --service web --env "$TARGET_ENV"
 ```
 
 For a short-lived copy of a branch, use [preview deployments](/docs/guide/previews) instead.
+
+## Can CI deploy a whole Project folder?
+
+No. A whole-Project deploy runs only in a
+[Project folder](/docs/cli#deploy-a-whole-project-from-one-folder), whose link and `cloudgate.yaml`
+are never committed, so a CI job has neither, and with no terminal a first `deploy` asks nothing. In
+CI, deploy one Service per command with the target flags, as above, and run the whole-Project deploy
+from your terminal.
+
+Each CI run uploads only the files that differ from the Service's last upload, compared by SHA-256,
+so a fresh checkout does not mean a full upload. `--full` sends every file.
 
 ## Deploy to a self-hosted Instance
 

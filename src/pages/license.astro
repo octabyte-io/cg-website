@@ -3,11 +3,13 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site } from '../data/site';
+import { site, repoFile } from '../data/site';
 import { breadcrumbSchema, faqSchema } from '../data/schema';
 
 const trail = [{ name: 'License', path: '/license' }];
 const elv2 = 'https://www.elastic.co/licensing/elastic-license';
+// The LICENSE file in the public cloudgate repository: the text that applies to the code.
+const licenseFile = repoFile('LICENSE');
 const askMail = `mailto:${site.support}?subject=${encodeURIComponent('Question about the Cloudgate license')}`;
 const licenseMail = `mailto:${site.support}?subject=${encodeURIComponent('Cloudgate Enterprise license')}`;
 
@@ -39,6 +41,10 @@ const faq = [
     a: 'Yes. You may change it and use your changed copy. If you pass a modified copy on, it must say prominently that you modified it, and the license and copyright notices must stay in place.',
   },
   {
+    q: 'Can I contribute to Cloudgate?',
+    a: `Yes. Bug reports, feature ideas and pull requests are welcome on <a href="${site.sourceUrl}">GitHub</a>. On your first pull request you agree once to the contribution terms in <a href="${repoFile('CONTRIBUTING.md')}">CONTRIBUTING.md</a>: you keep the copyright, and you give Octabyte a license to use your contribution, under the Elastic License 2.0 or other terms, including in its hosted service.`,
+  },
+  {
     q: 'What happens if I break the license?',
     a: 'Your license ends. Under ELv2, if you stop within 30 days of being notified, it is reinstated as if it had never ended; a second violation after that ends it for good.',
   },
@@ -59,7 +65,7 @@ const description =
     lede="Cloudgate is source-available under the Elastic License 2.0. You may use it, self-host it and change it for free, for commercial work too. You may not sell it to others as a hosted service, or get around its license keys."
     trail={trail}
   >
-    <a class="btn btn--primary" href={elv2}>Read the official ELv2 text</a>
+    <a class="btn btn--primary" href={licenseFile}>Read the LICENSE file on GitHub</a>
     <a class="btn btn--ghost" href="/self-hosted">Self-host Cloudgate</a>
     <div class="window doc" slot="visual" aria-hidden="true">
       <div class="window-bar">LICENSE</div>
@@ -91,7 +97,7 @@ const description =
             <li>Use Cloudgate, for free, as a person or a business.</li>
             <li>Self-host it on your own servers, on as many as you like.</li>
             <li>Use it commercially, to run the apps your business sells.</li>
-            <li>Read the source and modify it.</li>
+            <li>Read <a href={site.sourceUrl}>the source on GitHub</a> and modify it.</li>
             <li>Share copies, with the license terms included.</li>
           </ul>
         </div>

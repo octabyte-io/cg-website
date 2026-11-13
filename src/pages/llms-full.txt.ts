@@ -116,7 +116,7 @@ export const GET: APIRoute = async () => {
 
 > ${site.description}
 
-This is every page of ${site.url} as plain text, for AI assistants. The short index is ${site.url}/llms.txt. App templates live on their own website, ${templatesHome}; each deploys from ${site.getStarted}?template=<id>.
+This is every page of ${site.url} as plain text, for AI assistants. The short index is ${site.url}/llms.txt. The source is public at ${site.sourceUrl}. App templates live on their own website, ${templatesHome}; each deploys from ${site.getStarted}?template=<id>.
 
 ${sections.join('\n\n')}
 `;

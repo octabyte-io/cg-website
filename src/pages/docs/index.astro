@@ -68,7 +68,8 @@ const reference = only([
 const help = only([
   { href: '/docs/help/troubleshooting', title: 'Troubleshooting', text: 'Builds that fail, Servers that will not set up, domains without certificates.' },
   { href: '/docs/help/faq', title: 'Questions people ask', text: 'Short answers about plans, data, agents and self-hosting.' },
-  { href: '/docs/self-host', title: 'Self-host Cloudgate', text: 'Install it on your own Ubuntu server, free under the Elastic License 2.0.' },
+  { href: '/docs/self-host', title: 'Self-host Cloudgate', text: 'Clone the public repository and install it on your own Ubuntu server, free under the Elastic License 2.0.' },
+  { href: `${site.sourceUrl}/issues`, title: 'Report a bug', text: 'Open an issue on GitHub. Report a security problem privately from the repository\'s Security tab.' },
 ]);
 
 const faq = [
@@ -83,6 +84,10 @@ const faq = [
   {
     q: 'Do these docs cover self-hosted Cloudgate?',
     a: 'Yes. The console, CLI, MCP endpoint and API are the same on the hosted instance and on your own install; pages mark what is hosted only (billing, bought Servers) or self-hosted only (instance settings, the license).',
+  },
+  {
+    q: 'Where is the Cloudgate source code?',
+    a: 'In the public repository <a href="https://github.com/octabyte-io/cloudgate">octabyte-io/cloudgate</a> on GitHub, source-available under the Elastic License 2.0. Its changelog says what each release changes; <a href="/docs/self-host/install">Install Cloudgate</a> takes you from a clone to a running instance.',
   },
 ];
 ---

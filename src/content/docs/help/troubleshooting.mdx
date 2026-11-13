@@ -1,9 +1,10 @@
 ---
 title: Troubleshooting Cloudgate
 seoTitle: Troubleshoot Cloudgate builds, Servers and domains
-description: Fixes for common Cloudgate problems, from failed builds, queued Deployments and Server setup errors to missing certificates, CLI exit codes, Agent refusals and 429s.
+description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup errors, missing certificates, Stack VMs, CLI exit codes and Agent 429s.'
 lede: Each problem below is a question you might type into search, with what causes it and how to fix it. Start with the Deployment log or the error text; most answers are in one of them.
 section: help
+updated: '2026-11-13'
 order: 2
 navTitle: Troubleshooting
 badges: ['Hosted and self-hosted']
@@ -103,6 +104,22 @@ Docker Compose stacks are routed by container labels, which change only when the
 Press **Deploy** on the stack after adding or editing a Domain. The **Converted** tab shows the
 labels Cloudgate added.
 
+## Why is a deploy of my Compose stack refused with 409?
+
+In AWS or Google Cloud a Compose stack runs on its own Stack VM, and nothing deploys to a VM that is
+not running. "…'s Stack VM is stopped: start it first, then deploy" means someone pressed **Stop**:
+press **Start** on the stack, then deploy. "…'s Stack VM is not made yet" means the stack was made in
+the console and the Environment's next [Plan](/docs/guide/project-config) makes its VM: apply that
+Plan first. See [Compose stacks](/docs/guide/compose-stacks#compose-stacks-in-aws-and-google-cloud).
+
+## Why does an app built from a folder not deploy?
+
+An Application whose source is uploaded files is never built before files reach it, so a Deployment
+of it is refused with 409 "no files have been uploaded". A Plan that creates an app with
+`source: { folder: … }` queues no Deployment for the same reason. Run `cloudgate deploy` from the
+[Project folder](/docs/cli#deploy-a-whole-project-from-one-folder), which uploads the files and then
+builds it.
+
 ## What do the CLI's exit codes mean?
 
 | Code | Meaning | What to do |
@@ -179,4 +196,4 @@ link again.
 
 - [What Cloudgate can and cannot do](/docs/help/limits) and the [FAQ](/docs/help/faq).
 - [Deployments and rollbacks](/docs/guide/deployments), [Servers](/docs/guide/servers) and [Domains](/docs/guide/domains).
-- To report a security problem, see [Security](/security#report). For anything else, write to [support@octabyte.io](mailto:support@octabyte.io).
+- Found a bug? Open an issue on the [cloudgate repository](https://github.com/octabyte-io/cloudgate/issues). Report a security problem privately instead, from the repository's **Security** tab > **Report a vulnerability**; [Security](/security#report) has more. For your account, write to [support@octabyte.io](mailto:support@octabyte.io).

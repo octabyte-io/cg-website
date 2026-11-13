@@ -3,45 +3,47 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site, plans } from '../data/site';
+import { site, plans, repoFile } from '../data/site';
 import { breadcrumbSchema, faqSchema } from '../data/schema';
 
 const trail = [{ name: 'Contact', path: '/contact' }];
 const mail = (subject: string) => `mailto:${site.support}?subject=${encodeURIComponent(subject)}`;
 const business = plans.find((p) => p.id === 'business')!;
+// Vulnerabilities go privately through the repository's Security tab (SECURITY.md), never email.
+const reportVulnerability = `${site.sourceUrl}/security`;
 
 const routes = [
   {
     slice: '',
     title: 'Support',
     text: 'Something not working in the console, a Deployment that fails, or a question about how to do something. Tell us your Organization and what you expected to happen.',
-    subject: 'Cloudgate support',
+    href: mail('Cloudgate support'),
     cta: 'Email support',
   },
   {
     slice: 'slice--2',
     title: 'Sales: Business and Enterprise',
     text: `Questions about the Business plan ($${business.price} a month, with SSO, SCIM and custom roles), an Enterprise deal on the hosted console, or a self-hosted Enterprise license.`,
-    subject: 'Cloudgate Business or Enterprise',
+    href: mail('Cloudgate Business or Enterprise'),
     cta: 'Email sales',
   },
   {
     slice: 'slice--3',
-    title: 'Access to self-host',
-    text: 'The source repository is private today. Tell us a little about what you plan to run and we will reply with access and the install steps.',
-    subject: 'Access to self-host Cloudgate',
-    cta: 'Ask for access',
+    title: 'Bugs, ideas and self-hosting',
+    text: 'The source is public on GitHub. Open an issue for a bug or a feature idea, with the steps to reproduce it and your Cloudgate version; pull requests are welcome too.',
+    href: `${site.sourceUrl}/issues`,
+    cta: 'Open an issue on GitHub',
   },
 ];
 
 const faq = [
   {
     q: 'What is the best way to contact Cloudgate?',
-    a: `Email <a href="${mail('Cloudgate support')}">${site.support}</a>. Every route on this page reaches the same team; the subject line helps us send your message to the right person.`,
+    a: `Email <a href="${mail('Cloudgate support')}">${site.support}</a>. for support and sales; the subject line helps us send your message to the right person. Bugs and feature ideas are best as an issue on <a href="${site.sourceUrl}/issues">GitHub</a>.`,
   },
   {
     q: 'How do I report a security problem in Cloudgate?',
-    a: `Email ${site.support} with the subject “Security report”, and please do not post it anywhere public. What to include is on <a href="/security#report">the security page</a>.`,
+    a: `Report it privately on GitHub: on the <a href="${reportVulnerability}">Cloudgate repository's Security tab</a>, choose Report a vulnerability. Only the maintainers can see the report. Please do not open a public issue. What to include is on <a href="/security#report">the security page</a>.`,
   },
   {
     q: 'Can I get a demo or a trial?',
@@ -51,7 +53,7 @@ const faq = [
 
 const title = 'Contact Cloudgate: support, sales and security reports';
 const description =
-  'How to reach the Cloudgate team: email support, ask about the Business plan or an Enterprise license, get self-host access, or report a security issue.';
+  'How to reach the Cloudgate team: email support, ask about Business or an Enterprise license, open a GitHub issue, or report a security problem privately.';
 ---
 
 <Base title={title} description={description} schema={[faqSchema(faq), breadcrumbSchema(trail)]}>
@@ -80,8 +82,8 @@ const description =
       <div class="section-head" data-reveal>
         <h2 id="routes-title">Who should you write to?</h2>
         <p class="lede">
-          One address, three subjects. There is no form on this site: your own email app keeps a copy
-          of what you sent.
+          Support and sales are one email address with two subjects; bugs and ideas go on GitHub.
+          There is no form on this site: your own email app keeps a copy of what you sent.
         </p>
       </div>
       <div class="routes" data-reveal-stagger="80">
@@ -90,7 +92,7 @@ const description =
             <span class:list={['slice', r.slice]} aria-hidden="true"></span>
             <h3>{r.title}</h3>
             <p>{r.text}</p>
-            <a class="btn btn--ghost" href={mail(r.subject)}>{r.cta}</a>
+            <a class="btn btn--ghost" href={r.href}>{r.cta}</a>
           </div>
         ))}
       </div>
@@ -102,18 +104,20 @@ const description =
       <div class="section-head" data-reveal>
         <h2 id="security-title">Found a security problem?</h2>
         <p class="lede">
-          Please tell us privately before anyone else. Email {site.support} with the subject
-          “Security report”, and do not open a public issue or post about it.
+          Please tell us privately before anyone else. On the Cloudgate repository's Security tab on
+          GitHub, choose Report a vulnerability: only the maintainers can see it. Do not open a
+          public issue or post about it.
         </p>
       </div>
       <div class="prose" data-reveal data-reveal-delay="120">
         <p>
-          Include what you found, how to reproduce it, which version you tested, and what an attacker
-          could do with it. The full process, and how we handle reports, is on
+          Include what you found, how to reproduce it, which version or commit you tested, and what
+          an attacker could do with it. The full process is in the repository's
+          {' '}<a href={repoFile('SECURITY.md')}>SECURITY.md</a> and on
           {' '}<a href="/security#report">Cloudgate's security page</a>.
         </p>
         <div class="actions">
-          <a class="btn btn--primary" href={mail('Security report')}>Send a security report</a>
+          <a class="btn btn--primary" href={reportVulnerability}>Report a vulnerability on GitHub</a>
           <a class="btn btn--ghost" href="/.well-known/security.txt">security.txt</a>
         </div>
       </div>

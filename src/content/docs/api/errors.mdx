@@ -5,6 +5,7 @@ seoTitle: Cloudgate API errors, status codes and error codes
 description: The JSON body of every Cloudgate API refusal, the HTTP status codes it uses, the error codes you will meet most, and what to do about each of them.
 lede: Every refusal from the Cloudgate API has the same JSON shape. Branch on its status and its code; the message is for people and may change.
 section: api
+updated: '2026-11-13'
 order: 3
 badges: ['Hosted and self-hosted']
 faq:
@@ -71,6 +72,9 @@ An unexpected failure is logged on the instance and answers 500 with no internal
 | `DEPLOYMENT_IN_PROGRESS` | 409 | A build of the Application is running, and an upload would replace the files it reads. |
 | `PLAN_STALE`, `PLAN_NOT_OPEN` | 409 | The Plan changed or was already applied or dismissed since you read it. Check for changes again. |
 | `PLAN_DESTROY_NOT_CONFIRMED` | 409 | Applying the Plan would delete something, and the delete was not confirmed by name. |
+| `CONFIG_VERSION_STALE` | 409 | A whole-YAML edit named a Config `version` the Project config has moved on from. Nothing was stored; read the config again and redo the edit. |
+| `UPLOAD_CONFLICT` | 409 | Uploading only the changed files: the build host's files changed since the comparison, or the apply failed there. The previous files are kept; compare again. |
+| `ORGANIZATION_LIMIT` | 403 | A new Organization is over the limit: one that pays for itself per person on the Hosted instance, or one per self-hosted instance without an Enterprise license. |
 | `PROJECT_CONFIG_REPOSITORY_KEPT`, `CONFIG_UNREADABLE` | 409 | The Project config is kept in a repository, so change it there; `pointer` says where. |
 | `VARIABLE_IS_LINKED` | 409 | The variable is wired to another Service's output; change the link, not the value. |
 | `VARIABLE_NOT_SET` | 404 | You asked to unset a variable that is not set. |

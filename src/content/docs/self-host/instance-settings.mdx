@@ -1,9 +1,10 @@
 ---
 title: Instance settings for self-hosted owners
-seoTitle: Self-hosted Cloudgate instance settings guide
-description: Run a self-hosted Cloudgate instance from its console, from the Enterprise license and branding to Traefik, disk maintenance, build limits, registries and SSH keys.
+seoTitle: Self-hosted Cloudgate instance settings and templates
+description: 'Run a self-hosted Cloudgate instance from its console: the Enterprise license, branding, Traefik, disk upkeep, build limits and the Template catalogue mirror.'
 lede: A self-hosted instance has settings the Hosted one keeps to itself, for the machine Cloudgate runs on. This page walks through each one, who may change it, and which ones to leave alone.
 section: self-host
+updated: '2026-11-13'
 order: 3
 navTitle: Instance settings
 badges: ['Self-hosted only', 'Owner or Admin of the Instance organization']
@@ -174,6 +175,34 @@ an Environment can choose **This Cloudgate host** as its Deploy target. On **Ser
 host** card opens a shell on it; only owners and admins of the Instance organization see it. Its
 GPU setup, metrics and Traefik are the Instance organization's too.
 
+## Mirror or turn off the Template catalogue
+
+The **Templates** screen reads the official Template catalogue, one `catalogue.zip` from the newest
+release of [octabyte-io/cg-templates](https://github.com/octabyte-io/cg-templates), with nothing to
+set. Only the backend fetches it, from `github.com` and `release-assets.githubusercontent.com`. It
+checks for a newer release at most once an hour, only when someone opens the Templates screen, and
+keeps the last good copy to show, with its age, while GitHub cannot be reached.
+
+`CLOUDGATE_TEMPLATES_URL` in `/etc/default/cloudgate-backend` changes where it comes from. Restart
+`cloudgate-backend` after changing it.
+
+| Value | What happens |
+|---|---|
+| Not set | The official catalogue, `https://github.com/octabyte-io/cg-templates/releases/latest/download/catalogue.zip`. |
+| The http or https address of your own copy of a release's `catalogue.zip` | A mirror, for a network that blocks GitHub. Copy the release's zip as it is published. |
+| `off` | Templates are off, and the Templates screen says so. |
+
+The zip is checked whole before anything in it is read. One holding anything a template does not
+(a website's `index.md` or `screenshots/`, a stray file) is refused, and so is a mirror that still
+serves a release's older `catalogue.json`; the last good copy is kept until it serves the zip.
+
+<Callout type="note" title="Upgrading from an older instance">
+  `CLOUDGATE_TEMPLATES_BASE_URL` is no longer read. While it is still set and
+  `CLOUDGATE_TEMPLATES_URL` is not, templates are off and the Templates screen says what to do:
+  remove the old setting to use the official catalogue, or set `CLOUDGATE_TEMPLATES_URL`. Stacks set
+  up from old templates keep running.
+</Callout>
+
 ## What you cannot do here
 
 <Callout type="limit" title="Not in the console">
@@ -188,4 +217,5 @@ GPU setup, metrics and Traefik are the Instance organization's too.
 - [Install Cloudgate](/docs/self-host/install) and [Self-hosting Cloudgate](/docs/self-host).
 - [Single sign-on and SCIM](/docs/guide/sso-and-scim), [Members and roles](/docs/guide/members-and-roles) and the [Audit log](/docs/guide/audit-log).
 - [Deployments](/docs/guide/deployments) for the build queue, and [Previews](/docs/guide/previews).
+- [Templates](/docs/guide/templates) for what the catalogue offers once it is read.
 - [Self-host Cloudgate](/self-hosted) for the overview.

@@ -4,6 +4,7 @@ seoTitle: Add and configure an Application to deploy
 description: Create an Application from git, a Docker image or uploaded files, pick a builder, a kind and a size, and set its port, replicas and health check.
 lede: 'An Application is a Service Cloudgate builds from a source and runs as a container. This page covers adding one and the settings you are most likely to change: source, builder, kind, size, ports and health.'
 section: guide
+updated: '2026-11-13'
 group: Deploy
 order: 3
 badges: ['Owner or Admin to create', 'Members can change settings']
@@ -53,7 +54,8 @@ On the Application's **Overview**, the **Source** card has **Change source**. Ch
   private repository, and **Clone submodules**.
 - **Docker image**: the **Image** with its tag and, for a private one, the **Registry** and its
   credentials (**Test connection** checks them). Nothing is built.
-- **Uploaded files**: a `.zip` **Archive** and its **Build path**.
+- **Uploaded files**: a `.zip` **Archive** and its **Build path**. The [CLI](/docs/cli) uploads a
+  folder for you, sending only the files that changed since the last upload.
 
 <Screenshot name="application-overview" alt="The Overview of the web Application in storefront production, with its Source card showing a GitHub repository and branch" caption="The Source and Build cards on the Overview decide what is built and how." />
 
@@ -160,6 +162,8 @@ Services; the member role cannot. The **Shell** tab needs permission to update t
 - A Docker image source is never built, so it has no previews or patches.
 - In a Cloud account there is no **Shell** tab.
 - Uploading files is refused while a build of that Application is running.
+- An Application on uploaded files is never built before files reach it: a Deployment is refused
+  with "no files have been uploaded" until the first upload.
 
 ## Related pages
 

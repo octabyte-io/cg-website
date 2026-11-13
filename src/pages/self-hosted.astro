@@ -4,13 +4,14 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site } from '../data/site';
-import { softwareSchema, faqSchema, breadcrumbSchema } from '../data/schema';
+import { site, repoFile } from '../data/site';
+import { softwareSchema, faqSchema, breadcrumbSchema, howToSchema } from '../data/schema';
 
 const trail = [{ name: 'Self-host', path: '/self-hosted' }];
-const accessMail = `mailto:${site.support}?subject=${encodeURIComponent('Access to self-host Cloudgate')}`;
 const licenseMail = `mailto:${site.support}?subject=${encodeURIComponent('Cloudgate Enterprise license')}`;
+// The repository is public, so the page shows the clone and links into it.
 const sourceUrl = site.sourceUrl;
+const cloneUrl = `${sourceUrl}.git`;
 
 const requirements = [
   { name: 'Operating system', value: 'Ubuntu 24.04, freshly installed' },
@@ -48,7 +49,7 @@ const faq = [
   },
   {
     q: 'Is Cloudgate open source?',
-    a: 'No. It is source-available under the Elastic License 2.0. You can read, run and change it, but you may not offer it to others as a hosted service, and you may not remove or get around its license checks.',
+    a: `No. It is source-available under the Elastic License 2.0, and the source is public on <a href="${site.sourceUrl}">GitHub</a>. You can read, run and change it, but you may not offer it to others as a hosted service, and you may not remove or get around its license checks.`,
   },
   {
     q: 'Do I need a domain name to install it?',
@@ -68,20 +69,16 @@ const faq = [
   },
 ];
 
-const howTo = sourceUrl
-  ? [
-      {
-        '@type': 'HowTo',
-        name: 'Install Cloudgate on your own server',
-        step: [
-          { '@type': 'HowToStep', name: 'Prepare the server', text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, and open ports 22, 80, 443, 3000 and 4000.' },
-          { '@type': 'HowToStep', name: 'Get the source', text: `As root, run: git clone ${sourceUrl} /opt/cloudgate` },
-          { '@type': 'HowToStep', name: 'Run the installer', text: "Run: CLOUDGATE_PUBLIC_HOST=<your server's IP> bash /opt/cloudgate/deploy/install.sh" },
-          { '@type': 'HowToStep', name: 'Claim the instance', text: 'Open http://<your server\'s IP>:3000/sign-up. The first account created owns the instance.' },
-        ],
-      },
-    ]
-  : [];
+const howTo = howToSchema({
+  name: 'Install Cloudgate on your own server',
+  description: 'Install self-hosted Cloudgate from its public GitHub repository on one Ubuntu 24.04 server, as root.',
+  steps: [
+    { name: 'Prepare the server', text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, and open ports 22, 80, 443, 3000 and 4000.' },
+    { name: 'Get the source', text: `As root, run: git clone ${cloneUrl} /opt/cloudgate`, url: sourceUrl },
+    { name: 'Run the installer', text: "As root, run: CLOUDGATE_PUBLIC_HOST=<your server's IP or hostname> bash /opt/cloudgate/deploy/install.sh" },
+    { name: 'Claim the instance', text: "Open http://<your server's IP>:3000/sign-up. The first account created owns the instance." },
+  ],
+});
 
 const title = 'Self-host Cloudgate on your own Ubuntu server for free';
 const description =
@@ -91,18 +88,14 @@ const description =
 <Base
   title={title}
   description={description}
-  schema={[softwareSchema(), ...howTo, faqSchema(faq), breadcrumbSchema(trail)]}
+  schema={[softwareSchema(), howTo, faqSchema(faq), breadcrumbSchema(trail)]}
 >
   <PageHero
     title="Self-host Cloudgate on your own server"
     lede="Cloudgate installs on one Ubuntu server with a single script. It is free to run under the Elastic License 2.0, with one Organization and one build at a time per Server, and an Enterprise license for the rest."
     trail={trail}
   >
-    {sourceUrl ? (
-      <a class="btn btn--primary" href="#install">See the install steps</a>
-    ) : (
-      <a class="btn btn--primary" href={accessMail}>Ask for access</a>
-    )}
+    <a class="btn btn--primary" href="#install">See the install steps</a>
     <a class="btn btn--ghost" href="/pricing">Compare with the hosted plans</a>
     <div class="window term" slot="visual" aria-hidden="true">
       <div class="window-bar">root@203.0.113.24</div>
@@ -308,67 +301,55 @@ const description =
 
   <section class="section band" id="install" aria-labelledby="install-title">
     <div class="wrap">
-      {sourceUrl ? (
-        <>
-          <div class="section-head" data-reveal>
-            <h2 id="install-title">How do you install it?</h2>
-            <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
-          </div>
-          <ol class="steps install-steps" data-reveal-stagger="80">
-            <li>
-              <h3>Prepare the server</h3>
-              <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
-            </li>
-            <li>
-              <h3>Get the source</h3>
-              <p>The checkout has to live at <code>/opt/cloudgate</code>.</p>
-              <pre class="code"><code><span class="k">git</span> clone {sourceUrl} /opt/cloudgate</code></pre>
-            </li>
-            <li>
-              <h3>Run the installer</h3>
-              <p>
-                <code>CLOUDGATE_PUBLIC_HOST</code> is the one required input: the IP or hostname
-                people will use to reach the console.
-              </p>
-              <pre class="code"><code><span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;your server's IP&gt;</span> <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</code></pre>
-            </li>
-            <li>
-              <h3>Claim the instance</h3>
-              <p>
-                Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code> and create the first
-                account. Then add the server under Servers and deploy your first app, or
-                {" "}<a href={templatesHome}>start from one of the app templates</a>.
-              </p>
-            </li>
-          </ol>
-        </>
-      ) : (
-        <div class="access" data-reveal>
-          <div>
-            <h2 id="access-title">How do you get the installer?</h2>
-            <p class="lede">
-              Ask us. The Cloudgate source repository is private today, so we give access to each
-              team that wants to self-host. Tell us a little about what you plan to run and we will
-              reply with access and the install steps.
-            </p>
-          </div>
-          <div class="access-side panel">
-            <ol class="mini-steps" aria-label="After you have access">
-              <li><span>Clone into <code>/opt/cloudgate</code></span></li>
-              <li><span>Run the installer with your server's IP</span></li>
-              <li><span>Sign up at port 3000</span></li>
-            </ol>
+      <div class="section-head" data-reveal>
+        <h2 id="install-title">How do you install it?</h2>
+        <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
+      </div>
+      <div class="install">
+        <ol class="steps install-steps" data-reveal-stagger="80">
+          <li>
+            <h3>Prepare the server</h3>
+            <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
+          </li>
+          <li>
+            <h3>Get the source</h3>
+            <p>The repository is public, so no key or access request is needed. The checkout has to live at <code>/opt/cloudgate</code>.</p>
+            <pre class="code"><code><span class="k">git</span> clone {cloneUrl} /opt/cloudgate</code></pre>
+          </li>
+          <li>
+            <h3>Run the installer</h3>
             <p>
-              Once you have access, installing is one clone into <code>/opt/cloudgate</code> and one
-              command with your server's IP. Then you sign up at port 3000 and the instance is yours.
+              <code>CLOUDGATE_PUBLIC_HOST</code> is the one required input: the IP or hostname
+              people will use to reach the console.
             </p>
-            <div class="actions">
-              <a class="btn btn--primary" href={accessMail}>Ask for access</a>
-              <a class="btn btn--ghost" href={site.signUp}>Try the hosted console</a>
-            </div>
+            <pre class="code"><code><span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;your server's IP&gt;</span> <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</code></pre>
+          </li>
+          <li>
+            <h3>Claim the instance</h3>
+            <p>
+              Open <code>http://&lt;your server's IP&gt;:3000/sign-up</code> and create the first
+              account. Then add the server under Servers and deploy your first app, or
+              {" "}<a href={templatesHome}>start from one of the app templates</a>.
+            </p>
+          </li>
+        </ol>
+        <aside class="source panel" aria-labelledby="source-title" data-reveal data-reveal-delay="120">
+          <h3 id="source-title">Read it before you run it</h3>
+          <p>
+            Cloudgate's source is public on GitHub. The installer is
+            {" "}<a href={repoFile('deploy/install.sh')}><code>deploy/install.sh</code></a>, and the
+            {" "}<a href="/docs/self-host">self-hosting guide</a> covers the security notes,
+            upgrades and backups in full.
+          </p>
+          <p>
+            Found a bug or missing a feature? Open an issue on the repository;
+            {" "}<a href={repoFile('CONTRIBUTING.md')}>CONTRIBUTING.md</a> says how to send a change.
+          </p>
+          <div class="actions">
+            <a class="btn btn--ghost" href={sourceUrl}>View the source on GitHub</a>
           </div>
-        </div>
-      )}
+        </aside>
+      </div>
     </div>
   </section>
 
@@ -891,53 +872,22 @@ const description =
   .install-steps {
     max-width: 860px;
   }
-  .access {
+  .install {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
     gap: var(--space-7);
-    align-items: center;
+    align-items: start;
   }
-  .access h2 {
-    margin-bottom: var(--space-4);
-  }
-  .access-side {
+  .source {
     display: grid;
-    gap: var(--space-5);
+    gap: var(--space-4);
   }
-  .access-side p {
-    color: var(--ink-2);
-  }
-  .mini-steps {
-    list-style: none;
+  .source h3 {
     margin: 0;
-    padding: 0;
-    counter-reset: m;
-    display: grid;
-    gap: var(--space-2);
   }
-  .mini-steps li {
-    counter-increment: m;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line);
-    background: var(--paper-2);
-    font-size: var(--text-sm);
-  }
-  .mini-steps li::before {
-    content: counter(m);
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 1.6rem;
-    height: 1.6rem;
-    border-radius: 50%;
-    background: var(--brand-tint);
-    color: var(--brand);
-    font-weight: 600;
-    font-size: var(--text-xs);
+  .source p {
+    margin: 0;
+    color: var(--ink-2);
   }
 
   /* ---- Upgrades and backups ---- */
@@ -1136,7 +1086,7 @@ const description =
   }
   @media (max-width: 860px) {
     .choice,
-    .access,
+    .install,
     .ops,
     .license,
     .tiers,

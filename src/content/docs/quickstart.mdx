@@ -4,6 +4,7 @@ seoTitle: 'Cloudgate quickstart: put your first app online in minutes'
 description: Deploy your first app with Cloudgate in minutes, from an app template in the get-started wizard, your own code in the console, or a folder with the CLI.
 lede: Three ways to a running app, from the quickest to the most hands-on. Pick the tab that matches what you have, a ready-made app, your own code in git, or a folder on your computer.
 section: start
+updated: '2026-11-13'
 order: 1
 navTitle: Quickstart
 badges: ['Hosted and self-hosted', 'Owner or Admin']
@@ -139,9 +140,9 @@ and **Generate one for me** for a free sslip.io address, or type your own host. 
 </Tab>
 <Tab label="A folder (CLI)">
 
-The CLI uploads a folder to an Application that already exists and follows its Deployment to the
-end. Make the Server, Project, Environment and Application in the console first (the previous tab),
-then:
+The CLI uploads a folder to an Application and follows its Deployment to the end. Your
+Organization needs a Server or a Cloud account first; the Project can be one you made in the console
+(the previous tab) or one the CLI makes for you. Then:
 
 <Steps>
 <Step title="Install the CLI">
@@ -172,10 +173,11 @@ In your project folder:
 cloudgate deploy
 ```
 
-The first time, it asks which Organization, Project, Environment and Service the folder belongs to
-and remembers the answer. It leaves out what `.gitignore` lists and your `.env` files, uploads the
-rest, and prints the Deployment log until the Deployment ends. Then `cloudgate status` shows the
-Service and its Domains. See the [CLI guide](/docs/cli).
+The first time, it asks which Project the folder belongs to, or offers **Create a new Project**,
+then whether it is one app or the whole Project, and remembers the answer. It leaves out what
+`.gitignore` lists and your `.env` files, uploads the rest (later deploys send only what changed),
+and prints the Deployment log until the Deployment ends. Then `cloudgate status` shows the Service
+and its Domains. See the [CLI guide](/docs/cli).
 
 </Step>
 </Steps>
@@ -201,7 +203,8 @@ has a Deployment with its log, and an address. From here:
   - The sslip.io address is plain HTTP. HTTPS needs a Domain you own.
   - The wizard starts from an app template only. Your own code goes through the console, a git
     push or the CLI.
-  - The CLI deploys Applications only, and never creates a Service, Project or Environment.
+  - The CLI deploys Applications only. It creates a Project only from **Create a new Project**, and
+    Services only by applying the Plan of a Project folder's `cloudgate.yaml`.
 </Callout>
 
 For a list of everything Cloudgate does and does not do, see

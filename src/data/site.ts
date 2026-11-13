@@ -11,15 +11,17 @@ export const site = {
   signUp: 'https://cloudgate.octabyte.app/sign-up',
   signIn: 'https://cloudgate.octabyte.app/sign-in',
   getStarted: 'https://cloudgate.octabyte.app/get-started',
-  // The cloudgate source repository is private today, so the site links to nothing inside it.
-  // Set this when it goes public and the Self-host page shows the clone-and-install steps.
-  sourceUrl: null as string | null,
+  // The cloudgate source repository (public): linked from the header, footer and Self-host page.
+  sourceUrl: 'https://github.com/octabyte-io/cloudgate',
   templatesRepo: 'https://github.com/octabyte-io/cg-templates',
   templatesSite: 'https://cgt.octabyte.io/',
   npm: 'https://www.npmjs.com/package/@octabyte-io/cloudgate',
   support: 'support@octabyte.io',
   company: { name: 'Octabyte', url: 'https://octabyte.io' },
 } as const;
+
+/** A file in the cloudgate repository on its main branch, such as LICENSE or SECURITY.md. */
+export const repoFile = (path: string) => `${site.sourceUrl}/blob/main/${path}`;
 
 /** The console's deploy wizard for one catalogue template (ADR-0073). */
 export const deployUrl = (templateId: string) =>

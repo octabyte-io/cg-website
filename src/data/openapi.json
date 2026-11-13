@@ -3639,7 +3639,8 @@
     "tags": [
      "ProjectConfigs"
     ],
-    "summary": "Get a Project config"
+    "summary": "Get a Project config",
+    "description": "The config's location, its version and, kept in Cloudgate, its text: what a working copy is downloaded from."
    }
   },
   "/projects/{projectId}/config/plans": {
@@ -3836,6 +3837,47 @@
     ],
     "summary": "List repository-sourced Services",
     "description": "The Services whose source the config, as this Environment reads it, names as a repository: `cloudgate deploy` refuses to upload to one. Only Config names, providers and repositories; never the text.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "environment",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/environments/{environmentId}/config/sources": {
+   "get": {
+    "operationId": "PlansController_configSources",
+    "parameters": [
+     {
+      "name": "environmentId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Environment's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConfigSourcesDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Plans"
+    ],
+    "summary": "List where each config entry's code comes from",
+    "description": "Every entry of the config, as this Environment reads it, and where its code comes from: a root `cloudgate deploy` in a Project folder builds the ones from a subfolder of it. Never the text.",
     "x-cloudgate-permission": [
      {
       "resource": "environment",
@@ -4620,6 +4662,83 @@
     ],
     "summary": "Upload files for a drop deployment",
     "description": "The upload half of a drop deployment: the zip arrives as the multipart `zip` part and is extracted into the application's code directory. Deploying it stays POST /applications/:id/deployments."
+   }
+  },
+  "/applications/{id}/drop/compare": {
+   "post": {
+    "operationId": "ApplicationsController_compareDrop",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Application's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Applications"
+    ],
+    "summary": "Compare a folder with the uploaded files",
+    "x-cloudgate-permission": [
+     {
+      "resource": "service",
+      "actions": [
+       "update"
+      ]
+     }
+    ]
+   }
+  },
+  "/applications/{id}/drop/apply": {
+   "post": {
+    "operationId": "ApplicationsController_applyDrop",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Application's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UploadApplicationDropDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Applications"
+    ],
+    "summary": "Upload only the changed files",
+    "description": "The second half: the multipart `files` part is the whole folder's file list, the `zip` part only the files compare asked for, and the fields are `/drop`'s. Answers what `/drop` answers. Any member who may update the Application may call it; the service scopes it to the caller's organization.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "service",
+      "actions": [
+       "update"
+      ]
+     }
+    ]
    }
   },
   "/applications/{id}/start": {
@@ -12307,6 +12426,14 @@
        "type": "string"
       },
       "description": "The Domain's id."
+     },
+     {
+      "name": "force",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
      }
     ],
     "responses": {
@@ -12318,6 +12445,7 @@
      "Domains"
     ],
     "summary": "Delete a Domain",
+    "description": "`?force=true` is the escape hatch for a Server that is gone for good, as on an Application Delete: without it, a Server that cannot be reached is a 409 naming it and the row is kept; with it, the row goes and the response names the router left in that Server's file. Compared to 'true' like the Application Delete's.",
     "x-cloudgate-permission": [
      {
       "resource": "domain",
@@ -13409,6 +13537,73 @@
     ],
     "summary": "Forget the host key",
     "description": "Forget the Server's recorded host key, after a deliberate reinstall, so the next connect records the new one. A change to the Server row, so `server:create` as `PATCH` is.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/start-maintenance": {
+   "post": {
+    "operationId": "ServersController_startMaintenance",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Start maintenance on a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/end-maintenance": {
+   "post": {
+    "operationId": "ServersController_endMaintenance",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "End maintenance on a Server",
+    "description": "End the Server's Maintenance; 409 when it is not in maintenance.",
     "x-cloudgate-permission": [
      {
       "resource": "server",
@@ -14938,6 +15133,14 @@
       "schema": {
        "type": "string"
       }
+     },
+     {
+      "name": "deleteData",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
      }
     ],
     "responses": {
@@ -15355,6 +15558,14 @@
       "schema": {
        "type": "string"
       }
+     },
+     {
+      "name": "deleteData",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
      }
     ],
     "responses": {
@@ -15767,6 +15978,14 @@
      },
      {
       "name": "force",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "deleteData",
       "required": true,
       "in": "query",
       "schema": {
@@ -16377,6 +16596,14 @@
        "type": "string"
       },
       "description": "The redirect's id."
+     },
+     {
+      "name": "force",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
      }
     ],
     "responses": {
@@ -16388,6 +16615,7 @@
      "Redirects"
     ],
     "summary": "Delete a redirect",
+    "description": "`?force=true` is the escape hatch for a Server that is gone for good, as on an Application Delete: without it, a Server that cannot be reached is a 409 naming it and the row is kept; with it, the row goes and the response names the router left in that Server's file. Compared to 'true' like the Application Delete's.",
     "x-cloudgate-permission": [
      {
       "resource": "service",
@@ -16715,6 +16943,14 @@
        "type": "string"
       },
       "description": "The security's id."
+     },
+     {
+      "name": "force",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
      }
     ],
     "responses": {
@@ -16726,6 +16962,7 @@
      "Security"
     ],
     "summary": "Delete a basic-auth user",
+    "description": "`?force=true` is the escape hatch for a Server that is gone for good, as on an Application Delete: without it, a Server that cannot be reached is a 409 naming it and the row is kept; with it, the row goes and the response names the router left in that Server's file. Compared to 'true' like the Application Delete's.",
     "x-cloudgate-permission": [
      {
       "resource": "service",
@@ -21384,6 +21621,62 @@
      "services"
     ]
    },
+   "ConfigSourcesDto": {
+    "type": "object",
+    "properties": {
+     "keptIn": {
+      "type": "string",
+      "enum": [
+       "cloudgate",
+       "repository",
+       null
+      ],
+      "nullable": true
+     },
+     "readable": {
+      "type": "boolean"
+     },
+     "services": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "configName": {
+         "type": "string"
+        },
+        "kind": {
+         "type": "string"
+        },
+        "source": {
+         "type": "string",
+         "enum": [
+          "folder",
+          "repository",
+          "image",
+          "console",
+          "none"
+         ]
+        },
+        "folder": {
+         "type": "string",
+         "nullable": true
+        }
+       },
+       "required": [
+        "configName",
+        "kind",
+        "source",
+        "folder"
+       ]
+      }
+     }
+    },
+    "required": [
+     "keptIn",
+     "readable",
+     "services"
+    ]
+   },
    "ConfirmMoveDto": {
     "type": "object",
     "properties": {
@@ -25578,6 +25871,12 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 262144
+     },
+     "version": {
+      "type": "integer",
+      "exclusiveMinimum": true,
+      "maximum": 9007199254740991,
+      "minimum": 0
      }
     },
     "required": [

@@ -18,7 +18,7 @@ Three readers, in this order of emphasis:
 Facts come from the cloudgate repository (CONTEXT.md, CHANGELOG.md, docs/adr). Use its words:
 Server, Project, Environment, Service, Deployment, Template, Agent, Plan. Never call it "open
 source": it is source-available under the Elastic License 2.0 and free to self-host.
-The source repository is private today, so link to nothing inside it (`site.sourceUrl` is null).
+The source repository is public at https://github.com/octabyte-io/cloudgate (`site.sourceUrl`); link files in it with `repoFile(path)`.
 
 ## The one idea
 

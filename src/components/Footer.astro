@@ -48,8 +48,7 @@ const columns = [
   {
     title: 'Elsewhere',
     links: [
-      // The source link appears on its own once site.sourceUrl is set (the repository is private today).
-      ...(site.sourceUrl ? [{ href: site.sourceUrl, label: 'Cloudgate source on GitHub' }] : []),
+      { href: site.sourceUrl, label: 'Cloudgate source on GitHub' },
       { href: site.templatesRepo, label: 'Template catalogue on GitHub' },
       { href: site.npm, label: 'CLI on npm' },
       { href: `mailto:${site.support}`, label: site.support },

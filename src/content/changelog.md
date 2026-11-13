@@ -1,6 +1,18 @@
 ## Unreleased: the platform
 
-Everything in this section is in the current build of Cloudgate, on the Hosted instance and in a self-hosted install. The server reports version 0.1.0, the first one the Cloudgate CLI works with.
+Everything in this section is in the current build of Cloudgate, on the Hosted instance and in a self-hosted install. The server reports version 0.2.0, the first that takes an upload of only the changed files. The Cloudgate CLI works with 0.1.0 and newer.
+
+### The source is public on GitHub
+
+Cloudgate's source repository, [github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), is public. Self-hosting needs no access request: clone it into `/opt/cloudgate` and run `deploy/install.sh` as root (see [how to self-host Cloudgate](/self-hosted)). Bug reports, feature ideas and pull requests are welcome as GitHub issues, as `CONTRIBUTING.md` describes, and a security problem is reported privately on the repository's Security tab, under **Report a vulnerability**. The license is still the Elastic License 2.0.
+
+### A deploy uploads only the files that changed
+
+An Instance at 0.2.0 compares the folder you deploy with what its build host already holds, file by file, and takes only the files it lacks or holds different. Files deleted on your side are deleted there too, and the new set of files replaces the old one only once every file matches; if the files changed meanwhile, the old set is left as it was. The Cloudgate CLI uses this from 0.0.2-beta.3 on; an older Instance still gets the full upload.
+
+### One folder for a whole Project, and a config that knows its version
+
+A Project config now has a version that moves with every Apply and every saved change. A whole-file edit that started from an older version is refused, saying when the config last changed and who changed it, so two people editing the same Project cannot overwrite each other. Cloudgate can also list which apps a Project builds from a subfolder of one folder, which is what a root `cloudgate deploy` builds. An app built from a folder is never built before its first upload, where before that first Deployment ran with no files and failed.
 
 ### Deploy an app from the templates website, with no server and no account yet
 
@@ -73,6 +85,28 @@ Existing API keys keep working, now called personal keys. Creating, listing or d
 ### Smaller additions for the CLI
 
 The server gained what the Cloudgate CLI calls: a public "is this a Cloudgate" check the CLI asks before it sends a key, a device login approved in the console, a key that can delete itself on logout, a Service's variables set and unset by name and never shown, a Deployment's status, and a Runtime log that can be read as a tail. Uploading a whole project folder of several MB now builds, and an upload during a running build is refused instead of pulling files out from under it.
+
+## CLI 0.0.2-beta.3
+
+### Deploy uploads only the files that changed
+
+`cloudgate deploy` sends a list of the folder's files with a checksum of each, and uploads only the ones the Instance lacks or holds different. Files you deleted are deleted there too. It says what it sent, such as `Uploading 3 changed files, 12.0 kB (211 unchanged, 1 deleted)`, and its sizes and the 100 MB warning are about the zip actually sent. `--full` sends every file. An Instance older than 0.2.0 gets the full upload, with no error and no question.
+
+### Project folders: `link --whole-project`, `config pull` and `config plan`
+
+A folder, usually a monorepo's root, can be linked to a whole Project rather than one Service. `cloudgate link --whole-project` saves the Project config there as `cloudgate.yaml`, your working copy. `cloudgate config pull` replaces it with the current config, asking first if you have edited it. `cloudgate config plan` shows what each Environment's Plan creates, changes and destroys, and applies it on a yes; destroying a Service or a major upgrade needs its Config name typed, and `--yes` in CI still refuses both. A copy the config has moved on from is refused, sending nothing.
+
+### A root `cloudgate deploy` deploys every app built from a subfolder
+
+In a Project folder, `cloudgate deploy` runs the same plan step first, then uploads the folder to each app whose config entry names a subfolder of it (`source: { folder: apps/web }`), builds each, and follows every build to its end, with one line per app at the end. Apps from a repository or an image, databases and buckets are listed as skipped. `--service` deploys one app only.
+
+### A first deploy asks which Project, or creates one
+
+In a folder with no link, a first `cloudgate deploy` in a terminal asks which Project, plus **Create a new Project**, then whether this is one app or the whole Project. A new Project gets its name (the folder's by default), a `production` Environment on a ready Server or a Cloud account and region you pick, and a starter `cloudgate.yaml` in the folder to add your apps to. In CI, or with a target flag or variable, nothing new is asked.
+
+### `cloudgate template try` and `test-values.yaml`, for template authors
+
+`cloudgate template try <template folder>` starts a template's compose part on this computer's Docker the way an Instance would, checks that each Domain answers, prints the containers' state and logs when something fails, and always removes everything afterwards. It needs no Instance and no login, only Docker with Compose 2.1.1 or newer. Values a template asks for come from the folder's `test-values.yaml`, then the ask's default, then a sample; `template check` and `template pack` skip that file.
 
 ## CLI 0.0.2-beta.2
 

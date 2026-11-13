@@ -1,9 +1,10 @@
 ---
 title: Fix Cloudgate CLI errors
-seoTitle: Cloudgate CLI exit codes and common errors fixed
+seoTitle: Cloudgate CLI exit codes and common errors, with fixes
 description: What each Cloudgate CLI exit code means, and how to fix common errors such as not logged in, plain http refused, wrong Organization and missing values.
 lede: Every failure prints one Error line on stderr, at most one hint under it, and exits with a code that says what kind of failure it was. Start with the code, then find the message below.
 section: cli
+updated: '2026-11-13'
 order: 4
 navTitle: Troubleshooting
 badges: ['Hosted and self-hosted', 'Beta']
@@ -154,6 +155,68 @@ uploaded and exits 1: run `cloudgate deploy` again.
 
 The CLI names the five biggest folders above 100 MB. `node_modules` and build output are uploaded
 unless a `.gitignore` or `.cloudgateignore` lists them.
+
+### It says the apply was refused and it is comparing again
+
+The files on the build host changed while `deploy` was uploading the changed ones, or the apply
+failed there. The Instance kept the previous files, and `deploy` printed its reason and compared once
+more. A second refusal exits 1: run `cloudgate deploy` again, or `cloudgate deploy --full` to send
+every file.
+
+## Project folders
+
+### Error: this folder is not in a Project folder
+
+`config pull` and `config plan` work only in a folder linked with `cloudgate link --whole-project`
+(exit 2). Run that at the root of the Project first.
+
+### Error: cloudgate.yaml is version … of the Project config, which has changed in Cloudgate since; nothing was sent
+
+Someone applied a change to the [Project config](/docs/guide/project-config) after you downloaded
+it, in the console or from another Project folder (exit 1). Nothing was sent, so nothing of theirs
+was undone. Copy your edits aside, run `cloudgate config pull`, make them again, then run
+`cloudgate config plan` or `cloudgate deploy`.
+
+### Error: … config is kept in the repository …, so no folder can hold a working copy of it
+
+Only a Project whose config is kept in Cloudgate can have a Project folder (exit 1). Change the
+`cloudgate.yaml` in that repository instead, or move the config into Cloudgate on the Project's
+**Config** tab with **Move into Cloudgate**.
+
+### Error: nothing was applied: applying the plan needs a yes
+
+With no terminal, `config plan` and a Project folder's `deploy` need `--yes` (exit 2). A Plan that
+destroys a Service or makes a major version upgrade is refused even with `--yes`, naming each: run it
+in a terminal and type each name.
+
+### Error: … builds from …, which is not a folder in this Project folder
+
+An entry's `source: { folder: … }` names a subfolder that is not there (exit 1). Nothing was sent or
+created. Make the folder, or change the entry's source in `cloudgate.yaml`.
+
+### Error: … has no Server or Cloud account a new Project can deploy to; nothing was created
+
+**Create a new Project** needs somewhere for its apps to run (exit 1). Add a
+[Server](/docs/guide/servers) or connect a [Cloud account](/docs/guide/cloud-accounts), then run
+`cloudgate deploy` again. Without the `project: create` permission it is refused the same way.
+
+## Templates
+
+### It prints "no compose part, nothing to try"
+
+Not an error: `template try` exits 0 for a template with no compose part, because there is nothing
+to start.
+
+### template try exits 1 after printing docker compose logs
+
+`docker compose up --wait` failed, a Domain never answered with anything but a 5xx, or the time ran
+out. The `ps` and `logs` output above the error says which. Give a slow image pull more time with
+`--timeout <minutes>` (the default is 10). An `ask` input with no value it can use fails the run
+naming it: add it to the folder's `test-values.yaml`.
+
+### template try says Docker or Compose is missing
+
+It needs Docker with Compose 2.1.1 or newer, the first with `up --wait` (exit 1).
 
 ## Variables
 

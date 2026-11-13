@@ -4,6 +4,7 @@ seoTitle: 'Cloudgate FAQ: answers about plans, data, agents and hosting'
 description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, security and access, and AI agents over MCP.
 lede: Short, direct answers to the questions people ask most, grouped by topic. Each one links to the page that covers it in full.
 section: help
+updated: '2026-11-13'
 order: 3
 navTitle: FAQ
 badges: ['Hosted and self-hosted']
@@ -84,9 +85,10 @@ a time per Server. An Enterprise license unlocks the rest. You pay only for the 
 
 ### How do I get the source?
 
-The source repository is private today. Write to
-[support@octabyte.io](mailto:support@octabyte.io?subject=Access%20to%20self-host%20Cloudgate) and we
-reply with access and the install steps. See [Install Cloudgate](/docs/self-host/install).
+Clone it from the public repository,
+[github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate). No account or access
+request is needed. [Install Cloudgate](/docs/self-host/install) takes you from the clone to a
+signed-in console.
 
 ## Deploying
 
@@ -94,6 +96,13 @@ reply with access and the install steps. See [Install Cloudgate](/docs/self-host
 
 Yes. The CLI, `cloudgate deploy`, uploads a folder to an Application and follows its Deployment. In
 CI, set `CLOUDGATE_KEY` to a Personal key. See the [CLI guide](/docs/cli) and [CI use](/docs/cli/ci).
+
+### Can I deploy a monorepo with several apps in one command?
+
+Yes. Link its root with `cloudgate link --whole-project`, which makes it a Project folder holding the
+Project config as `cloudgate.yaml`. Give each app `source: { folder: apps/web }`, then one
+`cloudgate deploy` there applies the config's Plan and builds every app from its subfolder. See
+[deploy a whole Project](/docs/cli#deploy-a-whole-project-from-one-folder).
 
 ### Can I roll back a bad deploy?
 
@@ -117,6 +126,13 @@ such as `${{project.KEY}}`. See [Environment variables](/docs/guide/environment-
 
 Secrets are encrypted at rest, API answers say only whether a secret is set, and every Agent result
 passes a mask that replaces stored secrets with dots. See [Security](/security).
+
+### How do I report a bug or a security problem?
+
+Open an issue on the [cloudgate repository](https://github.com/octabyte-io/cloudgate/issues) for a
+bug or a feature idea. Never report a security problem in a public issue: on the repository's
+**Security** tab, choose **Report a vulnerability**, which only the maintainers can see. Questions
+about your account go to [support@octabyte.io](mailto:support@octabyte.io).
 
 ### Can I limit a member to one Project?
 

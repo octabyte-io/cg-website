@@ -1,7 +1,8 @@
 # Product facts
 
 What the site may claim, each traceable to the cloudgate repository (README.md, CONTEXT.md,
-CHANGELOG.md, docs/, docs/adr/). If a claim is not here, check the repository before writing it.
+CHANGELOG.md, cli/CHANGELOG.md, SECURITY.md, CONTRIBUTING.md, docs/, docs/adr/), public at
+https://github.com/octabyte-io/cloudgate (`site.sourceUrl`; link files with `repoFile(path)`). If a claim is not here, check the repository before writing it.
 
 ## What Cloudgate is
 
@@ -22,11 +23,28 @@ account. A Deployment is one attempt to build and release a Service.
   use your own: the wizard makes a key and gives the one command to run), then Deploy. Cloudgate
   applies the setup by itself once the Server is ready, then shows "Open <app>" and the address.
   A free sslip.io address works right away (plain http); add your own domain for https.
-- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+): `npm install -g @octabyte-io/cloudgate`,
-  `cloudgate login` (approve a code in the console), `cloudgate deploy` uploads the current
-  folder (respects .gitignore and .cloudgateignore, skips .env), `cloudgate status`,
-  `cloudgate logs`, `cloudgate vars set KEY`. In CI: `CLOUDGATE_KEY=<personal key>`. The npm
-  `latest` tag is 0.0.1 and `next` is a beta; it is early.
+- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). The npm `latest` tag is 0.0.1, a
+  placeholder with no commands; the real CLI is the beta on `next` (0.0.2-beta.3), so every
+  install line on the site is `npm install -g @octabyte-io/cloudgate@next`. Source in the repo's
+  `cli/`. Commands: `login` (approve a code in the console), `whoami`, `instance list|use`,
+  `logout`, `link`/`unlink`, `deploy` (respects .gitignore and .cloudgateignore, skips .env),
+  `status`, `logs`, `vars list|set|unset`, `template check|pack|try`, `config pull|plan`. In CI:
+  `CLOUDGATE_KEY=<personal key>`.
+  - **Changed files only** (0.0.2-beta.3): `deploy` sends file checksums (SHA-256) and uploads
+    only files the Instance lacks or holds different; local deletions are deleted there too.
+    `--full` sends every file. Needs an Instance at 0.2.0+; an older one gets the full upload.
+    The CLI still works with Instances from 0.1.0.
+  - **Project folders** (0.0.2-beta.3, ADR-0080): `link --whole-project` saves the Project config
+    as `cloudgate.yaml` (a working copy); `config pull` refreshes it; `config plan` shows and
+    applies each Environment's Plan (destroys and major upgrades need the Config name typed;
+    `--yes` refuses both); a stale copy is refused. A root `deploy` runs the plan step, then
+    builds every app whose entry is `source: { folder: <subfolder> }`; others are skipped.
+    A first `deploy` in an unlinked folder asks which Project (or "Create a new Project": name,
+    a `production` Environment on a ready Server or a Cloud account and region, a starter
+    `cloudgate.yaml`), then "One app or the whole Project?".
+  - **`template try <folder>`**: runs a template's compose part on local Docker (Compose
+    2.1.1+), checks each Domain answers, removes everything; values from the folder's
+    `test-values.yaml`. No Instance or login needed.
 - **Git**: GitHub, GitLab, Bitbucket, Gitea, or any git URL; push-to-deploy via webhooks.
   Also a Docker image, or uploaded files.
 - **Project config** `cloudgate.yaml`: one file describing a Project's services, kept in the
@@ -138,7 +156,23 @@ or a ready-made Docker image.
 - Without a license: one Organization, one build at a time per Server. An **Enterprise license**
   unlocks SSO, SCIM, custom roles, forward auth, white-labelling, parallel builds and cloud runs,
   and more than one Organization.
-- The source repository is private today; the site offers "contact us for access" until it opens.
+- The source repository is **public**: https://github.com/octabyte-io/cloudgate. Install as root:
+  `git clone https://github.com/octabyte-io/cloudgate.git /opt/cloudgate`, then
+  `CLOUDGATE_PUBLIC_HOST=<public ip or hostname> bash /opt/cloudgate/deploy/install.sh`, then
+  sign up at `http://<host>:3000/sign-up`. No access request, no deploy key (the repo's
+  docs/deploy.md still describes the SSH deploy key from when it was private; that is stale).
+  Upgrade: `git pull` in /opt/cloudgate and run the installer again with the same host.
+- The Instance (server) reports version **0.2.0**.
+
+## Source, contributing and security reports
+
+- Bug reports and feature ideas: GitHub issues (Bug report / Feature request forms). Pull
+  requests welcome; `CONTRIBUTING.md` has the setup, the tests and the contribution terms (agreed
+  once on the first pull request: the contributor keeps copyright and grants Octabyte a license).
+- Security problems: never a public issue. Report privately on the repository's **Security** tab,
+  **Report a vulnerability** (`SECURITY.md`); only maintainers see it. SECURITY.md names no email,
+  so the site gives none for security reports. Acknowledgement within a few working days; fixes go
+  into the latest release.
 
 ## Templates
 

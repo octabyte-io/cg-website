@@ -5,6 +5,7 @@ seoTitle: 'Deploy to your AWS or Google Cloud account with Cloudgate'
 description: Connect an AWS account or Google Cloud project, see what Cloudgate creates there with OpenTofu, and how drift from hand changes is shown and put back.
 lede: A Cloud account links your Organization to one AWS account or Google Cloud project. Environments that deploy there get their Services built and run on the cloud's own services, created and kept in shape by Cloudgate.
 section: guide
+updated: '2026-11-13'
 group: Where it runs
 order: 3
 badges: ['Owner or Admin', 'AWS', 'Google Cloud']
@@ -87,6 +88,15 @@ check with the new one passes.
 The list shows each account's last check and its **Permissions**. When a new Cloudgate version
 needs more, the account shows "Permissions out of date" and names the missing actions. Update the
 stack (AWS) or role (Google Cloud) from the new template or script, then press **Check now**.
+
+Compose stacks on a [Stack VM](/docs/guide/compose-stacks#compose-stacks-in-aws-and-google-cloud)
+are the latest example. Accounts connected before they arrived lack the permissions to make and
+reach one: AWS policy version 4 on a self-hosted instance or 5 on the Hosted one, Google Cloud role
+version 7 or 8. On AWS, download the new CloudFormation template from **Settings** >
+**Cloud accounts** and update the account's stack with it, which adds the managed policy
+`cloudgate-deploy-stack-vm-<cloud account id>` to the deploy role. On Google Cloud, run the new setup
+script in Cloud Shell, which updates the role and turns on the IAP API. Then press **Check now**.
+Until then a Plan that needs a Stack VM in that account is refused; nothing else in it is.
 
 ## What Cloudgate creates in your cloud
 

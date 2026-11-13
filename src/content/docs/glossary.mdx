@@ -4,6 +4,7 @@ seoTitle: 'Cloudgate glossary: every product term and what it means'
 description: Every term Cloudgate uses, from Access log to Wired variable, with a one-line definition each, plus the words Cloudgate avoids and what it says instead.
 lede: Cloudgate uses one word for each thing, the same in the console, the CLI, the API and these docs. Each term here has its own link, so you can point someone straight at it.
 section: start
+updated: '2026-11-13'
 order: 3
 navTitle: Glossary
 badges: ['Hosted and self-hosted']
@@ -99,6 +100,10 @@ The branch an Environment reads a repository-kept Project config from. Empty mea
 
 A Service's fixed name in its Project config: lower-case letters, digits and hyphens, at most 63 characters.
 
+### Config version
+
+A counter on a Project config that every Apply moves. A Plan sent from an older version is refused, so a working copy never undoes a teammate's change.
+
 ### Console-managed
 
 A Service the Project config lists by name and kind only, because the config cannot describe it yet. It is changed in the console, and a Plan never changes or destroys it.
@@ -183,7 +188,7 @@ A database made outside Cloudgate that Cloudgate uses as given, and never change
 
 ### Folder link
 
-A folder's record, in `.cloudgate/link.json`, of which Service the CLI deploys it to.
+A folder's record, in `.cloudgate/link.json`, of which Service the CLI deploys it to. A link that names no Service makes the folder a Project folder.
 
 ### Free trial
 
@@ -317,6 +322,10 @@ A named group of related Services, holding Environments and its own variables.
 
 The one description of what a Project runs, kept in Cloudgate or as `cloudgate.yaml` in a repository.
 
+### Project folder
+
+A folder linked to a whole Project, usually a monorepo's root, holding a working copy of its Cloudgate-kept Project config as `cloudgate.yaml`. One `cloudgate deploy` there builds every app the config builds from a subfolder.
+
 ### Proven domain
 
 An email domain an Organization has proven it owns with a DNS record, so single sign-on can route people to it.
@@ -405,7 +414,7 @@ A ready-made starting point for a Project's Services, from the Template catalogu
 
 ### Template catalogue
 
-The published list of Templates an Instance offers.
+The published list of Templates an Instance offers: by default the newest release of the public `octabyte-io/cg-templates` repository, read as one `catalogue.zip`.
 
 ### Token spend
 
@@ -475,6 +484,7 @@ search for one of them, this is the word to look for instead.
 | API key, token, personal access token | Personal key or Agent key |
 | Provider, connection | Cloud account |
 | One-click app, marketplace, recipe | Template |
+| Monorepo link, workspace | Project folder |
 | VPS, managed server | Bought Server |
 | SaaS, cloud version | Hosted instance |
 | On-prem, community edition | Self-hosted instance |

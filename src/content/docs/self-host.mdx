@@ -1,15 +1,16 @@
 ---
 title: Self-hosting Cloudgate
-seoTitle: Self-host Cloudgate, licence and what is free
-description: What self-hosting Cloudgate means, what the Elastic License 2.0 allows, what the free version includes, and what an Enterprise license unlocks.
+seoTitle: 'Self-host Cloudgate from GitHub: licence and what is free'
+description: 'Self-host Cloudgate from its public GitHub repository: what the Elastic License 2.0 allows, what the free version includes, and what Enterprise unlocks.'
 lede: A self-hosted instance is the same Cloudgate as the Hosted one, installed on an Ubuntu server you run. It is free under the Elastic License 2.0, and an Enterprise license unlocks the features larger teams ask for.
 section: self-host
+updated: '2026-11-13'
 order: 1
 navTitle: Overview
 badges: ['Self-hosted only']
 faq:
   - { q: Is Cloudgate open source?, a: 'No. It is source-available under the Elastic License 2.0. You may use, self-host and change it, but you may not offer it to others as a hosted service or get around its license checks.' }
-  - { q: Where do I get the source?, a: 'The source repository is private today. Write to <a href="mailto:support@octabyte.io">support@octabyte.io</a> for access; we reply with access and the install steps.' }
+  - { q: Where do I get the source?, a: 'From the public repository at <a href="https://github.com/octabyte-io/cloudgate">github.com/octabyte-io/cloudgate</a>. Clone it to <code>/opt/cloudgate</code> on your server and run the install script; no account or access request is needed.' }
   - { q: What happens when an Enterprise license ends?, a: 'Your settings are kept and nothing is deleted, but the licensed features stop. Owners and admins see a warning bar from 14 days before the end date.' }
   - { q: Can I buy a server from Cloudgate on a self-hosted instance?, a: 'No. Bought Servers and Hosted plans exist only on the Hosted instance. A self-hosted instance deploys to the machine it runs on, to Servers you add over SSH, and to your AWS and Google Cloud accounts.' }
 ---
@@ -39,13 +40,20 @@ Cloudgate is licensed under the **Elastic License 2.0**. It is source-available,
 
 The [license page](/license) explains the Elastic License 2.0 in plain English, with worked cases.
 
-## Get access to the source
+## Get the source
 
-The Cloudgate source repository is private today. To self-host, write to
-[support@octabyte.io](mailto:support@octabyte.io?subject=Access%20to%20self-host%20Cloudgate) and say
-a little about what you plan to run. We reply with access and the install steps. Once you have
-access, the [install guide](/docs/self-host/install) takes you from a bare server to a signed-in
-console.
+The Cloudgate source is public at
+[github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), under the Elastic
+License 2.0. Clone it onto your server and run one script; nothing has to be requested first:
+
+```bash
+git clone https://github.com/octabyte-io/cloudgate.git /opt/cloudgate
+```
+
+The [install guide](/docs/self-host/install) takes you from a bare server to a signed-in console.
+Bug reports and feature ideas go to the repository's
+[issues](https://github.com/octabyte-io/cloudgate/issues). Report a security problem privately
+instead: on the repository's **Security** tab, choose **Report a vulnerability**.
 
 ## Free version and Enterprise license
 
@@ -93,8 +101,8 @@ Some parts of Cloudgate exist on only one kind of instance.
 ## What self-hosting does not do
 
 <Callout type="limit" title="Your job, not Cloudgate's">
-  - Cloudgate does not update itself on a self-hosted install. You pull the new version and run the
-    install script again.
+  - Cloudgate does not update itself on a self-hosted install. You `git pull` the new version and
+    run the install script again.
   - Cloudgate backs up the databases and volumes you deploy, not itself. Back up its database and
     secrets files yourself.
   - The console and API answer on plain HTTP at ports 3000 and 4000 after install. Reach them over
@@ -106,6 +114,7 @@ Some parts of Cloudgate exist on only one kind of instance.
 ## Related pages
 
 - [Install Cloudgate on a server](/docs/self-host/install): requirements, the installer and the first sign-up.
+- [The source on GitHub](https://github.com/octabyte-io/cloudgate): the code, the license text and the issue tracker.
 - [Instance settings](/docs/self-host/instance-settings): the license, branding, Traefik and maintenance.
 - [Single sign-on and SCIM](/docs/guide/sso-and-scim) and [custom roles](/docs/guide/members-and-roles): the licensed features in use.
 - [Security](/security): how secrets and access are handled.

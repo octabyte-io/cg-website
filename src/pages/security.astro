@@ -3,16 +3,17 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site } from '../data/site';
+import { site, repoFile } from '../data/site';
 import { breadcrumbSchema, faqSchema } from '../data/schema';
 
 const trail = [{ name: 'Security', path: '/security' }];
-const reportMail = `mailto:${site.support}?subject=${encodeURIComponent('Security report')}`;
+// SECURITY.md: reports go privately through the repository's Security tab, Report a vulnerability.
+const reportUrl = `${site.sourceUrl}/security`;
 
 const faq = [
   {
     q: 'How do I report a security vulnerability in Cloudgate?',
-    a: `Email <a href="${reportMail}">${site.support}</a> with the subject “Security report”. Please do not open a public issue or post about it. Include what you found, how to reproduce it, the version you tested and what an attacker could do with it.`,
+    a: `Report it privately on GitHub: on the <a href="${reportUrl}">Cloudgate repository's Security tab</a>, choose Report a vulnerability. Only the maintainers can see the report. Please do not open a public issue or post about it. Include what you found, how to reproduce it, the version or commit you tested and what an attacker could do with it.`,
   },
   {
     q: 'Where do my apps and data run?',
@@ -253,11 +254,13 @@ const description =
       <div data-reveal>
         <h2 id="report-title">How do I report a vulnerability?</h2>
         <p class="lede">
-          Email <a href={reportMail}>{site.support}</a> with the subject “Security report”. Please do
-          not open a public issue or post about it until a fix is out.
+          Privately, on GitHub: on the <a href={reportUrl}>Cloudgate repository's Security tab</a>,
+          choose <strong>Report a vulnerability</strong>. Only the maintainers can see the report.
+          Please do not open a public issue or post about it until a fix is out. The policy is the
+          repository's <a href={repoFile('SECURITY.md')}>SECURITY.md</a>.
         </p>
         <div class="actions">
-          <a class="btn btn--primary" href={reportMail}>Send a security report</a>
+          <a class="btn btn--primary" href={reportUrl}>Report a vulnerability on GitHub</a>
           <a class="btn btn--ghost" href="/.well-known/security.txt">Read our security.txt</a>
         </div>
       </div>
@@ -266,7 +269,7 @@ const description =
         <ol class="steps">
           <li><p>What you found, and where.</p></li>
           <li><p>How to reproduce it, step by step.</p></li>
-          <li><p>Which version or install you tested: the hosted console or a self-hosted one.</p></li>
+          <li><p>Which version or commit you tested: the hosted console or a self-hosted one.</p></li>
           <li><p>What an attacker could do with it.</p></li>
         </ol>
         <h3>What happens next</h3>

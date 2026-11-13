@@ -2,11 +2,10 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site } from '../data/site';
+import { site, repoFile } from '../data/site';
 import { breadcrumbSchema } from '../data/schema';
 
 const trail = [{ name: 'About', path: '/about' }];
-const accessMail = `mailto:${site.support}?subject=${encodeURIComponent('Access to self-host Cloudgate')}`;
 
 const title = 'About Cloudgate: a deployment platform for servers you own';
 const description =
@@ -170,8 +169,8 @@ const aboutPage = {
           <dt>A CLI on npm</dt>
           <dd>
             <code>@octabyte-io/cloudgate</code> logs in through the console, uploads a folder,
-            follows the build and sets variables by name. It is still early: the current release is a
-            beta.
+            follows the build and sets variables by name. It is still early: the newest release is a
+            beta on npm's <code>next</code> tag.
           </dd>
         </div>
         <div>
@@ -185,7 +184,7 @@ const aboutPage = {
           <dt>Decisions written down</dt>
           <dd>
             Every architecture decision is a short record with the alternatives that were rejected,
-            and the product's words (Server, Project, Environment, Service, Deployment, Plan) mean one
+            in the repository's <a href={`${site.sourceUrl}/tree/main/docs/adr`}>docs/adr</a>, and the product's words (Server, Project, Environment, Service, Deployment, Plan) mean one
             thing each, in the code and on this site.
           </dd>
         </div>
@@ -205,13 +204,13 @@ const aboutPage = {
       </div>
       <div class="license-side panel" data-reveal data-reveal-delay="120">
         <p>
-          The source repository is private today, so we give access to each team that wants to
-          self-host. The hosted console at <a href={site.console}>{site.console.replace('https://', '')}</a>
-          {' '}runs the same Cloudgate.
+          The source is public on <a href={site.sourceUrl}>GitHub</a>: read it, run it on your own
+          server, and open an issue when something is wrong. The hosted console at
+          {' '}<a href={site.console}>{site.console.replace('https://', '')}</a> runs the same Cloudgate.
         </p>
         <div class="actions">
           <a class="btn btn--primary" href="/license">Read the license in plain English</a>
-          <a class="btn btn--ghost" href={accessMail}>Ask for self-host access</a>
+          <a class="btn btn--ghost" href={site.sourceUrl}>View the source on GitHub</a>
         </div>
         <p class="side-more">Or read <a href="/self-hosted">how to self-host Cloudgate on one server</a>.</p>
       </div>
@@ -229,13 +228,18 @@ const aboutPage = {
       </div>
       <div class="prose" data-reveal data-reveal-delay="120">
         <p>
-          Cloudgate is feature-complete for its first release, and the server reports version 0.1.0.
+          Cloudgate is feature-complete for its first release, and the server reports version 0.2.0.
           Everything that changes for the people who run it is written up release by release in
           {' '}<a href="/changelog">the Cloudgate changelog</a>.
         </p>
         <p>
           Questions, sales or a security report: every route is on <a href="/contact">the contact
           page</a>, and how we protect your apps is on <a href="/security">the security page</a>.
+        </p>
+        <p>
+          Bug reports, feature ideas and pull requests are welcome on GitHub;
+          {' '}<a href={repoFile('CONTRIBUTING.md')}>CONTRIBUTING.md</a> says how to set up, test and
+          send a change.
         </p>
       </div>
     </div>

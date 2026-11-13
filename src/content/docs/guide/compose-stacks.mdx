@@ -4,6 +4,7 @@ seoTitle: 'Deploy a Docker Compose stack with Cloudgate, step by step'
 description: Deploy a Docker Compose file as a Compose stack, from the console or a repository, give its services Domains, and run it on a Server or a Stack VM.
 lede: A Compose stack runs a Docker Compose file as one Service. Use it for software that already ships a compose file, or for several containers that belong together.
 section: guide
+updated: '2026-11-13'
 group: Services
 order: 2
 badges: ['Owner or Admin to create', 'Server, AWS and Google Cloud']
@@ -127,14 +128,50 @@ stack's name.
 In an Environment whose Deploy target is a Cloud account, each Compose stack runs on its own
 **Stack VM** in that account and region, inside the Environment network. The Environment's next
 [Plan](/docs/guide/project-config) makes the VM; you choose its **Size** and its **Data disk (GB)**,
-where its named volumes live, snapshotted daily. A disk only grows.
+where its named volumes live, snapshotted daily. The stack page's facts card shows whether the VM is
+running, starting, stopping, stopped or not made yet, read from the cloud.
 
-- **Stop** stops the VM; **Restart** is offered for a stack on a Stack VM.
 - Its Domains are rules on the Environment network's load balancer. Two services' Domains cannot
   share a port.
 - Only the Docker Compose type runs there: a `type: stack` entry is refused.
-- The **Containers** tab's per-container actions are not offered on a Stack VM.
+- The **Containers** tab's per-container actions are not offered on a Stack VM; the stack's
+  **Restart** restarts its containers.
 - Delete takes a final snapshot of the data disk unless its data is deleted too.
+
+### Resize a Stack VM or grow its disk
+
+A Stack VM changes only through its Environment's Plan, on AWS and Google Cloud alike. A new `size`
+in the Project config, or a new **Size** on the stack page for a stack made in the console, is a
+change line that says it restarts the Stack VM and shows the old and new monthly price, for example
+"analytics Stack VM: t3.small (2 vCPU, 2 GB) → t3.medium (2 vCPU, 4 GB), restarts the Stack VM". An
+entry with no `size` keeps the machine it was made on.
+
+A disk grown on the stack page is a change line too, grown in place with no restart and priced; the
+Apply grows its filesystem. A disk only grows: a smaller size is refused, naming the stack.
+
+When Cloudgate's pinned Ubuntu image, Docker Engine or compose plugin moves on, the Plan offers a
+**replace VM** line naming each pin's old and new value. Applied, it makes a new Stack VM, keeps the
+data disk and its volumes, and deploys the stack onto the new VM.
+
+### Stop, start and restart a stack on a Stack VM
+
+| Action | What it does |
+|---|---|
+| **Stop** | Stops the stack's containers, then stops the VM, so a stopped stack pays only for its disk. |
+| **Start** | Starts the VM, waits until its tunnel answers, then starts the containers Stop stopped, as they were. |
+| **Restart** | Restarts the stack's containers and never touches the VM. |
+
+A Deployment of a stack whose Stack VM is stopped is refused with 409 ("start it first, then
+deploy"), and so is a Deployment, Stop, Start or Restart before the Environment's next Plan has made
+the VM. A [frozen Organization's](/docs/guide/organizations#when-an-organization-is-frozen) Stack VMs keep running, and Stop is refused
+like any other change.
+
+<Callout type="note" title="Cloud account permissions">
+  A Stack VM needs permissions that older Cloud account setups lack: AWS policy version 4
+  (self-hosted) or 5 (Hosted), and Google Cloud role version 7 (self-hosted) or 8 (Hosted). Until the
+  account is updated, a Plan that needs a Stack VM there is refused, naming the missing actions and
+  the fix. See [Cloud accounts](/docs/guide/cloud-accounts).
+</Callout>
 
 ## Describe a stack in the Project config
 

@@ -4,6 +4,7 @@ seoTitle: 'Cloudgate CLI commands, flags and exit codes reference'
 description: Every Cloudgate CLI command with its usage line, arguments, flags and defaults, environment variables and JSON output, from login and deploy to templates.
 lede: Every command the cloudgate CLI has, what it prints and how it exits. Run cloudgate <command> --help for the same usage lines in your terminal.
 section: cli
+updated: '2026-11-13'
 order: 2
 navTitle: Command reference
 badges: ['Hosted and self-hosted', 'Beta']
@@ -12,10 +13,12 @@ faq:
   - { q: 'Where does the CLI print errors?', a: 'On stderr, as <code>Error: &lt;message&gt;</code> with at most one hint line under it. Data goes to stdout and everything else, including <code>Using instance &lt;url&gt;</code>, goes to stderr.' }
   - { q: 'Is there a command to read a variable''''s value?', a: 'No. There is no <code>vars get</code> or <code>vars pull</code>: values are never printed. <code>vars list</code> says only whether each one is set or linked to another Service.' }
   - { q: 'Is there a command to update the CLI?', a: 'No. Update it with npm. The CLI prints a one-line notice at most once a day when a newer version is on npm.' }
+  - { q: 'Which commands need a Project folder?', a: '<code>config pull</code> and <code>config plan</code> work only in a folder linked with <code>cloudgate link --whole-project</code>. In one, <code>deploy</code> builds every app the Project config builds from a subfolder, and <code>status</code>, <code>logs</code> and <code>vars</code> ask which Service, or take <code>--service</code>.' }
 ---
 
 The CLI groups its commands by what they act on: your login, the folder you are in, and templates.
-For a walk-through in order, read the [CLI guide](/docs/cli); for automation, see
+This page matches CLI 0.0.2-beta.3, on the npm `next` tag; the `latest` tag, 0.0.1, has fewer
+commands. For a walk-through in order, read the [CLI guide](/docs/cli); for automation, see
 [CI recipes](/docs/cli/ci); for exit codes and error messages, see
 [troubleshooting](/docs/cli/troubleshooting).
 
@@ -26,14 +29,17 @@ For a walk-through in order, read the [CLI guide](/docs/cli); for automation, se
 | [`whoami`](#cloudgate-whoami) | Show who you are logged in as, and where |
 | [`instance list`](#cloudgate-instance-list) | Show the Instances you are logged in to |
 | [`instance use`](#cloudgate-instance-use) | Switch the current Instance |
-| [`link`](#cloudgate-link) | Link this folder to a Service |
+| [`link`](#cloudgate-link) | Link this folder to a Service, or a whole Project |
 | [`unlink`](#cloudgate-unlink) | Remove this folder's link |
+| [`config pull`](#cloudgate-config-pull) | Replace this Project folder's `cloudgate.yaml` with Cloudgate's |
+| [`config plan`](#cloudgate-config-plan) | Send this Project folder's `cloudgate.yaml` as a Plan, and apply it |
 | [`deploy`](#cloudgate-deploy) | Upload this folder and deploy it |
 | [`status`](#cloudgate-status) | Show the Service and its latest Deployment |
 | [`logs`](#cloudgate-logs) | Show the Service's logs |
 | [`vars`](#cloudgate-vars) | List, set and unset the Service's variables |
 | [`template check`](#cloudgate-template-check) | Check templates as Cloudgate will read them |
 | [`template pack`](#cloudgate-template-pack) | Build the catalogue.zip a release publishes |
+| [`template try`](#cloudgate-template-try) | Start a template's compose part on local Docker |
 
 ## Global flags
 
@@ -64,6 +70,10 @@ variable, and both win over the folder's link.
 Each value is tried as an id, then as a name ignoring case; a name two share is refused with their
 ids. The Organization is picked for you when you belong to only one. The link fills a level only
 while the levels above it are the link's too, and its Service Config name always applies.
+
+A [Project folder](#cloudgate-link) names no Service, so there `status`, `logs` and `vars` ask for
+one, or take `--service`; with no terminal a missing `--service` is refused (exit 2). A folder below
+it with its own one-Service link still uses that link.
 
 ## Environment variables
 
@@ -185,16 +195,19 @@ the hint `Run: cloudgate login --instance <url>`.
 
 ```text
 cloudgate link [--org] [--project] [--env] [--service] [--yes]
+cloudgate link --whole-project [--org] [--project] [--env] [--yes]
 ```
 
 Asks for the Organization, Project, Environment and Service, skipping any a flag answers, then
 saves `.cloudgate/link.json` and adds `.cloudgate/` to `.gitignore`. It never creates a Service and
-never changes the Project config.
+never changes the Project config. The Project whose config is kept in this folder's git repository
+is listed first.
 
 | Flag | What it does |
 |---|---|
 | Target flags | Answer that question without asking |
-| `--yes` | Ask nothing, and replace an existing link without asking |
+| `--whole-project` | Link the whole Project, with no Service: this folder becomes a Project folder |
+| `--yes` | Ask nothing, and replace an existing link or `cloudgate.yaml` without asking |
 | `--instance <url>` | The Instance to link to |
 
 ```bash
@@ -204,6 +217,23 @@ cloudgate link --project storefront --env production --service web --yes
 
 With no terminal, or with `--yes`, a missing value is refused naming its flag, for example
 `Error: no Project. Pass --project or set CLOUDGATE_PROJECT.` (exit 2).
+
+**`--whole-project`** makes a **Project folder**, usually a monorepo's root. It asks for the
+Organization, Project and Environment (the default one for later commands), never a Service, and
+saves the Project config here as `cloudgate.yaml`: a working copy, which Cloudgate never reads on its
+own. The link records the config's version, and `.gitignore` gains `/cloudgate.yaml` beside
+`.cloudgate/`, so the working copy is never committed. It takes no `--service`.
+
+```text
+$ cloudgate link --whole-project --project storefront --env production
+✓ Linked ./ to the whole Project storefront, production by default, on cloudgate.octabyte.app
+✓ Saved the Project config, version 7, as cloudgate.yaml
+```
+
+A `cloudgate.yaml` already here that is not the one downloaded is asked about, or refused with no
+terminal unless `--yes`. A Project whose config is kept in a repository is refused (exit 1), naming
+the repository: move it into Cloudgate first, on the Project's **Config** tab with
+**Move into Cloudgate**. See [Project config](/docs/guide/project-config).
 
 ### cloudgate unlink
 
@@ -219,28 +249,98 @@ $ cloudgate unlink
 ✓ Removed this folder's link. Nothing changed on the Instance.
 ```
 
+### cloudgate config pull
+
+```text
+cloudgate config pull [--yes]
+```
+
+Replaces the Project folder's `cloudgate.yaml` with the Project config kept in Cloudgate and records
+its version. Run it when a teammate or the console has changed the config since your download.
+
+```text
+$ cloudgate config pull
+✓ Saved the Project config, version 8, as cloudgate.yaml
+```
+
+A `cloudgate.yaml` edited since its download is asked about first; with no terminal it is refused
+(exit 2) unless `--yes`. Outside a Project folder it is refused (exit 2) with the hint to run
+`cloudgate link --whole-project`.
+
+### cloudgate config plan
+
+```text
+cloudgate config plan [--yes]
+```
+
+Sends the Project folder's `cloudgate.yaml` to Cloudgate as a [Plan](/docs/guide/project-config),
+naming the [Config version](/docs/guide/project-config#what-is-the-config-version) it was downloaded at, prints what each
+Environment's Plan creates, changes and destroys, and applies it on a yes. After applying, the link
+records the new version.
+
+```text
+$ cloudgate config plan
+production: 1 to create, 1 to change, 0 to destroy
+  + api (web) create
+  ~ web (web) change size
+? Apply the plan in production? (y/N) y
+✓ Applied the plan in production
+```
+
+| Flag | What it does |
+|---|---|
+| `--yes` | Apply without asking. A Plan that destroys a Service or makes a major version upgrade is still refused, naming each (exit 2) |
+
+- A Service the Plan destroys, or upgrades to a new major version, is applied only once you type its
+  Config name.
+- With no terminal it is refused (exit 2) unless `--yes`.
+- A copy the Project config has moved on from is refused and nothing is sent (exit 1):
+  `Error: cloudgate.yaml is version 7 of the Project config, which has changed in Cloudgate since; nothing was sent`.
+  Run `cloudgate config pull`, then make your edits again.
+- A run that applies nothing (a no, a mistyped name, a refusal) dismisses the Plans it sent, so none
+  is left open in the console. A role that may not dismiss is told they are left open.
+
 ### cloudgate deploy
 
 ```text
-cloudgate deploy [folder] [--env <name|id>] [--detach [--json]] [--switch-source]
+cloudgate deploy [folder] [--env <name|id>] [--detach [--json]]
+                 [--switch-source] [--full] [--yes]
 ```
 
 Uploads a folder to its Application, starts a Deployment and prints the Deployment log until the
 Deployment ends. The folder is the one holding the nearest `.cloudgate/`, not the subfolder you
 stand in; `[folder]` names another, and that folder's own link picks the Service. With no link, a
-terminal asks the `link` questions first.
+terminal asks [which Project first](#a-first-deploy-in-a-folder-with-no-link). In a
+[Project folder](#deploy-in-a-project-folder) it deploys every app built from a subfolder.
 
 | Flag | Default | What it does |
 |---|---|---|
-| Target flags | from the link | `--env` deploys the same Config name in another Environment |
+| Target flags | from the link | `--env` deploys the same Config name in another Environment. In a Project folder, `--service` deploys one app only |
 | `--detach` | off | Don't wait: print the Deployment and exit once it is queued |
 | `--json` | off | With `--detach` only: print the Deployment as JSON |
 | `--switch-source` | off | Switch a git or image source to uploaded files without asking. Needed in CI |
+| `--full` | off | Upload every file, not only the ones that changed |
+| `--yes` | off | In a Project folder, apply the Plan without asking. One that destroys a Service or makes a major upgrade is still refused |
 | `--instance <url>` | | The Instance to deploy to |
 
 Left out of the upload: `.git/`, `.cloudgate/`, anything a `.gitignore` or `.cloudgateignore` in the
 folder lists, `.env` and `.env.*` except `.env.example`, and symlinks. File modes are not kept. The
 upload lands at the build root.
+
+#### Only the changed files are uploaded
+
+`deploy` sends the folder's file list with the SHA-256 of each file, asks the Instance which ones its
+build host lacks or holds different, and uploads only those. Files you deleted locally are deleted
+there too, and the new files replace the old ones only once every file matches.
+
+```text
+Uploading 3 changed files, 12.0 kB (211 unchanged, 1 deleted)…
+```
+
+The size, there and in the 100 MB warning, is the size of the zip sent. If the files on the build
+host changed during the upload, `deploy` prints the Instance's reason and compares once more; a
+second refusal fails with exit 1. `--full` sends every file, as earlier versions did. An Instance
+older than 0.2.0 gets the full upload without a question.
 
 ```text
 $ cloudgate deploy --detach
@@ -269,6 +369,62 @@ Before it uploads, `deploy` refuses a Compose stack or a database (exit 1), asks
 git or image source (no terminal: exit 2 unless `--switch-source`), refuses a source a
 repository-kept [Project config](/docs/guide/project-config) owns, and waits for a pending or running
 build of the same Service.
+
+#### A first deploy in a folder with no link
+
+In a terminal, with no target flag or `CLOUDGATE_ORG`, `_PROJECT`, `_ENV` or `_SERVICE` set, a first
+`deploy` asks which Project, listing the one whose config this repository keeps first, plus
+**Create a new Project**:
+
+- **An existing Project** asks `One app or the whole Project?` (one app by default). **One app** asks
+  the Environment and Service and saves a one-Service link, then deploys. **The whole Project** links
+  the folder as `link --whole-project` does, then deploys it whole. A Project whose config is kept in
+  a repository is deployed as one app, and the CLI says why.
+- **Create a new Project** asks its name (this folder's by default) and once where its apps run: a
+  ready Server of the Organization, or a Cloud account and a region. It makes the Project, one
+  Environment named `production` with that Deploy target, and a Project config kept in Cloudgate
+  with no app yet and one commented example. This folder becomes its Project folder with that text
+  as `cloudgate.yaml`, and `deploy` ends with `Add your apps to cloudgate.yaml, then run cloudgate deploy again.`
+
+Creating a Project needs the `project: create` permission (exit 1 without it), and an Organization
+with no Server or Cloud account is refused before anything is made. Without a terminal, or with a
+target flag or variable, nothing new is asked.
+
+#### Deploy in a Project folder
+
+In a folder linked with `link --whole-project`, `deploy` first runs the same step as `config plan`
+(`--yes` works the same way). Then it uploads the whole folder, less what an upload always leaves
+out, to each app whose config entry names a subfolder of it as its source, builds each from that
+subfolder, and follows every build to its end:
+
+```yaml
+services:
+  web:
+    kind: web
+    source: { folder: apps/web }
+  jobs:
+    kind: worker
+    source: { folder: apps/jobs }
+```
+
+```text
+$ cloudgate deploy
+production: no changes
+Nothing to change.
+Deploying ./ to web in production of Project storefront on cloudgate.octabyte.app, built from apps/web
+…
+✓ web: Deployment Xq7Tn2LwP9aRk4sVb1cHd done in 1m 42s
+✓ jobs: Deployment Lp3Vd8QmT2wNc6yHs0bKf done in 58s
+- pg-main: skipped, a database
+```
+
+- Apps from a repository or an image, console-managed entries, databases and buckets are listed as
+  skipped and sent nothing.
+- A subfolder that is not there is refused before the Plan is sent, so nothing is created or
+  uploaded (exit 1).
+- It exits 0 only when every build is done. `--detach` stops once every build is queued and prints
+  a table of them (`--json` prints a list). `--service <name>` deploys one app only.
+- A `[folder]` argument is refused (exit 2): a Project folder is deployed whole.
 
 ### cloudgate status
 
@@ -353,7 +509,10 @@ Environment variables, build arguments and build secrets are managed in the cons
 
 ## Templates
 
-These two commands are for template authors and send no request.
+These three commands are for template authors, such as contributors to the
+[official catalogue](https://github.com/octabyte-io/cg-templates). They need no login and send no
+request to an Instance. The check they run is the CLI's bundled copy of the backend's own Template
+check, so the Cloudgate version the CLI was built with is the one that judges.
 
 ### cloudgate template check
 
@@ -363,8 +522,10 @@ cloudgate template check <path>
 
 `<path>` is a `catalogue.zip`, a template folder, or a folder of template folders. Prints `✓ <id>`
 for each template Cloudgate would offer and `✗ <id>: <reason>` for each it would hide, and exits 1
-if any is hidden. A folder is checked as the `catalogue.zip` it would be packed into: `index.md` and
-`screenshots/` are skipped, and any other file a template does not have refuses the whole catalogue.
+if any is hidden. A folder is checked as the `catalogue.zip` it would be packed into: the website's
+`index.md` and `screenshots/` and the [`test-values.yaml`](#test-valuesyaml) that `template try`
+reads are skipped, and any other file a template does not have refuses the whole catalogue. An old
+`catalogue.json` is refused with a message naming `catalogue.zip`.
 
 ### cloudgate template pack
 
@@ -373,11 +534,52 @@ cloudgate template pack <folder> <out> [--revision <sha>]
 ```
 
 Checks the templates exactly as `template check` does, then writes the `catalogue.zip` to `<out>`,
-leaving `index.md` and `screenshots/` out. If any template would be hidden it writes nothing and
-exits 1.
+leaving `index.md`, `screenshots/` and `test-values.yaml` out. If any template would be hidden, or
+the folder holds no template, it writes nothing and exits 1.
 
 | Flag | Default | What it does |
 |---|---|---|
 | `--revision <sha>` | `unpublished` | The revision every template is published at, usually the release's commit |
 
-Both template commands arrived in 0.0.2-beta.2.
+### cloudgate template try
+
+```text
+cloudgate template try <template folder> [--timeout <minutes>]
+```
+
+Starts a template's compose part on this computer's Docker the way an Instance would, checks that
+each Domain answers, and removes everything. It needs Docker with Compose 2.1.1 or newer.
+
+1. A template `template check` would hide is refused with the check's reason (exit 1). One with no
+   compose part prints `<id>: no compose part, nothing to try` and exits 0.
+2. Values are made as setup makes them: generated inputs are generated, a Domain's URL is
+   `http://localhost:<port>`, and an `ask` input takes its value from `test-values.yaml`, else its
+   default, else a sample that fits its format or pattern.
+3. Each Domain's container port is published on a free `127.0.0.1` port, and after
+   `docker compose up --wait` each Domain is asked every 2 seconds until it answers anything but a
+   5xx.
+
+Each Domain prints `✓ <service>:<port><path>` or `✗ <service>:<port><path>: <last status or "no answer">`;
+it exits 0 when every Domain passes and 1 otherwise. On a failure it prints
+`docker compose ps --all` and `docker compose logs --no-color` first. After a pass, a fail, the time
+limit or Ctrl-C (exit 130), the stack is removed with its volumes and its folder deleted.
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--timeout <minutes>` | `10` | How long the whole run may take, image pulls included, before it stops and exits 1 |
+
+### test-values.yaml
+
+A template folder may hold `test-values.yaml`: a map of an `ask` input's name to the text
+`template try` uses for it, ahead of the input's default and a sample. Each value still passes the
+input's own rule, and a name that is not an `ask` input fails `try` before anything starts.
+
+```yaml
+# test-values.yaml, for a template whose template.yaml asks for admin_email
+admin_email: owner@northwind.example
+```
+
+`template check` skips the file and `template pack` leaves it out of `catalogue.zip`.
+
+`template check` and `template pack` arrived in 0.0.2-beta.2, `template try` and `test-values.yaml`
+in 0.0.2-beta.3.

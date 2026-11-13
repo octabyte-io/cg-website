@@ -64,5 +64,7 @@ faq:                               # 2-5 real questions, answer first; rendered 
 - Link 3+ related docs pages with descriptive text, and the marketing page for the topic where one
   exists (`/features`, `/ai-agents`, `/cli`, `/pricing`, `/self-hosted`, `/security`).
 - No invented numbers, quotes or features. No "open source": Cloudgate is source-available
-  (Elastic License 2.0). Link nothing inside the private cloudgate repository.
+  (Elastic License 2.0).
+- Link files in the public cloudgate repository (https://github.com/octabyte-io/cloudgate) where it
+  helps the reader; use `repoFile(path)` from `src/data/site.ts`.
 - No all-caps labels, no "→" glued to links, no emoji.

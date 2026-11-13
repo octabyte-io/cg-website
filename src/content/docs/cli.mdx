@@ -1,9 +1,10 @@
 ---
 title: Deploy from your terminal with the Cloudgate CLI
-seoTitle: Cloudgate CLI guide from install to first deploy
-description: Install the Cloudgate CLI, log in with a code, link a folder to a Service, deploy it, follow its logs, set variables, and run it in CI with a Personal key.
+seoTitle: 'Cloudgate CLI guide: install, link, deploy a folder'
+description: Install the Cloudgate CLI, log in with a code, link a folder or a whole Project, deploy only the changed files, follow logs, set variables, and run it in CI.
 lede: The CLI uploads a folder to an Application and follows its Deployment to the end. Use it when your code is on your machine or in a CI job rather than in a connected git repository.
 section: cli
+updated: '2026-11-13'
 order: 1
 navTitle: CLI guide
 badges: ['Hosted and self-hosted', 'Applications only', 'Beta']
@@ -17,22 +18,24 @@ howto:
     - { name: 'Check the result', text: 'Run cloudgate status for the Service and its latest Deployment, and cloudgate logs for what it prints while it runs.' }
 faq:
   - { q: 'Does cloudgate deploy upload my .env file?', a: 'No. <code>.env</code> and <code>.env.*</code> are left out, except <code>.env.example</code>, and the CLI says so. Put secrets in with <code>cloudgate vars set</code>. A <code>!.env</code> line in <code>.cloudgateignore</code> brings one back if you really mean it.' }
-  - { q: 'Can the CLI create a Service or a Project?', a: 'No. It deploys to Services that already exist. Make the Project, Environment and Application in the console first, then link the folder to it.' }
+  - { q: 'Can the CLI create a Project or a Service?', a: 'A first <code>cloudgate deploy</code> can create a Project, with one <code>production</code> Environment, from <strong>Create a new Project</strong>. Services come from the Project config: add them to the Project folder''s <code>cloudgate.yaml</code> and <code>deploy</code> or <code>config plan</code> applies the Plan that creates them. <code>link</code> never creates anything.' }
+  - { q: 'Does every deploy upload the whole folder?', a: 'No. Against an Instance of version 0.2.0 or newer it uploads only the files that changed since the last upload, and deletes the ones you deleted. <code>--full</code> sends every file.' }
   - { q: 'Does it ask before deploying to production?', a: 'No. There is no confirmation for any Environment. It does say where it is going, on one line, before it uploads anything.' }
   - { q: 'Can I deploy a Compose stack or a database with it?', a: 'No. <code>cloudgate deploy</code>, <code>logs</code> and <code>vars</code> work on Applications only. <code>cloudgate status</code> reads any kind of Service, and <code>cloudgate logs --deployment</code> also reads a Compose stack''s Deployment logs.' }
   - { q: 'Which Node version does it need?', a: 'Node 22 or newer. On an older Node it refuses to start and names both versions.' }
 ---
 
 The CLI is `cloudgate`, published on npm as `@octabyte-io/cloudgate`. It logs in through your
-browser, remembers which Service a folder belongs to, uploads that folder and prints the
-Deployment log as it is written. It is early software: commands and flags can still change before
+browser, remembers which Service a folder belongs to, uploads the files that changed and prints the
+Deployment log as it is written. Linked to a whole Project instead, a folder such as a monorepo's
+root deploys every app in it with one command. It is early software: commands and flags can still change before
 1.0. For the short tour, see the [CLI overview](/cli); this page is the full walk-through, and
 [every command and flag](/docs/cli/commands) has its own reference.
 
 ## Install the CLI
 
 Install it from npm on Node 22 or newer. The commands on these pages are in the beta on the npm
-`next` tag:
+`next` tag, 0.0.2-beta.3; the `latest` tag is still 0.0.1:
 
 ```bash
 npm install -g @octabyte-io/cloudgate@next
@@ -92,8 +95,9 @@ again on the same Instance replaces the login and deletes the old key.
 
 ## Link a folder to a Service
 
-Run `cloudgate link` in the folder you deploy. It asks for the Organization (skipped when you
-belong to one), the Project, the Environment and the Service, and remembers the answer:
+Run `cloudgate link` in the folder you deploy, or skip it: a first `cloudgate deploy` in a terminal
+asks the same questions. It asks for the Organization (skipped when you belong to one), the Project,
+the Environment and the Service, and remembers the answer:
 
 ```text
 $ cloudgate link
@@ -118,7 +122,8 @@ Instance's address, the Organization, Project and Environment ids and the Servic
 in this folder, or any folder below it, goes to the same Service.
 
 - It never creates a Service and never changes the Project config. Make the Service in the console
-  first.
+  first, or [deploy a whole Project](#deploy-a-whole-project-from-one-folder) whose config describes
+  it.
 - When a Project keeps its config in this folder's git `origin` repository, that Project is listed
   first.
 - With no terminal, or with `--yes`, it asks nothing: pass `--project`, `--env` and `--service`
@@ -143,25 +148,31 @@ refuses and lists their ids. The link's Service Config name always applies, so
 
 ## Deploy the folder
 
-Run `cloudgate deploy`. It uploads the linked folder, starts a Deployment and prints the Deployment
-log until the Deployment ends. It exits 0 only when the Deployment is done.
+Run `cloudgate deploy`. It uploads the files that changed in the linked folder, starts a Deployment
+and prints the Deployment log until the Deployment ends. It exits 0 only when the Deployment is done.
 
 ```text
 $ cloudgate deploy
 Using instance https://cloudgate.octabyte.app
 Deploying ./ to web in production of Project storefront on cloudgate.octabyte.app
-Uploading 214 files, 3.8 MB…
+Uploading 3 changed files, 12.0 kB (211 unchanged)…
 Deployment Xq7Tn2LwP9aRk4sVb1cHd queued
 …the build log…
 ✓ Deployment Xq7Tn2LwP9aRk4sVb1cHd done in 1m 42s
 ```
+
+The CLI sends the list of the folder's files with a SHA-256 of each, and the Instance answers which
+ones its build host lacks or holds different; only those are uploaded, and a file you deleted is
+deleted there too. `--full` sends every file. An Instance older than 0.2.0 always gets the whole
+folder.
 
 There is no confirmation for any Environment, production included. Ctrl-C stops watching, not the
 build: the CLI prints the command to follow it again and where to cancel it in the console.
 
 ### What does cloudgate deploy upload?
 
-The folder as it is on disk, uncommitted and untracked files included, minus:
+The folder as it is on disk, uncommitted and untracked files included (of those, only the ones that
+changed since the last upload are sent), minus:
 
 - `.git/` and `.cloudgate/`, always;
 - anything any `.gitignore` in the folder lists, whether or not the folder is a git repository;
@@ -171,8 +182,8 @@ The folder as it is on disk, uncommitted and untracked files included, minus:
 - symlinks, with a warning naming each one. File modes are not kept.
 
 `node_modules` has no rule of its own: add it to `.gitignore` or `.cloudgateignore` if you do not
-want it uploaded. The CLI always says how many files and how many bytes it is sending; above 100 MB
-it warns and names the five biggest folders, then carries on.
+want it uploaded. The CLI always says how many files it is sending and the size of the zip; above
+100 MB it warns and names the five biggest folders, then carries on.
 
 ### What if the Service builds from git or an image?
 
@@ -186,6 +197,66 @@ the next [Plan](/docs/guide/project-config) would put the git source back.
 The CLI waits for it, printing `waiting for Deployment <id> to finish`, then uploads. It goes
 ahead with a warning past a Deployment held by a Plan, or one pending or running for more than 60
 minutes.
+
+## Deploy a whole Project from one folder
+
+A **Project folder** is a folder linked to a whole Project rather than one Service, usually a
+monorepo's root. It holds a working copy of the [Project config](/docs/guide/project-config) as
+`cloudgate.yaml`, and one `cloudgate deploy` there builds every app the config builds from a
+subfolder of it.
+
+<Steps>
+<Step title="Link the folder to the Project">
+
+```bash
+cloudgate link --whole-project
+```
+
+It asks for the Organization, Project and Environment, never a Service, and downloads the Project
+config as `cloudgate.yaml`. Both `.cloudgate/` and `/cloudgate.yaml` go into `.gitignore`: the
+working copy is yours, and Cloudgate keeps the config. Only a Project whose config is kept in
+Cloudgate can have a Project folder.
+
+</Step>
+<Step title="Name each app's subfolder">
+
+Give each app you build from this folder a `folder` source. A `web`, `worker`, `static` or `cron`
+can take one; a `web-private` cannot.
+
+```yaml
+services:
+  web:
+    kind: web
+    source: { folder: apps/web }
+  jobs:
+    kind: worker
+    source: { folder: apps/jobs }
+```
+
+</Step>
+<Step title="Deploy">
+
+```bash
+cloudgate deploy
+```
+
+It sends `cloudgate.yaml` as a Plan, prints each Environment's creates, changes and destroys, and
+applies it on a yes. Then it uploads the whole folder to each app, so shared code beside it is there
+too, builds each from its own subfolder, and prints one line per app at the end. Apps from a
+repository or an image, and databases, are listed as skipped.
+
+</Step>
+</Steps>
+
+`cloudgate config plan` sends the Plan without building anything, and `cloudgate config pull` gets
+the current config again. If someone changed the config in the console or from another Project
+folder since your download, the Plan is refused and nothing is sent: pull, then make your edits
+again. In a Project folder, `status`, `logs` and `vars` ask which Service, or take `--service`.
+
+A first `cloudgate deploy` in a folder with no link offers the same: pick a Project and answer
+**The whole Project**, or pick **Create a new Project**, which makes the Project, a `production`
+Environment on a Server or Cloud account you choose, and a starter `cloudgate.yaml` to add your apps
+to. See [the command reference](/docs/cli/commands#deploy-in-a-project-folder).
 
 ## Check the Service and follow its logs
 
@@ -271,6 +342,7 @@ in [self-hosting](/self-hosted).
 ## Where to go next
 
 - [Command reference](/docs/cli/commands): every command, flag, output and exit code.
+- [Project config and Plans](/docs/guide/project-config): what `cloudgate.yaml` can describe.
 - [CI recipes](/docs/cli/ci): GitHub Actions and GitLab CI.
 - [Troubleshooting](/docs/cli/troubleshooting): exit codes and common errors.
 - [Deployments](/docs/guide/deployments): what happens after the upload.

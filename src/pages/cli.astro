@@ -26,7 +26,7 @@ const commandGroups = [
     id: 'folder',
     name: 'This folder',
     commands: [
-      { cmd: 'cloudgate deploy', text: 'Upload this folder and deploy it, then follow the Deployment log until it ends.' },
+      { cmd: 'cloudgate deploy', text: 'Upload what changed in this folder and deploy it, then follow the Deployment log until it ends. --full uploads every file.' },
       { cmd: 'cloudgate status', text: 'Show the Service, whether it is running, its Domains and its latest Deployment.' },
       { cmd: 'cloudgate logs', text: "Show the Service's last 100 log lines; -f keeps following, --deployment shows a build log." },
       { cmd: 'cloudgate vars list | set | unset', text: "List, set and unset the Service's variables. Values are never printed." },
@@ -35,15 +35,26 @@ const commandGroups = [
     ],
   },
   {
+    id: 'project',
+    name: 'A Project folder',
+    commands: [
+      { cmd: 'cloudgate link --whole-project', text: "Link this folder to a whole Project and save its config here as cloudgate.yaml." },
+      { cmd: 'cloudgate config pull', text: "Replace this folder's cloudgate.yaml with the Project config as Cloudgate holds it." },
+      { cmd: 'cloudgate config plan', text: 'Show what your cloudgate.yaml would create, change and destroy, and apply it on a yes.' },
+      { cmd: 'cloudgate deploy', text: 'At the root: plan, then build every app the config builds from a subfolder.' },
+    ],
+  },
+  {
     id: 'templates',
     name: 'Templates',
     commands: [
+      { cmd: 'cloudgate template try <folder>', text: "Start a template's compose part on this computer's Docker, check each Domain answers, then remove it all. Values come from test-values.yaml." },
       { cmd: 'cloudgate template check <path>', text: 'Check templates as Cloudgate will read them, without any request.' },
       { cmd: 'cloudgate template pack <folder> <out>', text: 'Build the catalogue.zip a templates release publishes.' },
     ],
   },
 ];
-const [loginGroup, folderGroup, templatesGroup] = commandGroups;
+const [loginGroup, folderGroup, projectGroup, templatesGroup] = commandGroups;
 
 // The drawn folder in "What does cloudgate deploy upload?".
 const tree = [
@@ -74,7 +85,11 @@ const faq = [
   },
   {
     q: 'Does the CLI create the app for me?',
-    a: 'Not yet. Make the Application in the console first, then <code>cloudgate link</code> or your first <code>cloudgate deploy</code> asks which Organization, Project, Environment and Service the folder belongs to.',
+    a: 'It can create the Project. A first <code>cloudgate deploy</code> in a folder with no link offers Create a new Project: it asks the name and where its apps run (a ready Server, or a Cloud account and region), makes the Project with a <code>production</code> Environment, and saves a starter <code>cloudgate.yaml</code> in the folder. Add your apps there and run <code>cloudgate deploy</code> again. To deploy one app into an existing Project, make the Application in the console first.',
+  },
+  {
+    q: 'Does cloudgate deploy upload the whole folder every time?',
+    a: 'No. From version 0.0.2-beta.3 it uploads only the files that are new or changed since the last upload, and deletes on the Instance the files you deleted. Run <code>cloudgate deploy --full</code> to send every file. An Instance older than 0.2.0 always gets the full upload.',
   },
   {
     q: 'How do I deploy from CI without logging in?',
@@ -91,7 +106,7 @@ const howTo = {
     {
       '@type': 'HowToStep',
       name: 'Install the CLI',
-      text: 'Run: npm install -g @octabyte-io/cloudgate',
+      text: 'Run: npm install -g @octabyte-io/cloudgate@next (the beta; the latest tag is still a placeholder).',
     },
     {
       '@type': 'HowToStep',
@@ -126,7 +141,7 @@ const description =
     <a class="btn btn--ghost" href={site.npm}>View on npm</a>
     <div class="window term" slot="visual" aria-label="A deploy from the terminal" role="img">
       <div class="window-bar">~/my-app</div>
-      <pre class="code" data-play style="--type-step:160ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate</span>
+      <pre class="code" data-play style="--type-step:160ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate@next</span>
 <span class="ln" style="--i:1"><span class="d">$</span> <span class="k">cloudgate</span> login</span>
 <span class="ln" style="--i:2"><span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span></span>
 <span class="ln" style="--i:3"><span class="d">$</span> <span class="k">cd</span> my-app</span>
@@ -144,10 +159,11 @@ const description =
   <section class="early-strip" aria-label="Release status">
     <div class="wrap">
       <p class="note note--warn early">
-        <strong>The CLI is early.</strong> The npm <code>latest</code> tag is version 0.0.1, and the
-        newer beta is on the <code>next</code> tag:
-        <code>npm install -g @octabyte-io/cloudgate@next</code>. Commands and flags may still change
-        before 1.0; each beta is listed in the <a href="/changelog">Cloudgate changelog</a>.
+        <strong>The CLI is a beta.</strong> The current release, 0.0.2-beta.3, is on npm's
+        {" "}<code>next</code> tag: <code>npm install -g @octabyte-io/cloudgate@next</code>. The
+        {" "}<code>latest</code> tag (0.0.1) is a placeholder. Commands and flags may still change
+        before 1.0; each beta is listed in the <a href="/changelog">Cloudgate changelog</a>, and the
+        CLI's source is in <a href={`${site.sourceUrl}/tree/main/cli`}>the Cloudgate repository</a>.
       </p>
     </div>
   </section>
@@ -157,15 +173,20 @@ const description =
       <div class="section-head sticky-head" data-reveal>
         <h2 id="install-title">How do you deploy a folder with the Cloudgate CLI?</h2>
         <p class="lede">
-          Four steps. You need Node 22 or newer, a Cloudgate account, and an Application made in
-          the console for the folder to deploy to.
+          Four steps. You need Node 22 or newer and a Cloudgate account. Deploy into an Application
+          made in the console, or let the first deploy make a <a href="#project-folders">new
+          Project</a>.
         </p>
       </div>
       <ol class="steps" data-reveal-stagger="80">
         <li>
           <h3>Install it from npm</h3>
-          <p>The package is <code>@octabyte-io/cloudgate</code>; the command it installs is <code>cloudgate</code>.</p>
-          <pre class="code"><code><span class="k">npm</span> install -g @octabyte-io/cloudgate</code></pre>
+          <p>
+            The package is <code>@octabyte-io/cloudgate</code>; the command it installs is
+            {" "}<code>cloudgate</code>. Install the beta from the <code>next</code> tag: the
+            {" "}<code>latest</code> tag still holds a placeholder.
+          </p>
+          <pre class="code"><code><span class="k">npm</span> install -g @octabyte-io/cloudgate@next</code></pre>
         </li>
         <li>
           <h3>Log in through your browser</h3>
@@ -180,10 +201,11 @@ const description =
         <li>
           <h3>Deploy the current folder</h3>
           <p>
-            The first time, it asks which Organization, Project, Environment and Service the folder
-            belongs to, and saves that link in <code>.cloudgate/</code> (added to your
-            {" "}<code>.gitignore</code>). It waits for any build already running, uploads, then follows
-            the Deployment log and exits 0 only if the Deployment is done.
+            The first time, it asks which Project the folder belongs to (or makes a new one), then
+            whether it is one app or the whole Project, and saves that link in
+            {" "}<code>.cloudgate/</code> (added to your <code>.gitignore</code>). It waits for any
+            build already running, uploads, then follows the Deployment log and exits 0 only if the
+            Deployment is done.
           </p>
           <pre class="code"><code><span class="k">cloudgate</span> deploy
 <span class="k">cloudgate</span> deploy --env <span class="s">production</span>   <span class="d"># the same Service in another Environment</span></code></pre>
@@ -238,16 +260,103 @@ const description =
               {" "}<code>.env.example</code>. Put secrets in with <code>cloudgate vars set KEY</code>.
             </dd>
           </div>
+          <div class="f-delta">
+            <dt>Only what changed, after the first time</dt>
+            <dd>
+              Each deploy compares the folder with the Instance file by file (SHA-256) and uploads
+              only new and changed files; files you deleted are deleted there too.
+              {" "}<code>--full</code> sends every file. This needs an Instance at version 0.2.0 or
+              newer; an older one simply gets the full upload.
+            </dd>
+          </div>
           <div class="f-warn">
             <dt>Warned about</dt>
-            <dd>Symlinks are skipped with a warning, and an upload over 100 MB names its biggest folders before it goes.</dd>
+            <dd>Symlinks are skipped with a warning, and an upload whose zip is over 100 MB names its biggest folders before it goes.</dd>
           </div>
         </dl>
       </div>
     </div>
   </section>
 
-  <section class="section" id="commands" aria-labelledby="commands-title">
+  <section class="section" id="project-folders" aria-labelledby="project-title">
+    <div class="wrap">
+      <div class="project">
+        <div class="project-text">
+          <div class="section-head" data-reveal>
+            <h2 id="project-title">How do you deploy a whole Project from one folder?</h2>
+            <p class="lede">
+              Make the folder a Project folder, usually a monorepo's root. Its
+              {" "}<code>cloudgate.yaml</code> describes every app, and one <code>cloudgate deploy</code>
+              {" "}plans the change, then builds each app from its own subfolder. New in 0.0.2-beta.3.
+            </p>
+          </div>
+          <ol class="steps" data-reveal-stagger="80">
+            <li>
+              <h3>Link the whole Project</h3>
+              <p>It asks for the Organization, Project and Environment, never a Service, and saves the Project config here as your working copy.</p>
+              <pre class="code"><code><span class="k">cloudgate</span> link --whole-project</code></pre>
+            </li>
+            <li>
+              <h3>Edit cloudgate.yaml</h3>
+              <p>Give each app a subfolder as its source. <code>cloudgate config pull</code> fetches the current config again when a teammate has changed it.</p>
+            </li>
+            <li>
+              <h3>Plan, then deploy</h3>
+              <p>
+                You see what each Environment's Plan creates, changes and destroys, and it applies on
+                a yes. Destroying a Service asks you to type its Config name. Then every app built from a
+                subfolder is uploaded, built and followed to its end.
+              </p>
+              <pre class="code"><code><span class="k">cloudgate</span> config plan   <span class="d"># the plan alone</span>
+<span class="k">cloudgate</span> deploy        <span class="d"># the plan, then every app</span></code></pre>
+            </li>
+          </ol>
+        </div>
+        <div class="window project-win" data-reveal data-reveal-delay="120">
+          <div class="window-bar">~/shop</div>
+          <div class="project-tree" aria-label="A Project folder" role="img">
+            <ul>
+              <li class="pt-dir">shop/</li>
+              <li class="pt-key">cloudgate.yaml</li>
+              <li class="pt-dir pt-in">apps/web/</li>
+              <li class="pt-dir pt-in">apps/api/</li>
+              <li class="pt-dim">.cloudgate/</li>
+            </ul>
+          </div>
+          <pre class="code"><code><span class="d"># Cloudgate keeps this Project's config;</span>
+<span class="d"># this file is your working copy.</span>
+<span class="k">version</span>: <span class="s">1</span>
+<span class="k">services</span>:
+  <span class="k">web</span>:
+    <span class="k">kind</span>: <span class="s">web</span>
+    <span class="k">source</span>: {'{'} <span class="k">folder</span>: <span class="s">apps/web</span> {'}'}
+  <span class="k">api</span>:
+    <span class="k">kind</span>: <span class="s">web</span>
+    <span class="k">source</span>: {'{'} <span class="k">folder</span>: <span class="s">apps/api</span> {'}'}</code></pre>
+        </div>
+      </div>
+      <dl class="project-facts" data-reveal-stagger>
+        <div>
+          <dt>A first deploy asks</dt>
+          <dd>In a folder with no link, <code>cloudgate deploy</code> asks which Project, or offers to create one, then whether this is one app or the whole Project.</dd>
+        </div>
+        <div>
+          <dt>Edits never cross</dt>
+          <dd>If the Project config has moved on since your copy, the plan is refused and nothing is sent; <code>config pull</code> brings your copy up to date.</dd>
+        </div>
+        <div>
+          <dt>Only apps from a subfolder are built</dt>
+          <dd>Apps from a repository or an image, databases and buckets are listed as skipped. <code>--service</code> deploys one app only.</dd>
+        </div>
+        <div>
+          <dt>Safe without a terminal</dt>
+          <dd>In CI, <code>--yes</code> applies a plan, but still refuses one that destroys a Service or makes a major upgrade.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section band" id="commands" aria-labelledby="commands-title">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <h2 id="commands-title">Which commands does the CLI have?</h2>
@@ -292,6 +401,17 @@ const description =
             ))}
           </dl>
         </div>
+        <div data-spotlight class="group g-project">
+          <h3>{projectGroup.name}</h3>
+          <dl class="cmds cmds--four">
+            {projectGroup.commands.map((c) => (
+              <div>
+                <dt><code>{c.cmd}</code></dt>
+                <dd>{c.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
         <div data-spotlight class="group g-templates">
           <div class="art pack" aria-hidden="true">
             <span class="node">templates/</span>
@@ -316,7 +436,7 @@ const description =
     </div>
   </section>
 
-  <section class="section band" aria-labelledby="ci-title">
+  <section class="section" aria-labelledby="ci-title">
     <div class="wrap split ci">
       <div class="prose" data-reveal>
         <h2 id="ci-title">How do you deploy from CI?</h2>
@@ -350,7 +470,7 @@ const description =
       - <span class="k">uses</span>: actions/setup-node@v4
         <span class="k">with</span>:
           <span class="k">node-version</span>: <span class="s">22</span>
-      - <span class="k">run</span>: npm install -g @octabyte-io/cloudgate
+      - <span class="k">run</span>: npm install -g @octabyte-io/cloudgate@next
       - <span class="k">run</span>: cloudgate deploy
         <span class="k">env</span>:
           <span class="k">CLOUDGATE_KEY</span>: <span class="s">{'${{ secrets.CLOUDGATE_KEY }}'}</span>
@@ -363,13 +483,13 @@ const description =
 <span class="s">export</span> CLOUDGATE_ENV=<span class="s">production</span>
 <span class="s">export</span> CLOUDGATE_SERVICE=<span class="s">web</span>
 
-<span class="k">npm</span> install -g @octabyte-io/cloudgate
+<span class="k">npm</span> install -g @octabyte-io/cloudgate@next
 <span class="k">cloudgate</span> deploy --switch-source</code></pre>
       </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="other-title">
+  <section class="section band" aria-labelledby="other-title">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <h2 id="other-title">Not working in a terminal?</h2>
@@ -535,7 +655,8 @@ const description =
     padding-left: var(--space-4);
     border-left: 3px solid var(--line-strong);
   }
-  .upload-facts .f-up {
+  .upload-facts .f-up,
+  .upload-facts .f-delta {
     border-left-color: var(--live);
   }
   .upload-facts .f-never,
@@ -550,6 +671,69 @@ const description =
     margin-bottom: var(--space-1);
   }
   .upload-facts dd {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* ---- A Project folder: steps beside the folder and its config ---- */
+  .project {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .project .section-head {
+    margin-bottom: var(--space-6);
+  }
+  .project .steps .code {
+    font-size: var(--text-xs);
+  }
+  .project-win {
+    position: sticky;
+    top: 6rem;
+  }
+  .project-tree {
+    padding: var(--space-4) var(--space-5) 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.9;
+  }
+  .project-tree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--space-3);
+    border-bottom: 1px solid var(--night-line);
+  }
+  .project-tree li {
+    color: var(--night-ink);
+  }
+  .project-tree li + li {
+    padding-left: var(--space-4);
+  }
+  .project-tree .pt-key {
+    color: var(--night-brand);
+  }
+  .project-tree .pt-dim {
+    color: var(--night-muted);
+  }
+  .project-facts {
+    margin: var(--space-8) 0 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-7);
+  }
+  .project-facts > div {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .project-facts dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-1);
+  }
+  .project-facts dd {
     margin: 0;
     color: var(--muted);
   }
@@ -577,6 +761,13 @@ const description =
   }
   .g-login {
     grid-column: span 5;
+  }
+  .g-project {
+    grid-column: 1 / -1;
+  }
+  .cmds--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-5);
   }
   .g-templates {
     grid-column: 1 / -1;
@@ -741,8 +932,16 @@ const description =
 
   @media (max-width: 960px) {
     .upload,
+    .project,
+    .project-facts,
     .g-templates {
       grid-template-columns: 1fr;
+    }
+    .project-win {
+      position: static;
+    }
+    .cmds--four {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .g-folder,
     .g-login {
@@ -756,7 +955,8 @@ const description =
     }
   }
   @media (max-width: 640px) {
-    .cmds--two {
+    .cmds--two,
+    .cmds--four {
       grid-template-columns: 1fr;
     }
     .pack {
