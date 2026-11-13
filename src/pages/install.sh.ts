@@ -5,8 +5,8 @@
 // GitHub Pages cannot answer with an HTTP redirect, and an HTML redirect means nothing to curl, so
 // the site copies the script from the cloudgate repository at build time. The repository stays the
 // one source: this file holds no script of its own, and a build that cannot fetch it fails rather
-// than publish a stale or empty installer. The deploy workflow rebuilds on a schedule and when the
-// cloudgate repository sends `install-script-updated`, so a change there reaches this URL.
+// than publish a stale or empty installer. The deploy workflow rebuilds when the cloudgate repository sends
+// `install-script-updated`, so a change there reaches this URL.
 import type { APIRoute } from 'astro';
 import { site } from '../data/site';
 
