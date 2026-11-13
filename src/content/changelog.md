@@ -1,6 +1,10 @@
-## Unreleased: the platform
+## 0.2.0: the platform (13 November 2026)
 
-Everything in this section is in the current build of Cloudgate, on the Hosted instance and in a self-hosted install. The server reports version 0.2.0, the first that takes an upload of only the changed files. The Cloudgate CLI works with 0.1.0 and newer.
+The first numbered release of the Cloudgate server, on the Hosted instance and in a self-hosted install. It is the first version that takes an upload of only the changed files. The Cloudgate CLI works with 0.1.0 and newer.
+
+### The Hosted instance updates itself to each release
+
+Each new version of Cloudgate that passes the full test run now reaches the Hosted instance by itself, with a backup taken first. A release that needs a manual step on upgrade waits for a person instead. Self-hosted installs still upgrade when you run the install command again.
 
 ### The source is public on GitHub
 
