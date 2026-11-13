@@ -4,7 +4,24 @@ Everything in this section is in the current build of Cloudgate, on the Hosted i
 
 ### The source is public on GitHub
 
-Cloudgate's source repository, [github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), is public. Self-hosting needs no access request: clone it into `/opt/cloudgate` and run `deploy/install.sh` as root (see [how to self-host Cloudgate](/self-hosted)). Bug reports, feature ideas and pull requests are welcome as GitHub issues, as `CONTRIBUTING.md` describes, and a security problem is reported privately on the repository's Security tab, under **Report a vulnerability**. The license is still the Elastic License 2.0.
+Cloudgate's source repository, [github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), is public. Self-hosting needs no access request (see [how to self-host Cloudgate](/self-hosted)). Bug reports, feature ideas and pull requests are welcome as GitHub issues, as `CONTRIBUTING.md` describes, and a security problem is reported privately on the repository's Security tab, under **Report a vulnerability**. The license is still the Elastic License 2.0.
+
+### Self-hosting is one command
+
+On a bare Ubuntu 24.04 server, `curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh` installs Cloudgate. It checks the server, clones the public repository into `/opt/cloudgate` (or brings the copy already there up to date) and runs the installer. The address the console is built for is now optional: a first install uses the server's public IP address, and running the command again reuses the address the last install was given. Running it again is also how you upgrade. An install made while the repository was private may still fetch over SSH; point it at `https://github.com/octabyte-io/cloudgate.git` first.
+
+### Fixes to uploads, Project folders and sign-out
+
+- Uploads larger than 10 MB through the console's address no longer fail with an error after four minutes.
+- A deploy no longer reports the build's own `.env` file as deleted, and skips the upload when nothing changed since the last one.
+- A plan line that removes a setting now says so, for example `build.context (removed)`.
+- Deploying one app from its own folder inside a Project folder uploads the whole Project folder, so code shared between apps is included and the config entry is left as it was.
+- Applying a Plan in a root `cloudgate deploy` no longer starts a doomed rebuild of each folder app from its previous upload.
+- A relative `build.context` is counted from the app's build path.
+- An upload that loses its connection to the build host stops instead of carrying on.
+- Personal key names can be up to 255 characters again, where a sign-in library limit refused names over 32.
+- Signing out also clears the session cookie of the other instance mode.
+- `cloudgate config plan` exits 1 when you answer no, so scripts can tell it from an apply.
 
 ### A deploy uploads only the files that changed
 

@@ -297,6 +297,7 @@ production: 1 to create, 1 to change, 0 to destroy
 - A copy the Project config has moved on from is refused and nothing is sent (exit 1):
   `Error: cloudgate.yaml is version 7 of the Project config, which has changed in Cloudgate since; nothing was sent`.
   Run `cloudgate config pull`, then make your edits again.
+- A no or a mistyped Config name applies nothing and exits 1, so a script can tell it from an apply.
 - A run that applies nothing (a no, a mistyped name, a refusal) dismisses the Plans it sent, so none
   is left open in the console. A role that may not dismiss is told they are left open.
 
@@ -336,6 +337,10 @@ there too, and the new files replace the old ones only once every file matches.
 ```text
 Uploading 3 changed files, 12.0 kB (211 unchanged, 1 deleted)…
 ```
+
+When nothing is new, missing or deleted, `deploy` prints `Nothing changed since the last upload` and
+skips the upload; the build still runs. The `.env` file a build writes on the build host is not
+counted as deleted.
 
 The size, there and in the 100 MB warning, is the size of the zip sent. If the files on the build
 host changed during the upload, `deploy` prints the Instance's reason and compares once more; a
@@ -425,6 +430,14 @@ Deploying ./ to web in production of Project storefront on cloudgate.octabyte.ap
 - It exits 0 only when every build is done. `--detach` stops once every build is queued and prints
   a table of them (`--json` prints a list). `--service <name>` deploys one app only.
 - A `[folder]` argument is refused (exit 2): a Project folder is deployed whole.
+- A plan line that removes a setting says so, for example `build.context (removed)`.
+- Applying the Plan does not also rebuild each folder-source app from its previous upload; the
+  build that follows the upload is its Deployment.
+
+A subfolder of a Project folder can also be linked to one Service with plain `cloudgate link`. When
+that Service's config entry names the subfolder as its source, `deploy` there uploads the whole
+Project folder with that subfolder as the build path, exactly as a root deploy does for that app,
+so shared code beside it is included.
 
 ### cloudgate status
 

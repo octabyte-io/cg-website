@@ -4678,6 +4678,16 @@
       "description": "The Application's id."
      }
     ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UploadApplicationDropDto"
+       }
+      }
+     }
+    },
     "responses": {
      "200": {
       "description": ""
@@ -21311,6 +21321,10 @@
        "type": "string",
        "minLength": 1
       }
+     },
+     "folderSourcesDeployedNext": {
+      "default": false,
+      "type": "boolean"
      }
     },
     "required": [
