@@ -164,13 +164,19 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
                Without JS or with reduced motion only the app shows. -->
           <div class="vb-view">
             <div class="vb-scene vb-wait">
-              <svg class="vb-glyph" viewBox="0 0 48 48" width="48" height="48">
-                <rect x="10" y="11" width="28" height="11" rx="3" />
-                <rect x="10" y="26" width="28" height="11" rx="3" />
-                <circle cx="16" cy="16.5" r="1.4" />
-                <circle cx="16" cy="31.5" r="1.4" />
-              </svg>
-              <span class="vb-msg">Waiting for a server</span>
+              <div class="srv">
+                <div class="srv-rack">
+                  <span class="srv-unit"><i class="srv-led"></i><b></b><b></b><b></b></span>
+                  <span class="srv-unit"><i class="srv-led"></i><b></b><b></b><b></b></span>
+                  <span class="srv-unit"><i class="srv-led"></i><b></b><b></b><b></b></span>
+                </div>
+                <ul class="srv-steps">
+                  <li>Server ready: 2 vCPU, 4 GB</li>
+                  <li>Docker Swarm set up</li>
+                  <li>Traefik for addresses</li>
+                </ul>
+              </div>
+              <span class="vb-msg">Setting up your server</span>
             </div>
             <div class="vb-scene vb-build">
               <span class="vb-msg">Building with Nixpacks</span>
@@ -742,23 +748,102 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     place-content: center;
     justify-items: center;
     gap: var(--space-3);
+    gap: var(--space-4);
     border-radius: var(--radius-md);
-    border: 1px dashed var(--line-strong);
-    background: var(--paper);
+    border: 1px solid var(--line);
+    /* A faint dot grid, so the stage reads as a working surface, not an empty slot. */
+    background:
+      radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      var(--paper);
     opacity: 0;
   }
   .vb-msg {
     font-size: var(--text-sm);
     color: var(--muted);
   }
-  .vb-glyph {
-    fill: none;
-    stroke: var(--line-strong);
-    stroke-width: 1.5;
+  /* Scene 1: a server is put together. Three rack units drop into place one after another, each
+     light comes on as it lands, and the checklist beside the rack ticks in step. */
+  .srv {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
   }
-  .vb-glyph circle {
-    fill: var(--line-strong);
-    stroke: none;
+  .srv-rack {
+    display: grid;
+    gap: 6px;
+    width: 9.5rem;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+  }
+  .srv-unit {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+  }
+  .srv-unit b {
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+  .srv-unit b:first-of-type {
+    margin-left: auto;
+  }
+  .srv-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .srv-steps {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-xs);
+    color: var(--ink);
+  }
+  .srv-steps li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .srv-steps li::before {
+    content: '✓';
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+  }
+  /* The finished picture, shown whenever motion is off or the loop is not running. */
+  .srv-led {
+    background: var(--live);
+  }
+  .srv-steps li::before {
+    border-color: var(--live);
+    background: var(--live);
+    color: var(--paper);
+  }
+  @media (max-width: 30rem) {
+    .srv {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
   }
   .vb-build .vb-msg {
     color: var(--ink);
@@ -1008,6 +1093,29 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     .vibe.is-playing .vb-build {
       animation: vb-build 9s linear infinite;
     }
+    .vibe.is-playing .srv-unit {
+      animation: srv-unit 9s linear infinite;
+    }
+    .vibe.is-playing .srv-led {
+      animation: srv-led 9s linear infinite;
+    }
+    .vibe.is-playing .srv-steps li {
+      animation: srv-step 9s linear infinite;
+    }
+    .vibe.is-playing .srv-steps li::before {
+      animation: srv-tick 9s linear infinite;
+      animation-delay: inherit;
+    }
+    .vibe.is-playing .srv-unit:nth-child(2),
+    .vibe.is-playing .srv-unit:nth-child(2) .srv-led,
+    .vibe.is-playing .srv-steps li:nth-child(2) {
+      animation-delay: -8.37s;
+    }
+    .vibe.is-playing .srv-unit:nth-child(3),
+    .vibe.is-playing .srv-unit:nth-child(3) .srv-led,
+    .vibe.is-playing .srv-steps li:nth-child(3) {
+      animation-delay: -7.74s;
+    }
     .vibe.is-playing .vb-bar span {
       animation: vb-bar 9s linear infinite;
     }
@@ -1098,6 +1206,78 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     100% {
       opacity: 1;
       transform: none;
+    }
+  }
+  /* Each unit drops 10px into its slot over 5% (450ms, ease-out), 630ms after the one before (the
+     -8.37s and -7.74s delays), so the rack fills between 0.2s and 1.7s. Its light turns on as it
+     lands and its checklist line ticks. All reset at 40%+, when the scene is already hidden. */
+  @keyframes srv-unit {
+    0%,
+    2% {
+      opacity: 0;
+      transform: translateY(-10px);
+      animation-timing-function: var(--ease-out);
+    }
+    7%,
+    40% {
+      opacity: 1;
+      transform: none;
+    }
+    40.5%,
+    100% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes srv-led {
+    0%,
+    7% {
+      background: var(--line-strong);
+      box-shadow: none;
+    }
+    8%,
+    40% {
+      background: var(--live);
+      box-shadow: 0 0 0 3px var(--live-tint);
+    }
+    40.5%,
+    100% {
+      background: var(--line-strong);
+      box-shadow: none;
+    }
+  }
+  @keyframes srv-step {
+    0%,
+    7% {
+      opacity: 0.45;
+    }
+    8.5%,
+    40% {
+      opacity: 1;
+    }
+    40.5%,
+    100% {
+      opacity: 0.45;
+    }
+  }
+  @keyframes srv-tick {
+    0%,
+    7% {
+      border-color: var(--line-strong);
+      background: transparent;
+      color: transparent;
+    }
+    8.5%,
+    40% {
+      border-color: var(--live);
+      background: var(--live);
+      color: var(--paper);
+    }
+    40.5%,
+    100% {
+      border-color: var(--line-strong);
+      background: transparent;
+      color: transparent;
     }
   }
   @keyframes vb-build {
