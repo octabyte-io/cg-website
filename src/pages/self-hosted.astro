@@ -4,14 +4,13 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site, repoFile } from '../data/site';
+import { site, repoFile, installUrl, installCommand } from '../data/site';
 import { softwareSchema, faqSchema, breadcrumbSchema, howToSchema } from '../data/schema';
 
 const trail = [{ name: 'Self-host', path: '/self-hosted' }];
 const licenseMail = `mailto:${site.support}?subject=${encodeURIComponent('Cloudgate Enterprise license')}`;
 // The repository is public, so the page shows the clone and links into it.
 const sourceUrl = site.sourceUrl;
-const cloneUrl = `${sourceUrl}.git`;
 
 const requirements = [
   { name: 'Operating system', value: 'Ubuntu 24.04, freshly installed' },
@@ -61,7 +60,7 @@ const faq = [
   },
   {
     q: 'How do I upgrade a self-hosted instance?',
-    a: 'Pull the new version into /opt/cloudgate and run the same install script again with the same CLOUDGATE_PUBLIC_HOST. It migrates the database, rebuilds and restarts Cloudgate, and keeps your secrets.',
+    a: 'Run the same install command again. It fast-forwards /opt/cloudgate to the latest version, reuses the address the last install was given, migrates the database, rebuilds and restarts Cloudgate, and keeps your secrets.',
   },
   {
     q: 'What does an Enterprise license cost?',
@@ -71,11 +70,10 @@ const faq = [
 
 const howTo = howToSchema({
   name: 'Install Cloudgate on your own server',
-  description: 'Install self-hosted Cloudgate from its public GitHub repository on one Ubuntu 24.04 server, as root.',
+  description: 'Install self-hosted Cloudgate on one Ubuntu 24.04 server with a single command.',
   steps: [
     { name: 'Prepare the server', text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, and open ports 22, 80, 443, 3000 and 4000.' },
-    { name: 'Get the source', text: `As root, run: git clone ${cloneUrl} /opt/cloudgate`, url: sourceUrl },
-    { name: 'Run the installer', text: "As root, run: CLOUDGATE_PUBLIC_HOST=<your server's IP or hostname> bash /opt/cloudgate/deploy/install.sh" },
+    { name: 'Run the install command', text: `As a user who can sudo, run: ${installCommand}. It clones Cloudgate into /opt/cloudgate, finds the server's public IP address and installs everything.`, url: sourceUrl },
     { name: 'Claim the instance', text: "Open http://<your server's IP>:3000/sign-up. The first account created owns the instance." },
   ],
 });
@@ -92,14 +90,14 @@ const description =
 >
   <PageHero
     title="Self-host Cloudgate on your own server"
-    lede="Cloudgate installs on one Ubuntu server with a single script. It is free to run under the Elastic License 2.0, with one Organization and one build at a time per Server, and an Enterprise license for the rest."
+    lede="Cloudgate installs on one Ubuntu server with a single command. It is free to run under the Elastic License 2.0, with one Organization and one build at a time per Server, and an Enterprise license for the rest."
     trail={trail}
   >
     <a class="btn btn--primary" href="#install">See the install steps</a>
     <a class="btn btn--ghost" href="/pricing">Compare with the hosted plans</a>
     <div class="window term" slot="visual" aria-hidden="true">
-      <div class="window-bar">root@203.0.113.24</div>
-      <pre class="code" data-play style="--type-step:200ms"><code><span class="ln" style="--i:0"><span class="d">#</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=203.0.113.24 <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</span>
+      <div class="window-bar">ubuntu@203.0.113.24</div>
+      <pre class="code" data-play style="--type-step:200ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo sh</span></span>
 <span class="ln" style="--i:1"><span class="s">  ✓</span> <span class="d">Node from nodejs.org, checksum verified</span></span>
 <span class="ln" style="--i:2"><span class="s">  ✓</span> <span class="d">PostgreSQL, role in a root-only file</span></span>
 <span class="ln" style="--i:3"><span class="s">  ✓</span> <span class="d">Docker, Swarm of one node</span></span>
@@ -303,7 +301,7 @@ const description =
     <div class="wrap">
       <div class="section-head" data-reveal>
         <h2 id="install-title">How do you install it?</h2>
-        <p class="lede">Four steps, run as root on the server. The script takes no options and is safe to run again.</p>
+        <p class="lede">One command on the server, then one sign-up in your browser. The command is safe to run again, and running it again is how you upgrade.</p>
       </div>
       <div class="install">
         <ol class="steps install-steps" data-reveal-stagger="80">
@@ -312,17 +310,17 @@ const description =
             <p>A fresh Ubuntu 24.04 machine with the ports above open, reached as root over SSH.</p>
           </li>
           <li>
-            <h3>Get the source</h3>
-            <p>The repository is public, so no key or access request is needed. The checkout has to live at <code>/opt/cloudgate</code>.</p>
-            <pre class="code"><code><span class="k">git</span> clone {cloneUrl} /opt/cloudgate</code></pre>
-          </li>
-          <li>
-            <h3>Run the installer</h3>
+            <h3>Run the install command</h3>
             <p>
-              <code>CLOUDGATE_PUBLIC_HOST</code> is the one required input: the IP or hostname
-              people will use to reach the console.
+              It clones Cloudgate into <code>/opt/cloudgate</code>, finds the server's public IP
+              address and installs everything. It stops early on anything but Ubuntu 24.04 on x86-64.
             </p>
-            <pre class="code"><code><span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;your server's IP&gt;</span> <span class="k">bash</span> /opt/cloudgate/deploy/install.sh</code></pre>
+            <pre class="code"><code><span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo sh</span></code></pre>
+            <p>
+              Using a hostname, or a different address? Name it with
+              {" "}<code>CLOUDGATE_PUBLIC_HOST</code>; it is built into the console.
+            </p>
+            <pre class="code"><code><span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">cloud.example.com</span> <span class="k">sh</span></code></pre>
           </li>
           <li>
             <h3>Claim the instance</h3>
@@ -336,8 +334,10 @@ const description =
         <aside class="source panel" aria-labelledby="source-title" data-reveal data-reveal-delay="120">
           <h3 id="source-title">Read it before you run it</h3>
           <p>
-            Cloudgate's source is public on GitHub. The installer is
-            {" "}<a href={repoFile('deploy/install.sh')}><code>deploy/install.sh</code></a>, and the
+            Cloudgate's source is public on GitHub. The command runs
+            {" "}<a href={repoFile('install.sh')}><code>install.sh</code></a>, which hands over to
+            {" "}<a href={repoFile('deploy/install.sh')}><code>deploy/install.sh</code></a>. To read
+            it first, download it with <code>-o install.sh</code> in place of <code>| sudo sh</code>. The
             {" "}<a href="/docs/self-host">self-hosting guide</a> covers the security notes,
             upgrades and backups in full.
           </p>
@@ -366,14 +366,13 @@ const description =
         <div class="op">
           <h3>Upgrading</h3>
           <p>
-            Pull the new version and run the install script again with the same
-            {" "}<code>CLOUDGATE_PUBLIC_HOST</code>. It migrates the database, rebuilds, restarts both
+            Run the install command again. It fast-forwards <code>/opt/cloudgate</code>, reuses the
+            address the last install was given, migrates the database, rebuilds, restarts both
             services, and reads your existing secrets back instead of making new ones.
           </p>
           <div class="window">
             <div class="window-bar">root@your-server</div>
-            <pre class="code"><code><span class="k">cd</span> /opt/cloudgate <span class="d">&amp;&amp;</span> <span class="k">git</span> pull
-<span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">&lt;same as before&gt;</span> <span class="k">bash</span> deploy/install.sh</code></pre>
+            <pre class="code"><code><span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo sh</span></code></pre>
           </div>
         </div>
         <div class="op">

@@ -4,6 +4,14 @@ name: Deploy to GitHub Pages
 # GitHub Actions). Then add `push: { branches: [main] }` under `on:` to deploy every merge.
 on:
   workflow_dispatch:
+  # /install.sh is the cloudgate repository's install.sh, copied at build time
+  # (src/pages/install.sh.ts). Rebuild when that repository says the script changed
+  # (a repository_dispatch of this type), and daily as a safety net. Both take effect once
+  # Pages is turned on.
+  repository_dispatch:
+    types: [install-script-updated]
+  schedule:
+    - cron: '17 3 * * *'
 
 permissions:
   contents: read

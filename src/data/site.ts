@@ -21,6 +21,10 @@ export const site = {
 } as const;
 
 /** A file in the cloudgate repository on its main branch, such as LICENSE or SECURITY.md. */
+/** The one-command Self-hosted install, served from this site (src/pages/install.sh.ts). */
+export const installUrl = `${site.url}/install.sh`;
+export const installCommand = `curl -fsSL ${installUrl} | sudo sh`;
+
 export const repoFile = (path: string) => `${site.sourceUrl}/blob/main/${path}`;
 
 /** The console's deploy wizard for one catalogue template (ADR-0073). */

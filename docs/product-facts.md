@@ -156,12 +156,13 @@ or a ready-made Docker image.
 - Without a license: one Organization, one build at a time per Server. An **Enterprise license**
   unlocks SSO, SCIM, custom roles, forward auth, white-labelling, parallel builds and cloud runs,
   and more than one Organization.
-- The source repository is **public**: https://github.com/octabyte-io/cloudgate. Install as root:
-  `git clone https://github.com/octabyte-io/cloudgate.git /opt/cloudgate`, then
-  `CLOUDGATE_PUBLIC_HOST=<public ip or hostname> bash /opt/cloudgate/deploy/install.sh`, then
-  sign up at `http://<host>:3000/sign-up`. No access request, no deploy key (the repo's
-  docs/deploy.md still describes the SSH deploy key from when it was private; that is stale).
-  Upgrade: `git pull` in /opt/cloudgate and run the installer again with the same host.
+- The source repository is **public**: https://github.com/octabyte-io/cloudgate. Install with one command:
+  `curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh`. It is the repo's root `install.sh`
+  (POSIX sh), which this site copies at build time (`src/pages/install.sh.ts`). It checks Ubuntu
+  24.04 x86-64, clones (or fast-forwards) `/opt/cloudgate` over HTTPS, takes
+  `CLOUDGATE_PUBLIC_HOST` from the environment, the last install, or the detected public IPv4, and
+  runs `deploy/install.sh`. Optional: `CLOUDGATE_REF`, `CLOUDGATE_REPOSITORY`. Running it again is
+  the upgrade. Then sign up at `http://<host>:3000/sign-up`. No access request, no deploy key.
 - The Instance (server) reports version **0.2.0**.
 
 ## Source, contributing and security reports

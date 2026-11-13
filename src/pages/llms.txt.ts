@@ -39,7 +39,7 @@ ${planLines}
 - Going over a count refuses only the next addition; nothing running is switched off.
 - Self-hosted: free, with one Organization and one build at a time per Server. An Enterprise license (contact ${site.support}) adds SSO, SCIM, custom roles, forward auth, white-labelling, parallel builds and cloud runs, and more than one Organization.
 - Self-host requirements: a bare Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, root over SSH, ports 22, 80, 443, 3000 and 4000 open.
-- Self-host install, as root: git clone ${site.sourceUrl}.git /opt/cloudgate, then CLOUDGATE_PUBLIC_HOST=<public IP or hostname> bash /opt/cloudgate/deploy/install.sh, then open http://<host>:3000/sign-up; the first account owns the instance. The self-hosted server reports version 0.2.0.
+- Self-host install, one command on the server: curl -fsSL ${site.url}/install.sh | sudo sh (it clones ${site.sourceUrl} into /opt/cloudgate and detects the public IP; add CLOUDGATE_PUBLIC_HOST=<IP or hostname> after sudo to choose it). Running it again upgrades. Then open http://<host>:3000/sign-up; the first account owns the instance. The self-hosted server reports version 0.2.0.
 
 ## Pages
 

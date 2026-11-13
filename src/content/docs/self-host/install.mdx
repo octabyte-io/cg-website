@@ -12,13 +12,12 @@ howto:
   name: Install Cloudgate on an Ubuntu server
   steps:
     - { name: Prepare the server, text: 'Start a fresh Ubuntu 24.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, reachable as root over SSH, with ports 22, 80, 443, 3000 and 4000 open inbound.' }
-    - { name: Clone the source, text: 'As root, run git clone https://github.com/octabyte-io/cloudgate.git /opt/cloudgate. The script refuses to run from anywhere else.' }
-    - { name: Run the installer, text: 'As root, run CLOUDGATE_PUBLIC_HOST=<server IP or hostname> bash /opt/cloudgate/deploy/install.sh and wait for the verification block.' }
+    - { name: Run the install command, text: 'Run curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh and wait for the verification block. It clones Cloudgate into /opt/cloudgate and finds the server public IP address.' }
     - { name: Claim the instance, text: 'Open http://<server>:3000/sign-up and create the first account. It owns the instance, and sign-up closes behind it.' }
     - { name: Add the server as a Server, text: 'In the console, add the same machine under Servers with a key Cloudgate generates, so its shell, Docker view and setup are on screen.' }
 faq:
   - { q: Do I need a domain name to install Cloudgate?, a: 'No. The installer works with the server''s IP address, and the apps you deploy can use free sslip.io addresses that point at it. Add a domain later.' }
-  - { q: Can I run the installer again?, a: 'Yes. Every step checks before it acts, so a second run changes nothing that is already in place. Running it again with the same <code>CLOUDGATE_PUBLIC_HOST</code> is also how you upgrade.' }
+  - { q: Can I run the installer again?, a: 'Yes. Every step checks before it acts, so a second run changes nothing that is already in place. Running the same command again is also how you upgrade.' }
   - { q: Can I install it on ARM or another Linux?, a: 'No. The installer is tested on Ubuntu 24.04 on x86-64 and stops on any other processor architecture.' }
   - { q: I lost my password and no mail is set up. What now?, a: 'There is no console path to reset it. Whoever has root on the server sets <code>MAIL_PROVIDER</code> and its settings in <code>/etc/default/cloudgate-backend</code>, restarts <code>cloudgate-backend</code>, and asks for the reset link again.' }
 ---
@@ -51,28 +50,29 @@ all it takes to get it; [Self-hosting Cloudgate](/docs/self-host) covers the lic
 ## Install Cloudgate
 
 <Steps>
-<Step title="Clone the source to /opt/cloudgate">
+<Step title="Run the install command">
 
-Clone the public repository to `/opt/cloudgate` on the server. The systemd units expect that path,
-and the script refuses to run from anywhere else. No key or account is needed: it is an anonymous
-HTTPS clone.
+Run one command on the server, as a user who can `sudo`:
 
 ```bash
-git clone https://github.com/octabyte-io/cloudgate.git /opt/cloudgate
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh
 ```
 
-</Step>
-<Step title="Run the installer as root">
+It checks the server is Ubuntu 24.04 on x86-64, clones the public repository into
+`/opt/cloudgate` (the systemd units expect that path), finds the server's public IPv4 address and
+hands over to `deploy/install.sh`, which does the install. The script is the repository's
+[`install.sh`](https://github.com/octabyte-io/cloudgate/blob/main/install.sh); download it with
+`-o install.sh` instead of `| sudo sh` to read it first.
 
-`CLOUDGATE_PUBLIC_HOST` is the one required input: the IP address or hostname people will use to
-reach the console. It is built into the console, so changing it later means a rebuild, not a
-restart.
+The address the console is built for is `CLOUDGATE_PUBLIC_HOST`. To use a hostname, or an address
+other than the detected one, name it. It is built into the console, so changing it later means a
+rebuild, not a restart.
 
 ```bash
-CLOUDGATE_PUBLIC_HOST=203.0.113.24 bash /opt/cloudgate/deploy/install.sh
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_PUBLIC_HOST=cloud.example.com sh
 ```
 
-The script takes no subcommands. It prints each stage as `==> Swap`, `==> Docker` and so on, then a
+`CLOUDGATE_REF` installs another branch than `main`. The installer takes no subcommands. It prints each stage as `==> Swap`, `==> Docker` and so on, then a
 verification block.
 
 </Step>
@@ -165,18 +165,20 @@ There are two kinds of domain on a self-hosted instance:
 
 ## Upgrade an instance
 
-Pull the new version into `/opt/cloudgate` and run the same script with the same
-`CLOUDGATE_PUBLIC_HOST`. It migrates the database, rebuilds, and restarts both services, keeping
-your secrets.
+Run the install command again. It fast-forwards `/opt/cloudgate` to the latest `main`, reuses the
+address the last install was built for, migrates the database, rebuilds, and restarts both
+services, keeping your secrets.
 
 ```bash
-cd /opt/cloudgate
-git pull
-CLOUDGATE_PUBLIC_HOST=203.0.113.24 bash deploy/install.sh
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh
 ```
 
+An instance installed before the repository was public may still fetch over SSH. If the upgrade
+says it could not fetch, point it at HTTPS and run the command again:
+`git -C /opt/cloudgate remote set-url origin https://github.com/octabyte-io/cloudgate.git`.
+
 Read the **What to do on upgrade** lines in the repository's
-[changelog](https://github.com/octabyte-io/cloudgate/blob/main/CHANGELOG.md) before you pull: most
+[changelog](https://github.com/octabyte-io/cloudgate/blob/main/CHANGELOG.md) before you upgrade: most
 releases need nothing, and the ones that do say exactly what. **Settings** > **Instance** >
 **This instance** shows the version an instance runs. The [CLI](/docs/cli) needs 0.1.0 or newer, and
 uploads only the changed files to 0.2.0 or newer.
