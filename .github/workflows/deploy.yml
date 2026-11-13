@@ -1,13 +1,14 @@
 name: Deploy to GitHub Pages
 
-# Manual only until GitHub Pages is turned on for this repository (Settings > Pages > Source:
-# GitHub Actions). Then add `push: { branches: [main] }` under `on:` to deploy every merge.
+# Deploys every push to main, by hand, and when cloudgate's install.sh changes. Needs
+# Settings > Pages > Source: GitHub Actions, with the custom domain cloudgate.octabyte.io.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   # /install.sh is the cloudgate repository's install.sh, copied at build time
   # (src/pages/install.sh.ts). The cloudgate repository's notify-website workflow sends this
   # event when install.sh changes on main, so the copy here is rebuilt within minutes.
-  # Takes effect once Pages is turned on.
   repository_dispatch:
     types: [install-script-updated]
 
