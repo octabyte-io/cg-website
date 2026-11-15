@@ -17,7 +17,8 @@ const trail = [
   { name: `vs ${c.name}`, path: `/compare/${c.id}` },
 ];
 const keys = Object.keys(rowLabels) as RowKey[];
-const others = competitors.filter((x) => x.id !== c.id);
+// Related first: the pages in the same group (hosted platforms, or tools on your own servers).
+const others = competitors.filter((x) => x.id !== c.id && x.group === c.group);
 const tableId = `table-${c.id}`;
 ---
 
@@ -117,9 +118,8 @@ const tableId = `table-${c.id}`;
             {c.chooseUs.map((t) => <li set:html={t.replace(/`([^`]+)`/g, '<code>$1</code>')} />)}
           </ul>
           <p class="caveat">
-            Worth knowing: Cloudgate is young. Its command-line tool is still a beta on npm, and the
-            Servers you connect are yours to keep updated. Read <a href="/changelog">what changed
-            recently</a>.
+            Worth knowing: Cloudgate is young, and the Servers you connect are yours to keep
+            updated. Read <a href="/changelog">what changed recently</a>.
           </p>
         </div>
       </div>
@@ -130,8 +130,8 @@ const tableId = `table-${c.id}`;
 
   <section class="section section--tight" aria-labelledby="others-title">
     <div class="wrap">
-      <h2 id="others-title" class="others-title">Other comparisons</h2>
-      <ul class="others" data-reveal-stagger>
+      <h2 id="others-title" class="others-title">{c.group === 'cloud' ? 'How does Cloudgate compare with other hosted platforms?' : 'How does Cloudgate compare with other self-hosted tools?'}</h2>
+      <ul class="others" style={`--cols: ${others.length + 1 > 4 ? 3 : others.length + 1}`} data-reveal-stagger>
         {others.map((o) => (
           <li>
             <a href={`/compare/${o.id}`} data-spotlight>
@@ -143,7 +143,7 @@ const tableId = `table-${c.id}`;
         <li>
           <a href="/compare" data-spotlight>
             <strong>All comparisons</strong>
-            <span>Cloudgate beside Heroku, Vercel, Render and Coolify in one table.</span>
+            <span>Cloudgate beside all {competitors.length} platforms, hosted and self-hosted.</span>
           </a>
         </li>
       </ul>
@@ -299,8 +299,19 @@ const tableId = `table-${c.id}`;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    /* Three or four to a row, so five links and a hub link make two even rows. */
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
     gap: var(--space-4);
+  }
+  @media (max-width: 1020px) {
+    .others {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    .others {
+      grid-template-columns: 1fr;
+    }
   }
   .others a {
     display: grid;

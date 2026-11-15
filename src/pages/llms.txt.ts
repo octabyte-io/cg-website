@@ -3,6 +3,7 @@ import { site, plans, addOn, trialDays, deployUrl, repoFile } from '../data/site
 import { templatesHome } from '../data/template-links';
 import { getDocsNav } from '../data/docs-nav';
 import { getCollection } from 'astro:content';
+import { competitors } from '../data/compare';
 
 // llms.txt (https://llmstxt.org): a plain summary an AI assistant can read in one request.
 export const GET: APIRoute = async () => {
@@ -50,7 +51,8 @@ ${planLines}
 - [Cloudgate CLI](${site.url}/cli): install, log in and deploy a folder from the terminal or CI
 - [Pricing](${site.url}/pricing): Starter and Business plans, the Add-on, the free trial and worked examples
 - [Self-host Cloudgate](${site.url}/self-hosted): server requirements, what the installer sets up, and the Elastic License 2.0
-- [Compare Cloudgate](${site.url}/compare): how Cloudgate differs from Heroku, Vercel, Render and Coolify, with one page each
+- [Compare Cloudgate](${site.url}/compare): how Cloudgate differs from Heroku, Vercel, Render, Railway, Fly.io, Netlify, Coolify, Dokploy, Kamal and CapRover, with one page each
+${competitors.map((c) => `- [Cloudgate vs ${c.name}](${site.url}/compare/${c.id}): ${c.summary}`).join('\n')}
 - [About](${site.url}/about): what Cloudgate is, who makes it and why
 - [Security](${site.url}/security): how agent keys, secrets, roles and the audit log protect you, and how to report a vulnerability
 - [License](${site.url}/license): the Elastic License 2.0 in plain English
