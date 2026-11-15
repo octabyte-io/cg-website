@@ -4,14 +4,14 @@ seoTitle: Self-hosted Cloudgate instance settings and templates
 description: 'Run a self-hosted Cloudgate instance from its console: the Enterprise license, branding, Traefik, disk upkeep, build limits and the Template catalogue mirror.'
 lede: A self-hosted instance has settings the Hosted one keeps to itself, for the machine Cloudgate runs on. This page walks through each one, who may change it, and which ones to leave alone.
 section: self-host
-updated: '2026-11-13'
+updated: '2026-11-15'
 order: 3
 navTitle: Instance settings
 badges: ['Self-hosted only', 'Owner or Admin of the Instance organization']
 faq:
   - { q: Who can change the instance settings?, a: 'The owners and admins of the Instance organization, the first Organization on the instance. People only: an Agent never can, even one in that Organization.' }
   - { q: Why does the console still build one Deployment at a time after I raised Concurrent builds?, a: 'The setting is saved, but it takes effect only while an Enterprise license is active. Without one, each Server builds one Deployment at a time.' }
-  - { q: Can I update Cloudgate from the console?, a: 'Not on a native install. <strong>Update and restart</strong> is turned off there. Pull the new version and run the install script again.' }
+  - { q: Can I update Cloudgate from the console?, a: 'Not on a native install. <strong>Update and restart</strong> is turned off there. Run the install command again to install the newest published version.' }
 ---
 
 The settings in this page live under **Settings**, in the **Platform** group (**Traefik**,
@@ -99,8 +99,9 @@ The **Console routing** card under it says whether that hostname's origin is tru
 Sign-in on the new hostname is refused until its origin is trusted. Add it in **Settings** >
 **Single sign-on** > **Trusted origins** (licensed), or in `TRUSTED_ORIGINS` in
 `/etc/default/cloudgate-backend` followed by `systemctl restart cloudgate-backend`. Live screens
-(logs, shells, setup output) also need the API on the same hostname, and the address the console
-calls is built in, so that part is a rebuild of the console, not a setting.
+(logs, shells, setup output) also need the API on the same hostname. That is not a console
+setting either: set `CLOUDGATE_API_URL` in `/etc/default/cloudgate-console` to an API address on
+that hostname and run `systemctl restart cloudgate-console`. No rebuild is needed.
 
 ## Set build and Cloud run limits
 
@@ -208,7 +209,8 @@ serves a release's older `catalogue.json`; the last good copy is kept until it s
 <Callout type="limit" title="Not in the console">
   - Reset another person's password or two-factor. That needs mail settings, or root on the server.
   - Update a native install.
-  - Change `CLOUDGATE_PUBLIC_HOST`. That is a rebuild with the install script.
+  - Change `CLOUDGATE_PUBLIC_HOST`. That is an edit to `/etc/default/cloudgate-console` and
+    `/etc/default/cloudgate-backend` on the server, then a restart of both services.
   - Give the platform host's settings to another Organization's owners, or to any Agent.
 </Callout>
 

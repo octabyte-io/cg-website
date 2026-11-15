@@ -28,7 +28,9 @@ export const softwareSchema = () => ({
   name: site.name,
   applicationCategory: 'DeveloperApplication',
   applicationSubCategory: 'Deployment platform',
-  operatingSystem: 'Linux (Ubuntu 24.04) for self-hosting; any browser for the hosted console',
+  operatingSystem: 'Linux (Ubuntu 24.04 or 26.04) for self-hosting; any browser for the hosted console',
+  // The latest Cloudgate version (the root CHANGELOG.md of the cloudgate repository).
+  softwareVersion: '0.3.2',
   url: site.url,
   description: site.description,
   publisher: { '@id': `${site.url}/#organization` },
