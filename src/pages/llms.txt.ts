@@ -46,7 +46,9 @@ ${planLines}
 - [Home](${site.url}/): what Cloudgate is, where it runs, and who it is for
 - [Deploy an app you built with AI](${site.url}/vibe-coding): the three-step path for people new to deploying
 - [Cloudgate for AI agents](${site.url}/ai-agents): Agents, the MCP endpoint, tools and guard rails
+- [Run open AI models on your own GPUs](${site.url}/ai-models): an AI model served by Ollama, vLLM or llama.cpp on your Server, reserved GPUs, the OpenAI-compatible Gateway with caller Agent keys, and token spend per model and caller
 - [Features](${site.url}/features): ways in, where apps run, and what Cloudgate looks after in production
+- [Console tour](${site.url}/tour): real screenshots of the console, from a deploy and its log to a Plan, uptime checks, Agents and buying a Server
 - [Cloudgate CLI](${site.url}/cli): install, log in and deploy a folder from the terminal or CI
 - [Pricing](${site.url}/pricing): Starter and Business plans, the Add-on, the free trial and worked examples
 - [Self-host Cloudgate](${site.url}/self-hosted): server requirements, what the installer sets up, and the Elastic License 2.0

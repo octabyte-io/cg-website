@@ -1,0 +1,570 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ConsoleShot from '../components/ConsoleShot.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../data/site';
+import { tour } from '../data/tour';
+import { faqSchema, breadcrumbSchema, howToSchema } from '../data/schema';
+
+// Facts: cloudgate docs/calling-an-ai-model.md, CONTEXT.md (AI model, Inference runtime, Gateway,
+// GPU reservation, GPU setup, Token spend) and ADR-0039/0040. Model names are the docs' examples.
+const trail = [{ name: 'AI models', path: '/ai-models' }];
+
+const title = 'Run open AI models on your own GPUs with Cloudgate';
+const description =
+  'Serve open models with Ollama, vLLM or llama.cpp on your own Server and GPUs, call them with any OpenAI client, and see token spend per model and caller.';
+
+const modelTab = tour.find((s) => s.id === 'ai-model')!;
+
+const steps = [
+  {
+    name: 'Add the AI model',
+    text: 'On an Environment’s Services tab, press Add an AI model. Name it, pick its Server and how many GPUs it reserves, then the inference runtime and the model.',
+  },
+  {
+    name: 'Deploy it',
+    text: 'Press Deploy. The first Deployment pulls or loads the model, and the AI model reads as ready once the runtime can serve it.',
+  },
+  {
+    name: 'Create a caller Agent',
+    text: 'On the Model tab, under Connect a client, press Create a caller Agent. Name it after the Service that will call, and copy its key: it is shown once.',
+  },
+  {
+    name: 'Point your app at the endpoint',
+    text: 'Set OPENAI_BASE_URL to the endpoint and OPENAI_API_KEY to the caller Agent’s key on the calling Service, then deploy it.',
+  },
+];
+
+const runtimes = [
+  {
+    slice: '',
+    name: 'Ollama',
+    naming: 'Ollama’s own model names',
+    example: 'llama3.2:3b',
+    text: 'The first Deployment pulls the model with Ollama’s own client, and the AI model reads as ready once the pull has finished.',
+  },
+  {
+    slice: 'slice--2',
+    name: 'vLLM',
+    naming: 'A Hugging Face repo id',
+    example: 'Qwen/Qwen2.5-0.5B-Instruct',
+    text: 'Runs on the GPUs you reserve, or on its CPU build with none. For gated weights, add a Hugging Face token; it is never shown again.',
+  },
+  {
+    slice: 'slice--3',
+    name: 'llama.cpp',
+    naming: 'A Hugging Face GGUF repo id, with a quant after the colon if you want one',
+    example: 'ggml-org/gemma-3-1b-it-GGUF:Q4_K_M',
+    text: 'Serves quantized GGUF models on the CPU, and offloads the model’s layers onto GPUs when you reserve them. Gated weights take a Hugging Face token too.',
+  },
+];
+
+const faq = [
+  {
+    q: 'Which models can I run?',
+    a: 'Any model your chosen inference runtime can serve: an Ollama model name, a Hugging Face repo id for vLLM, or a GGUF repo id for llama.cpp. One AI model serves one model; a chat model and an embedding model are two AI models.',
+  },
+  {
+    q: 'Do I need a GPU?',
+    a: 'No. Set GPUs to zero and the AI model runs on the CPU. When you reserve GPUs, each running copy holds whole cards that are never shared or split.',
+  },
+  {
+    q: 'Can my app reach the model directly on the network?',
+    a: 'No. An AI model has no Domain and no published port, and no other Service can reach it. Every call goes through the Gateway with a caller Agent’s key, so every call is counted.',
+  },
+  {
+    q: 'Which OpenAI API calls does the Gateway forward?',
+    a: 'Four: POST /v1/chat/completions, POST /v1/completions, POST /v1/embeddings and GET /v1/models, streamed or not. The runtime’s own API, such as Ollama’s /api, is not reachable.',
+  },
+  {
+    q: 'Can my AI agent call the model too?',
+    a: 'Yes, with a caller Agent’s key at the Gateway. An Agent can also deploy, start, stop and read an AI model over MCP like any Application, but only a person creates or deletes one. <a href="/ai-agents">How Agents work</a>.',
+  },
+  {
+    q: 'Does Cloudgate charge per token?',
+    a: 'No. Token spend is a count for you to read. Hosted plans count Servers and Cloud Environments, and a self-hosted Cloudgate is free. <a href="/pricing">Plans and prices</a>.',
+  },
+];
+---
+
+<Base
+  title={title}
+  description={description}
+  schema={[
+    howToSchema({ name: 'Serve an open AI model on your own Server and call it', steps }),
+    faqSchema(faq),
+    breadcrumbSchema(trail),
+  ]}
+>
+  <PageHero
+    title="Run open AI models on your own GPUs"
+    lede="Serve a model with Ollama, vLLM or llama.cpp on a Server you own, and call it from your apps with any OpenAI client. Cloudgate keeps the model private behind its Gateway and counts the tokens each caller spends."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
+    <a class="btn btn--ghost" href="/docs/guide/ai-models">Read the AI models guide</a>
+    <div class="window term call" slot="visual">
+      <div class="window-bar">Your app, calling a model on your GPU</div>
+      <pre class="code"><code><span class="d"># Variables on the calling Service</span>
+<span class="k">OPENAI_BASE_URL</span>=https://&lt;console domain&gt;/ai/&lt;AI model id&gt;/v1
+<span class="k">OPENAI_API_KEY</span>=<span class="s">&lt;caller Agent key&gt;</span>
+<span class="k">AI_MODEL</span>=llama3.2:3b
+
+<span class="d"># Any OpenAI client works unchanged</span>
+<span class="k">import</span> os
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = OpenAI()  <span class="d"># reads OPENAI_BASE_URL and OPENAI_API_KEY</span>
+reply = client.chat.completions.create(
+    model=os.environ[<span class="s">"AI_MODEL"</span>],
+    messages=[&#123;<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Summarise our refund policy."</span>&#125;],
+)</code></pre>
+    </div>
+  </PageHero>
+
+  <section class="section" aria-labelledby="how">
+    <div class="wrap split how">
+      <div class="section-head" data-reveal>
+        <h2 id="how">How do I serve a model with Cloudgate?</h2>
+        <p class="lede">
+          An AI model is an Application that serves one model. You add it, deploy it, and give each app that calls it
+          a key of its own.
+        </p>
+      </div>
+      <ol class="steps" data-reveal-stagger>
+        {steps.map((s) => (
+          <li>
+            <h3>{s.name}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="runtimes">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="runtimes">Which inference runtimes can serve my model?</h2>
+        <p class="lede">
+          Three: Ollama, vLLM and llama.cpp. You pick one when you add the AI model and it stays for the model’s life.
+          Which model it serves can change later; save the new name and deploy.
+        </p>
+      </div>
+      <div class="runtimes" data-reveal-stagger>
+        {runtimes.map((r) => (
+          <article class="panel runtime" data-spotlight="ring">
+            <h3><span class:list={['slice', r.slice]} aria-hidden="true"></span>{r.name}</h3>
+            <dl>
+              <dt>Model is named as</dt>
+              <dd>{r.naming}</dd>
+              <dt>For example</dt>
+              <dd><code>{r.example}</code></dd>
+            </dl>
+            <p>{r.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="gpus">
+    <div class="wrap split">
+      <div class="prose" data-reveal>
+        <h2 id="gpus">How are GPUs shared between models?</h2>
+        <p>
+          They are not shared. An AI model reserves whole GPUs for each running copy: two copies reserving one GPU
+          each hold two cards. A card is never split, and a copy that reserves none, like every database, is kept off
+          the cards altogether.
+        </p>
+        <p>
+          When you add an AI model, the Server picker shows each Server’s GPUs and how many are free right now. A
+          reservation the Server could never hold is refused when you save it. One it cannot hold yet, because its
+          cards are taken, fails the Deployment before anything changes, so the version already running keeps
+          running.
+        </p>
+        <p>
+          A Server becomes a GPU Server through its GPU setup, which an owner or admin runs from the console. It
+          restarts Docker on that machine, so the console warns you first, and Cloudgate never runs it on its own.
+          Read more in <a href="/docs/guide/servers">Servers in the user guide</a>.
+        </p>
+      </div>
+      <figure class="panel gpu" data-reveal data-reveal-delay="120" aria-label="A drawing of one GPU Server: the llama AI model holds GPU 0, GPU 1 is free, and the pg-main database is kept off both cards">
+        <p class="gpu-host"><span class="slice" aria-hidden="true"></span>gpu-1 <span class="gpu-free">2 GPUs, 1 free</span></p>
+        <div class="cards" aria-hidden="true">
+          <div class="card held">
+            <span class="card-name">GPU 0</span>
+            <span class="card-who">llama, 1 GPU per copy</span>
+          </div>
+          <div class="card">
+            <span class="card-name">GPU 1</span>
+            <span class="card-who">free</span>
+          </div>
+        </div>
+        <p class="off" aria-hidden="true"><span>pg-main</span> kept off the cards</p>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="gateway">
+    <div class="wrap split gateway">
+      <div class="gw" data-reveal aria-hidden="true">
+        <div class="callers">
+          <span class="node"><span class="slice"></span>support-chat</span>
+          <span class="node"><span class="slice slice--2"></span>search-indexer</span>
+          <span class="node off"><span class="slice slice--3"></span>old-script, suspended</span>
+        </div>
+        <span class="link"></span>
+        <span class="node gate">Gateway</span>
+        <span class="link"></span>
+        <span class="node">AI model</span>
+      </div>
+      <div class="prose" data-reveal data-reveal-delay="120">
+        <h2 id="gateway">How do my apps call the model?</h2>
+        <p>
+          Through Cloudgate’s Gateway, which speaks the OpenAI API. Give any OpenAI client the AI model’s endpoint,
+          <code>https://&lt;console domain&gt;/ai/&lt;AI model id&gt;/v1</code>, and the key of a caller Agent. The
+          Python and JavaScript SDKs read <code>OPENAI_BASE_URL</code> and <code>OPENAI_API_KEY</code> by themselves.
+        </p>
+        <p>
+          A caller Agent may call the AI models it is granted and nothing else. Give each calling Service its own, so
+          its spend shows on its own line and you can suspend one caller without cutting off the rest. The caller can
+          run anywhere: beside the model, on another Server, or outside Cloudgate.
+        </p>
+        <p>
+          The Gateway forwards chat completions, completions, embeddings and the models list, and passes a stream on
+          as the runtime writes it. The same Gateway is described for agents on{' '}
+          <a href="/ai-agents#gateway">Cloudgate for AI agents</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="console">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="console">Where do I see what each caller spent?</h2>
+        <p class="lede">
+          On the AI model’s Model tab. Its Token spend section shows the last 7, 30 or 90 days as a daily chart, and a
+          table of every Agent and model with its calls by outcome. Tokens are marked reported by the runtime, or
+          estimated when it gave none, such as on a cut stream.
+        </p>
+      </div>
+      <div class="console-shot" data-reveal>
+        <ConsoleShot stop={modelTab} sizes="(min-width: 1264px) 1200px, calc(100vw - 2rem)" />
+        <p class="caption">{modelTab.caption} The console with made-up data; more screens in the <a href="/tour">console tour</a>.</p>
+      </div>
+      <dl class="facts spend" data-reveal-stagger>
+        <div>
+          <dt>Spend belongs to the model</dt>
+          <dd>It adds up to the AI model’s own Environment and Project, even when an app in another Project calls it.</dd>
+        </div>
+        <div>
+          <dt>Kept for its whole life</dt>
+          <dd>Each call is kept 90 days, and its day’s totals per Agent and model for as long as the AI model exists.</dd>
+        </div>
+        <div>
+          <dt>Never the prompts</dt>
+          <dd>The Gateway records tokens and how each call ended, never the prompt or the answer.</dd>
+        </div>
+        <div>
+          <dt>Read by API too</dt>
+          <dd>The REST API answers token spend per AI model, Environment and Project by UTC day.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section band" aria-labelledby="limits">
+    <div class="wrap split">
+      <div class="section-head" data-reveal>
+        <h2 id="limits">What should I know before I rely on it?</h2>
+        <p class="lede">
+          The Gateway runs inside Cloudgate, on the machine that serves the console, and that shapes a few things.
+        </p>
+      </div>
+      <dl class="limits" data-reveal-stagger>
+        <div>
+          <dt>Calls go through the console’s host</dt>
+          <dd>Every call enters at the console’s address and goes out to the model’s Server, even when the caller sits on the same Server.</dd>
+        </div>
+        <div>
+          <dt>Keep model Servers on a trusted network</dt>
+          <dd>The last hop to the model’s Server is plain HTTP, guarded by a secret for each AI model.</dd>
+        </div>
+        <div>
+          <dt>No rate limit per caller</dt>
+          <dd>To stop a runaway caller, suspend its Agent; new calls are then refused.</dd>
+        </div>
+        <div>
+          <dt>A restart cuts running calls</dt>
+          <dd>Upgrading or restarting Cloudgate breaks open streams, so callers should retry.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="more">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 id="more">Where to read more</h2>
+      </div>
+      <ul class="more-links" data-reveal-stagger>
+        <li><a class="text-link" href="/docs/guide/ai-models">AI models and the Gateway, step by step</a></li>
+        <li><a class="text-link" href="/docs/guide/agents">Agents, agent keys and the Caller role</a></li>
+        <li><a class="text-link" href="/features#ai-models">AI models among every Cloudgate feature</a></li>
+        <li><a class="text-link" href="/self-hosted">Self-host Cloudgate on your own machine</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <Faq items={faq} />
+  <CtaBand
+    title="Serve your first model this week"
+    text="Start a 30-day free trial, connect a Server with a GPU or without one, and add an AI model to any Environment."
+  />
+</Base>
+
+<style>
+  /* Hero: the call, as an app would write it. */
+  .call .code {
+    border: 0;
+    border-radius: 0;
+    font-size: var(--text-xs);
+  }
+  .call .code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .how .steps h3 {
+    font-size: var(--text-lg);
+  }
+
+  /* Runtimes: the three slices. */
+  .runtimes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .runtime {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+  .runtime h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-xl);
+  }
+  .runtime dl {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+  }
+  .runtime dt {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .runtime dd {
+    margin: 0 0 var(--space-2);
+    color: var(--ink-2);
+  }
+  .runtime code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+  }
+  .runtime p {
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  @media (max-width: 900px) {
+    .runtimes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* GPU drawing */
+  .gpu {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+  }
+  .gpu-host {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-lg);
+  }
+  .gpu-free {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .card {
+    display: grid;
+    gap: var(--space-2);
+    min-height: 7.5rem;
+    align-content: space-between;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--line-strong);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .card.held {
+    border: 1px solid var(--brand);
+    background: var(--brand-tint);
+    color: var(--ink);
+  }
+  .card-name {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .off {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .off span {
+    color: var(--ink-2);
+  }
+
+  /* Gateway drawing */
+  .gw {
+    align-self: center;
+    display: grid;
+    grid-template-columns: auto minmax(1.5rem, 1fr) auto minmax(1.5rem, 1fr) auto;
+    align-items: center;
+    font-size: var(--text-sm);
+  }
+  .callers {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .node {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.45rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+  }
+  .node.off {
+    color: var(--muted);
+    border-style: dashed;
+    text-decoration: line-through;
+  }
+  .node.gate {
+    border-color: var(--brand);
+    color: var(--brand);
+    box-shadow: 0 0 28px -8px var(--glow);
+  }
+  .link {
+    height: 0;
+    border-top: 2px dashed var(--line-strong);
+    margin-inline: var(--space-2);
+  }
+  .gateway code,
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 900px) {
+    .gateway .gw {
+      order: 2;
+    }
+  }
+  @media (max-width: 560px) {
+    .gw {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+    }
+    .link {
+      width: 0;
+      height: 1.5rem;
+      border-top: 0;
+      border-left: 2px dashed var(--line-strong);
+      margin: var(--space-1) 0 var(--space-1) 1.5rem;
+    }
+  }
+
+  /* Console */
+  .console-shot {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .caption {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    max-width: 80ch;
+  }
+  .caption a,
+  .prose a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 0.2em;
+  }
+  .caption a:hover,
+  .prose a:hover {
+    text-decoration-color: var(--brand);
+  }
+  .spend {
+    margin-top: var(--space-7);
+  }
+
+  .limits {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+  }
+  .limits > div {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .limits dt {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .limits dd {
+    margin: var(--space-1) 0 0;
+    color: var(--muted);
+  }
+
+  .more-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-6);
+  }
+  .more-links a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+  }
+  @media (max-width: 720px) {
+    .more-links {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
