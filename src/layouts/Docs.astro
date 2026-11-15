@@ -49,6 +49,8 @@ const trail = [
 // The newer of the page's own `updated` and its last commit, so a fix that forgot `updated` still counts.
 const committed = lastmodOf(here)?.slice(0, 10);
 const modified = committed && committed > updated ? committed : updated;
+// Shown under the lede too: readers and answer engines both weigh how fresh a page is.
+const modifiedText = new Date(`${modified}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 if (showFaq) toc.push({ depth: 2, slug: 'questions', text: 'Questions' });
 
@@ -123,6 +125,7 @@ const pageSchema = [
         {badges.length > 0 && (
           <p class="doc-badges"><span class="visually-hidden">Applies to: </span>{badges.map((b) => <Badge tone="brand">{b}</Badge>)}</p>
         )}
+        <p class="doc-updated">Updated <time datetime={modified}>{modifiedText}</time></p>
       </header>
       <div class="doc-body">
         <slot />
