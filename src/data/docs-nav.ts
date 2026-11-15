@@ -6,6 +6,7 @@ import { apiGroups } from './api-reference';
 
 export const sections = [
   { id: 'start', title: 'Start here' },
+  { id: 'guides', title: 'Deploy guides' },
   { id: 'guide', title: 'User guide' },
   { id: 'cli', title: 'CLI' },
   { id: 'mcp', title: 'MCP and agents' },

@@ -24,7 +24,7 @@ title: Add a Server                # the one <h1>, sentence case, in the reader'
 seoTitle: Add a Server to Cloudgate over SSH   # optional; <title> is this + " | Cloudgate", aim 50-60 chars total
 description: 140-160 characters, unique, says what the reader will be able to do.
 lede: One or two sentences under the title that answer "what is this and when do I need it".
-section: guide                     # start | guide | cli | mcp | api | self-host | help
+section: guide                     # start | guides | guide | cli | mcp | api | self-host | help
 group: Where it runs               # user guide only: Deploy | Where it runs | Services | Data | Operate | Team and access | Account
 order: 20                          # position in its group, smallest first
 navTitle: Servers                  # optional short sidebar label

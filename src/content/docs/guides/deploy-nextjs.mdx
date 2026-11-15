@@ -1,0 +1,193 @@
+---
+title: Deploy a Next.js app
+seoTitle: Deploy a Next.js app to your own server or cloud
+description: Deploy a Next.js app to your own server, AWS or Google Cloud with Cloudgate. Build with Nixpacks, run next start, link PostgreSQL and add a domain with HTTPS.
+lede: Cloudgate runs a Next.js app as a long-running container with `next start`, on a Server you own or in your AWS or Google Cloud account. This guide takes it from a repository to your own domain over HTTPS.
+section: guides
+updated: '2026-11-15'
+order: 1
+navTitle: Next.js
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a Next.js app with Cloudgate
+  steps:
+    - { name: 'Add an Application', text: 'In the Environment, open Services, press Add an Application, name it web and pick the Server it runs on.' }
+    - { name: 'Set the source', text: 'On the Source card press Change source and pick the repository and branch, or upload the folder with cloudgate deploy.' }
+    - { name: 'Keep Nixpacks', text: 'Leave the Builder on Nixpacks. It runs npm run build and starts the app with npm run start, which is next start.' }
+    - { name: 'Check the port', text: 'next start listens on port 3000 unless PORT says otherwise, which matches the default Container port.' }
+    - { name: 'Deploy', text: 'Press Deploy and follow the Deployment log. The app answers at its generated sslip.io address.' }
+    - { name: 'Add your domain', text: 'On the Domains tab press Add a domain, enter your host, keep Serve over HTTPS on with Let''s Encrypt, and create the A record it shows.' }
+faq:
+  - { q: 'Does Cloudgate run Next.js server features such as API routes and server actions?', a: 'Yes. Cloudgate runs <code>next start</code> as one long-running Node process in a container, so API routes, server actions, middleware and on-demand rendering run as they do on your laptop. Nothing is split into functions.' }
+  - { q: 'Why does my NEXT_PUBLIC_ variable keep its old value?', a: 'Next.js inlines <code>NEXT_PUBLIC_</code> values into the JavaScript at build time. Change the variable, then deploy again so the build sees the new value. With a Dockerfile, list it under Build arguments and declare it with <code>ARG</code>.' }
+  - { q: 'Do I need output standalone?', a: 'No. Nixpacks builds and starts a normal Next.js app. <code>output: ''standalone''</code> is useful with your own Dockerfile, to keep the image small.' }
+  - { q: 'Can I deploy a static export instead?', a: 'Yes. With <code>output: ''export''</code>, choose the Static files builder (or <code>kind: static</code> in the Project config) and set the Publish directory to <code>out</code>. On AWS a static site runs on S3 and CloudFront.' }
+---
+
+A Next.js app on Cloudgate is an [Application](/docs/guide/applications) of kind `web`: Cloudgate
+builds an image from your code, runs it as a container and routes your Domains to it through
+Traefik. The examples deploy the `web` Application in `storefront` / `production` on the Server
+`fra-1`.
+
+## What you need
+
+- A Next.js app whose `package.json` has the usual `build` and `start` scripts (`next build`,
+  `next start`).
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts) for AWS or Google Cloud.
+- A Project and Environment, such as `storefront` / `production`. See
+  [Projects and Environments](/docs/guide/projects-and-environments).
+- Your code in a connected git provider or any git URL, or on your computer for the CLI.
+
+## How Cloudgate builds a Next.js app
+
+**Nixpacks**, the default builder, sees `package.json`, installs your dependencies with the package
+manager your lockfile names, runs the `build` script and starts the app with the `start` script. For
+Next.js that means `next build`, then `next start`. The Deployment log prints the plan Nixpacks
+chose (install, build, start) before it builds, so you can check it.
+
+- **Port.** `next start` listens on 3000 unless `PORT` is set, and 3000 is Cloudgate's default
+  **Container port**. Nothing to change unless you pick another port.
+- **Build-time variables.** With Nixpacks, the Service's variables reach the build too, so a
+  `NEXT_PUBLIC_SITE_URL` on the **Variables** tab is inlined by `next build`. Change it, then deploy
+  again.
+- **A different command.** Set `NIXPACKS_BUILD_CMD` or `NIXPACKS_START_CMD` as variables, or put a
+  `nixpacks.toml` in the repository, and Nixpacks uses them.
+- **Your own Dockerfile.** Choose **Dockerfile** on the **Build** card. Values the build needs go
+  under **Build arguments** on the **Variables** tab, passed as `--build-arg`.
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open the Environment `storefront` / `production`, then **Services** > **Add an Application**. Name it
+`web` and choose the **Server** `fra-1`.
+</Step>
+<Step title="Set its source">
+On the **Overview**, the **Source** card has **Change source**. Pick **GitHub** (or GitLab,
+Bitbucket, Gitea), the repository and the **Branch**. In a monorepo, set **Build path** to the app's
+folder, such as `apps/web`. Turn on **Deploy automatically** to build on every push.
+<Screenshot name="application-overview" alt="The Overview of the web Application in storefront production, with its Source card showing a GitHub repository and branch" caption="The Source card decides what is built; the Build card how." />
+</Step>
+<Step title="Set variables">
+On the **Variables** tab press **Add variables** and write one `KEY=value` per line, for example
+`NEXT_PUBLIC_SITE_URL=https://shop.northwind.example`. Press **Save variables**.
+</Step>
+<Step title="Deploy">
+Press **Deploy**. The Deployment log streams live through the clone, build, push and update phases.
+When it is done, open the generated `sslip.io` Domain on the **Domains** tab.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+The [CLI](/docs/cli) uploads the folder on your computer, so no git provider is needed. Make the
+Application in the console first (step 1 above), then, on Node 22 or newer:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cd storefront-web
+cloudgate link      # pick the Project, Environment and the web Service
+cloudgate deploy    # uploads the changed files and prints the build log
+```
+
+`cloudgate deploy` leaves out `.git/`, anything `.gitignore` lists and every `.env` file. Keep
+`node_modules` and `.next` in `.gitignore` so they are not uploaded. Set secrets with
+`cloudgate vars set STRIPE_KEY`, which asks for the value without echoing it.
+
+## Add a PostgreSQL database
+
+<Steps>
+<Step title="Create the database">
+In the same Environment press **Add a database**, choose **PostgreSQL**, name it `pg-main`, set its
+**Database name**, **User** and **Password**, pick the same Server and press **Deploy**.
+</Step>
+<Step title="Link DATABASE_URL">
+On `web`'s **Variables** tab, under **Wired variables**, press **Link a variable**. Enter
+`DATABASE_URL`, choose `pg-main` and the Output `url`, and press **Save link**.
+</Step>
+<Step title="Deploy web again">
+The value is filled in at each Deployment and never saved on the Service, so a rotated password
+reaches the next deploy by itself.
+</Step>
+</Steps>
+
+Prisma, Drizzle and most Node clients read `DATABASE_URL` as it is. To run migrations, see the next
+section. More in [Databases](/docs/guide/databases).
+
+## Run database migrations
+
+Cloudgate has no separate release step. Two ways work:
+
+- **Before each start.** Make `start` run them first, for example
+  `"start": "prisma migrate deploy && next start"` in `package.json`. Every replica runs it, so
+  keep migrations safe to run twice, which Prisma's are.
+- **By hand.** Open the Application's **Shell** tab and run `npx prisma migrate deploy` in the
+  running container. Not available in a Cloud account.
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**. Enter the host, such as `shop.northwind.example`,
+leave **Serve over HTTPS** on with **Let's Encrypt**, then create the `A` record the console shows
+at your DNS provider and press **Check DNS**. The certificate is issued on the first request after
+the record resolves. Full steps in [Domains and HTTPS](/docs/guide/domains).
+
+## Deploy Next.js to AWS or Google Cloud
+
+In an Environment whose Deploy target is a Cloud account, Services come from the
+[Project config](/docs/guide/project-config). Write the app and its database, then review and
+**Apply** the Plan:
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    size: small
+    source:
+      github: northwind-labs/storefront
+      path: apps/web
+    build:
+      type: nixpacks
+    port: 3000
+    env:
+      - NEXT_PUBLIC_SITE_URL
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    size: small
+    version: "18"
+    database: storefront
+    user: storefront
+```
+
+On AWS the app runs on ECS Fargate and the database on RDS; on Google Cloud, Cloud Run and Cloud SQL.
+A cloud PostgreSQL takes only TLS connections, and its `url` already asks for TLS. On Google Cloud,
+Cloud Run sets `PORT` itself, so do not set it as a variable there.
+
+## Common errors
+
+- **The address answers 502 Bad Gateway.** Nothing listens on the **Container port**. Check that
+  `next start` and the port on **Advanced** > **Routing** agree, and that you did not bind it to
+  `127.0.0.1` with `-H`.
+- **`Nixpacks build failed` after a TypeScript or lint error.** `next build` type-checks and lints.
+  The last lines of the Deployment log name the file; fix it or build locally first.
+- **The build runs out of memory.** A large Next.js build can need more memory than a small Server
+  has free while apps run beside it. Build on a larger Server or reduce what runs alongside.
+- **An old `NEXT_PUBLIC_` value.** It is baked in at build time. Deploy again after changing it.
+- **`DATABASE_URL refers to ${{project.DATABASE_URL}}, but DATABASE_URL is not set`.** A reference
+  points at a Project variable that does not exist. Set it, or link a wired variable instead. More in
+  [Troubleshooting](/docs/help/troubleshooting).
+
+## Related pages
+
+- [Applications](/docs/guide/applications): builders, sizes, replicas and the run command.
+- [Deployments and rollbacks](/docs/guide/deployments) to go back to the build before.
+- [Previews](/docs/guide/previews): one Deployment per pull request.
+- [Deploy a Node.js and Express app](/docs/guides/deploy-express), and every other
+  [deploy guide](/docs/guides).
+- [Cloudgate compared with Vercel](/compare/vercel) for where a Next.js app fits best.
