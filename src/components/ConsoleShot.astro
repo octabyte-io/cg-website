@@ -1,0 +1,102 @@
+---
+// One real console screenshot in the house `.window.ui` frame, in both themes. Each theme is a
+// <picture> of AVIF and WebP at several widths; CSS shows the one that matches the site's theme,
+// and a lazy image that is never displayed is never downloaded.
+// `crop` holds the frame at the console's 16:10 and shows the top of a taller capture, so tabs
+// that swap screenshots keep one height.
+import { Picture } from 'astro:assets';
+import type { TourStop } from '../data/tour';
+
+interface Props {
+  stop: TourStop;
+  /** The `sizes` attribute: how wide the image is drawn at each viewport width. */
+  sizes: string;
+  eager?: boolean;
+  crop?: boolean;
+}
+const { stop, sizes, eager = false, crop = false } = Astro.props;
+const widths = [640, 960, 1280, 1600, 2000];
+const loading = eager ? 'eager' : 'lazy';
+---
+<div class:list={['window ui cshot', { 'cshot--crop': crop }]}>
+  <div class="window-bar"><span class="cshot-url">{stop.route}</span></div>
+  <div class="cshot-media">
+    <Picture
+      src={stop.dark}
+      formats={['avif']}
+      fallbackFormat="webp"
+      widths={widths}
+      sizes={sizes}
+      alt={stop.alt}
+      loading={loading}
+      decoding="async"
+      class="cshot-img"
+      pictureAttributes={{ class: 'cshot-pic cshot-pic--dark' }}
+    />
+    <Picture
+      src={stop.light}
+      formats={['avif']}
+      fallbackFormat="webp"
+      widths={widths}
+      sizes={sizes}
+      alt={stop.alt}
+      loading={loading}
+      decoding="async"
+      class="cshot-img"
+      pictureAttributes={{ class: 'cshot-pic cshot-pic--light' }}
+    />
+  </div>
+</div>
+
+<style>
+  .cshot {
+    min-width: 0;
+  }
+  .cshot-url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cshot-media {
+    position: relative;
+    background: var(--paper-2);
+  }
+  .cshot--crop .cshot-media {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+  .cshot-media :global(.cshot-pic) {
+    display: block;
+  }
+  .cshot-media :global(.cshot-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .cshot--crop .cshot-media :global(.cshot-img) {
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .cshot--crop .cshot-media :global(.cshot-pic) {
+    height: 100%;
+  }
+  .cshot-media :global(.cshot-pic--light) {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .cshot-media :global(.cshot-pic--dark) {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .cshot-media :global(.cshot-pic--light) {
+    display: block;
+  }
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-theme='dark'])) .cshot-media :global(.cshot-pic--dark) {
+      display: none;
+    }
+    :global(:root:not([data-theme='dark'])) .cshot-media :global(.cshot-pic--light) {
+      display: block;
+    }
+  }
+</style>
