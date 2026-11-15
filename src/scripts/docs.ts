@@ -158,7 +158,8 @@ document.querySelectorAll<HTMLElement>('.tabs').forEach((root, n) => {
 
 // ---- Screenshot zoom ----
 const zoom = document.querySelector<HTMLDialogElement>('.shot-dialog');
-const zoomImg = zoom?.querySelector('img');
+// The zoomed image is made here, so the page never ships an <img> with no src.
+const zoomImg = zoom ? (zoom.querySelector('img') ?? zoom.appendChild(new Image())) : null;
 if (zoom && zoomImg) {
   document.addEventListener('click', (e) => {
     const btn = (e.target as Element).closest?.<HTMLButtonElement>('[data-zoom]');

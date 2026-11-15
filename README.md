@@ -39,8 +39,8 @@ Read `docs/design.md` and `docs/product-facts.md` before changing a page.
 - **Console address and deploy links:** `site.console`, `site.getStarted`, `deployUrl()`.
 - **Templates website address:** `site.templatesSite` (https://cgt.octabyte.io). Template pages live
   only there; this site links to it and never repeats a template's page.
-- **Source repository:** `site.sourceUrl` is `null` while the cloudgate repository is private.
-  Set it to the repository's URL and the Self-host page shows the clone-and-install steps.
+- **Source repository:** `site.sourceUrl` is the public cloudgate repository; `repoFile(path)` links
+  a file in it.
 
 ## Publishing
 
