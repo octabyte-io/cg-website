@@ -23,7 +23,7 @@ const pages = import.meta.glob<{ default: any }>(
 );
 
 // The order assistants read the site in; a page not listed here is appended at the end.
-const order = ['index', 'vibe-coding', 'ai-agents', 'features', 'tour', 'cli', 'pricing', 'self-hosted'];
+const order = ['index', 'vibe-coding', 'ai-agents', 'ai-models', 'features', 'tour', 'cli', 'pricing', 'self-hosted'];
 
 const decode = (s: string) =>
   s
