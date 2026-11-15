@@ -4,7 +4,7 @@ seoTitle: 'Cloudgate CLI commands, flags and exit codes reference'
 description: Every Cloudgate CLI command with its usage line, arguments, flags and defaults, environment variables and JSON output, from login and deploy to templates.
 lede: Every command the cloudgate CLI has, what it prints and how it exits. Run cloudgate <command> --help for the same usage lines in your terminal.
 section: cli
-updated: '2026-11-13'
+updated: '2026-11-15'
 order: 2
 navTitle: Command reference
 badges: ['Hosted and self-hosted', 'Beta']
@@ -17,8 +17,8 @@ faq:
 ---
 
 The CLI groups its commands by what they act on: your login, the folder you are in, and templates.
-This page matches CLI 0.0.2-beta.3, on the npm `next` tag; the `latest` tag, 0.0.1, has fewer
-commands. For a walk-through in order, read the [CLI guide](/docs/cli); for automation, see
+This page matches CLI 0.1.0, the first stable release, on npm's `latest` tag. For a walk-through
+in order, read the [CLI guide](/docs/cli); for automation, see
 [CI recipes](/docs/cli/ci); for exit codes and error messages, see
 [troubleshooting](/docs/cli/troubleshooting).
 
@@ -537,7 +537,9 @@ cloudgate template check <path>
 for each template Cloudgate would offer and `✗ <id>: <reason>` for each it would hide, and exits 1
 if any is hidden. A folder is checked as the `catalogue.zip` it would be packed into: the website's
 `index.md` and `screenshots/` and the [`test-values.yaml`](#test-valuesyaml) that `template try`
-reads are skipped, and any other file a template does not have refuses the whole catalogue. An old
+reads are skipped, and any other file a template does not have refuses the whole catalogue. A
+config file under a template's `files/` may end in `.js`, for an app that reads its config as a
+JavaScript module; other scripts (`.sh`, `.py`, `.mjs`, `.cjs`, `.ts`) are refused. An old
 `catalogue.json` is refused with a message naming `catalogue.zip`.
 
 ### cloudgate template pack
@@ -595,4 +597,5 @@ admin_email: owner@northwind.example
 `template check` skips the file and `template pack` leaves it out of `catalogue.zip`.
 
 `template check` and `template pack` arrived in 0.0.2-beta.2, `template try` and `test-values.yaml`
-in 0.0.2-beta.3.
+in 0.0.2-beta.3, and the `.js` config file in 0.1.0. An Instance older than 0.3.0 refuses a
+catalogue that holds a `.js` config file.

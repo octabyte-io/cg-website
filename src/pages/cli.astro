@@ -89,7 +89,7 @@ const faq = [
   },
   {
     q: 'Does cloudgate deploy upload the whole folder every time?',
-    a: 'No. From version 0.0.2-beta.3 it uploads only the files that are new or changed since the last upload, and deletes on the Instance the files you deleted. Run <code>cloudgate deploy --full</code> to send every file. An Instance older than 0.2.0 always gets the full upload.',
+    a: 'No. After the first upload it sends only the files that are new or changed since the last upload, and deletes on the Instance the files you deleted. Run <code>cloudgate deploy --full</code> to send every file. An Instance older than 0.2.0 always gets the full upload.',
   },
   {
     q: 'How do I deploy from CI without logging in?',
@@ -106,7 +106,7 @@ const howTo = {
     {
       '@type': 'HowToStep',
       name: 'Install the CLI',
-      text: 'Run: npm install -g @octabyte-io/cloudgate@next (the beta; the latest tag is still a placeholder).',
+      text: 'Run: npm install -g @octabyte-io/cloudgate on Node 22 or newer.',
     },
     {
       '@type': 'HowToStep',
@@ -141,7 +141,7 @@ const description =
     <a class="btn btn--ghost" href={site.npm}>View on npm</a>
     <div class="window term" slot="visual" aria-label="A deploy from the terminal" role="img">
       <div class="window-bar">~/my-app</div>
-      <pre class="code" data-play style="--type-step:160ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate@next</span>
+      <pre class="code" data-play style="--type-step:160ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">npm</span> install -g @octabyte-io/cloudgate</span>
 <span class="ln" style="--i:1"><span class="d">$</span> <span class="k">cloudgate</span> login</span>
 <span class="ln" style="--i:2"><span class="d">  Approve code</span> <span class="s">QXRT-7PLM</span> <span class="d">in the console</span></span>
 <span class="ln" style="--i:3"><span class="d">$</span> <span class="k">cd</span> my-app</span>
@@ -158,12 +158,12 @@ const description =
 
   <section class="early-strip" aria-label="Release status">
     <div class="wrap">
-      <p class="note note--warn early">
-        <strong>The CLI is a beta.</strong> The current release, 0.0.2-beta.3, is on npm's
-        {" "}<code>next</code> tag: <code>npm install -g @octabyte-io/cloudgate@next</code>. The
-        {" "}<code>latest</code> tag (0.0.1) is a placeholder. Commands and flags may still change
-        before 1.0; each beta is listed in the <a href="/changelog">Cloudgate changelog</a>, and the
-        CLI's source is in <a href={`${site.sourceUrl}/tree/main/cli`}>the Cloudgate repository</a>.
+      <p class="note early">
+        <strong>CLI 0.1.0 is the first stable release.</strong> It is on npm's
+        {" "}<code>latest</code> tag, so a plain <code>npm install -g @octabyte-io/cloudgate</code>
+        {" "}installs it, and it works with any Instance from 0.1.0. Each release is listed in the
+        {" "}<a href="/changelog">Cloudgate changelog</a>, and the CLI's source is in
+        {" "}<a href={`${site.sourceUrl}/tree/main/cli`}>the Cloudgate repository</a>.
       </p>
     </div>
   </section>
@@ -183,10 +183,9 @@ const description =
           <h3>Install it from npm</h3>
           <p>
             The package is <code>@octabyte-io/cloudgate</code>; the command it installs is
-            {" "}<code>cloudgate</code>. Install the beta from the <code>next</code> tag: the
-            {" "}<code>latest</code> tag still holds a placeholder.
+            {" "}<code>cloudgate</code>. At most once a day it prints one line when a newer version is on npm.
           </p>
-          <pre class="code"><code><span class="k">npm</span> install -g @octabyte-io/cloudgate@next</code></pre>
+          <pre class="code"><code><span class="k">npm</span> install -g @octabyte-io/cloudgate</code></pre>
         </li>
         <li>
           <h3>Log in through your browser</h3>
@@ -287,7 +286,7 @@ const description =
             <p class="lede">
               Make the folder a Project folder, usually a monorepo's root. Its
               {" "}<code>cloudgate.yaml</code> describes every app, and one <code>cloudgate deploy</code>
-              {" "}plans the change, then builds each app from its own subfolder. New in 0.0.2-beta.3.
+              {" "}plans the change, then builds each app from its own subfolder.
             </p>
           </div>
           <ol class="steps" data-reveal-stagger="80">
@@ -470,7 +469,7 @@ const description =
       - <span class="k">uses</span>: actions/setup-node@v4
         <span class="k">with</span>:
           <span class="k">node-version</span>: <span class="s">22</span>
-      - <span class="k">run</span>: npm install -g @octabyte-io/cloudgate@next
+      - <span class="k">run</span>: npm install -g @octabyte-io/cloudgate
       - <span class="k">run</span>: cloudgate deploy
         <span class="k">env</span>:
           <span class="k">CLOUDGATE_KEY</span>: <span class="s">{'${{ secrets.CLOUDGATE_KEY }}'}</span>
@@ -483,7 +482,7 @@ const description =
 <span class="s">export</span> CLOUDGATE_ENV=<span class="s">production</span>
 <span class="s">export</span> CLOUDGATE_SERVICE=<span class="s">web</span>
 
-<span class="k">npm</span> install -g @octabyte-io/cloudgate@next
+<span class="k">npm</span> install -g @octabyte-io/cloudgate
 <span class="k">cloudgate</span> deploy --switch-source</code></pre>
       </div>
     </div>
