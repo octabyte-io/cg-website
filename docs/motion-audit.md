@@ -72,3 +72,35 @@ rAF frame deltas on the home page, headless Chromium, 1440x900 (avg ms per frame
 At 4x CPU throttle the remaining cost is the canvas particles themselves (software raster in
 headless); the field now sheds a quarter of its particles at a time when frames keep running long
 after the load sequence. Scrolling at 4x throttle is unchanged within run-to-run noise.
+
+## LCP pass
+
+An opacity animation on the page's largest text holds its Largest Contentful Paint back until the
+fade ends: Chromium does not count a paint at opacity 0, and a composited fade gives it no new paint
+to count until the end. Two places did this: `PageHero` faded the heading and lede in (lede after
+80ms), and any `data-reveal` block already on screen at load (the plans on Pricing, the first
+sections of About, License, Security) started hidden until the script revealed it.
+
+Fix: the hero heading and lede rise 8px without fading (`ph-lift`); breadcrumbs, buttons and the
+visual keep the fade. `motion.ts` marks reveal blocks below the fold `.is-armed`, and only those
+start hidden; a block on screen at load is painted at once and rises 16px with its usual stagger.
+Reduced motion is unchanged: no hidden state at all.
+
+LCP in ms (headless Chromium, no throttling, median of 3 loads of `astro preview`, observed with a
+`largest-contentful-paint` PerformanceObserver, element in brackets):
+
+| Page | 1440 before | 1440 after | 390 before | 390 after |
+| --- | --- | --- | --- | --- |
+| /pricing | 1052 (P.blurb) | 124 (H1) | 104 (A.btn) | 112 (P.lede) |
+| /docs | 812 (P.lede) | 128 (H1) | 96 (A.btn) | 120 (P.lede) |
+| /compare/heroku | 900 (P.first) | 104 (P.first) | 120 (A.btn) | 120 (P.lede) |
+| /about | 796 (DD) | 108 (P.lede) | 104 (A.btn) | 104 (P.lede) |
+| /license | 788 (H2) | 116 (H1) | 104 (A.btn) | 116 (P.lede) |
+| /security | 796 (H2) | 120 (P.lede) | 116 (A.btn) | 120 (P.lede) |
+| /vibe-coding | 796 (P.lede) | 140 (H1) | 128 (A.btn) | 128 (P.lede) |
+| /contact | 748 (P.lede) | 100 (P.lede) | 84 (A.btn) | 116 (P.lede) |
+| /legal | 720 (P.lede) | 72 (P.lede) | 720 (P.lede) | 68 (P.lede) |
+
+The other top-level pages (/, /ai-agents, /changelog, /cli, /compare, /features, /self-hosted,
+/docs/guide/servers) were already 72-212 ms and stay there. At 390 the "before" LCP was a button:
+the lede, still hidden, never counted, so the number was low but measured the wrong element.

@@ -818,8 +818,14 @@ summary {
 @media screen and (prefers-reduced-motion: no-preference) {
   .js [data-reveal]:not(.is-in),
   .js [data-reveal-stagger]:not(.is-in) > * {
-    opacity: 0;
     transform: translate3d(0, var(--reveal-shift), 0);
+  }
+  /* Only blocks below the fold at load (.is-armed, set by motion.ts) start hidden. A block already
+     on screen only rises, so the first frame paints it: it may be the page's LCP. */
+  .js [data-reveal].is-armed:not(.is-in),
+  .js [data-reveal-stagger].is-armed:not(.is-in) > * {
+    opacity: 0;
+    transition: none;
   }
   /* No blur: blurring whole blocks (a grid's every tile at once) costs frames while scrolling. */
   .js [data-reveal],

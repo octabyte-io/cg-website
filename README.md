@@ -25,6 +25,7 @@ src/
   data/site.ts       addresses, prices and plans, in one place
   data/templates.json  a few catalogue apps for the home page's featured row
   styles/global.css  design tokens and shared classes; the only file with literal colours
+  og/                each page's share image, drawn at build time (og.mjs), and its fonts
 public/              favicon, Open Graph image, template logos, CNAME
 docs/design.md       the design plan: audience, tokens, layout rules, what to avoid
 docs/product-facts.md  what the site may claim, traced to the cloudgate repository

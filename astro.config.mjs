@@ -2,6 +2,11 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
+import ogImages from './src/og/og.mjs';
+import { createLastmod } from './src/data/lastmod.mjs';
+
+// Each page's last change, from git (src/data/lastmod.mjs).
+const lastmod = createLastmod();
 
 // Served from GitHub Pages under its own domain (public/CNAME), so no `base`.
 export default defineConfig({
@@ -17,6 +22,12 @@ export default defineConfig({
     mdx(),
     sitemap({
       filter: (page) => !page.endsWith('/404'),
+      serialize: (item) => {
+        const date = lastmod(item.url);
+        return date ? { ...item, lastmod: date } : item;
+      },
     }),
+    // Each page's share card, drawn from its built HTML into dist/og/ (src/og/og.mjs).
+    ogImages(),
   ],
 });

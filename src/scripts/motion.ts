@@ -22,6 +22,13 @@ function arm(): void {
   }
 
   const targets = document.querySelectorAll<HTMLElement>(reveal);
+  // Only blocks below the fold fade in (.is-armed hides them; global.css). A block on screen at
+  // load is painted from the first frame and only rises, so a fade never holds back the page's
+  // largest paint (LCP). Hiding a block nobody can see yet shows no flash.
+  const fold = innerHeight;
+  for (const el of targets) {
+    if (el.getBoundingClientRect().top >= fold) el.classList.add('is-armed');
+  }
   if (!('IntersectionObserver' in window)) {
     targets.forEach(show);
     return;
