@@ -1,3 +1,70 @@
+## 0.3.2: safer upgrades and an uninstall (15 November 2026)
+
+A release about running Cloudgate on your own server: upgrades that can be undone, an uninstall that keeps your data, and an installer that warns before it starts. Nothing to do on upgrade.
+
+### An upgrade saves the database first and keeps the old version until the new one works
+
+When running the install command again changes the version, it first dumps the `cloudgate` database to `/var/backups/cloudgate`, readable only by root, and keeps the newest three dumps. A dump that fails stops the run with nothing changed; `CLOUDGATE_SKIP_BACKUP=1` skips it. The old version stays at `/opt/cloudgate.previous` until the new one answers its health check. If it never does, the run fails, keeps the old version and prints the steps to go back by hand.
+
+### Uninstall Cloudgate and keep the instance
+
+`deploy/uninstall.sh`, run as root, takes Cloudgate off the server: its two services, its Traefik container and its files. It keeps the instance, naming each path: the database, the settings in `/etc/default/cloudgate-*` and `/etc/cloudgate`, the upgrade dumps and the install logs, so a later install is the same instance. `--purge` removes those as well, only after you type the instance's public host. Docker, PostgreSQL and the firewall are left in place.
+
+### The installer runs on Ubuntu 26.04 too
+
+The one-command install now runs on Ubuntu 26.04 as well as 24.04, on x86-64, with the same Cloudgate version. Any other release, 22.04 and Debian among them, is refused before anything is downloaded.
+
+### The installer warns before it starts, retries its downloads and logs every run
+
+Before downloading anything, the install warns about what is likely to fail later: another program on port 80, 443, 3000 or 4000, less than 15 GB free disk, less than 4 GB memory, or a download host that does not answer. No warning stops the run, and `CLOUDGATE_SKIP_PREFLIGHT=1` skips the checks. Every download is tried again up to three times, and every run is logged to `/var/log/cloudgate`, with the newest ten kept.
+
+### The installer keeps SSH open on any port, and waits for apt
+
+The firewall step now allows the port your SSH server really listens on, not only port 22, so a server with SSH on another port keeps it. On a fresh server where the system is still installing updates, the install waits for apt instead of failing, and a second run started while one is under way stops without changing anything.
+
+### A re-run brings Traefik to its version
+
+When a Cloudgate version moves to a newer Traefik, running the install command again now replaces the running Traefik container with it, so ports 80 and 443 drop for a few seconds. A failed download leaves the old one serving.
+
+### Cloudgate runs its own Node
+
+The install puts Node in `/usr/local/share/cloudgate/node` and runs Cloudgate from there, so a Node of your own in `/usr/local` is left alone. The copy an older install put in `/usr/local` is no longer used; remove it by hand if nothing else needs it.
+
+## CLI 0.1.0: the first stable release (14 November 2026)
+
+The Cloudgate CLI's first stable release is on npm's `latest` tag, so `npm install -g @octabyte-io/cloudgate` installs it, with no `@next`. It holds everything in the 0.0.2 betas below. Anyone on a beta is told about it by the update notice.
+
+### Fixes
+
+- `cloudgate config plan` exits 1 when you decline the plan or mistype a Config name, as a root `cloudgate deploy` does, so a script can tell it from an apply.
+- Deploying one app from its own folder inside a Project folder uploads the whole Project folder, keeping the code shared between apps.
+- A root `cloudgate deploy` no longer starts a doomed rebuild of each folder app's previous upload before uploading the new one.
+- The build's own `.env` file is no longer counted as deleted, and a deploy with nothing changed says `Nothing changed since the last upload`. A setting a plan removes reads `<field> (removed)`.
+
+### Templates may ship a `.js` config file
+
+`cloudgate template check` and `cloudgate template pack` take a config file ending in `.js`, for an app that reads its config as a JavaScript module. Other scripts are still refused.
+
+## 0.3.0 and 0.3.1: install a published version (14 November 2026)
+
+From here on, each Cloudgate version is published as a prebuilt download on GitHub, once it has passed the full test run. 0.3.1 is the first one published; 0.3.0 has no download.
+
+### Self-hosting installs a published version instead of building one
+
+The one-command install no longer clones or builds anything on your server. It downloads the latest published Cloudgate version, or the one `CLOUDGATE_VERSION=v0.3.1` names, checks it against its published checksum and installs it. A version older than the one installed is refused, since database migrations only go forward. The server needs less for it: no compilers, no pnpm and no swap file. A server installed from a git checkout is switched over by the next run on its own, with the database and settings kept; the run says where the old checkout went, for you to delete. `CLOUDGATE_REF` is gone: name a version instead.
+
+### The console reads its API address when it starts
+
+The console takes its API address from `/etc/default/cloudgate-console` when it starts, so changing it, for example to serve the console on its own domain with live logs, is a restart of `cloudgate-console` instead of a rebuild.
+
+### Templates may ship a `.js` config file
+
+A template's config file may now end in `.js`, for an app that reads its config as a JavaScript module, such as Formbricks. An older Cloudgate refuses a catalogue that holds one and keeps its last good copy, so such templates arrive only once this version is out.
+
+### The Hosted instance upgrades to each published version
+
+The Hosted instance now installs the same published version a self-hosted server does, by itself, once that version is out.
+
 ## 0.2.0: the platform (13 November 2026)
 
 The first numbered release of the Cloudgate server, on the Hosted instance and in a self-hosted install. It is the first version that takes an upload of only the changed files. The Cloudgate CLI works with 0.1.0 and newer.

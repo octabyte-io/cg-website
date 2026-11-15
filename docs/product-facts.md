@@ -23,18 +23,19 @@ account. A Deployment is one attempt to build and release a Service.
   use your own: the wizard makes a key and gives the one command to run), then Deploy. Cloudgate
   applies the setup by itself once the Server is ready, then shows "Open <app>" and the address.
   A free sslip.io address works right away (plain http); add your own domain for https.
-- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). The npm `latest` tag is 0.0.1, a
-  placeholder with no commands; the real CLI is the beta on `next` (0.0.2-beta.3), so every
-  install line on the site is `npm install -g @octabyte-io/cloudgate@next`. Source in the repo's
+- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). **0.1.0**, the first stable release, is on
+  npm's `latest` tag, so every install line on the site is `npm install -g @octabyte-io/cloudgate`
+  (no `@next`, no "beta"). It holds everything from the 0.0.2 betas. Source in the repo's
   `cli/`. Commands: `login` (approve a code in the console), `whoami`, `instance list|use`,
   `logout`, `link`/`unlink`, `deploy` (respects .gitignore and .cloudgateignore, skips .env),
   `status`, `logs`, `vars list|set|unset`, `template check|pack|try`, `config pull|plan`. In CI:
-  `CLOUDGATE_KEY=<personal key>`.
-  - **Changed files only** (0.0.2-beta.3): `deploy` sends file checksums (SHA-256) and uploads
+  `CLOUDGATE_KEY=<personal key>`. A declined `config plan` exits 1 (0.1.0). A template config
+  file may end in `.js` (CLI 0.1.0, Instance 0.3.0, ADR-0083).
+  - **Changed files only** (since 0.0.2-beta.3): `deploy` sends file checksums (SHA-256) and uploads
     only files the Instance lacks or holds different; local deletions are deleted there too.
     `--full` sends every file. Needs an Instance at 0.2.0+; an older one gets the full upload.
     The CLI still works with Instances from 0.1.0.
-  - **Project folders** (0.0.2-beta.3, ADR-0080): `link --whole-project` saves the Project config
+  - **Project folders** (since 0.0.2-beta.3, ADR-0080): `link --whole-project` saves the Project config
     as `cloudgate.yaml` (a working copy); `config pull` refreshes it; `config plan` shows and
     applies each Environment's Plan (destroys and major upgrades need the Config name typed;
     `--yes` refuses both); a stale copy is refused. A root `deploy` runs the plan step, then
@@ -149,21 +150,42 @@ or a ready-made Docker image.
 
 - Free to use, self-host and modify under the **Elastic License 2.0** (source-available, not
   open source). You may not offer it to others as a hosted service.
-- Install: `deploy/install.sh` on a bare Ubuntu 24.04 host, x86-64, 2 vCPU, 4 GB memory, 40 GB
+- Install on a bare Ubuntu 24.04 or 26.04 host, x86-64 (amd64), 2 vCPU, 4 GB memory, 40 GB
   disk, root over SSH, ports 22, 80, 443, 3000, 4000. No DNS needed to start (sslip.io). Node
-  under systemd, PostgreSQL on the box, a Swarm of one and Traefik. The first sign-up owns the
-  instance.
+  under systemd (Cloudgate's own Node in `/usr/local/share/cloudgate/node`, leaving any Node in
+  `/usr/local` alone), PostgreSQL on the box, a Swarm of one and Traefik. The first sign-up owns
+  the instance.
 - Without a license: one Organization, one build at a time per Server. An **Enterprise license**
   unlocks SSO, SCIM, custom roles, forward auth, white-labelling, parallel builds and cloud runs,
   and more than one Organization.
 - The source repository is **public**: https://github.com/octabyte-io/cloudgate. Install with one command:
   `curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh`. It is the repo's root `install.sh`
-  (POSIX sh), which this site copies at build time (`src/pages/install.sh.ts`). It checks Ubuntu
-  24.04 x86-64, clones (or fast-forwards) `/opt/cloudgate` over HTTPS, takes
-  `CLOUDGATE_PUBLIC_HOST` from the environment, the last install, or the detected public IPv4, and
-  runs `deploy/install.sh`. Optional: `CLOUDGATE_REF`, `CLOUDGATE_REPOSITORY`. Running it again is
-  the upgrade. Then sign up at `http://<host>:3000/sign-up`. No access request, no deploy key.
-- The Instance (server) reports version **0.2.0**.
+  (POSIX sh), which this site copies at build time (`src/pages/install.sh.ts`). Nothing is cloned
+  or built on the server (0.3.0, ADR-0082): it checks Ubuntu 24.04 or 26.04 on x86-64 (anything
+  else is refused by name), installs a published **Cloudgate version** (the latest, or the one
+  `CLOUDGATE_VERSION=vX.Y.Z` names; never an older one than installed), downloads its prebuilt
+  tarball from the GitHub Release, checks it against the published sha256, and runs that
+  version's `deploy/install.sh`. `CLOUDGATE_PUBLIC_HOST` (the host alone, no scheme or port) comes
+  from the environment, the last install, or the detected public IPv4. `CLOUDGATE_REF` and
+  `CLOUDGATE_REPOSITORY` are gone. Then sign up at `http://<host>:3000/sign-up`. No access
+  request, no deploy key.
+- Before downloading it warns (never stops) about a busy port 80/443/3000/4000, less than 15 GB
+  free, less than 4 GB memory, or an unreachable download host (`CLOUDGATE_SKIP_PREFLIGHT=1`
+  skips). Downloads are retried up to 3 times. Every run is logged to
+  `/var/log/cloudgate/install-<time>.log` (newest 10 kept). One run at a time; apt waits for its
+  lock. The firewall keeps SSH open on whatever port sshd uses.
+- **Upgrade**: run the same command again. A run that changes the version first dumps the
+  database with `pg_dump` to `/var/backups/cloudgate` (newest 3 kept; `CLOUDGATE_SKIP_BACKUP=1`
+  skips), keeps the old version at `/opt/cloudgate.previous` until the new backend answers its
+  health check, and prints the steps to go back if it never does. A re-run also brings Traefik to
+  its version (ports 80 and 443 drop for a few seconds). An old git-checkout install is switched
+  over by itself, the checkout moved aside to `/opt/cloudgate.checkout-<date>`.
+- **Uninstall**: `deploy/uninstall.sh` (0.3.2) removes Cloudgate's services, Traefik container and
+  files, and keeps the instance (database, env files, `/etc/cloudgate`, backups, logs) so a later
+  install is the same instance. `--purge` removes those too, after you type the public host.
+  Docker, Postgres and the firewall are left in place.
+- The Instance (server) reports version **0.3.2**. 0.3.1 was the first version with a published
+  tarball (0.3.0 has none).
 
 ## Source, contributing and security reports
 
