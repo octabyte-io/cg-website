@@ -1,0 +1,192 @@
+---
+title: Deploy a Ruby on Rails app
+seoTitle: Deploy a Ruby on Rails app to your own server
+description: Deploy a Rails app with Puma to your own server, AWS or Google Cloud. Set RAILS_MASTER_KEY, link PostgreSQL, run db:migrate, and add Sidekiq and HTTPS.
+lede: Cloudgate builds a Rails app from its Gemfile, runs Puma in a container and links PostgreSQL and Redis as wired variables. This guide covers credentials, migrations, assets, Sidekiq and your own domain.
+section: guides
+updated: '2026-11-15'
+order: 3
+navTitle: Ruby on Rails
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a Ruby on Rails app with Cloudgate
+  steps:
+    - { name: 'Add an Application', text: 'In the Environment, press Add an Application, name it web, pick the Server and set its source to your repository.' }
+    - { name: 'Set variables', text: 'On the Variables tab add RAILS_ENV=production, RAILS_MASTER_KEY and RAILS_LOG_TO_STDOUT=1.' }
+    - { name: 'Set the run command', text: 'On Advanced, Run command, set Command to bundle and Arguments to exec, rails, server, -b, 0.0.0.0, -p, 3000.' }
+    - { name: 'Add PostgreSQL', text: 'Add a PostgreSQL database and link DATABASE_URL on web to its url Output.' }
+    - { name: 'Deploy and migrate', text: 'Press Deploy, then run bin/rails db:migrate from the Shell tab, or start with db:prepare first.' }
+    - { name: 'Add your domain', text: 'Add your host on the Domains tab with Let''s Encrypt and create the A record it shows.' }
+faq:
+  - { q: 'Does Rails read DATABASE_URL by itself?', a: 'Yes. When <code>DATABASE_URL</code> is set, Rails uses it for the connection and merges it with <code>config/database.yml</code>. Link it to your PostgreSQL database''s <code>url</code> Output and it arrives at every deploy.' }
+  - { q: 'Where do I put the master key?', a: 'On the Service''s <strong>Variables</strong> tab as <code>RAILS_MASTER_KEY</code>, or with <code>cloudgate vars set RAILS_MASTER_KEY</code>. Never commit <code>config/master.key</code>. Values are encrypted at rest and hidden in the console.' }
+  - { q: 'How do I run Sidekiq?', a: 'As a second Application of kind <code>worker</code> from the same repository, with the command <code>bundle exec sidekiq</code> and <code>REDIS_URL</code> linked to a Redis database. A worker has no address and runs all the time.' }
+  - { q: 'Can I use the Dockerfile Rails generates?', a: 'Yes. Rails 7.1 and newer generate a production Dockerfile. Choose Dockerfile on the Build card; it starts the app through its own entrypoint, so set the Container port to the port it exposes.' }
+---
+
+A Rails app on Cloudgate is an [Application](/docs/guide/applications) of kind `web`. The examples
+deploy `web` in `storefront` / `production` on the Server `fra-1`, with a PostgreSQL database
+`pg-main` and a Redis `cache`.
+
+## What you need
+
+- A Rails app with a `Gemfile.lock` that includes `pg` (for PostgreSQL) and `puma`.
+- Its `config/master.key` value, which you set as a variable, not as a file.
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts).
+- A Project and Environment, and your code in git or in a folder for the [CLI](/docs/cli).
+
+## How Cloudgate builds a Rails app
+
+You have three builders that know Ruby:
+
+| Builder | When to pick it |
+|---|---|
+| **Nixpacks** (default) | It detects Ruby from the `Gemfile`, installs the gems and prints the start command it chose in the Deployment log. |
+| **Dockerfile** | Your app has the production Dockerfile Rails 7.1 and newer generate. |
+| **Heroku buildpacks** | The app runs on Heroku today with a `Procfile`. See [Move from Heroku](/docs/guides/move-from-heroku). |
+
+With Nixpacks, the Service's variables reach the build, so `RAILS_ENV=production` and
+`RAILS_MASTER_KEY` are there when assets are precompiled.
+
+Make the start explicit: on **Advanced** > **Runtime** > **Run command**, set **Command** to `bundle`
+and **Arguments** to `exec`, `rails`, `server`, `-b`, `0.0.0.0`, `-p` and `3000`, one per line. Puma
+must listen on `0.0.0.0` and on the **Container port**, 3000 by default.
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `web` and
+choose the Server `fra-1`.
+</Step>
+<Step title="Set its source">
+On the **Source** card press **Change source** and pick the repository and **Branch**.
+</Step>
+<Step title="Set variables">
+On the **Variables** tab press **Add variables**:
+
+```text
+RAILS_ENV=production
+RAILS_MASTER_KEY=paste-the-value-of-config-master-key
+RAILS_LOG_TO_STDOUT=1
+```
+
+Logs written to stdout show on the **Logs** tab and in `cloudgate logs`.
+</Step>
+<Step title="Deploy">
+Set the **Run command** as above, press **Deploy** and follow the Deployment log.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+Make the Application in the console first, then from the app's folder:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cloudgate link
+cloudgate vars set RAILS_MASTER_KEY < config/master.key
+cloudgate deploy
+```
+
+`vars set` reads the value from stdin, so the key never lands in your shell history. Keep `log/`,
+`tmp/`, `storage/` and `node_modules/` in `.gitignore`; `config/master.key` already is.
+
+## Add PostgreSQL and Redis
+
+Press **Add a database**, choose **PostgreSQL**, name it `pg-main` and deploy it on the same Server.
+On `web`'s **Variables** tab, **Wired variables** > **Link a variable**: `DATABASE_URL` to `pg-main`'s
+`url`. For Action Cable, caching or Sidekiq, add a **Redis** named `cache` and link `REDIS_URL` to its
+`url` the same way. Deploy `web`. See [Databases](/docs/guide/databases).
+
+## Run db:migrate
+
+Cloudgate has no release command. Either:
+
+- open `web`'s **Shell** tab after a deploy and run `bin/rails db:migrate`; or
+- start through a shell that migrates first: **Command** `sh`, **Arguments** `-c` and
+  `bin/rails db:prepare && bundle exec rails server -b 0.0.0.0 -p 3000`. `db:prepare` creates the
+  database if needed and runs pending migrations. Every replica runs it at start.
+
+## Run Sidekiq and scheduled jobs
+
+Sidekiq is a second Application of kind `worker` from the same repository. In the
+[Project config](/docs/guide/project-config):
+
+```yaml
+services:
+  sidekiq:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: bundle
+    args: [exec, sidekiq]
+    env:
+      - RAILS_ENV
+      - RAILS_MASTER_KEY
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+```
+
+A rake task on a timetable is a `cron` Service, such as `command: bin/rails reports:nightly` with
+`schedule: "0 3 * * *"`. See [Workers and cron](/docs/guide/workers-and-cron).
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**, enter your host, keep **Serve over HTTPS** on with
+**Let's Encrypt**, and create the `A` record the console shows. Traefik terminates TLS and passes
+`X-Forwarded-Proto`, so `config.force_ssl` and `config.assume_ssl` work behind it. Rails 7.1 and newer
+also check the host: add it to `config.hosts` if you set that list. See
+[Domains and HTTPS](/docs/guide/domains).
+
+## Deploy Rails to AWS or Google Cloud
+
+In a Cloud Environment, describe the app in the Project config and apply the Plan:
+
+```yaml
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    command: bundle
+    args: [exec, rails, server, -b, 0.0.0.0, -p, "3000"]
+    port: 3000
+    env:
+      - RAILS_ENV
+      - RAILS_MASTER_KEY
+      - RAILS_LOG_TO_STDOUT
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+```
+
+The values of `RAILS_ENV` and the others are set in the console; the file holds names only. AWS
+runs the app on ECS Fargate with RDS, Google Cloud on Cloud Run with Cloud SQL. There is no Shell
+tab in a cloud, so migrate at start.
+
+## Common errors
+
+- **`ActiveSupport::MessageEncryptor::InvalidMessage` or missing credentials.** `RAILS_MASTER_KEY` is
+  not set or does not match `config/credentials.yml.enc`.
+- **`Blocked hosts: ...`.** The host is not allowed by `config.hosts`. Add your domain and the
+  `sslip.io` host.
+- **502 Bad Gateway.** Puma listens on `localhost` or another port. Bind `0.0.0.0` and the
+  **Container port**.
+- **`PG::UndefinedTable`.** Migrations have not run on this database yet.
+- **Assets missing in production.** An app generated before Rails 7.1 serves files from `public/`
+  only when `RAILS_SERVE_STATIC_FILES` is set. Set it to `1`, or serve them from a CDN in front of
+  the Domain.
+
+## Related pages
+
+- [Environment variables and secrets](/docs/guide/environment-variables), and wired variables.
+- [Deployments and rollbacks](/docs/guide/deployments).
+- [Backups and restore](/docs/guide/backups) for PostgreSQL dumps.
+- [Move from Heroku to Cloudgate](/docs/guides/move-from-heroku), and every
+  [deploy guide](/docs/guides).
+- [CLI commands](/docs/cli/commands), including `cloudgate vars` and `cloudgate logs`.

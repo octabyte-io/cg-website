@@ -1,0 +1,273 @@
+---
+title: Move from Heroku to Cloudgate
+seoTitle: 'Migrate from Heroku: move apps, Postgres and DNS'
+description: Move a Heroku app to your own server or cloud with Cloudgate. Build with Heroku buildpacks and your Procfile, copy config vars, move Postgres, switch DNS.
+lede: Cloudgate builds with Heroku's own buildpacks, so most apps move without a Dockerfile. This guide maps dynos, add-ons and config vars to Cloudgate, moves your Postgres data, and switches DNS with a short maintenance window.
+section: guides
+updated: '2026-11-15'
+order: 20
+navTitle: Move from Heroku
+badges: ['Server, AWS and Google Cloud', 'Owner or Admin']
+howto:
+  name: Move a Heroku app to Cloudgate
+  steps:
+    - { name: 'Create the Application', text: 'In a Cloudgate Environment, add an Application from the same repository and choose Heroku buildpacks as the Builder.' }
+    - { name: 'Copy config vars', text: 'Print the Heroku config vars with heroku config, and paste them as KEY=value lines on the Variables tab, leaving out DATABASE_URL and REDIS_URL.' }
+    - { name: 'Create the database', text: 'Add a PostgreSQL database in Cloudgate and link DATABASE_URL on the Application to its url Output.' }
+    - { name: 'Move the data', text: 'Turn on Heroku maintenance mode, capture and download a backup, and load it with pg_restore through a published port.' }
+    - { name: 'Test', text: 'Deploy and test the app at its generated sslip.io address.' }
+    - { name: 'Switch DNS', text: 'Add your domain in Cloudgate, point its DNS record at the Server, and wait for the Let''s Encrypt certificate.' }
+faq:
+  - { q: 'Does Cloudgate read my Procfile?', a: 'Yes, with the Heroku buildpacks builder. It builds on Heroku''s Cloud Native Buildpacks builder image (stack 24 unless you set another), and the container runs your <code>web</code> process. Other process types become their own Services.' }
+  - { q: 'What replaces the release phase?', a: 'Cloudgate has no release command. Put the migration in front of the web command in your Procfile, such as <code>web: bin/rails db:migrate && bundle exec puma -C config/puma.rb</code>, or run it from the Application''s Shell tab after each deploy.' }
+  - { q: 'What happens to my Heroku add-ons?', a: 'They do not move by themselves. Heroku Postgres and Key-Value Store become a Cloudgate PostgreSQL and Redis database. Other add-ons are usually a service you can keep using with its own account and an API key set as a variable.' }
+  - { q: 'Can I move the app first and the database later?', a: 'Yes. Set <code>DATABASE_URL</code> on the Cloudgate Application to the Heroku database''s URL as a typed value. Heroku can change those credentials, so treat this as a short step and move the data soon after.' }
+  - { q: 'Is there downtime?', a: 'Only while the final copy of the database runs. Turn on maintenance mode on Heroku, copy the data, then switch DNS. Lowering the record''s TTL a day before keeps the switch fast.' }
+---
+
+Heroku and Cloudgate share the same idea: push code, get a running app with its database and
+logs. The difference is where it runs. On Cloudgate it runs on a [Server](/docs/guide/servers) you
+own, in your own [AWS or Google Cloud account](/docs/guide/cloud-accounts), or on a server you buy
+from Cloudgate on the Hosted instance. The examples move the Heroku app `northwind-shop` to the
+Project `storefront`, Environment `production`, on the Server `fra-1`.
+
+## How Heroku maps to Cloudgate
+
+| On Heroku | On Cloudgate |
+|---|---|
+| An app | A Project with an Environment, and an Application of kind `web` |
+| Pipeline stages (staging, production) | Environments in one Project |
+| Procfile `web` process | The `web` Application |
+| Procfile `worker` and other processes | One Application of kind `worker` each |
+| `release` process | No equivalent: run it before the web command, or from the **Shell** tab |
+| Dyno size | **Size**, from `xsmall` (0.25 CPU, 512 MB) to `2xlarge` (8 CPU, 16 GB) |
+| Dyno count | **Replicas**, on **Advanced** > **Resources** |
+| Config vars | **Variables**, plus wired variables for databases |
+| Heroku Postgres | A PostgreSQL database, linked as `DATABASE_URL` |
+| Heroku Key-Value Store | A Redis database, linked as `REDIS_URL` |
+| Heroku Scheduler | A `cron` Service, or **Schedules** on the Application |
+| Review apps | [Previews](/docs/guide/previews), one per GitHub pull request |
+| `heroku logs --tail` | The **Logs** tab, or `cloudgate logs -f` |
+| `heroku run bash` | The **Shell** tab (on a Server) |
+| `heroku releases:rollback` | The **Rollbacks** tab |
+| Custom domains with automatic certificates | **Domains**, with Let's Encrypt |
+
+## Before you start
+
+- A Cloudgate Server that has finished setup, or a connected Cloud account. See the
+  [quickstart](/docs/quickstart).
+- A Project and Environment, such as `storefront` / `production`.
+- The Heroku CLI logged in to the app, and PostgreSQL's client tools (`pg_restore`) on your
+  machine, at the same major version as the Cloudgate database or newer.
+- Access to your domain's DNS.
+
+## Build with Heroku buildpacks
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `web`, choose
+the Server, and on the **Source** card pick the same repository and branch Heroku deploys.
+</Step>
+<Step title="Choose Heroku buildpacks">
+On the **Build** card, set **Builder** to **Heroku buildpacks**. **Stack version** is Heroku's stack;
+empty uses the default, 24. The build reads your `Procfile`, and the container runs its `web`
+process.
+</Step>
+<Step title="Set PORT">
+Heroku tells each dyno its port in `PORT`; Cloudgate does not set it on a Server. Add `PORT=3000` on
+the **Variables** tab, matching the **Container port** (**Advanced** > **Routing**, 3000 by default).
+</Step>
+</Steps>
+
+Cloudgate builds on Heroku's Cloud Native Buildpacks builder, which carries Heroku's official
+language buildpacks. If your app depends on a third-party buildpack, switch the **Builder** to
+**Nixpacks** or **Dockerfile** instead. The [Applications guide](/docs/guide/applications) lists
+every builder.
+
+## Copy your config vars
+
+Print the Heroku app's config vars:
+
+```bash
+heroku config --shell --app northwind-shop
+```
+
+On the Cloudgate Application's **Variables** tab press **Add variables** and paste them as one
+`KEY=value` per line, without quotes around the values. Leave out what Cloudgate provides:
+
+- `DATABASE_URL` and `REDIS_URL`, which come from wired variables in the next section;
+- anything an add-on you are not moving set, such as its own URL or key.
+
+Press **Save variables**. Names that look secret stay hidden until you press **Show values**, and
+every value is encrypted at rest. From a terminal, `cloudgate vars set NAME` does the same one at a
+time. See [Environment variables](/docs/guide/environment-variables).
+
+## Move workers and scheduled jobs
+
+Each Procfile process other than `web` becomes its own Application of kind `worker`, from the same
+repository and builder. In an image built with Heroku buildpacks each process type is also a
+command, `/cnb/process/<type>`, so the worker's command is `/cnb/process/worker`:
+
+```yaml
+services:
+  worker:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    build:
+      type: heroku_buildpacks
+    command: /cnb/process/worker
+    env:
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+```
+
+A Heroku Scheduler job becomes a `cron` Service with a `command` and a `schedule` in cron syntax,
+read in UTC unless you set `timezone`. See [Workers and cron](/docs/guide/workers-and-cron).
+
+## Replace the release phase
+
+Cloudgate runs no release command. Move the `release` line of your Procfile in front of the web
+command, so it runs before the server starts:
+
+```text
+web: bin/rails db:migrate && bundle exec puma -C config/puma.rb
+worker: bundle exec sidekiq
+```
+
+Every replica runs it when it starts, so keep migrations safe to run twice. Or leave the Procfile
+alone and run the migration from the Application's **Shell** tab after each deploy.
+
+## Create the database and move the data
+
+<Steps>
+<Step title="Create PostgreSQL in Cloudgate">
+In the Environment press **Add a database**, choose **PostgreSQL**, name it `pg-main`, set the
+**Database name** and **User** (for example `storefront`), and deploy it on the same Server. Add a
+**Redis** named `cache` the same way if the app uses Key-Value Store.
+</Step>
+<Step title="Link the variables">
+On `web`'s **Variables** tab, **Wired variables** > **Link a variable**: `DATABASE_URL` to `pg-main`'s
+`url`, and `REDIS_URL` to `cache`'s `url`. The values are filled in at each deploy, never saved.
+</Step>
+<Step title="Open a port for the restore">
+On `pg-main`'s **Credentials** tab, add a port on the **Published ports** card. Saving redeploys the
+database, so connections are refused for a few seconds. The **From outside the Server** part then
+shows the host and port to use.
+</Step>
+<Step title="Take the final backup">
+Stop writes on Heroku, then capture and download a backup:
+
+```bash
+heroku maintenance:on --app northwind-shop
+heroku pg:backups:capture --app northwind-shop
+heroku pg:backups:download --app northwind-shop    # writes latest.dump
+```
+
+</Step>
+<Step title="Restore it into Cloudgate">
+Load the dump with `pg_restore`, using the published host and port and the password from the
+**Credentials** tab:
+
+```bash
+pg_restore --verbose --clean --if-exists --no-acl --no-owner \
+  -h 203.0.113.10 -p 5432 -U storefront -d storefront latest.dump
+```
+
+`--no-owner` and `--no-acl` drop Heroku's role names, which do not exist in your database.
+</Step>
+<Step title="Close the port">
+Remove the published port once the restore is done, so the database is reachable only from
+inside the Environment again.
+</Step>
+</Steps>
+
+<Callout type="warn" title="Restore replaces the database's contents">
+`--clean` drops the objects the dump contains before recreating them. Restore into a new, empty
+database, and check the row counts of your main tables against Heroku before you switch DNS.
+</Callout>
+
+Then set up scheduled dumps of `pg-main` to an S3-compatible Destination: see
+[Backups and restore](/docs/guide/backups).
+
+## Test before you switch
+
+Press **Deploy** on `web` and each worker. Open the generated `sslip.io` Domain on the **Domains**
+tab and try the paths that matter: sign-in, a page that reads the database, a background job. Read
+the **Logs** tab or run `cloudgate logs -f` for errors.
+
+## Switch DNS to Cloudgate
+
+<Steps>
+<Step title="Lower the TTL a day ahead">
+At your DNS provider, lower the TTL of the records you will change, so the switch spreads quickly.
+</Step>
+<Step title="Add the domain in Cloudgate">
+On `web`'s **Domains** tab press **Add a domain**, enter the host (for example
+`shop.northwind.example`), keep **Serve over HTTPS** on with **Let's Encrypt**, and press **Add
+domain**.
+</Step>
+<Step title="Point the record at the Server">
+On Heroku the host is a `CNAME` to a Heroku DNS target. On a Cloudgate Server it is an `A` record to
+the Server's public address, which the console shows. Replace the record, then press **Check DNS**.
+An `A` record also works at the bare domain.
+</Step>
+<Step title="Wait for the certificate">
+Let's Encrypt issues the certificate on the first request after the new record resolves. Until
+every resolver has the new record, some visitors still reach Heroku, which is in maintenance mode.
+</Step>
+</Steps>
+
+Keep the Heroku app, in maintenance mode, until you are sure; then remove the domain from it and
+scale its dynos down. See [Domains and HTTPS](/docs/guide/domains).
+
+## Move to AWS or Google Cloud instead
+
+To run on your own cloud account rather than a Server, make the Environment's Deploy target a
+[Cloud account](/docs/guide/cloud-accounts) and describe the Services in the
+[Project config](/docs/guide/project-config). `heroku_buildpacks` builds there too:
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    build:
+      type: heroku_buildpacks
+    port: 3000
+    env:
+      - RAILS_MASTER_KEY
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+    database: storefront
+    user: storefront
+```
+
+Apply the Plan. The app runs on ECS Fargate or Cloud Run and the database on RDS or Cloud SQL,
+which requires TLS. Cloudgate restores no dump into a cloud database, so load it with `pg_restore`
+from a machine that can reach the RDS or Cloud SQL instance, as the cloud's own documentation
+describes.
+
+## What you cannot bring across
+
+- **Add-ons.** None are created for you. Keep a third-party service by setting its keys as
+  variables, or replace it: Cloudgate has [monitoring](/docs/guide/monitoring),
+  [notifications](/docs/guide/notifications) and [buckets](/docs/guide/buckets) of its own.
+- **The release phase**, as above.
+- **Heroku-only Postgres features** such as followers, forks and dataclips.
+
+## Related pages
+
+- [Cloudgate compared with Heroku](/compare/heroku): where each fits.
+- [Deploy a Rails app](/docs/guides/deploy-rails), [a Django app](/docs/guides/deploy-django) and the
+  other [deploy guides](/docs/guides).
+- [Databases](/docs/guide/databases) and [Backups](/docs/guide/backups).
+- [Move from Render to Cloudgate](/docs/guides/move-from-render).
+- [Pricing](/pricing): Servers and Cloud Environments are counted, not apps or members.

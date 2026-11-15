@@ -1,0 +1,218 @@
+---
+title: Deploy a Django app
+seoTitle: Deploy Django with Gunicorn on your own server
+description: Deploy a Django app with Gunicorn to your own server, AWS or Google Cloud. Read DATABASE_URL, collect static files, run migrations, add Celery and HTTPS.
+lede: Cloudgate builds a Django project from its requirements, runs it under Gunicorn in a container, and links it to PostgreSQL with one wired variable. This guide covers settings, migrations, static files, workers and your domain.
+section: guides
+updated: '2026-11-15'
+order: 2
+navTitle: Django
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a Django app with Cloudgate
+  steps:
+    - { name: 'Prepare settings', text: 'Add gunicorn and dj-database-url to requirements.txt, read DATABASE_URL, SECRET_KEY, DEBUG and ALLOWED_HOSTS from the environment.' }
+    - { name: 'Add an Application', text: 'In the Environment, press Add an Application, name it web, pick the Server and set its source to your repository.' }
+    - { name: 'Set the run command', text: 'On Advanced, Run command, set Command to gunicorn and Arguments to mysite.wsgi and --bind=0.0.0.0:3000.' }
+    - { name: 'Add PostgreSQL', text: 'Add a PostgreSQL database and link DATABASE_URL on web to its url Output.' }
+    - { name: 'Deploy and migrate', text: 'Press Deploy, then run python manage.py migrate from the Shell tab, or make the start run it first.' }
+    - { name: 'Add your domain', text: 'Add your host on the Domains tab with Let''s Encrypt, create the A record, and add the host to ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS.' }
+faq:
+  - { q: 'Does Cloudgate run manage.py migrate for me?', a: 'Not as a separate step: there is no release command. Run it from the Application''s <strong>Shell</strong> tab after a deploy, or start the container with <code>sh -c "python manage.py migrate && gunicorn ..."</code> so every start migrates first.' }
+  - { q: 'How do I serve static files?', a: 'Run <code>collectstatic</code> during the build and serve the files from the app with WhiteNoise, or put them on a Cloudgate bucket with django-storages. Nixpacks runs Python builds; set <code>NIXPACKS_BUILD_CMD</code> to add the collectstatic step if the plan in the log does not show it.' }
+  - { q: 'Can I run Celery?', a: 'Yes. Add a second Application of kind <code>worker</code> from the same repository whose command starts Celery, and a Redis database for the broker linked as <code>REDIS_URL</code>. Celery beat can be another worker, or the timetable can be a <code>cron</code> Service.' }
+  - { q: 'Which Python version is used?', a: 'Nixpacks picks it from your project, for example a <code>.python-version</code> or <code>runtime.txt</code> file, or the <code>NIXPACKS_PYTHON_VERSION</code> variable. The Deployment log shows the version it chose.' }
+---
+
+A Django project on Cloudgate is an [Application](/docs/guide/applications) of kind `web`. The
+examples use a project called `mysite`, deployed as `web` in `storefront` / `production` on the
+Server `fra-1`, with a PostgreSQL database `pg-main`.
+
+## What you need
+
+- A Django project with a `requirements.txt` (or `pyproject.toml`) that includes `gunicorn`, and
+  `dj-database-url` if you want to read `DATABASE_URL` in one line.
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts).
+- A Project and Environment, and your code in git or in a folder for the [CLI](/docs/cli).
+
+## Read your settings from the environment
+
+Cloudgate hands configuration to the container as environment variables. A production
+`settings.py` reads them:
+
+```python
+import os
+import dj_database_url
+
+SECRET_KEY = os.environ["SECRET_KEY"]
+DEBUG = os.environ.get("DEBUG", "") == "1"
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h]
+
+DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+```
+
+Put the generated `sslip.io` host and your own domain in `ALLOWED_HOSTS`, separated by commas.
+
+## How Cloudgate builds a Django app
+
+**Nixpacks**, the default builder, detects Python from `requirements.txt`, `pyproject.toml` or
+`Pipfile` and installs your dependencies. The Deployment log prints the install, build and start
+commands it chose. Make the start explicit so it does not depend on detection:
+
+- On the Application's **Advanced** tab, **Runtime** > **Run command**, set **Command** to
+  `gunicorn` and **Arguments** to `mysite.wsgi` and `--bind=0.0.0.0:3000`, one per line.
+- Or set the variable `NIXPACKS_START_CMD` to `gunicorn mysite.wsgi --bind 0.0.0.0:3000`.
+
+The **Command** replaces the image's entrypoint and is run without a shell, so `&&` or a pipe is
+passed to the program as text. Gunicorn must bind `0.0.0.0`, not `127.0.0.1`, and to the
+**Container port**, 3000 by default (**Advanced** > **Routing**).
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `web` and
+choose the Server `fra-1`.
+</Step>
+<Step title="Set its source">
+On the **Source** card press **Change source** and pick the repository and **Branch**. Set **Build
+path** if the project is in a subfolder.
+</Step>
+<Step title="Set the run command and variables">
+Set the **Run command** as above. On the **Variables** tab press **Add variables**:
+
+```text
+SECRET_KEY=change-me-to-a-long-random-string
+DEBUG=0
+ALLOWED_HOSTS=web.203.0.113.10.sslip.io,shop.northwind.example
+```
+
+Values whose names look secret, such as `SECRET_KEY`, stay hidden until you press **Show values**.
+</Step>
+<Step title="Deploy">
+Press **Deploy** and follow the Deployment log. When it is done, open the `sslip.io` Domain.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+Make the Application in the console first, then upload your folder:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cloudgate link
+cloudgate vars set SECRET_KEY     # asks for the value, hidden
+cloudgate deploy
+```
+
+Add `.venv/`, `__pycache__/` and `staticfiles/` to `.gitignore` so they stay on your machine. `.env`
+files are never uploaded.
+
+## Add a PostgreSQL database
+
+Press **Add a database** in the Environment, choose **PostgreSQL**, name it `pg-main` and deploy it
+on the same Server. Then on `web`'s **Variables** tab, **Wired variables** > **Link a variable**:
+name `DATABASE_URL`, Service `pg-main`, Output `url`, **Save link**. Deploy `web`.
+`dj_database_url.config()` reads it. Add `psycopg` (or `psycopg2-binary`) to your requirements. See
+[Databases](/docs/guide/databases).
+
+## Run migrations and collectstatic
+
+Cloudgate has no release command. Pick one of these:
+
+- **From the Shell tab**: open `web`'s **Shell** tab after a deploy and run
+  `python manage.py migrate`.
+- **On every start**: set **Command** to `sh` and **Arguments** to `-c` and
+  `python manage.py migrate --noinput && gunicorn mysite.wsgi --bind 0.0.0.0:3000`. With more
+  than one replica, each one runs it at start, so keep the replica count at one while a migration
+  is in flight, or run it from the Shell tab instead.
+
+For static files, run `python manage.py collectstatic --noinput` at build time, for example by
+adding it to `NIXPACKS_BUILD_CMD`, and serve them with WhiteNoise.
+
+## Run Celery workers and scheduled jobs
+
+A Celery worker is a second Application of kind `worker`: always running, no address. Add a Redis
+database for the broker. In the [Project config](/docs/guide/project-config):
+
+```yaml
+services:
+  celery:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: celery
+    args: [-A, mysite, worker, --loglevel=info]
+    env:
+      - SECRET_KEY
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+
+  cache:
+    kind: redis
+    version: "8"
+```
+
+For a nightly management command, use a `cron` Service with
+`command: python manage.py clearsessions` and a `schedule`, or the Application's **Schedules** tab,
+which runs a command inside the running `web` container. See
+[Workers, cron services and private web services](/docs/guide/workers-and-cron).
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**, enter `shop.northwind.example`, keep **Serve over
+HTTPS** on with **Let's Encrypt**, and create the `A` record shown. Add the host to `ALLOWED_HOSTS`
+and deploy again. Traefik terminates TLS and talks plain HTTP to Gunicorn, so set
+`SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")` for Django to know the request was
+secure. See [Domains and HTTPS](/docs/guide/domains).
+
+## Deploy Django to AWS or Google Cloud
+
+In a Cloud Environment, write `web` and `pg-main` in the Project config and apply the Plan. The run
+command goes in the entry:
+
+```yaml
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    command: gunicorn
+    args: [mysite.wsgi, --bind=0.0.0.0:3000]
+    port: 3000
+    env:
+      - SECRET_KEY
+      - ALLOWED_HOSTS
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+```
+
+AWS runs it on ECS Fargate with RDS; Google Cloud on Cloud Run with Cloud SQL. A cloud PostgreSQL
+requires TLS, which its `url` already asks for. A Cloud account has no **Shell** tab, so run
+migrations at start there.
+
+## Common errors
+
+- **`DisallowedHost` or a 400 Bad Request.** The host is not in `ALLOWED_HOSTS`. Add it and deploy.
+- **CSRF verification failed on a form.** Add `https://` plus your domain to
+  `CSRF_TRUSTED_ORIGINS`, and set `SECURE_PROXY_SSL_HEADER`.
+- **502 Bad Gateway.** Gunicorn listens on another port or on `127.0.0.1`. Bind
+  `0.0.0.0:3000`, or change the **Container port** to match.
+- **`ModuleNotFoundError: No module named 'gunicorn'`.** It is not in `requirements.txt`.
+- **`relation "..." does not exist`.** Migrations have not run against this database yet.
+
+## Related pages
+
+- [Environment variables and secrets](/docs/guide/environment-variables).
+- [Backups and restore](/docs/guide/backups) for scheduled dumps of `pg-main`.
+- [Buckets](/docs/guide/buckets) for user uploads, linked like a database.
+- [Deploy a FastAPI app](/docs/guides/deploy-fastapi), and every other [deploy guide](/docs/guides).
+- [Move from Heroku](/docs/guides/move-from-heroku) if the app runs there today.

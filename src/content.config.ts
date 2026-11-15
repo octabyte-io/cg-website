@@ -16,7 +16,7 @@ const docs = defineCollection({
     /** One or two sentences under the <h1>: the answer to "what is this page for". */
     lede: z.string(),
     /** Sidebar section; see src/data/docs-nav.ts. */
-    section: z.enum(['start', 'guide', 'cli', 'mcp', 'api', 'self-host', 'help']),
+    section: z.enum(['start', 'guides', 'guide', 'cli', 'mcp', 'api', 'self-host', 'help']),
     /** Sidebar sub-heading inside a section (the user guide uses these). */
     group: z.string().optional(),
     /** Position inside its group, smallest first. */

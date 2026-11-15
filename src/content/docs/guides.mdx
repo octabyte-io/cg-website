@@ -1,0 +1,72 @@
+---
+title: Deploy guides
+seoTitle: How to deploy Next.js, Django, Rails and Laravel
+description: Step-by-step guides to deploy Next.js, Django, Rails, Laravel, FastAPI and Express apps to your own server or cloud, and to move from Heroku or Render.
+lede: One guide per framework, from an empty Server to a running app with a database and your own domain over HTTPS. Pick yours, or start with a move from Heroku or Render.
+section: guides
+updated: '2026-11-15'
+order: 0
+navTitle: Overview
+badges: ['Hosted and self-hosted', 'Servers, AWS and Google Cloud']
+faq:
+  - { q: 'Do I need a Dockerfile to deploy my app?', a: 'No. Cloudgate builds with Nixpacks by default, which detects the language from files such as <code>package.json</code>, <code>requirements.txt</code>, <code>Gemfile</code> or <code>composer.json</code>. You can also choose a Dockerfile, Railpack, Heroku buildpacks or Paketo buildpacks on the Build card.' }
+  - { q: 'Where does my app run?', a: 'On a Server you connect over SSH (any Ubuntu machine, or one bought from Cloudgate on the Hosted instance), or in your own AWS or Google Cloud account through an Environment whose Deploy target is that Cloud account.' }
+  - { q: 'Is my framework missing from this list?', a: 'Most apps follow the same steps: pick a builder, set the start command and the port, link a database, add a domain. <a href="/docs/guide/applications">Applications</a> covers every setting, and Nixpacks detects many more languages than the six here.' }
+  - { q: 'Can I deploy from my terminal instead of the console?', a: 'Yes. Install the CLI with <code>npm install -g @octabyte-io/cloudgate</code>, run <code>cloudgate link</code> in your app''s folder and then <code>cloudgate deploy</code>. Every guide shows both ways.' }
+---
+
+Every guide follows the same path, so once you have deployed one framework the next one is
+familiar: what you need, how Cloudgate builds it, the steps in the console and with the
+[CLI](/docs/cli), a database linked as a wired variable, a domain with HTTPS, the same app in AWS
+or Google Cloud, and the errors people hit first.
+
+## Deploy your framework
+
+<CardGrid cols={3}>
+  <Card href="/docs/guides/deploy-nextjs" title="Next.js">A Next.js app with `next start`, its build-time variables and a PostgreSQL database.</Card>
+  <Card href="/docs/guides/deploy-django" title="Django">Django on Gunicorn, with `DATABASE_URL`, static files, migrations and Celery workers.</Card>
+  <Card href="/docs/guides/deploy-rails" title="Ruby on Rails">Rails on Puma, with its master key, `db:migrate` and a Sidekiq worker.</Card>
+  <Card href="/docs/guides/deploy-laravel" title="Laravel">Laravel with its `APP_KEY`, a database URL, `artisan migrate`, queues and the scheduler.</Card>
+  <Card href="/docs/guides/deploy-fastapi" title="FastAPI">FastAPI on Uvicorn, bound to the right host and port, with PostgreSQL and a worker.</Card>
+  <Card href="/docs/guides/deploy-express" title="Node.js and Express">An Express server on `PORT`, with a database, a health route and a cron job.</Card>
+</CardGrid>
+
+## Move from another platform
+
+<CardGrid cols={2}>
+  <Card href="/docs/guides/move-from-heroku" title="Move from Heroku">Build with Heroku buildpacks and your Procfile, copy config vars, move Postgres with `pg_dump` and `pg_restore`, then switch DNS.</Card>
+  <Card href="/docs/guides/move-from-render" title="Move from Render">Map web services, workers, cron jobs, private services and Postgres to Cloudgate Services, then switch DNS.</Card>
+</CardGrid>
+
+## What every guide assumes
+
+- **A Server or a Cloud account.** Cloudgate deploys onto a [Server](/docs/guide/servers) it reaches
+  over SSH, or into your [AWS or Google Cloud account](/docs/guide/cloud-accounts). The
+  [quickstart](/docs/quickstart) gets you one, including buying a server on the Hosted instance.
+- **A Project with an Environment.** The examples use a Project `storefront` with an Environment
+  `production` on the Server `fra-1`. See [Projects and Environments](/docs/guide/projects-and-environments).
+- **Your code in git or in a folder.** Connect GitHub, GitLab, Bitbucket or Gitea, give any git URL,
+  or upload a folder with the CLI.
+- **The owner or admin role to create Services.** Members can change and deploy the Services they
+  are granted. See [members and roles](/docs/guide/members-and-roles).
+
+## The settings every app needs
+
+| Setting | Where | Why it matters |
+|---|---|---|
+| **Builder** | **Build** card on the Overview | Nixpacks by default; Dockerfile, Railpack, Heroku or Paketo buildpacks when you prefer them. |
+| **Container port** | **Advanced** > **Routing** | The port your app listens on. Defaults to 3000; Traefik sends traffic there. |
+| **Run command** | **Advanced** > **Runtime** | The command that starts the app, when the builder's guess is not the one you want. |
+| **Variables** | **Variables** tab | One `KEY=value` per line, plus wired variables such as `DATABASE_URL` linked to a database's `url`. |
+| **Domains** | **Domains** tab | A free `sslip.io` address at once, or your own host with a Let's Encrypt certificate. |
+
+Cloudgate does not set a `PORT` variable for an app on a Server. If your framework reads `PORT`, set
+it on the **Variables** tab to the same number as the **Container port**.
+
+## Related pages
+
+- [Applications](/docs/guide/applications): every source, builder, kind and size.
+- [Environment variables and wired variables](/docs/guide/environment-variables).
+- [Databases](/docs/guide/databases) and [Domains and HTTPS](/docs/guide/domains).
+- [Troubleshooting](/docs/help/troubleshooting) when a build fails.
+- [Cloudgate compared with Heroku](/compare/heroku) and [with Render](/compare/render).
