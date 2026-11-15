@@ -1,13 +1,15 @@
 ---
 // Every page's <head> metadata: title, description, canonical, Open Graph, Twitter and JSON-LD.
 import { site } from '../data/site';
+import { cardText, ogImagePath, OG_DEFAULT } from '../og/og.mjs';
 
 interface Props {
   title: string;
   description: string;
-  /** Path of the Open Graph image under public/, 1200x630. */
+  /** Path of the Open Graph image, 1200x630. Default: the page's own card, drawn at build time
+   * (src/og/og.mjs); the home page and noindex pages use public/og/default.png. */
   image?: string;
-  /** Alt text for the Open Graph image. */
+  /** Alt text for the Open Graph image. Default: the text on the page's card. */
   imageAlt?: string;
   /** Extra JSON-LD objects for this page (FAQPage, BreadcrumbList, HowTo...). */
   schema?: Record<string, unknown>[];
@@ -17,8 +19,8 @@ interface Props {
 const {
   title,
   description,
-  image = '/og/default.png',
-  imageAlt = 'Cloudgate: deploy apps, databases and AI models to servers and cloud accounts you own',
+  image,
+  imageAlt,
   schema = [],
   noindex = false,
 } = Astro.props;
@@ -32,7 +34,18 @@ const path = Astro.url.pathname
   .replace(/\/+$/, '');
 const canonical = new URL(path || '/', site.url).href;
 const fullTitle = title.includes(site.name) ? title : `${title} | ${site.name}`;
-const imageUrl = new URL(image, site.url).href;
+// Each indexable page shares its own card: its title, under its breadcrumb section.
+const ownCard = !image && !noindex && path !== '';
+const imagePath = image ?? (ownCard ? ogImagePath(path) : OG_DEFAULT);
+const crumbs = schema.find((s) => s['@type'] === 'BreadcrumbList') as
+  | { itemListElement: { name: string }[] }
+  | undefined;
+const imageText =
+  imageAlt ??
+  (ownCard
+    ? cardText(fullTitle, crumbs?.itemListElement.map((i) => i.name)).alt
+    : 'Cloudgate: deploy apps, databases and AI models to servers and cloud accounts you own');
+const imageUrl = new URL(imagePath, site.url).href;
 
 const organization = {
   '@type': 'Organization',
@@ -90,13 +103,13 @@ const graph = {
 <meta property="og:image" content={imageUrl} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:image:alt" content={imageText} />
 <meta property="og:locale" content="en_US" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={imageUrl} />
-<meta name="twitter:image:alt" content={imageAlt} />
+<meta name="twitter:image:alt" content={imageText} />
 
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="text/plain" title="Cloudgate summary for AI assistants" href="/llms.txt" />

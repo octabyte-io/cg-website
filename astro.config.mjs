@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
+import ogImages from './src/og/og.mjs';
 
 // Served from GitHub Pages under its own domain (public/CNAME), so no `base`.
 export default defineConfig({
@@ -18,5 +19,7 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.endsWith('/404'),
     }),
+    // Each page's share card, drawn from its built HTML into dist/og/ (src/og/og.mjs).
+    ogImages(),
   ],
 });

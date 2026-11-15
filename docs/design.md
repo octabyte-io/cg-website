@@ -70,6 +70,11 @@ on buttons and inputs, 14px on panels.
 - 3+ internal links per page with descriptive anchor text.
 - Static HTML, no client JS unless an interaction needs it; images with width, height and alt.
 - `robots.txt`, `sitemap-index.xml`, `llms.txt` and `llms-full.txt` are generated at build.
+- **Share images.** Every indexable page gets its own 1200x630 card at `/og/<path>.png`, drawn
+  after the build from its `<title>` and breadcrumb (`src/og/og.mjs`, wired in `astro.config.mjs`):
+  the default card's look, with the breadcrumb section as a line above the title. A new page needs
+  nothing as long as it renders through `Base` (and passes `breadcrumbSchema` for the section line).
+  The home page and noindex pages keep `public/og/default.png`; `<Base image="/og/x.png">` overrides.
 
 ## Redesign (v2): richer, two themes
 
