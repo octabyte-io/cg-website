@@ -3,11 +3,11 @@
 // yet gets no lastmod rather than the build time. In a shallow clone every file would carry the
 // latest commit's date, so there no page gets one (the deploy workflow checks out full history).
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { latestReleaseDate } from './changelog.mjs';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
+const ownRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 /** Files that make a page beyond its own page file: data and components only it uses. */
 const extras = [
@@ -15,7 +15,8 @@ const extras = [
   { match: /^\/compare\/[^/]+$/, files: ['src/data/compare.ts', 'src/components/ComparePage.astro'] },
 ];
 
-function commitDates() {
+/** @param {string} root */
+function commitDates(root) {
   /** @type {Map<string, number>} newest commit time per file, in seconds */
   const dates = new Map();
   try {
@@ -38,8 +39,11 @@ function commitDates() {
   return dates;
 }
 
-/** The source files of a public path such as '/', '/pricing' or '/docs/guide/servers'. */
-function sourcesOf(path) {
+/**
+ * The source files of a public path such as '/', '/pricing' or '/docs/guide/servers'.
+ * @param {string} root @param {string} path
+ */
+function sourcesOf(root, path) {
   const p = path === '/' ? 'index' : path.replace(/^\//, '');
   const candidates = [`src/pages/${p}.astro`, `src/pages/${p}/index.astro`];
   if (p.startsWith('docs/')) candidates.push(`src/content/docs/${p.slice(5)}.mdx`);
@@ -52,10 +56,14 @@ function sourcesOf(path) {
   return [...own, ...extras.filter((e) => e.match.test(path)).flatMap((e) => e.files)];
 }
 
-/** Returns lastmod(url) for the sitemap's serialize option. */
-export function createLastmod() {
-  const dates = commitDates();
-  const changelog = latestReleaseDate();
+/**
+ * Returns lastmod(url) for the sitemap's serialize option.
+ * @param {string} [projectRoot] the repository root; default: two folders above this file
+ */
+export function createLastmod(projectRoot) {
+  const root = projectRoot ? projectRoot.replace(/\/?$/, '/') : ownRoot;
+  const dates = commitDates(root);
+  const changelog = latestReleaseDate(readFileSync(`${root}src/content/changelog.md`, 'utf8'));
   const newest = (source) => {
     let best = 0;
     for (const [file, date] of dates) {
@@ -68,7 +76,20 @@ export function createLastmod() {
     const path = new URL(url).pathname.replace(/(.)\/$/, '$1');
     if (path === '/changelog') return changelog?.toISOString();
     if (!dates.size) return undefined;
-    const best = Math.max(0, ...sourcesOf(path).map(newest));
+    const best = Math.max(0, ...sourcesOf(root, path).map(newest));
     return best ? new Date(best * 1000).toISOString() : undefined;
   };
+}
+
+let shared;
+/**
+ * The same date for one public path ('/', '/pricing', '/docs/guide/servers'), for a page's JSON-LD
+ * dateModified, so search engines read the date the sitemap gives. Reads git once per build.
+ * @param {string} path @returns {string | undefined} ISO date
+ */
+export function lastmodOf(path) {
+  // Pages render from a bundle under dist/, where this module's own URL no longer points into src/,
+  // so read git and the changelog from the project root the build runs in.
+  shared ??= createLastmod(process.cwd());
+  return shared(new URL(path || '/', 'https://cloudgate.octabyte.io').href);
 }

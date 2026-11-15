@@ -2,6 +2,7 @@
 // Every page's <head> metadata: title, description, canonical, Open Graph, Twitter and JSON-LD.
 import { site } from '../data/site';
 import { cardText, ogImagePath, OG_DEFAULT } from '../og/og.mjs';
+import { lastmodOf } from '../data/lastmod.mjs';
 
 interface Props {
   title: string;
@@ -67,6 +68,8 @@ const website = {
   inLanguage: 'en',
 };
 const breadcrumb = schema.find((s) => s['@type'] === 'BreadcrumbList');
+// The date of the last commit to the page's files, the same date the sitemap's <lastmod> carries.
+const modified = noindex ? undefined : lastmodOf(path || '/');
 const webpage = noindex
   ? null
   : {
@@ -79,6 +82,7 @@ const webpage = noindex
       about: { '@id': `${site.url}/#organization` },
       primaryImageOfPage: { '@type': 'ImageObject', url: imageUrl, width: 1200, height: 630 },
       inLanguage: 'en',
+      ...(modified ? { dateModified: modified } : {}),
       ...(breadcrumb ? { breadcrumb: { '@id': `${canonical}#breadcrumb` } } : {}),
     };
 const pageSchema = schema.map((s) =>
