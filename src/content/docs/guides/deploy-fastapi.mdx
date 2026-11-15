@@ -1,0 +1,174 @@
+---
+title: Deploy a FastAPI app
+seoTitle: Deploy FastAPI with Uvicorn on your own server
+description: Deploy a FastAPI app with Uvicorn to your own server, AWS or Google Cloud. Bind the right host and port, link PostgreSQL, run Alembic migrations and add HTTPS.
+lede: Cloudgate builds a FastAPI app from its requirements and runs Uvicorn in a container. This guide sets the start command and port, links PostgreSQL, runs migrations and puts the API on your own domain.
+section: guides
+updated: '2026-11-15'
+order: 5
+navTitle: FastAPI
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a FastAPI app with Cloudgate
+  steps:
+    - { name: 'Add an Application', text: 'In the Environment, press Add an Application, name it api, pick the Server and set its source to your repository.' }
+    - { name: 'Set the run command', text: 'On Advanced, Run command, set Command to uvicorn and Arguments to main:app, --host, 0.0.0.0, --port, 3000.' }
+    - { name: 'Add PostgreSQL', text: 'Add a PostgreSQL database and link DATABASE_URL on api to its url Output.' }
+    - { name: 'Deploy', text: 'Press Deploy and follow the Deployment log, then open /docs on the sslip.io address.' }
+    - { name: 'Migrate', text: 'Run alembic upgrade head from the Shell tab, or start through sh -c with the migration first.' }
+    - { name: 'Add your domain', text: 'Add your host on the Domains tab with Let''s Encrypt and create the A record it shows.' }
+faq:
+  - { q: 'Should I run Uvicorn or Gunicorn?', a: 'Either. Uvicorn alone is enough in a container: run more copies with Replicas on the Advanced tab. If you prefer Gunicorn managing Uvicorn workers, use <code>gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:3000</code>.' }
+  - { q: 'Why does my API answer 502?', a: 'Uvicorn listens on <code>127.0.0.1:8000</code> unless told otherwise. Pass <code>--host 0.0.0.0 --port 3000</code>, or set the Container port to the port it uses.' }
+  - { q: 'Can other Services call my API privately?', a: 'Yes. Make it a <code>web-private</code> Service with a <code>port</code>. Other Services reach it at its internal address, such as <code>http://app-k3x9qa:3000</code> on a Server, and nothing outside does.' }
+  - { q: 'Does FastAPI need a different DATABASE_URL scheme?', a: 'Async drivers want their own scheme, such as <code>postgresql+asyncpg://</code> for SQLAlchemy with asyncpg. Replace the scheme in your code when you create the engine; the wired variable holds the standard <code>postgresql://</code> URL.' }
+---
+
+A FastAPI app on Cloudgate is an [Application](/docs/guide/applications) of kind `web`, or
+`web-private` when only your other Services call it. The examples deploy `api` in
+`storefront` / `production` on the Server `fra-1`, with the app object `app` in `main.py`.
+
+## What you need
+
+- A FastAPI app with `fastapi` and `uvicorn` in `requirements.txt` or `pyproject.toml`.
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts).
+- A Project and Environment, and your code in git or in a folder for the [CLI](/docs/cli).
+
+## How Cloudgate builds a FastAPI app
+
+**Nixpacks**, the default builder, detects Python and installs your dependencies. A FastAPI app has
+no standard start file, so tell Cloudgate how to start it. On **Advanced** > **Runtime** > **Run
+command**:
+
+- **Command**: `uvicorn`
+- **Arguments**, one per line: `main:app`, `--host`, `0.0.0.0`, `--port`, `3000`
+
+Or set the variable `NIXPACKS_START_CMD` to `uvicorn main:app --host 0.0.0.0 --port 3000`. The
+**Container port** (**Advanced** > **Routing**) is 3000 by default and must match `--port`. Add
+`--proxy-headers` and `--forwarded-allow-ips '*'` so the app sees the `https` scheme Traefik passes on.
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `api` and
+choose the Server `fra-1`.
+</Step>
+<Step title="Set its source">
+On the **Source** card press **Change source** and pick the repository and **Branch**.
+</Step>
+<Step title="Set the run command and variables">
+Set the **Run command** as above. Add the app's own variables on the **Variables** tab, one
+`KEY=value` per line, and press **Save variables**.
+</Step>
+<Step title="Deploy">
+Press **Deploy**. When the Deployment is done, open the `sslip.io` Domain plus `/docs` to see the
+interactive API docs.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+Make the Application in the console first, then from the app's folder:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cloudgate link
+cloudgate deploy
+cloudgate logs -f    # follow what Uvicorn prints
+```
+
+Add `.venv/` and `__pycache__/` to `.gitignore` so they are not uploaded. `.env` files never are.
+
+## Add a PostgreSQL database
+
+Press **Add a database** in the Environment, choose **PostgreSQL**, name it `pg-main` and deploy it on
+the same Server. On `api`'s **Variables** tab, **Wired variables** > **Link a variable**: name
+`DATABASE_URL`, Service `pg-main`, Output `url`. Deploy `api`.
+
+```python
+import os
+from sqlalchemy.ext.asyncio import create_async_engine
+
+url = os.environ["DATABASE_URL"].replace("postgresql://", "postgresql+asyncpg://", 1)
+engine = create_async_engine(url)
+```
+
+A Redis for caching or a task queue is linked the same way, as `REDIS_URL`. See
+[Databases](/docs/guide/databases).
+
+## Run Alembic migrations
+
+Cloudgate has no release command. Run `alembic upgrade head` from the Application's **Shell** tab
+after a deploy, or migrate on every start: **Command** `sh`, **Arguments** `-c` and
+`alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 3000`.
+
+## Run background workers
+
+A Celery, Dramatiq or arq worker is a second Application of kind `worker` from the same repository,
+with no port and no address:
+
+```yaml
+services:
+  tasks:
+    kind: worker
+    source:
+      github: northwind-labs/api
+    command: celery
+    args: [-A, worker.app, worker, --loglevel=info]
+    env:
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+```
+
+See [Workers, cron services and private web services](/docs/guide/workers-and-cron).
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**, enter a host such as `api.northwind.example`, keep
+**Serve over HTTPS** on with **Let's Encrypt**, and create the `A` record shown. To serve the API
+under a path of a shared host instead, set **Path** to `/api` and turn on **Strip the path before
+proxying**, then set FastAPI's `root_path="/api"`. See [Domains and HTTPS](/docs/guide/domains).
+
+## Deploy FastAPI to AWS or Google Cloud
+
+In a Cloud Environment, describe the app in the Project config and apply the Plan:
+
+```yaml
+services:
+  api:
+    kind: web
+    source:
+      github: northwind-labs/api
+    command: uvicorn
+    args: [main:app, --host, 0.0.0.0, --port, "3000", --proxy-headers]
+    port: 3000
+    env:
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+```
+
+AWS runs it on ECS Fargate with RDS; Google Cloud on Cloud Run with Cloud SQL. A cloud PostgreSQL
+requires TLS; asyncpg needs `ssl="require"` or the `ca` Output passed to it.
+
+## Common errors
+
+- **502 Bad Gateway.** Uvicorn is on `127.0.0.1` or port 8000. Pass `--host 0.0.0.0` and the
+  **Container port**.
+- **`Error loading ASGI app. Could not import module "main"`.** The module path is wrong, or the
+  **Build path** points at the wrong folder. Use `package.module:app`.
+- **Redirects to `http://` behind HTTPS.** Add `--proxy-headers --forwarded-allow-ips '*'`.
+- **`ModuleNotFoundError: No module named 'asyncpg'`.** Add the driver to your requirements.
+
+## Related pages
+
+- [Workers, cron and private web services](/docs/guide/workers-and-cron) for an internal API.
+- [Monitoring and logs](/docs/guide/monitoring): an Uptime check on a health route.
+- [Environment variables](/docs/guide/environment-variables).
+- [Deploy a Django app](/docs/guides/deploy-django), and every other [deploy guide](/docs/guides).
+- [AI agents on Cloudgate](/ai-agents) to let an agent deploy and read the logs.

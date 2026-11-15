@@ -1,0 +1,203 @@
+---
+title: Deploy a Laravel app
+seoTitle: Deploy a Laravel app to your own server or cloud
+description: Deploy a Laravel app to your own server, AWS or Google Cloud. Set APP_KEY, link PostgreSQL or MySQL, run migrations, and add queues, the scheduler and HTTPS.
+lede: Cloudgate builds a Laravel app from its composer.json, runs it in a container and links its database as a wired variable. This guide covers the app key, migrations, queues, the scheduler and your domain.
+section: guides
+updated: '2026-11-15'
+order: 4
+navTitle: Laravel
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a Laravel app with Cloudgate
+  steps:
+    - { name: 'Add an Application', text: 'In the Environment, press Add an Application, name it web, pick the Server and set its source to your repository.' }
+    - { name: 'Pick a builder', text: 'Keep Nixpacks, or choose Heroku buildpacks with a Procfile line web: heroku-php-apache2 public/.' }
+    - { name: 'Set variables', text: 'Add APP_KEY, APP_ENV=production, APP_DEBUG=false, APP_URL and PORT set to the Container port.' }
+    - { name: 'Link the database', text: 'Add a PostgreSQL or MySQL database and link DB_URL on web to its url Output, with DB_CONNECTION set to pgsql or mysql.' }
+    - { name: 'Deploy and migrate', text: 'Press Deploy, then run php artisan migrate --force from the Shell tab.' }
+    - { name: 'Add your domain', text: 'Add your host on the Domains tab with Let''s Encrypt and create the A record it shows.' }
+faq:
+  - { q: 'How do I generate APP_KEY?', a: 'Run <code>php artisan key:generate --show</code> on your machine and paste the value, including the <code>base64:</code> prefix, into the Service''s Variables as <code>APP_KEY</code>. Keep it the same across deploys, or encrypted data and sessions stop working.' }
+  - { q: 'How do I run the Laravel scheduler?', a: 'Run <code>php artisan schedule:work</code> as an Application of kind <code>worker</code>: it runs the scheduler every minute in one long-running process. A <code>cron</code> Service running <code>schedule:run</code> every minute also works, but starts a fresh container for each run.' }
+  - { q: 'Can I use MySQL instead of PostgreSQL?', a: 'Yes. Add a MySQL (or MariaDB, on a Server) database, set <code>DB_CONNECTION=mysql</code> and link <code>DB_URL</code> to its <code>url</code> Output. In AWS or Google Cloud, MySQL runs on RDS or Cloud SQL.' }
+  - { q: 'Where do uploaded files go?', a: 'Not on the container''s own disk, which a new Deployment replaces. Use a volume mount on a Server, or a Cloudgate bucket, which is S3-compatible, with Laravel''s <code>s3</code> disk.' }
+---
+
+A Laravel app on Cloudgate is an [Application](/docs/guide/applications) of kind `web`. The examples
+deploy `web` in `storefront` / `production` on the Server `fra-1`, with a PostgreSQL database
+`pg-main`.
+
+## What you need
+
+- A Laravel app with `composer.json` and `composer.lock`.
+- An `APP_KEY` from `php artisan key:generate --show`.
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts).
+- A Project and Environment, and your code in git or in a folder for the [CLI](/docs/cli).
+
+## How Cloudgate builds a Laravel app
+
+Pick the builder on the **Build** card:
+
+| Builder | What to do |
+|---|---|
+| **Nixpacks** (default) | Detects PHP from `composer.json` and installs your packages. The Deployment log prints the plan it chose, including how it starts the app; set the **Container port** to the port in that plan. |
+| **Heroku buildpacks** | Add a `Procfile` with `web: heroku-php-apache2 public/` and set the variable `PORT` to the **Container port**, 3000 by default. |
+| **Dockerfile** | You already have one, for example with PHP-FPM and nginx, or FrankenPHP. Set the **Container port** to what it listens on. |
+
+Whatever the builder, the app must listen on `0.0.0.0` at the **Container port** (**Advanced** >
+**Routing**). Cloudgate does not set `PORT` for you on a Server, so set it when your server reads it.
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `web` and
+choose the Server `fra-1`.
+</Step>
+<Step title="Set its source and builder">
+On the **Source** card press **Change source**, pick the repository and **Branch**, and choose the
+**Builder** on the **Build** card.
+</Step>
+<Step title="Set variables">
+On the **Variables** tab press **Add variables**:
+
+```text
+APP_KEY=base64:paste-the-generated-key
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://shop.northwind.example
+LOG_CHANNEL=stderr
+PORT=3000
+```
+
+`LOG_CHANNEL=stderr` sends Laravel's log to the **Logs** tab and to `cloudgate logs`.
+</Step>
+<Step title="Deploy">
+Press **Deploy** and follow the Deployment log, then open the `sslip.io` Domain.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+Make the Application in the console first, then from the app's folder:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cloudgate link
+cloudgate vars set APP_KEY
+cloudgate deploy
+```
+
+Keep `vendor/`, `node_modules/` and `storage/logs/` in `.gitignore`. Your `.env` file is never
+uploaded: put its production values in with `cloudgate vars set` or on the **Variables** tab.
+
+## Add a database
+
+Press **Add a database**, choose **PostgreSQL** (or **MySQL**), name it `pg-main` and deploy it on the
+same Server. On `web`'s **Variables** tab:
+
+- add `DB_CONNECTION=pgsql` (or `mysql`);
+- under **Wired variables**, press **Link a variable** and link `DB_URL` to `pg-main`'s `url`.
+
+Laravel 11 and newer read `DB_URL`; older versions read `DATABASE_URL`, so link that name instead.
+Deploy `web`. See [Databases](/docs/guide/databases).
+
+## Run artisan migrate
+
+Cloudgate has no release command. Open `web`'s **Shell** tab after a deploy and run
+`php artisan migrate --force`. To migrate on every start instead, set the **Run command**'s
+**Command** to `sh` and **Arguments** to `-c` and `php artisan migrate --force && <your start
+command>`, using the start command from the build plan or your `Procfile`.
+
+Caching config and routes (`php artisan config:cache`, `route:cache`) belongs in the same start
+line, after the variables are in place, not in the build.
+
+## Run queue workers and the scheduler
+
+Each is an Application of kind `worker` from the same repository. In the
+[Project config](/docs/guide/project-config):
+
+```yaml
+services:
+  queue:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: php
+    args: [artisan, queue:work, --tries=3]
+    env:
+      - APP_KEY
+      - DB_CONNECTION
+      - DB_URL: pg-main.url
+
+  scheduler:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: php
+    args: [artisan, schedule:work]
+    env:
+      - APP_KEY
+      - DB_CONNECTION
+      - DB_URL: pg-main.url
+```
+
+For a Redis queue, add a Redis database and link `REDIS_URL` to its `url`. See
+[Workers and cron](/docs/guide/workers-and-cron).
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**, enter your host, keep **Serve over HTTPS** on with
+**Let's Encrypt**, and create the `A` record shown. Traefik terminates TLS in front of the app, so
+trust the proxy in Laravel (`trustProxies(at: '*')` in `bootstrap/app.php` on Laravel 11) for
+generated URLs to use `https`. Set `APP_URL` to the new address. See
+[Domains and HTTPS](/docs/guide/domains).
+
+## Deploy Laravel to AWS or Google Cloud
+
+In a Cloud Environment, describe the app and its database in the Project config and apply the Plan:
+
+```yaml
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    build:
+      type: heroku_buildpacks
+    port: 3000
+    env:
+      - APP_KEY
+      - APP_ENV
+      - APP_URL
+      - DB_CONNECTION
+      - DB_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+```
+
+On AWS it runs on ECS Fargate with RDS; on Google Cloud, Cloud Run with Cloud SQL, where Cloud Run
+sets `PORT` itself. A cloud has no Shell tab, so migrate at start there.
+
+## Common errors
+
+- **`No application encryption key has been specified`.** `APP_KEY` is missing. Set it and deploy.
+- **`The MAC is invalid`.** `APP_KEY` changed since the data was encrypted. Put the old key back.
+- **Links and assets use `http://`.** Trust the proxy and set `APP_URL` to the `https` address.
+- **502 Bad Gateway.** The web server listens on another port. Match `PORT`, the server's port and
+  the **Container port**.
+- **`could not find driver`.** The PHP extension for your database is not in the image. Require it
+  in `composer.json`, such as `"ext-pdo_pgsql": "*"`, so the builder installs it.
+
+## Related pages
+
+- [Environment variables and secrets](/docs/guide/environment-variables).
+- [Buckets](/docs/guide/buckets) for an S3-compatible disk.
+- [Backups and restore](/docs/guide/backups).
+- [Move from Heroku](/docs/guides/move-from-heroku), and every other [deploy guide](/docs/guides).
+- [Everything Cloudgate runs](/features).

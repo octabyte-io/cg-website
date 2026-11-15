@@ -1,0 +1,204 @@
+---
+title: Deploy a Node.js and Express app
+seoTitle: Deploy a Node.js Express app to your own server
+description: Deploy a Node.js Express app to your own server, AWS or Google Cloud. Listen on PORT, link PostgreSQL as DATABASE_URL, add a health route, a cron job and HTTPS.
+lede: Cloudgate builds a Node.js app from its package.json and runs `npm start` in a container. This guide covers the port, variables, a linked database, migrations, background jobs and your own domain.
+section: guides
+updated: '2026-11-15'
+order: 6
+navTitle: Node.js and Express
+badges: ['Server, AWS and Google Cloud', 'Console and CLI']
+howto:
+  name: Deploy a Node.js Express app with Cloudgate
+  steps:
+    - { name: 'Listen on PORT', text: 'Make the app listen on process.env.PORT with 3000 as the fallback, and give package.json a start script.' }
+    - { name: 'Add an Application', text: 'In the Environment, press Add an Application, name it api, pick the Server and set its source to your repository.' }
+    - { name: 'Deploy', text: 'Keep Nixpacks, press Deploy and follow the Deployment log. Nixpacks runs npm start.' }
+    - { name: 'Link a database', text: 'Add a PostgreSQL database and link DATABASE_URL on api to its url Output, then deploy again.' }
+    - { name: 'Add your domain', text: 'Add your host on the Domains tab with Let''s Encrypt and create the A record it shows.' }
+faq:
+  - { q: 'Which Node.js version does Cloudgate use?', a: 'Nixpacks reads the <code>engines.node</code> field in <code>package.json</code>, or an <code>.nvmrc</code> file, and the Deployment log shows the version it chose. Set it so production matches your machine.' }
+  - { q: 'Do I need to build TypeScript first?', a: 'No. Add a <code>build</code> script such as <code>tsc</code> and Nixpacks runs it before <code>npm start</code>. Point <code>start</code> at the compiled file, such as <code>node dist/server.js</code>.' }
+  - { q: 'Can I run more than one copy?', a: 'Yes. Set Replicas on the Advanced tab, in the Resources card. Keep sessions and uploads out of the container, in a database, Redis or a bucket, so any copy can answer any request.' }
+  - { q: 'How do I add a health check?', a: 'Add a route such as <code>/health</code> that answers 200, then add an Uptime check for it on the Health tab. For the container itself, give the image a <code>HEALTHCHECK</code> or set one under Advanced, Docker Swarm.' }
+---
+
+An Express (or Fastify, Koa, Hono or plain Node.js) server on Cloudgate is an
+[Application](/docs/guide/applications) of kind `web`. The examples deploy `api` in
+`storefront` / `production` on the Server `fra-1`, with a PostgreSQL database `pg-main`.
+
+## What you need
+
+- A Node.js app with a `package.json` whose `start` script runs the server.
+- A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts).
+- A Project and Environment, and your code in git or in a folder for the [CLI](/docs/cli).
+
+## Listen on the right port
+
+Traefik sends requests to the **Container port**, 3000 by default (**Advanced** > **Routing**).
+Read the port from `PORT` with 3000 as the fallback:
+
+```js
+const express = require('express');
+const app = express();
+
+app.get('/health', (req, res) => res.send('ok'));
+
+const port = Number(process.env.PORT) || 3000;
+app.listen(port, () => console.log(`listening on ${port}`));
+```
+
+Cloudgate does not set `PORT` on a Server, so the fallback is what runs there. To use another port,
+change the **Container port** and set `PORT` to the same number. Express listens on every
+interface by default, which is what the container needs.
+
+## How Cloudgate builds a Node.js app
+
+**Nixpacks**, the default builder, sees `package.json`, installs with the package manager your
+lockfile names (npm, pnpm, Yarn or Bun), runs the `build` script if there is one, and starts the
+app with `npm start`. The Deployment log prints that plan before it builds. To run something else,
+set **Advanced** > **Runtime** > **Run command** (for example **Command** `node`, **Arguments**
+`dist/server.js`), or the variable `NIXPACKS_START_CMD`.
+
+## Deploy from the console
+
+<Steps>
+<Step title="Add the Application">
+Open `storefront` / `production`, then **Services** > **Add an Application**. Name it `api` and
+choose the Server `fra-1`.
+</Step>
+<Step title="Set its source">
+On the **Source** card press **Change source** and pick the repository and **Branch**. Turn on
+**Deploy automatically** to build on every push.
+</Step>
+<Step title="Set variables">
+On the **Variables** tab press **Add variables**, write `NODE_ENV=production` and the app's own keys,
+one `KEY=value` per line, and press **Save variables**.
+<Screenshot name="application-variables" alt="The Variables tab of the web Application, with its variables masked and the Wired variables card below" caption="Variables are one block of KEY=value lines; wired variables sit in their own card." />
+</Step>
+<Step title="Deploy">
+Press **Deploy** and follow the Deployment log, then open the `sslip.io` Domain plus `/health`.
+</Step>
+</Steps>
+
+## Deploy with the CLI
+
+Make the Application in the console first, then from the app's folder:
+
+```bash
+npm install -g @octabyte-io/cloudgate
+cloudgate login
+cloudgate link
+cloudgate deploy
+cloudgate status     # the Service, its Domains and the latest Deployment
+```
+
+Keep `node_modules/` and `dist/` in `.gitignore`: the CLI has no rule of its own for them and would
+upload them otherwise. In CI, set `CLOUDGATE_KEY` to a Personal key and run
+`npx @octabyte-io/cloudgate deploy --project storefront --env production --service api`. See
+[CI recipes](/docs/cli/ci).
+
+## Add a PostgreSQL database
+
+Press **Add a database**, choose **PostgreSQL**, name it `pg-main` and deploy it on the same Server.
+On `api`'s **Variables** tab, **Wired variables** > **Link a variable**: name `DATABASE_URL`,
+Service `pg-main`, Output `url`. Deploy `api`. `pg`, Prisma, Drizzle and Knex all take the URL as it
+is:
+
+```js
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+```
+
+See [Databases](/docs/guide/databases) for MySQL, MongoDB and Redis.
+
+## Run migrations
+
+Cloudgate has no release command. Add the migration to the start script, such as
+`"start": "prisma migrate deploy && node dist/server.js"`, or run it once from the Application's
+**Shell** tab (`npx knex migrate:latest`, `npx drizzle-kit migrate`). Every replica runs a start
+script, so keep migrations safe to run twice.
+
+## Run a cron job or a worker
+
+A job on a timetable is a `cron` Service: a fresh container per run, then it exits. A queue
+consumer is a `worker`, always on and with no address. In the
+[Project config](/docs/guide/project-config):
+
+```yaml
+services:
+  cleanup:
+    kind: cron
+    source:
+      github: northwind-labs/api
+    command: node dist/cleanup.js
+    schedule: "0 3 * * *"
+    timezone: Europe/Berlin
+    env:
+      - DATABASE_URL: pg-main.url
+
+  jobs:
+    kind: worker
+    source:
+      github: northwind-labs/api
+    command: node
+    args: [dist/worker.js]
+    env:
+      - DATABASE_URL: pg-main.url
+```
+
+A failed cron run is not retried; the next run is the next fire time. See
+[Workers and cron](/docs/guide/workers-and-cron).
+
+## Add your domain with HTTPS
+
+On the **Domains** tab press **Add a domain**, enter your host, keep **Serve over HTTPS** on with
+**Let's Encrypt**, and create the `A` record the console shows. Traefik terminates TLS; set
+`app.set('trust proxy', true)` so `req.secure` and `req.protocol` reflect `https`. See
+[Domains and HTTPS](/docs/guide/domains).
+
+## Deploy Express to AWS or Google Cloud
+
+In a Cloud Environment, describe the app in the Project config and apply the Plan:
+
+```yaml
+services:
+  api:
+    kind: web
+    size: small
+    source:
+      github: northwind-labs/api
+    build:
+      type: nixpacks
+    port: 3000
+    env:
+      - NODE_ENV
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+```
+
+AWS runs it on ECS Fargate with RDS; Google Cloud on Cloud Run with Cloud SQL, where Cloud Run sets
+`PORT` itself, which `process.env.PORT` picks up. A cloud PostgreSQL requires TLS; pass the `ca`
+Output to `pg` if you check the certificate.
+
+## Common errors
+
+- **502 Bad Gateway.** The app listens on another port. Match the code, `PORT` and the
+  **Container port**.
+- **`Error: Cannot find module 'dist/server.js'`.** The `build` script did not run or wrote elsewhere.
+  Check the plan at the top of the Deployment log.
+- **`npm ERR! Missing script: "start"`.** Add a `start` script, or set the **Run command**.
+- **The upload is huge.** `node_modules` is not in `.gitignore` or `.cloudgateignore`. Above 100 MB
+  the CLI names the five biggest folders.
+
+## Related pages
+
+- [Applications](/docs/guide/applications): sizes, replicas, mounts and the run command.
+- [Monitoring and logs](/docs/guide/monitoring): Uptime checks, error rate and runtime logs.
+- [Deploy a Next.js app](/docs/guides/deploy-nextjs), and every other [deploy guide](/docs/guides).
+- [The CLI](/cli): deploy a folder from your terminal.
+- [Move from Render](/docs/guides/move-from-render) if the app runs there today.
