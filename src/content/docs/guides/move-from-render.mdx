@@ -1,0 +1,180 @@
+---
+title: Move from Render to Cloudgate
+seoTitle: 'Migrate from Render: services, Postgres and DNS'
+description: Move from Render to your own server or cloud with Cloudgate. Map web services, workers and cron jobs, copy env vars, move Postgres and switch DNS.
+lede: Render and Cloudgate have the same building blocks, so a move is mostly a mapping. This guide turns each Render service into a Cloudgate Service, copies its variables, moves Postgres with pg_dump and pg_restore, and switches DNS.
+section: guides
+updated: '2026-11-15'
+order: 21
+navTitle: Move from Render
+badges: ['Server, AWS and Google Cloud', 'Owner or Admin']
+howto:
+  name: Move a Render service to Cloudgate
+  steps:
+    - { name: 'Create the Services', text: 'In a Cloudgate Environment, add one Application per Render service from the same repository, with the matching kind.' }
+    - { name: 'Set build and start', text: 'Keep Nixpacks, or set the start command from Render on the Run command card, and set PORT to the Container port.' }
+    - { name: 'Copy variables', text: 'Copy each service''s environment variables to its Variables tab as KEY=value lines.' }
+    - { name: 'Move Postgres', text: 'Add a PostgreSQL database, dump the Render database with pg_dump and load it with pg_restore through a published port.' }
+    - { name: 'Switch DNS', text: 'Add your domain in Cloudgate, point the record at the Server, and wait for the Let''s Encrypt certificate.' }
+faq:
+  - { q: 'Is there a Cloudgate version of render.yaml?', a: 'Yes, the Project config: one <code>cloudgate.yaml</code> describing a Project''s Services, kept in your repository or in Cloudgate. A change shows as a Plan of creates, changes and destroys that you review and Apply. The fields differ, so write it by hand from your Blueprint.' }
+  - { q: 'What replaces an environment group?', a: 'Project and Environment variables. Put the shared value on the Project or Environment once, and name it in each Service that needs it, such as <code>${{environment.API_BASE}}</code>. Services do not inherit them.' }
+  - { q: 'Does Cloudgate set PORT like Render does?', a: 'Not on a Server. Render tells your service its port in <code>PORT</code>; on a Cloudgate Server, set <code>PORT</code> yourself to the Container port, 3000 by default. On Google Cloud, Cloud Run sets it.' }
+  - { q: 'Where do Render disks go?', a: 'On a Server, a volume mount on the Application (Advanced, Add a mount), backed up with Volume backups. For files many Services share, a bucket is better.' }
+---
+
+The examples move a Render web service, its background worker, a cron job and a Render Postgres
+database to the Project `storefront`, Environment `production`, on the Server `fra-1`.
+
+## How Render maps to Cloudgate
+
+| On Render | On Cloudgate |
+|---|---|
+| Web service | An Application of kind `web` |
+| Private service | An Application of kind `web-private`, reached at its internal address |
+| Background worker | An Application of kind `worker` |
+| Cron job | An Application of kind `cron`, a fresh container per run |
+| Static site | An Application of kind `static`, or the **Static files** builder |
+| Render Postgres | A PostgreSQL database, linked as `DATABASE_URL` |
+| Render Key Value | A Redis database, linked as `REDIS_URL` |
+| Blueprint (`render.yaml`) | The [Project config](/docs/guide/project-config) (`cloudgate.yaml`) and its Plans |
+| Environment groups | Project and Environment variables, named by reference |
+| Build and start commands | The builder's plan, `NIXPACKS_BUILD_CMD`, or the **Run command** card |
+| Health check path | An Uptime check on the **Health** tab |
+| Preview environments | [Previews](/docs/guide/previews) |
+| Persistent disk | A volume mount on a Server, or a [bucket](/docs/guide/buckets) |
+
+## Create the Services
+
+For each Render service, add an Application in the Environment from the same repository and
+branch (**Services** > **Add an Application**, then **Change source** on the **Source** card). The
+console makes a `web`; for a worker, private service or cron job, write its kind in the Project
+config, which is also the quickest way to recreate a whole Blueprint:
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    port: 3000
+    env:
+      - SESSION_SECRET
+      - DATABASE_URL: pg-main.url
+
+  jobs:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: node
+    args: [dist/worker.js]
+    env:
+      - DATABASE_URL: pg-main.url
+
+  nightly:
+    kind: cron
+    source:
+      github: northwind-labs/storefront
+    command: node dist/report.js
+    schedule: "0 3 * * *"
+    env:
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+    database: storefront
+    user: storefront
+```
+
+## Carry over build and start commands
+
+Nixpacks, the default builder, works out the install, build and start commands for most languages
+and prints its plan in the Deployment log. When Render had commands of its own:
+
+- a **start command** goes on **Advanced** > **Runtime** > **Run command** (**Command** plus one
+  **Argument** per line), or in `command` and `args` in the config. It runs without a shell; for
+  `&&`, use **Command** `sh` with the arguments `-c` and the whole line;
+- a **build command** goes in the variable `NIXPACKS_BUILD_CMD`, since the Service's variables
+  reach the Nixpacks build;
+- a **pre-deploy command**, such as a migration, has no separate step on Cloudgate: put it in front
+  of the start command, or run it from the **Shell** tab.
+
+Render gives each service its port in `PORT`. On a Cloudgate Server nothing sets it, so add
+`PORT=3000` on the **Variables** tab to match the **Container port**.
+
+## Copy environment variables
+
+Copy each Render service's variables to its Cloudgate Service's **Variables** tab, one `KEY=value`
+per line, and press **Save variables**. Leave out `DATABASE_URL` and `REDIS_URL`; link them as wired
+variables instead. Values shared through an environment group go once on the Environment
+(**Variables** on the Environment) and are named in each Service, for example
+`API_BASE=${{environment.API_BASE}}`. See [Environment variables](/docs/guide/environment-variables).
+
+## Move the Postgres data
+
+<Steps>
+<Step title="Create PostgreSQL in Cloudgate">
+Press **Add a database**, choose **PostgreSQL**, name it `pg-main`, set its **Database name** and
+**User**, deploy it on the same Server, and link `DATABASE_URL` on each Service to its `url`.
+</Step>
+<Step title="Open a port for the restore">
+On `pg-main`'s **Credentials** tab add a port on the **Published ports** card. Saving redeploys the
+database for a few seconds.
+</Step>
+<Step title="Dump the Render database">
+Stop the services that write (suspend them, or scale them to zero), then dump with the database's
+external connection URL from Render:
+
+```bash
+pg_dump -Fc --no-acl --no-owner "$RENDER_EXTERNAL_DATABASE_URL" > render.dump
+```
+
+</Step>
+<Step title="Restore it into Cloudgate">
+
+```bash
+pg_restore --verbose --clean --if-exists --no-acl --no-owner \
+  -h 203.0.113.10 -p 5432 -U storefront -d storefront render.dump
+```
+
+Use `pg_dump` and `pg_restore` at the same major version as the newer of the two servers.
+</Step>
+<Step title="Close the port">
+Remove the published port once the restore is done.
+</Step>
+</Steps>
+
+Then schedule dumps of `pg-main` in [Backups and restore](/docs/guide/backups).
+
+## Switch DNS
+
+Test each Service at its generated `sslip.io` address first. Then, with the TTL lowered a day
+ahead:
+
+1. On `web`'s **Domains** tab press **Add a domain**, enter the host, and keep **Serve over HTTPS**
+   on with **Let's Encrypt**.
+2. At your DNS provider, replace the record that points at Render with the `A` record the console
+   shows, the Server's public address, and press **Check DNS**.
+3. The certificate is issued on the first request after the record resolves. Keep the Render
+   services until traffic has moved, then remove them.
+
+See [Domains and HTTPS](/docs/guide/domains).
+
+## Run it in your own cloud instead
+
+Make the Environment's Deploy target an [AWS or Google Cloud account](/docs/guide/cloud-accounts)
+and apply the same Project config. Web services, workers and cron jobs run on ECS Fargate or Cloud
+Run, PostgreSQL on RDS or Cloud SQL, and Redis on ElastiCache or Memorystore.
+
+## Related pages
+
+- [Cloudgate compared with Render](/compare/render): where each fits.
+- [Move from Heroku to Cloudgate](/docs/guides/move-from-heroku), with more on the database cutover.
+- [Workers, cron services and private web services](/docs/guide/workers-and-cron).
+- [Deploy a Node.js and Express app](/docs/guides/deploy-express) and the other
+  [deploy guides](/docs/guides).
+- [Pricing](/pricing): a flat monthly price counting Servers and Cloud Environments.

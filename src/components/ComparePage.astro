@@ -19,6 +19,12 @@ const trail = [
 const keys = Object.keys(rowLabels) as RowKey[];
 const others = competitors.filter((x) => x.id !== c.id);
 const tableId = `table-${c.id}`;
+// A step-by-step move, for the platforms that have a guide in the docs.
+const moveGuide: Partial<Record<Competitor['id'], string>> = {
+  heroku: '/docs/guides/move-from-heroku',
+  render: '/docs/guides/move-from-render',
+};
+const guide = moveGuide[c.id];
 ---
 
 <Base title={c.title} description={c.description} schema={[faqSchema(c.faq), breadcrumbSchema(trail)]}>
@@ -57,6 +63,12 @@ const tableId = `table-${c.id}`;
           {c.name} is described here in general terms that rarely change. Check its own site for
           current plans and limits before you decide.
         </p>
+        {guide && (
+          <p class="move">
+            Moving from {c.name}? Read <a href={guide}>how to move from {c.name} to Cloudgate</a>,
+            step by step.
+          </p>
+        )}
       </div>
     </div>
   </section>
@@ -221,6 +233,11 @@ const tableId = `table-${c.id}`;
 
   .answer .first {
     font-size: var(--text-lg);
+    color: var(--ink);
+  }
+  /* The way across, for a reader who has already decided. */
+  .answer .move {
+    font-weight: 600;
     color: var(--ink);
   }
 

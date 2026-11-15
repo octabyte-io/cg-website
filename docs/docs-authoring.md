@@ -10,6 +10,7 @@ The documentation lives at `/docs`. Read `docs/design.md` (tokens, voice, motion
 | `src/content/docs/**/*.mdx` | One file per page. Its path is its URL: `guide/servers.mdx` is `/docs/guide/servers`. |
 | `src/content.config.ts` | The frontmatter schema (below). |
 | `src/data/docs-nav.ts` | Sidebar sections and the user guide's group order. |
+| `src/content/docs/guides/` | Deploy guides: one page per framework or platform to move from, with `guides.mdx` as the hub. Same facts as the user guide; no setting or label the console does not have. |
 | `src/pages/docs/index.astro` | The docs home. |
 | `src/pages/docs/[...slug].astro` | Renders every `.mdx` page in `src/layouts/Docs.astro`. |
 | `src/pages/docs/api/[group].astro` + `src/data/api-reference.ts` | The API reference, generated from `src/data/openapi.json`. |
