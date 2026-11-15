@@ -1,0 +1,202 @@
+---
+title: Move from Vercel to Cloudgate
+seoTitle: 'Migrate from Vercel: Next.js, Postgres and DNS'
+description: Move a Vercel app to your own server or cloud with Cloudgate. Run next start in a container, pull env vars, move Neon Postgres, replace crons and switch DNS.
+lede: On Vercel a Next.js app is split into functions on Vercel's network. On Cloudgate the same app runs as one long-running container with next start, on a Server you own or in your AWS or Google Cloud account. This guide moves the app, its variables, its Postgres data and its cron jobs, then switches DNS.
+section: guides
+updated: '2026-11-15'
+order: 22
+navTitle: Move from Vercel
+badges: ['Server, AWS and Google Cloud', 'Owner or Admin']
+howto:
+  name: Move a Vercel app to Cloudgate
+  steps:
+    - { name: 'Add the Application', text: 'In a Cloudgate Environment, add an Application named web from the same repository and branch, and keep the Nixpacks builder, which runs next build and next start.' }
+    - { name: 'Copy variables', text: 'Run vercel env pull with --environment=production, then paste the values your app needs on the Variables tab, leaving out VERCEL_ variables and DATABASE_URL.' }
+    - { name: 'Move Postgres', text: 'Add a PostgreSQL database, dump the Neon database with pg_dump over its unpooled URL, and load it with pg_restore through a published port.' }
+    - { name: 'Replace cron jobs', text: 'For each entry under crons in vercel.json, add a schedule on the Schedules tab that calls the same path inside the container.' }
+    - { name: 'Switch DNS', text: 'Add your domain on the Domains tab, point its record at the Server, and wait for the Let''s Encrypt certificate.' }
+faq:
+  - { q: 'Do API routes, server actions and middleware still work?', a: 'Yes. <code>next start</code> runs the whole app as one Node process, so API routes, server actions, middleware and on-demand rendering run in that process instead of as separate functions. See <a href="/docs/guides/deploy-nextjs">Deploy a Next.js app</a>.' }
+  - { q: 'Is there a Cloudgate version of vercel.json?', a: 'The Project config, <code>cloudgate.yaml</code>, describes a Project''s Services, and a change shows as a Plan you review and Apply. It does not read <code>vercel.json</code>: redirects, headers and crons are set on Cloudgate''s own cards or written by hand.' }
+  - { q: 'Do I still get a preview for every pull request?', a: 'Yes, for an Application built from GitHub, once you turn on <a href="/docs/guide/previews">Previews</a>. Each pull request gets its own copy on its own address, removed when the pull request closes.' }
+  - { q: 'Does Cloudgate put my app on a CDN in many regions?', a: 'No. On a Server, the app runs on that Server and is served from there. You can put a CDN such as Cloudflare in front of the domain; the DNS check recognises Cloudflare, Bunny CDN, Fastly and Arvancloud. A static site on AWS runs on S3 and CloudFront.' }
+---
+
+The examples move a Next.js app, its Neon Postgres database (which Vercel moved Vercel Postgres
+databases to in December 2024) and one cron job to the Project `storefront`, Environment
+`production`, on the Server `fra-1`.
+
+## How Vercel maps to Cloudgate
+
+| On Vercel | On Cloudgate |
+|---|---|
+| A Next.js Project | An Application of kind `web` running `next start` |
+| Functions, server actions, middleware | The same code, inside that one long-running container |
+| A static site or `output: 'export'` | An Application of kind `static`, or the **Static files** builder |
+| Environment variables (Production, Preview) | The Application's **Variables** tab, per Environment |
+| Postgres from the Marketplace (such as Neon) | A PostgreSQL database, linked as `DATABASE_URL` |
+| Redis from the Marketplace | A Redis database, linked as `REDIS_URL` |
+| Vercel Blob | A [bucket](/docs/guide/buckets), S3-compatible |
+| `crons` in `vercel.json` | A schedule on the **Schedules** tab, or a `cron` Service |
+| Preview deployments | [Previews](/docs/guide/previews) for each pull request (GitHub sources) |
+| Domains | The **Domains** tab, with Let's Encrypt certificates |
+| Web Analytics | An analytics app from the [template catalogue](https://cgt.octabyte.io/), such as [Plausible](https://cgt.octabyte.io/templates/plausible/) or [Umami](https://cgt.octabyte.io/templates/umami/) |
+
+## Before you start
+
+- **One process, one place.** Vercel runs each route as a function, close to the visitor. Cloudgate
+  runs the app as a container on the Server or cloud you choose. A route that ran for one request
+  now shares the process with every other route, so code that kept state in module scope keeps it
+  for the life of the container.
+- **Vercel-only APIs.** Packages that talk to a Vercel service, such as `@vercel/blob` or
+  `@vercel/kv`, need a replacement (below). Code that reads `VERCEL_URL` or `VERCEL_ENV` needs a
+  variable of your own.
+- **A Server or Cloud account.** A [Server](/docs/guide/servers) that has finished its setup, or a
+  [Cloud account](/docs/guide/cloud-accounts) for AWS or Google Cloud.
+
+## Add the Application
+
+Follow [Deploy a Next.js app](/docs/guides/deploy-nextjs): add an Application named `web`, set its
+source to the repository and branch Vercel builds, and keep the **Nixpacks** builder. It runs
+`next build`, then `next start`, which listens on port 3000, Cloudgate's default **Container port**.
+Deploy it once and open its generated `sslip.io` address before you move any data.
+
+The same Service in the [Project config](/docs/guide/project-config):
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    port: 3000
+    env:
+      - NEXT_PUBLIC_SITE_URL
+      - AUTH_SECRET
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+    database: storefront
+    user: storefront
+```
+
+## Copy environment variables
+
+Pull the Production values with the Vercel CLI into a file that is not committed:
+
+```bash
+vercel env pull --environment=production .env.vercel
+```
+
+Vercel cannot hand back the value of a variable stored as a Secret, so the CLI writes a placeholder
+for it. Copy those values from where you keep them.
+
+Then, on `web`'s **Variables** tab, paste the lines your app needs as `KEY=value` and press
+**Save variables**. Leave out:
+
+- variables that start with `VERCEL_`, which Vercel sets for itself;
+- `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `POSTGRES_*` and `PG*`, which the database link replaces.
+
+`NEXT_PUBLIC_` values are inlined by `next build`, so deploy again after you change one. Delete
+`.env.vercel` when you are done. See [Environment variables](/docs/guide/environment-variables).
+
+## Move the Postgres data
+
+<Steps>
+<Step title="Create PostgreSQL in Cloudgate">
+Press **Add a database**, choose **PostgreSQL**, name it `pg-main`, set its **Database name** and
+**User**, deploy it on the same Server, and link `DATABASE_URL` on `web` to its `url`.
+</Step>
+<Step title="Open a port for the restore">
+On `pg-main`'s **Credentials** tab add a port on the **Published ports** card. Saving redeploys the
+database for a few seconds.
+</Step>
+<Step title="Dump the Neon database">
+Stop writes to the old database first. Then dump over the direct connection, the
+`DATABASE_URL_UNPOOLED` value the Neon integration put in your Vercel variables, not the pooled one:
+
+```bash
+pg_dump -Fc --no-acl --no-owner "$DATABASE_URL_UNPOOLED" > vercel.dump
+```
+
+</Step>
+<Step title="Restore it into Cloudgate">
+
+```bash
+pg_restore --verbose --clean --if-exists --no-acl --no-owner \
+  -h 203.0.113.10 -p 5432 -U storefront -d storefront vercel.dump
+```
+
+Use `pg_dump` and `pg_restore` at the same major version as the newer of the two servers.
+</Step>
+<Step title="Close the port">
+Remove the published port once the restore is done, and schedule dumps of `pg-main` in
+[Backups and restore](/docs/guide/backups).
+</Step>
+</Steps>
+
+## Replace Redis and Blob storage
+
+- **Redis.** Add a Redis database and link `REDIS_URL` on `web` to its `url`. Clients that speak
+  the Redis protocol, such as `ioredis` or `redis`, take that URL as they are. A client that calls
+  Redis over HTTP, such as `@upstash/redis`, needs swapping for one of those.
+- **Blob.** Add a [bucket](/docs/guide/buckets) in the Project config and link its name, endpoint
+  and keys to `web`. A bucket speaks the S3 API, so code that used `@vercel/blob` moves to an S3
+  client such as `@aws-sdk/client-s3`. Copy existing files across before you switch.
+
+## Replace cron jobs
+
+Vercel calls each path under `crons` in `vercel.json` with a request to your production deployment:
+
+```json
+{ "crons": [{ "path": "/api/hello", "schedule": "0 5 * * *" }] }
+```
+
+The route keeps working on Cloudgate; something just has to call it. On `web`'s **Schedules** tab
+press **Add a schedule** and set:
+
+- **Name** `hello`;
+- **Command** `node -e "fetch('http://localhost:3000/api/hello').then(r => process.exit(r.ok ? 0 : 1))"`;
+- **Cron expression** `0 5 * * *` and **Time zone** UTC, the zone Vercel reads its schedules in.
+
+The command runs inside the running `web` container, so the route is on `localhost`. If the route
+checks a secret header, send it in the `fetch`. For a long job, move the work into a script and run
+it as a `cron` Service, a fresh container per run: see
+[Workers, cron services and private web services](/docs/guide/workers-and-cron).
+
+## Switch DNS
+
+Test the app at its `sslip.io` address first. Then, with the TTL lowered a day ahead:
+
+1. On `web`'s **Domains** tab press **Add a domain**, enter the host, and keep **Serve over HTTPS**
+   on with **Let's Encrypt**.
+2. At your DNS provider, replace the record that points at Vercel with the `A` record the console
+   shows, the Server's public address, and press **Check DNS**. If the domain uses Vercel's
+   nameservers, change the record there, or move the domain's nameservers to your DNS provider
+   first.
+3. The certificate is issued on the first request after the record resolves. Keep the Vercel
+   Project until traffic has moved, then remove the domain from it.
+
+See [Domains and HTTPS](/docs/guide/domains).
+
+## Run it in your own cloud instead
+
+Make the Environment's Deploy target an [AWS or Google Cloud account](/docs/guide/cloud-accounts)
+and apply the same Project config. The app runs on ECS Fargate or Cloud Run, PostgreSQL on RDS or
+Cloud SQL, and Redis on ElastiCache or Memorystore. A static export runs on S3 and CloudFront on
+AWS.
+
+## Related pages
+
+- [Cloudgate compared with Vercel](/compare/vercel): where each fits.
+- [Deploy a Next.js app](/docs/guides/deploy-nextjs), step by step.
+- [Move from Railway to Cloudgate](/docs/guides/move-from-railway) and
+  [Move from Heroku to Cloudgate](/docs/guides/move-from-heroku).
+- [Previews](/docs/guide/previews) for each pull request.
+- [Pricing](/pricing): a flat monthly price counting Servers and Cloud Environments.

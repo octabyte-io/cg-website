@@ -1,0 +1,210 @@
+---
+title: Move from Railway to Cloudgate
+seoTitle: 'Migrate from Railway: services, Postgres and DNS'
+description: Move from Railway to your own server or cloud with Cloudgate. Keep Railpack builds, map services and cron jobs, copy variables, move Postgres and switch DNS.
+lede: Railway and Cloudgate both build with Railpack and both deploy services, cron jobs and databases from a repository, so a move is mostly a mapping. This guide turns each Railway service into a Cloudgate Service, copies its variables, moves Postgres with pg_dump and pg_restore, and switches DNS.
+section: guides
+updated: '2026-11-15'
+order: 23
+navTitle: Move from Railway
+badges: ['Server, AWS and Google Cloud', 'Owner or Admin']
+howto:
+  name: Move a Railway project to Cloudgate
+  steps:
+    - { name: 'Create the Services', text: 'In a Cloudgate Environment, add one Application per Railway service from the same repository, with the matching kind, and choose the Railpack builder.' }
+    - { name: 'Set start command and port', text: 'Carry the start command over to the Run command card, and set PORT to the Container port, since a Cloudgate Server does not set it.' }
+    - { name: 'Copy variables', text: 'Export each service''s variables with railway variable list --kv and paste them on its Variables tab, replacing Railway references with wired variables.' }
+    - { name: 'Move Postgres', text: 'Add a PostgreSQL database, enable public access on the Railway database, dump it over DATABASE_PUBLIC_URL and load it with pg_restore.' }
+    - { name: 'Switch DNS', text: 'Add your domain in Cloudgate, point the record at the Server, and wait for the Let''s Encrypt certificate.' }
+faq:
+  - { q: 'Will my app build the same way?', a: 'Very likely. Railpack is Railway''s default builder, and Cloudgate offers it too: choose Railpack on the Build card, and pin its version if Railway pinned one. Nixpacks, Cloudgate''s default, also builds most apps.' }
+  - { q: 'Does Cloudgate set PORT like Railway does?', a: 'Not on a Server. Railway injects <code>PORT</code> into your app; on a Cloudgate Server, set <code>PORT</code> yourself to the Container port, 3000 by default. On Google Cloud, Cloud Run sets it.' }
+  - { q: 'What replaces shared variables and reference variables?', a: 'Environment variables named by reference, such as <code>${{environment.API_BASE}}</code>, replace <code>${{shared.API_BASE}}</code>. A reference to another service''s value, such as a database''s <code>DATABASE_URL</code>, becomes a wired variable linked to that Service''s Output.' }
+  - { q: 'Where do Railway templates go?', a: 'Ready-made apps such as n8n, Ghost or Uptime Kuma are in Cloudgate''s own template catalogue at <a href="https://cgt.octabyte.io/">cgt.octabyte.io</a>. Deploy one there and move its data with the app''s own export or a database dump.' }
+---
+
+The examples move a Railway web service, a worker, a cron service and a Railway Postgres database
+to the Project `storefront`, Environment `production`, on the Server `fra-1`.
+
+## How Railway maps to Cloudgate
+
+| On Railway | On Cloudgate |
+|---|---|
+| A service with a public domain | An Application of kind `web` |
+| A service reached only over private networking | An Application of kind `web-private`, at its internal address |
+| A service with no domain that runs all the time | An Application of kind `worker` |
+| A service with a cron schedule | An Application of kind `cron`, a fresh container per run |
+| Railpack builds | The **Railpack** builder, or Nixpacks |
+| Postgres, MySQL, Redis, MongoDB | The same databases, linked as wired variables |
+| Volumes | A volume mount on a Server, or a [bucket](/docs/guide/buckets) |
+| Shared variables | Environment variables, named by reference |
+| Reference variables to another service | [Wired variables](/docs/guide/environment-variables) linked to its Outputs |
+| `railway.json` or `railway.toml` | The [Project config](/docs/guide/project-config) (`cloudgate.yaml`) and its Plans |
+| Healthcheck path | An Uptime check on the **Health** tab |
+| PR environments | [Previews](/docs/guide/previews) for each pull request (GitHub sources) |
+| Templates | The Cloudgate [template catalogue](https://cgt.octabyte.io/) |
+
+## Create the Services
+
+For each Railway service, add an Application in the Environment from the same repository and
+branch (**Services** > **Add an Application**, then **Change source** on the **Source** card). On the
+**Build** card choose **Railpack**, the builder Railway uses by default, so the build plan stays
+the same. The console makes a `web`; for a worker, private service or cron service, write its kind
+in the Project config, which is also the quickest way to recreate a whole Railway project:
+
+```yaml
+# yaml-language-server: $schema=https://cloudgate.octabyte.app/backend/schema/project-config/v1.json
+version: 1
+
+services:
+  web:
+    kind: web
+    source:
+      github: northwind-labs/storefront
+    port: 3000
+    env:
+      - PORT
+      - SESSION_SECRET
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+
+  jobs:
+    kind: worker
+    source:
+      github: northwind-labs/storefront
+    command: node
+    args: [dist/worker.js]
+    env:
+      - DATABASE_URL: pg-main.url
+      - REDIS_URL: cache.url
+
+  nightly:
+    kind: cron
+    source:
+      github: northwind-labs/storefront
+    command: node dist/report.js
+    schedule: "0 3 * * *"
+    env:
+      - DATABASE_URL: pg-main.url
+
+  pg-main:
+    kind: postgres
+    version: "18"
+    database: storefront
+    user: storefront
+
+  cache:
+    kind: redis
+    version: "8"
+```
+
+Then pick **Railpack** on each Application's **Build** card, or keep Nixpacks if it builds the app.
+
+## Carry over commands, port and settings
+
+- **Start command.** Railway's `startCommand` goes on **Advanced** > **Runtime** > **Run command**
+  (**Command** plus one **Argument** per line), or in `command` and `args` in the config. It runs
+  without a shell; for `&&`, use **Command** `sh` with the arguments `-c` and the whole line.
+- **Pre-deploy command.** Railway's `preDeployCommand`, such as a migration, has no separate step
+  on Cloudgate: put it in front of the start command, or run it from the **Shell** tab.
+- **Port.** Railway injects `PORT` and your app listens on it. On a Cloudgate Server nothing sets
+  it, so add `PORT=3000` on the **Variables** tab to match the **Container port**.
+- **Cron schedule.** Railway's `cronSchedule` becomes `schedule` on a `cron` Service, with the same
+  five fields. Both read UTC by default; on Cloudgate you can set `timezone` too. As on Railway,
+  each run starts the command and must exit when the job is done.
+- **Healthcheck path.** Add an Uptime check on the **Health** tab. See
+  [Monitoring and logs](/docs/guide/monitoring).
+- **Railway's own variables.** Code that reads `RAILWAY_PUBLIC_DOMAIN`,
+  `RAILWAY_PRIVATE_DOMAIN` or other `RAILWAY_` variables needs a variable of your own, such as
+  `PUBLIC_URL`.
+
+## Copy variables
+
+Export each service's variables as `KEY=value` lines with the Railway CLI:
+
+```bash
+railway variable list --kv -s web -e production
+```
+
+Paste the lines on the Cloudgate Service's **Variables** tab and press **Save variables**. Leave out
+`PORT` from Railway (set it as above), the `RAILWAY_` variables, and every variable that references
+another service, such as `DATABASE_URL=${{Postgres.DATABASE_URL}}`. Link those instead as wired
+variables to the Cloudgate database's Output. Shared variables go once on the Environment
+(**Variables** on the Environment) and are named in each Service, for example
+`API_BASE=${{environment.API_BASE}}`. See [Environment variables](/docs/guide/environment-variables).
+
+Private networking addresses such as `api.railway.internal` become the **Internal address** of a
+`web-private` Service, such as `http://app-k3x9qa:4000` on a Server. See
+[Workers, cron services and private web services](/docs/guide/workers-and-cron).
+
+## Move the Postgres data
+
+<Steps>
+<Step title="Create PostgreSQL in Cloudgate">
+Press **Add a database**, choose **PostgreSQL**, name it `pg-main`, set its **Database name** and
+**User**, deploy it on the same Server, and link `DATABASE_URL` on each Service to its `url`.
+</Step>
+<Step title="Open a port for the restore">
+On `pg-main`'s **Credentials** tab add a port on the **Published ports** card. Saving redeploys the
+database for a few seconds.
+</Step>
+<Step title="Reach the Railway database from outside">
+Railway databases are private by default. On the Railway Postgres service, open **Settings** >
+**Networking** and add **Public Access**. Railway then fills in `DATABASE_PUBLIC_URL`. Railway bills
+the dump's traffic as network egress.
+</Step>
+<Step title="Dump the Railway database">
+Stop the services that write, then dump over the public URL:
+
+```bash
+pg_dump -Fc --no-acl --no-owner "$DATABASE_PUBLIC_URL" > railway.dump
+```
+
+</Step>
+<Step title="Restore it into Cloudgate">
+
+```bash
+pg_restore --verbose --clean --if-exists --no-acl --no-owner \
+  -h 203.0.113.10 -p 5432 -U storefront -d storefront railway.dump
+```
+
+Use `pg_dump` and `pg_restore` at the same major version as the newer of the two servers.
+</Step>
+<Step title="Close both doors">
+Remove the published port in Cloudgate and the public access on Railway once the restore is done.
+</Step>
+</Steps>
+
+Then schedule dumps of `pg-main` in [Backups and restore](/docs/guide/backups). Files on a Railway
+volume move to a volume mount (**Advanced** > **Add a mount**) or a bucket; copy them with the tool
+your app already uses.
+
+## Switch DNS
+
+Test each Service at its generated `sslip.io` address first. Then, with the TTL lowered a day
+ahead:
+
+1. On `web`'s **Domains** tab press **Add a domain**, enter the host, and keep **Serve over HTTPS**
+   on with **Let's Encrypt**.
+2. At your DNS provider, replace the record that points at Railway with the `A` record the console
+   shows, the Server's public address, and press **Check DNS**.
+3. The certificate is issued on the first request after the record resolves. Keep the Railway
+   services until traffic has moved, then remove them.
+
+See [Domains and HTTPS](/docs/guide/domains).
+
+## Run it in your own cloud instead
+
+Make the Environment's Deploy target an [AWS or Google Cloud account](/docs/guide/cloud-accounts)
+and apply the same Project config. Web services, workers and cron services run on ECS Fargate or
+Cloud Run, PostgreSQL on RDS or Cloud SQL, and Redis on ElastiCache or Memorystore.
+
+## Related pages
+
+- [Cloudgate compared with Railway](/compare/railway): where each fits.
+- [Move from Render to Cloudgate](/docs/guides/move-from-render) and
+  [Move from Vercel to Cloudgate](/docs/guides/move-from-vercel).
+- [Workers, cron services and private web services](/docs/guide/workers-and-cron).
+- [Deploy a Node.js and Express app](/docs/guides/deploy-express) and the other
+  [deploy guides](/docs/guides).
+- [Pricing](/pricing): a flat monthly price counting Servers and Cloud Environments.
