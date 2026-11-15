@@ -105,7 +105,10 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
 "Motion" section at the end of `global.css`. Pages only add attributes:
 
 - **`data-reveal`**: fades up 16px over 600ms, once, when it scrolls into view (no blur: blurring
-  whole blocks costs frames while scrolling). `data-reveal-delay="120"` waits that many ms.
+  whole blocks costs frames while scrolling). A block already on screen when the page loads only
+  rises, without the fade: it is painted in the first frame, so a fade never delays the page's
+  largest paint (LCP). `motion.ts` marks the blocks below the fold `.is-armed`; only those start
+  hidden. `data-reveal-delay="120"` waits that many ms.
   **`data-reveal-stagger`** on a grid reveals each child one step (~70ms) after the first, then on
   gaps that shrink by 0.88x, so a group reads as a wave and a long list never waits (pass a number
   to change the step; it is held to 30-80ms). A `data-play` child starts playing once its own
@@ -125,7 +128,8 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
   read gets `aria-current="location"`, styled like hover.
 - **Inner-page heroes**: `PageHero` plays one short load wave (heading, lede 80ms, buttons 140ms,
   visual 200ms; 8-16px over 500-560ms, settled by ~0.75s, since it replays on every page) and
-  fades its beam in. Its `visual` slot never adds its own `data-reveal`.
+  fades its beam in. The heading and lede rise without fading: they are the likely LCP text, and an
+  opacity animation holds the LCP back until it ends. Its `visual` slot never adds its own `data-reveal`.
 - **Featured card**: `.plan--featured` and `.tier--ent` draw their border as a conic gradient from
   `--sweep`, which turns once (2.4s) when the card arrives in view (`data-play`), then rests: a
   registered property animates on the main thread and a border circling beside prices distracts
@@ -134,7 +138,8 @@ system, in `src/scripts/motion.ts` (loaded once from `Base.astro`, under 1 KB gz
 Rules: easing and durations are tokens (`--ease-out`, `--ease-in-out`, `--dur-*`). Entrances use
 `--ease-out`; UI feedback stays at 150-300ms (buttons give `scale(0.97)` on `:active` over
 `--dur-press`); only the home hero's one load sequence runs longer (settled by ~1.45s). Nothing
-starts from `scale(0)`; nothing enters on opacity alone except ambient light (beams, the canvas)
+starts from `scale(0)`; text that may be the LCP (hero heading and lede, blocks on screen at load)
+never starts at opacity 0; nothing enters on opacity alone except ambient light (beams, the canvas)
 and terminal lines. Every press target (`.btn`, the theme switch, the menu button) gives the same
 `scale(0.97)`. Never put `mix-blend-mode`, a CSS mask or an animated `box-shadow` on a
 layer that repaints every frame. The audit behind these values is `docs/motion-audit.md`. Animate

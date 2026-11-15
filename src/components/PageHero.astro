@@ -70,10 +70,16 @@ const hasVisual = Astro.slots.has('visual');
   /* Load: one short wave, settled by ~0.75s. It replays on every inner page a visitor opens, so it
      stays small: the heading leads, the lede and buttons follow on shrinking gaps, the visual lands
      last and the beam (ambient light, so it only fades) comes up under all of it.
+     The heading and lede are the page's largest text, the paint the browser times as the page
+     loaded (LCP): they only rise, never fade, so they are on screen in the first frame.
      Only with JS and no reduced-motion preference; otherwise the hero is simply there. */
   @media screen and (prefers-reduced-motion: no-preference) {
     :global(.js) .copy > * {
       animation: ph-rise 500ms var(--ease-out) both;
+    }
+    :global(.js) .copy > h1,
+    :global(.js) .copy > .lede {
+      animation-name: ph-lift;
     }
     :global(.js) .copy > :global(.lede) {
       animation-delay: 80ms;
@@ -91,6 +97,11 @@ const hasVisual = Astro.slots.has('visual');
   @keyframes ph-rise {
     from {
       opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+  @keyframes ph-lift {
+    from {
       transform: translate3d(0, 8px, 0);
     }
   }
