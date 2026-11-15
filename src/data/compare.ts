@@ -276,7 +276,7 @@ export const competitors: Competitor[] = [
       },
       {
         q: 'Can I self-host Cloudgate like Coolify?',
-        a: `Yes. One script installs it on an Ubuntu 24.04 server. The free version holds one Organization and runs one build at a time per Server; an Enterprise license adds the rest. Read how to ${selfLink}.`,
+        a: `Yes. One command installs it on an Ubuntu 24.04 or 26.04 server. The free version holds one Organization and runs one build at a time per Server; an Enterprise license adds the rest. Read how to ${selfLink}.`,
       },
       {
         q: 'How do AI agents connect to Cloudgate?',

@@ -4,7 +4,7 @@ seoTitle: Deploy from GitHub Actions or GitLab CI
 description: Run cloudgate deploy in GitHub Actions or GitLab CI with a Personal key in CLOUDGATE_KEY. Copyable jobs, the flags CI needs, and what each exit code means.
 lede: A CI job deploys with the same CLI you run locally. It needs a Personal key in CLOUDGATE_KEY and the target named by flags or variables, because nothing can answer a question there.
 section: cli
-updated: '2026-11-13'
+updated: '2026-11-15'
 order: 3
 navTitle: CI recipes
 badges: ['Hosted and self-hosted', 'Applications only', 'Beta']
@@ -14,7 +14,7 @@ howto:
     - { name: 'Create a Personal key', text: 'In the console, open Settings, then Account, and press Create a key under Personal keys. Copy the key; it is shown once.' }
     - { name: 'Store it as a CI secret', text: 'Save the key as a masked secret named CLOUDGATE_KEY in your CI provider.' }
     - { name: 'Name the target', text: 'Set CLOUDGATE_PROJECT, CLOUDGATE_ENV and CLOUDGATE_SERVICE, or pass --project, --env and --service.' }
-    - { name: 'Run the deploy', text: 'Run npx @octabyte-io/cloudgate@next deploy on Node 22 or newer. The job fails unless the Deployment ends done.' }
+    - { name: 'Run the deploy', text: 'Run npx @octabyte-io/cloudgate deploy on Node 22 or newer. The job fails unless the Deployment ends done.' }
 faq:
   - { q: 'Which key does a CI job use?', a: 'A <a href="/docs/guide/personal-keys">Personal key</a> in <code>CLOUDGATE_KEY</code>. It acts as the person who made it, with their role. An agent key does not work with the CLI: it is accepted only at the MCP endpoint and the Gateway.' }
   - { q: 'Does the job wait for the build?', a: 'Yes, by default. <code>cloudgate deploy</code> prints the Deployment log and exits 0 only when the Deployment is done, so a failed build fails the job. Add <code>--detach</code> to exit as soon as it is queued.' }
@@ -70,7 +70,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci && npm run build
-      - run: npx --yes @octabyte-io/cloudgate@next deploy
+      - run: npx --yes @octabyte-io/cloudgate deploy
         env:
           CLOUDGATE_KEY: ${{ secrets.CLOUDGATE_KEY }}
           CLOUDGATE_PROJECT: storefront
@@ -98,7 +98,7 @@ deploy:
     CLOUDGATE_ENV: production
     CLOUDGATE_SERVICE: web
   script:
-    - npx --yes @octabyte-io/cloudgate@next deploy
+    - npx --yes @octabyte-io/cloudgate deploy
 ```
 
 ## Deploy each branch to its own Environment

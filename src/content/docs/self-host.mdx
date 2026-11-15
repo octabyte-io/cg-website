@@ -4,13 +4,13 @@ seoTitle: 'Self-host Cloudgate from GitHub: licence and what is free'
 description: 'Self-host Cloudgate from its public GitHub repository: what the Elastic License 2.0 allows, what the free version includes, and what Enterprise unlocks.'
 lede: A self-hosted instance is the same Cloudgate as the Hosted one, installed on an Ubuntu server you run. It is free under the Elastic License 2.0, and an Enterprise license unlocks the features larger teams ask for.
 section: self-host
-updated: '2026-11-13'
+updated: '2026-11-15'
 order: 1
 navTitle: Overview
 badges: ['Self-hosted only']
 faq:
   - { q: Is Cloudgate open source?, a: 'No. It is source-available under the Elastic License 2.0. You may use, self-host and change it, but you may not offer it to others as a hosted service or get around its license checks.' }
-  - { q: Where do I get the source?, a: 'From the public repository at <a href="https://github.com/octabyte-io/cloudgate">github.com/octabyte-io/cloudgate</a>. Clone it to <code>/opt/cloudgate</code> on your server and run the install script; no account or access request is needed.' }
+  - { q: Where do I get the source?, a: 'From the public repository at <a href="https://github.com/octabyte-io/cloudgate">github.com/octabyte-io/cloudgate</a>. Each tested version is also published there as a prebuilt download, which the one-command install fetches for you; no account or access request is needed.' }
   - { q: What happens when an Enterprise license ends?, a: 'Your settings are kept and nothing is deleted, but the licensed features stop. Owners and admins see a warning bar from 14 days before the end date.' }
   - { q: Can I buy a server from Cloudgate on a self-hosted instance?, a: 'No. Bought Servers and Hosted plans exist only on the Hosted instance. A self-hosted instance deploys to the machine it runs on, to Servers you add over SSH, and to your AWS and Google Cloud accounts.' }
 ---
@@ -23,7 +23,7 @@ glance, see [Self-host Cloudgate](/self-hosted).
 
 ## What you can do
 
-- Install Cloudgate on one Ubuntu 24.04 server with one script. See [Install Cloudgate](/docs/self-host/install).
+- Install Cloudgate on one Ubuntu 24.04 or 26.04 server with one command, and upgrade it by running that command again. See [Install Cloudgate](/docs/self-host/install).
 - Deploy onto that same server, and onto as many other Servers and Cloud accounts as you like. None are counted.
 - Run the platform's own settings: the console's domain, Traefik, disk clean-up and build limits. See [Instance settings](/docs/self-host/instance-settings).
 - Activate an Enterprise license for SSO, SCIM, custom roles, forward auth, branding, parallel builds and more Organizations.
