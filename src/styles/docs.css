@@ -173,6 +173,14 @@
   gap: var(--space-2);
   margin-top: var(--space-4);
 }
+.doc-updated {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.doc-badges + .doc-updated {
+  margin-top: var(--space-3);
+}
 @media screen and (prefers-reduced-motion: no-preference) {
   .js .doc-head > * {
     animation: doc-rise 460ms var(--ease-out) both;
@@ -182,6 +190,9 @@
   }
   .js .doc-head > :nth-child(4) {
     animation-delay: 100ms;
+  }
+  .js .doc-head > :nth-child(5) {
+    animation-delay: 130ms;
   }
 }
 @keyframes doc-rise {
