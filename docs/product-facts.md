@@ -160,7 +160,7 @@ or a ready-made Docker image.
   and more than one Organization.
 - The source repository is **public**: https://github.com/octabyte-io/cloudgate. Install with one command:
   `curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh`. It is the repo's root `install.sh`
-  (POSIX sh), which this site copies at build time (`src/pages/install.sh.ts`). Nothing is cloned
+  (POSIX sh), which this site copies at build time at a pinned cloudgate commit (`src/pages/install.sh.ts`). Nothing is cloned
   or built on the server (0.3.0, ADR-0082): it checks Ubuntu 24.04 or 26.04 on x86-64 (anything
   else is refused by name), installs a published **Cloudgate version** (the latest, or the one
   `CLOUDGATE_VERSION=vX.Y.Z` names; never an older one than installed), downloads its prebuilt

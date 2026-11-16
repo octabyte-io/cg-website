@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
   # /install.sh is the cloudgate repository's install.sh, copied at build time
   # (src/pages/install.sh.ts). The cloudgate repository's notify-website workflow sends this
-  # event when install.sh changes on main, so the copy here is rebuilt within minutes.
+  # event when install.sh changes on main, with that commit as client_payload.sha, so the copy
+  # here is rebuilt within minutes from exactly that commit.
   repository_dispatch:
     types: [install-script-updated]
 
@@ -36,6 +37,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+        env:
+          # The cloudgate commit to copy install.sh from: the one the dispatch names, or empty on a
+          # push or by-hand run, where the build asks the GitHub API for cloudgate's main.
+          INSTALL_SCRIPT_SHA: ${{ github.event.client_payload.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
