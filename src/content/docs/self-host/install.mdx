@@ -4,7 +4,7 @@ seoTitle: Install self-hosted Cloudgate on Ubuntu 24.04 or 26.04
 description: Install a published Cloudgate version on an Ubuntu 24.04 or 26.04 server with one command, claim it with the first sign-up, upgrade, back up and uninstall.
 lede: One command turns a fresh Ubuntu 24.04 or 26.04 server into a Cloudgate instance. This page covers what the server needs, what the script sets up, the first sign-up, and what to do after.
 section: self-host
-updated: '2026-11-15'
+updated: '2026-11-17'
 order: 2
 navTitle: Install
 badges: ['Self-hosted only', 'Root on the server']
@@ -12,13 +12,15 @@ howto:
   name: Install Cloudgate on an Ubuntu server
   steps:
     - { name: Prepare the server, text: 'Start a fresh Ubuntu 24.04 or 26.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, reachable as root over SSH, with ports 22, 80, 443, 3000 and 4000 open inbound.' }
-    - { name: Run the install command, text: 'Run curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh and wait for the verification block. It downloads the latest published Cloudgate version, checks its checksum and finds the server public IP address.' }
+    - { name: Run the install command, text: 'Run curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh and wait for the verification block. It downloads the latest published Cloudgate version, verifies its signature and checksum, and finds the server public IP address.' }
     - { name: Claim the instance, text: 'Open http://<server>:3000/sign-up and create the first account. It owns the instance, and sign-up closes behind it.' }
     - { name: Add the server as a Server, text: 'In the console, add the same machine under Servers with a key Cloudgate generates, so its shell, Docker view and setup are on screen.' }
 faq:
   - { q: Do I need a domain name to install Cloudgate?, a: 'No. The installer works with the server''s IP address, and the apps you deploy can use free sslip.io addresses that point at it. Add a domain later.' }
   - { q: Can I run the installer again?, a: 'Yes. Every step checks before it acts, so a second run changes nothing that is already in place. Running the same command again is also how you upgrade, and only one run goes at a time.' }
-  - { q: Can I install it on ARM or another Linux?, a: 'No. The installer runs on Ubuntu 24.04 or 26.04 on x86-64. It stops, before downloading anything, on any other release (22.04 and Debian included) or processor architecture.' }
+  - { q: Can I install it on ARM or another Linux?, a: 'No. A self-hosted install runs on Ubuntu 24.04 or 26.04 on x86-64. It stops, before downloading anything, on any other release (22.04 and Debian included) or processor. Cloudgate versions are also built for arm64, but only for the Hosted instance.' }
+  - { q: How does the installer know the download is genuine?, a: 'Each published version carries a signature on its checksum file. The installer holds Cloudgate''s public key, checks the signature with <code>ssh-keygen -Y verify</code>, then checks the download against that checksum. If either check fails, it stops with nothing changed.' }
+  - { q: Why are my apps down after the server rebooted?, a: 'On versions before 0.3.9, Docker could try Traefik and Compose containers before the Swarm network was up, and never try again. From 0.3.9 the <code>cloudgate-boot-recover</code> unit starts them after every start of Docker. Upgrade, and on each Server press <strong>Run setup again</strong> once.' }
   - { q: How do I remove Cloudgate from the server?, a: 'Run <code>bash /opt/cloudgate/deploy/uninstall.sh</code> as root. It removes Cloudgate''s services, its Traefik container and its files, and keeps the database, settings and backups, so a later install is the same instance. Add <code>--purge</code> to remove those too.' }
   - { q: I lost my password and no mail is set up. What now?, a: 'There is no console path to reset it. Whoever has root on the server sets <code>MAIL_PROVIDER</code> and its settings in <code>/etc/default/cloudgate-backend</code>, restarts <code>cloudgate-backend</code>, and asks for the reset link again.' }
 ---
@@ -62,9 +64,10 @@ curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo sh
 
 It checks the server is Ubuntu 24.04 or 26.04 on x86-64, then installs a **Cloudgate version**:
 one tested release, published as a prebuilt download on GitHub. Nothing is cloned or compiled on
-the server. It downloads the latest version, refuses it if it does not match its published
-checksum, finds the server's public IPv4 address and hands over to that version's
-`deploy/install.sh`, which does the install into `/opt/cloudgate`. The script is the repository's
+the server. It finds the latest signed version, checks the signature on its checksum file against
+Cloudgate's public key, which the script carries, downloads the version and refuses it if it does
+not match that checksum. It then finds the server's public IPv4 address and hands over to that
+version's `deploy/install.sh`, which does the install into `/opt/cloudgate`. The script is the repository's
 [`install.sh`](https://github.com/octabyte-io/cloudgate/blob/main/install.sh); download it with
 `-o install.sh` instead of `| sudo sh` to read it first.
 
@@ -78,12 +81,28 @@ curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_PUBLIC_HOST
 ```
 
 To install a particular version rather than the latest, name it with `CLOUDGATE_VERSION`
-(`v0.3.2` and `0.3.2` both work). A version older than the one installed is refused, because
+(`v0.3.9` and `0.3.9` both work). A version older than the one installed is refused, because
 database migrations only go forward.
 
 ```bash
-curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.2 sh
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.9 sh
 ```
+
+<Callout type="note" title="Every version is signed">
+  Each published version has a `.sha256.sig` file beside its tarball and `.sha256`. The installer
+  checks it with `ssh-keygen -Y verify` before it downloads the tarball. A missing signature, one
+  that does not verify, or a checksum file that names another tarball stops the run with nothing
+  changed. A release counts as the latest only once its signature is attached. A server without
+  `ssh-keygen` gets `openssh-client` from apt first.
+</Callout>
+
+The install also saves the server's public IP as **Settings** > **Instance** > **Public address**,
+which the free sslip.io Domains for apps on this server are named from. It uses
+`CLOUDGATE_PUBLIC_HOST` when that is a public IP, and otherwise asks `api.ipify.org`,
+`checkip.amazonaws.com` or `ipv4.icanhazip.com`, with a 5-second limit each. The address is saved
+only while the setting has never been set, so a value you saved or cleared is kept.
+`CLOUDGATE_PUBLIC_IP=<ip>` names the address instead, for example a private one on a LAN-only
+install, and `CLOUDGATE_PUBLIC_IP=none` leaves the setting empty.
 
 Before it downloads anything, the installer warns about what is likely to fail later: another
 program on port 80, 443, 3000 or 4000, less than 15 GB free disk, less than 4 GB memory, or a
@@ -91,7 +110,7 @@ download host that does not answer. No warning stops the run; `CLOUDGATE_SKIP_PR
 the checks. Downloads are tried again up to 3 times when the connection drops, and a second run
 started while one is under way stops without changing anything.
 
-The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.2`,
+The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.9`,
 `==> Docker` and so on, then a verification block. Every run is logged to
 `/var/log/cloudgate/install-<date>-<time>.log` (root only, the newest 10 kept), and a failed run
 ends by naming its log.
@@ -99,7 +118,7 @@ ends by naming its log.
 </Step>
 <Step title="Check that it finished">
 
-A good install ends like this:
+A good install ends with a verification block like this:
 
 ```text
 ==> Verification
@@ -110,11 +129,12 @@ traefik  :80    : 404  (404 = listening)
 swarm: active
 network: overlay attachable=true
 traefik: true traefik:v3.6.7
-
-==> Done. Open http://<host>:3000/sign-up — the first account owns the instance.
 ```
 
 A `404` from Traefik on port 80 is the success case: it is listening and has no app to serve yet.
+After a note about backing up the secrets, the run ends with the Cloudgate mark and, beside it,
+`Cloudgate 0.3.9 is installed.` and `Open http://<host>:3000/sign-up`. On a re-run of an
+instance that already has an owner it says `is running.` and gives the sign-in address instead.
 
 </Step>
 <Step title="Claim the instance">
@@ -147,6 +167,9 @@ checks before it acts. See [Servers](/docs/guide/servers).
 - A `cloudgate` service user, the folder `/etc/cloudgate`, and Traefik's configuration.
 - The `cloudgate-traefik` container on ports 80 and 443.
 - Two systemd units, `cloudgate-backend` and `cloudgate-console`, that restart on their own.
+- `cloudgate-boot-recover`, a unit that runs after every start of Docker and starts Traefik and any
+  Compose container whose start failed because the Swarm network was not up yet. See
+  [After a reboot](#after-a-reboot).
 - ufw, allowing 80, 443, 3000, 4000 and SSH on every port the server's SSH listens on.
 
 Secrets are generated once and kept in `/etc/default/cloudgate-secrets` (readable only by root); a
@@ -161,8 +184,9 @@ second run reads them back instead of making new ones.
 ## Deploy at an sslip.io address first
 
 You do not need DNS to start. An Application's **Domains** tab can **Generate one for me**: an
-sslip.io host such as `web.203.0.113.24.sslip.io`, which resolves to the server's IP. It is served
-over plain HTTP until you add a domain of your own. See [Domains](/docs/guide/domains).
+sslip.io host such as `web.203.0.113.24.sslip.io`, which resolves to the server's IP, taken from
+the public address the install saved. On a public address it is served over HTTPS with a Let's
+Encrypt certificate; on a private one it stays plain HTTP. See [Domains](/docs/guide/domains).
 
 ## Add a domain later
 
@@ -220,12 +244,28 @@ Read the **What to do on upgrade** lines in the repository's
 [changelog](https://github.com/octabyte-io/cloudgate/blob/main/CHANGELOG.md) before you upgrade: most
 releases need nothing, and the ones that do say exactly what. **Settings** > **Instance** >
 **This instance** shows the version an instance runs, and when a newer one is out. The latest is
-0.3.2. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
+0.3.9. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
 newer.
 
 The console's **Update and restart** button does not work on a native install, and **Restart
 Cloudgate** is refused there: use `systemctl restart cloudgate-backend cloudgate-console`. A queued
 Deployment survives a restart; one that was building is cut off and ends as an error.
+
+## After a reboot
+
+Docker tries Traefik and every container on a Swarm network once when it starts, and on a reboot
+the Swarm often has not brought `cloudgate-network` up yet, so those starts fail and Docker never
+tries again. From 0.3.9, the `cloudgate-boot-recover` unit runs after every start of Docker, waits
+up to 3 minutes for the network, and starts exactly the containers whose start failed on it. A
+Compose stack you stopped stays stopped. To see what it did on this boot:
+
+```bash
+journalctl -u cloudgate-boot-recover -b
+```
+
+The install adds the unit to this server. Each Server you added gets it from **Run setup again** on
+its **Infrastructure** tab, as setup step 8. Until then, `docker start cloudgate-traefik` and the
+stack's **Start** bring things back by hand.
 
 ## Back up the instance itself
 

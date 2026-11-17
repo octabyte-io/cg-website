@@ -1,3 +1,72 @@
+## 0.3.9: reboot recovery, a MongoDB 8 kernel warning and a DNS check in template setup (18 November 2026)
+
+A release about what happens after a reboot, and about saying why before something fails. One step on upgrade, for each Server you added: press **Run setup again** once.
+
+### Traefik and Compose stacks come back after a reboot
+
+After a reboot of the platform host or a Server, `cloudgate-traefik` and the Compose containers on `cloudgate-network` could stay down, so nothing answered on ports 80 and 443 until someone ran `docker start`. Docker starts them before the swarm has brought the network up, the start fails, and Docker never tries again. A new systemd unit, `cloudgate-boot-recover`, runs after every start of Docker, waits up to 3 minutes for the network, and starts exactly the containers whose start failed on it. A stack you stopped stays stopped, and `journalctl -u cloudgate-boot-recover -b` says what it started.
+
+**What to do on upgrade**: the install adds the unit, so upgrading the platform host is enough there. On each Server, press **Run setup again** on its **Infrastructure** tab: it adds the unit as setup step 8 and changes nothing already set up.
+
+### The console says when MongoDB 8 will not start on a host's kernel
+
+MongoDB 8 exits at start on a Linux kernel from 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0 kernels, and Swarm restarted it forever while the deploy read done. Cloudgate now reads each host's real kernel version and warns before anything is deployed: a **Kernel** row under a Server's **What is installed** and the platform host's **What this host is running**, and the same warning in the database form when a MongoDB 8 image is picked, on a MongoDB's Overview, and in a Template's setup when the template runs one. Nothing is refused. The fix is a kernel update and a reboot (`sudo apt update && sudo apt full-upgrade`, then `sudo reboot`); until then `mongo:7` starts.
+
+### A Template setup shows the DNS record for your own domain, and checks it
+
+When you type your own domain in a Template's setup instead of the generated sslip.io host, the field now shows the A record to make, its name and the address it points at, with **Check DNS** beside it, as the **Add a domain** dialog does. A failed check does not hold **Set up** back. With no public address recorded for the Cloudgate host, the panel says to set it under **Settings** > **Instance**.
+
+### Compose stack actions that match the stack
+
+- A running Compose stack offers **Restart** where **Start** used to do nothing. With any container stopped or removed, it is **Start** again.
+- **Remove containers** now shows that it ran: a toast, the status reads **stopped**, and the Containers tab shows its empty state, where a second press used to send a second removal. A stopped stack's empty tabs offer **Start**.
+- The reason **Start** and **Stop** are off is a line under the row of buttons, not text that pushed **Remove containers** off the page.
+- A Template's logo and name open its website in a new tab, on the catalogue and on its setup page.
+
+### A generated Domain on a public address is served over HTTPS
+
+**Generate one for me** in the **Add a domain** dialog now turns on **Serve over HTTPS** with Let's Encrypt when the server's address is public, as a Template setup does, and leaves HTTPS off for a private address. `POST /domains/generate` now answers JSON, `{ "host": "…", "https": true }`, instead of plain text.
+
+## 0.3.8: a public address from the install, and template setup that opens on the template (17 November 2026)
+
+0.3.8 carries everything planned for 0.3.7, which was tagged but never published. Nothing to do on upgrade.
+
+### The install fills in the public address sslip.io Domains need
+
+A fresh install left **Settings** > **Instance** > **Public address** empty, so a free sslip.io Domain for something on the platform host could not be made. The install now finds the host's public IP and the backend saves it there at boot, only while the setting has never been set. `CLOUDGATE_PUBLIC_IP=<ip>` names the address instead, and `CLOUDGATE_PUBLIC_IP=none` turns this off. The field now takes only an IP address; one the server does not know as its own is refused, with a **Save it anyway** switch for an address behind NAT or a load balancer.
+
+### A Template's setup opens on the Template
+
+Setting up a Template now opens on the Template itself: its logo, name, version, description, links and tags. You pick the Project from cards (**New Project** and each Project), and the form follows in the same card. A Project with no Environment says so and offers to add one. A yes-or-no value is a switch, and catalogue cards are wide rows with Website, Docs and Source under the name.
+
+### Template setup fixes from an end-to-end walk
+
+- A generated sslip.io host names a service called as its Template once: `ackee-<hash>`, not `ackee-ackee-<hash>`.
+- An applied Template's result lists every Domain it made, and a catalogue search puts the templates whose name matches first.
+- A Compose stack's Deployment pulls images quietly, so its log is no longer hundreds of progress lines.
+- An Environment's **Pending setups** are rows, and a Domains table no longer cuts the host short.
+
+### Well-formed SSH keys and a sturdier build queue
+
+- About one generated ed25519 SSH key in 256 came out malformed and was refused by the Server. Every generated key is well-formed now; delete and generate again any key a Server refused.
+- A failed read of the builds concurrency (with PostgreSQL away) no longer ends the backend; the queue runs one build at a time until it can read it.
+
+### The install ends with the Cloudgate mark
+
+A successful install now ends with the Cloudgate mark, the version and what to open next: the sign-up address while the instance is unclaimed, the sign-in address after that.
+
+## 0.3.5 and 0.3.6: signed versions, and arm64 for the Hosted instance (16 November 2026)
+
+0.3.5 is the first published version with a signature on each checksum, and carries everything from 0.3.3 and 0.3.4, which were not published. 0.3.6 changes nothing in the install or the console. Nothing to do on upgrade.
+
+### The install refuses a version whose signature does not verify
+
+Each published version now ships a signature for each tarball's `.sha256`, beside the tarball and the checksum. The one-command install carries Cloudgate's public key and checks that signature with `ssh-keygen -Y verify` before it downloads the tarball. A missing signature, one that does not verify, or a checksum file that names another tarball stops the run with nothing changed. A release counts as the latest only once its signature is attached, and the console's update notice counts versions the same way. So a stolen release token alone can no longer put code on your server.
+
+### An arm64 build for the Hosted instance
+
+Each version is published for arm64 as well as amd64, so the Hosted instance can run on Arm machines and upgrade there by itself. A self-hosted install still needs an x86-64 (amd64) server, and the install refuses arm64 by name.
+
 ## 0.3.2: safer upgrades and an uninstall (15 November 2026)
 
 A release about running Cloudgate on your own server: upgrades that can be undone, an uninstall that keeps your data, and an installer that warns before it starts. Nothing to do on upgrade.

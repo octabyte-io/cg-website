@@ -4,7 +4,7 @@ seoTitle: Self-hosted Cloudgate instance settings and templates
 description: 'Run a self-hosted Cloudgate instance from its console: the Enterprise license, branding, Traefik, disk upkeep, build limits and the Template catalogue mirror.'
 lede: A self-hosted instance has settings the Hosted one keeps to itself, for the machine Cloudgate runs on. This page walks through each one, who may change it, and which ones to leave alone.
 section: self-host
-updated: '2026-11-15'
+updated: '2026-11-17'
 order: 3
 navTitle: Instance settings
 badges: ['Self-hosted only', 'Owner or Admin of the Instance organization']
@@ -86,7 +86,12 @@ Empty a field and save to put Cloudgate's own back.
 **Settings** > **Instance** shows:
 
 - **This instance**: the version, mode and image tag running, and the newest published version.
-- **Public address**: the address people reach this instance on. Cloudgate does not detect it.
+- **Public address**: this server's public IP. The free sslip.io Domains for apps on this server
+  are named from it. The install fills it in (see
+  [Install](/docs/self-host/install#install-cloudgate)) while it has never been set. It takes an
+  IP address only: a hostname belongs in **Console domain**. An IP the server does not know as its
+  own is refused, with a **Save it anyway** switch for an address that reaches it through NAT or a
+  load balancer.
 - **Health**: whether PostgreSQL and Traefik answer.
 
 

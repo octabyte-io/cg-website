@@ -24,6 +24,10 @@ const faq = [
     a: 'Yes. Environment variables, SSH keys, tokens and database passwords are encrypted at rest with AES-256-GCM, and API responses show only whether a secret is set, never its value.',
   },
   {
+    q: 'How do I know the self-hosted installer installs a genuine Cloudgate version?',
+    a: `Each published Cloudgate version carries a signature on its checksum file. The install command holds Cloudgate's public key and checks that signature with <code>ssh-keygen -Y verify</code> before it downloads the version, then checks the download against the signed checksum. A missing or failed signature stops the install with nothing changed, so a stolen release token alone cannot put code on your server.`,
+  },
+  {
     q: 'Can an AI agent read my secrets through Cloudgate?',
     a: 'Not the ones Cloudgate stores. Every result an Agent gets, logs included, passes through a mask that replaces stored secrets with ••••••. A value a build prints that Cloudgate never stored, or one shorter than six characters, is not masked, so keep both in mind.',
   },

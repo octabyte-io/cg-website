@@ -70,7 +70,7 @@ const running: Topic[] = [
   {
     id: 'domains',
     h: 'How do domains, TLS and CDNs work?',
-    lede: 'Add a domain to a web Service and Cloudgate gets a Let\'s Encrypt certificate for it. Before that, a free sslip.io address works over plain http.',
+    lede: 'Add a domain to a web Service and Cloudgate gets a Let\'s Encrypt certificate for it. Before that, a free sslip.io address works with no DNS, over https when the server has a public address.',
     items: [
       { t: 'Certificates', d: 'TLS certificates issued and renewed for every Domain on a Server.' },
       { t: 'CDN providers', d: 'Put a Domain behind Cloudflare, Bunny, Fastly or ArvanCloud.' },
