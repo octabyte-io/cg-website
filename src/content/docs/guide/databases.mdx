@@ -6,6 +6,7 @@ lede: A database is a Service that runs one engine for the Applications in its E
 section: guide
 group: Services
 order: 1
+updated: '2026-11-17'
 badges: ['Owner or Admin to create', 'Server, AWS and Google Cloud']
 howto:
   name: Add a database on a Server
@@ -19,6 +20,7 @@ faq:
   - { q: Which database engines can Cloudgate run?, a: 'PostgreSQL, MySQL, MariaDB, MongoDB, Redis and libSQL on a Server. In an AWS or Google Cloud account, PostgreSQL, MySQL and Redis, made by the Project config as RDS, ElastiCache, Cloud SQL or Memorystore.' }
   - { q: Can I use a database I already have?, a: 'Yes, in a Cloud account: an RDS or Cloud SQL instance for PostgreSQL or MySQL, or an ElastiCache or Memorystore cache for Redis. Cloudgate reads it and hands out its Outputs, and never changes, stops or deletes it.' }
   - { q: Does deleting a database on a Server delete its data?, a: 'No. Delete removes the database container and its record, and leaves its data volume on the Server. Rebuild is the action that deletes the data.' }
+  - { q: Why does my MongoDB 8 database never start?, a: 'MongoDB 8 exits at start on Linux kernels 6.19.0 to 7.0.13, including Ubuntu 26.04''s first 7.0 kernels. Cloudgate warns about it on the Server and in the database form. Update the kernel and reboot, or use <code>mongo:7</code> until you can.' }
   - { q: Do I have to copy the password into my Application?, a: 'No. Link a variable to the database Output, such as DATABASE_URL to url. The value is filled in at each deploy and never saved on the Service.' }
 ---
 
@@ -47,6 +49,22 @@ named `pg-main` on the Server `fra-1`, and the `web` Application that reads it.
 | LibSQL | sqld | 8080 (HTTP) | Yes, as a primary or a replica | <Badge tone="plain">No</Badge> | <Badge tone="plain">No</Badge> |
 
 You can change the image when you create it, for example to pin a minor version.
+
+### MongoDB 8 and the host kernel
+
+MongoDB 8 (`mongo:8`, `mongo:8.0.x` or `mongo:latest`) exits as soon as it starts on a Linux kernel
+from 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0 kernels. Cloudgate reads each host's
+real kernel version and warns before anything is deployed: in the **Add a database** form when a
+MongoDB 8 image is picked, on the MongoDB's **Overview**, in a Template's setup when the template
+runs MongoDB 8, and in the **Kernel** row of the Server's **What is installed** list. Nothing is
+refused. To fix it, update the kernel and reboot the host:
+
+```bash
+sudo apt update && sudo apt full-upgrade
+sudo reboot
+```
+
+Until then, the `mongo:7` image starts on that kernel.
 
 ## Add a database on a Server
 

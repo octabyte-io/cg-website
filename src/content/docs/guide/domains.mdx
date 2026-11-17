@@ -4,6 +4,7 @@ seoTitle: Add a custom domain and HTTPS to a Service
 description: Point your own domain at a Service, get a Let's Encrypt certificate, use a free sslip.io address, add redirects and run behind a CDN, on a Server or in a cloud.
 lede: A Domain is a host, and optionally a path, that a Service answers on. Add one when you want people to reach an Application at your own address, over HTTPS.
 section: guide
+updated: '2026-11-17'
 group: Operate
 order: 1
 navTitle: Domains
@@ -18,7 +19,7 @@ howto:
     - { name: Save, text: 'Press Add domain. Changes reach Traefik as soon as they are saved.' }
 faq:
   - { q: Does Cloudgate create DNS records for me?, a: 'No. Cloudgate never writes DNS. The console shows the record to create at your DNS provider and checks it once you have.' }
-  - { q: Is the free sslip.io address served over HTTPS?, a: 'The address the Get started wizard makes is plain HTTP. Add your own domain to serve the Application over HTTPS.' }
+  - { q: Is the free sslip.io address served over HTTPS?, a: 'When you press <strong>Generate one for me</strong> on a server with a public address, yes: it turns on HTTPS with a Let''s Encrypt certificate. On a private address it stays plain HTTP. The address the Get started wizard makes is plain HTTP.' }
   - { q: Can I put Cloudflare or another CDN in front?, a: 'Yes, but Cloudgate has no CDN integration. The DNS check recognises Cloudflare, Bunny CDN, Fastly and Arvancloud and stops at the proxy. If the CDN terminates TLS, turn Serve over HTTPS off.' }
   - { q: What happens to DNS when I remove a Domain?, a: 'Nothing. Removing a Domain removes only the route in Cloudgate. Delete the record at your DNS provider yourself.' }
 ---
@@ -89,8 +90,11 @@ In the **Add a domain** dialog, press **Generate one for me** next to **Host**. 
 hostname such as `web.203.0.113.10.sslip.io`. sslip.io answers from the name itself, so there is
 no record to create and it works at once.
 
-The Get started wizard makes one of these for you. That address is plain HTTP; add your own
-domain for HTTPS. **Generate one for me** needs the Server's public address to be recorded.
+When the server's address is public, **Generate one for me** also turns on **Serve over HTTPS**
+with a **Let's Encrypt** certificate, as a Template setup does. For a private address it leaves
+HTTPS off. Anything you change after pressing it is kept. **Generate one for me** needs the
+Server's public address to be recorded; on a self-hosted instance the install records it for the
+platform host.
 
 ## Upload your own certificate
 

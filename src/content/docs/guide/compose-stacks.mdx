@@ -4,7 +4,7 @@ seoTitle: 'Deploy a Docker Compose stack with Cloudgate, step by step'
 description: Deploy a Docker Compose file as a Compose stack, from the console or a repository, give its services Domains, and run it on a Server or a Stack VM.
 lede: A Compose stack runs a Docker Compose file as one Service. Use it for software that already ships a compose file, or for several containers that belong together.
 section: guide
-updated: '2026-11-13'
+updated: '2026-11-17'
 group: Services
 order: 2
 badges: ['Owner or Admin to create', 'Server, AWS and Google Cloud']
@@ -106,14 +106,20 @@ On **Advanced**, **Network isolation** decides whether the stack shares Cloudgat
 every other Service. Turn on **Deploy onto its own network** to keep it apart; the next Deployment
 applies it.
 
-## Stop, remove containers or delete a stack
+## Start, restart, stop, remove containers or delete a stack
 
 | Action | What it does |
 |---|---|
-| **Stop** | Stops the stack's containers. |
-| **Start** | Starts them again. |
-| **Remove containers** | Docker Compose stacks only: removes the containers and keeps the network, the directory, the volumes and the record. |
+| **Deploy** | Deploys the compose file as it is now, building again what has a build, and pulling an image already there only if its `pull_policy` says so. |
+| **Stop** | Stops the stack's containers. A stopped stack stays stopped, after a reboot too. |
+| **Start** | Starts them again, or recreates containers that were removed. Offered while any container is stopped or removed. |
+| **Restart** | Docker Compose stacks: offered in place of **Start** while every container is running. Restarts the containers with no clone or build. |
+| **Remove containers** | Docker Compose stacks only: removes the containers and keeps the network, the directory, the volumes and the record. Once it has run, the status reads **stopped** and the Containers tab is empty. |
 | **Delete stack** | Destroys the stack. Its volumes go only if you tick **Delete its volumes too**. |
+
+When an action is off, for example **Start** and **Stop** on a stack that has never been deployed,
+a line under the buttons says why. A Swarm stack (`type: stack`) has neither Start nor Restart:
+**Deploy** restarts it.
 
 Use **Remove containers** before restoring a volume the stack uses: a volume cannot be restored
 while any container, running or exited, still references it.
@@ -122,6 +128,13 @@ while any container, running or exited, still references it.
 **Delete its volumes too** removes the stack's named volumes with it. You confirm by typing the
 stack's name.
 </Callout>
+
+## After a server reboot
+
+From Cloudgate 0.3.9, a Compose stack on a Server comes back after the machine reboots: the
+`cloudgate-boot-recover` unit starts the containers Docker could not start before the Swarm network
+was up. A Server added before 0.3.9 gets that unit from **Run setup again** on its
+**Infrastructure** tab. See [Servers](/docs/guide/servers#run-the-setup-again-after-an-upgrade).
 
 ## Compose stacks in AWS and Google Cloud
 

@@ -6,6 +6,7 @@ lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto
 section: guide
 group: Where it runs
 order: 1
+updated: '2026-11-17'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Add a Server over SSH
@@ -68,8 +69,13 @@ On the **Setup** card press **Run setup**, read the command that will run, and c
 1. installs unzip, curl, wget, git, jq and openssl if any is missing (on Debian, Ubuntu or
    Raspbian; elsewhere this step is skipped);
 2. installs Docker;
-3. starts a Docker Swarm and creates the `cloudgate-network` network;
-4. creates `/etc/cloudgate` and starts Traefik on ports 80 and 443.
+3. starts a Docker Swarm;
+4. creates the `cloudgate-network` network;
+5. creates `/etc/cloudgate`;
+6. writes Traefik's configuration and starts Traefik on ports 80 and 443;
+7. creates the `cloudgate-ai` network for AI models;
+8. installs boot recovery, a systemd unit named `cloudgate-boot-recover` that starts Traefik and
+   Compose containers again after a reboot (skipped on a machine without systemd).
 
 <Screenshot name="server-infrastructure" alt="The Infrastructure tab of the fra-1 Server, with its readiness checks and the Setup card showing each step done" caption="Each setup step shows its result; the log can be opened in the Dock." />
 </Step>
@@ -84,6 +90,22 @@ one. Once started it cannot be stopped. **Run setup again** is safe: every step 
 acts. You can replace the default script with your own on the **Settings** tab, under **Setup
 command**.
 </Callout>
+
+## Run the setup again after an upgrade
+
+A Server set up by an older Cloudgate keeps its old setup. When a release adds a setup step, press
+**Run setup again** on the Server's **Infrastructure** tab once: it adds what is missing and changes
+nothing already set up. Cloudgate 0.3.9 needs this for boot recovery. Without it, after the Server
+reboots, Traefik and Compose stacks can stay down until `docker start cloudgate-traefik` and the
+stack's **Start**. The release notes in the [changelog](/changelog) say when a release needs it.
+
+## Check the kernel before running MongoDB 8
+
+The Server's **What is installed** list has a **Kernel** row with the kernel's upstream version.
+MongoDB 8 exits at start on Linux 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0
+kernels, so the row warns on those, and so do the database form and a MongoDB's Overview. Update
+the kernel and reboot (`sudo apt update && sudo apt full-upgrade`, then `sudo reboot`), or use
+`mongo:7` until you can. See [Databases](/docs/guide/databases#mongodb-8-and-the-host-kernel).
 
 ## Check the Server's host key
 

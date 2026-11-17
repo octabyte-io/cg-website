@@ -1,16 +1,17 @@
 ---
 title: Troubleshooting Cloudgate
 seoTitle: Troubleshoot Cloudgate builds, Servers and domains
-description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup errors, missing certificates, Stack VMs, CLI exit codes and Agent 429s.'
+description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup, apps down after a reboot, certificates, MongoDB 8, CLI exit codes, 429s.'
 lede: Each problem below is a question you might type into search, with what causes it and how to fix it. Start with the Deployment log or the error text; most answers are in one of them.
 section: help
-updated: '2026-11-13'
+updated: '2026-11-17'
 order: 2
 navTitle: Troubleshooting
 badges: ['Hosted and self-hosted']
 faq:
   - { q: Where do I see why a build failed?, a: 'In the Deployment log. Open the Service''s <strong>Deployments</strong> tab and the failed Deployment, or run <code>cloudgate logs --deployment</code>. With an AI provider set up, <strong>Explain this log</strong> asks it what went wrong.' }
   - { q: Why does my Deployment stay pending?, a: 'Without an Enterprise license each Server builds one Deployment at a time, so the next one waits for the current build. A <code>held</code> Deployment waits for a Plan instead.' }
+  - { q: Why are my apps down after a server reboot?, a: 'Docker may start Traefik and Compose containers before the Swarm network is up, and not try again. From Cloudgate 0.3.9 the <code>cloudgate-boot-recover</code> unit starts them. Upgrade, then press <strong>Run setup again</strong> on each Server.' }
   - { q: What does Not found or not permitted mean for an Agent?, a: 'The Service or Environment does not exist, belongs to another Organization, or is not in the Agent''s grant. It is an access decision: retrying will not change it. An owner or admin widens the grant under <strong>Manage access</strong>.' }
 ---
 
@@ -97,6 +98,24 @@ On a Server, Traefik asks Let's Encrypt for the certificate when you save a Doma
 In a Cloud account, a Domain is always HTTPS with the cloud's certificate, and Cloudgate never writes
 DNS for you. Its status stays **Waiting for DNS** until the validation and pointing records it shows
 are in place. A free sslip.io address is plain HTTP. See [Domains](/docs/guide/domains).
+
+## Why is nothing answering after my server rebooted?
+
+On a reboot, Docker can try Traefik and the Compose containers on `cloudgate-network` before the
+Swarm has brought that network up. The start fails with `network cloudgate-network not found`, the
+containers stay `Exited (128)` or `Created`, and Docker does not try again, so ports 80 and 443 stop
+answering. From 0.3.9 the `cloudgate-boot-recover` unit starts them for you. Upgrade the platform
+host, and press **Run setup again** once on each Server's **Infrastructure** tab to add the unit
+there. To bring things back by hand meanwhile, run `docker start cloudgate-traefik` and press
+**Start** on each stack. `journalctl -u cloudgate-boot-recover -b` says what the unit started.
+
+## Why does my MongoDB database keep restarting?
+
+MongoDB 8 exits at start on Linux kernels 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0
+kernels, and the container is restarted over and over. The **Kernel** row on the Server's **What is
+installed** list warns when the kernel is in that range. Update the kernel and reboot
+(`sudo apt update && sudo apt full-upgrade`, then `sudo reboot`), or deploy `mongo:7` until you can.
+See [Databases](/docs/guide/databases#mongodb-8-and-the-host-kernel).
 
 ## Why does a Compose stack's new domain answer 404?
 

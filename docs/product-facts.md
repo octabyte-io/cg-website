@@ -102,6 +102,16 @@ or a ready-made Docker image.
   outputs (for example `DATABASE_URL: pg-1.url`) and are filled in at deploy, never saved.
 - Secrets are encrypted at rest; API responses show only whether a secret is set.
 - Shell into a container from the console.
+- **Generate one for me** (Add a domain) makes an sslip.io host and, when the server's address is
+  public, turns on HTTPS with Let's Encrypt (0.3.9); a private address stays plain HTTP.
+- A running Docker Compose stack offers **Restart** in place of **Start** (0.3.9). **Remove
+  containers** shows it ran (status stopped, empty Containers tab); a stopped stack offers Start.
+- **Kernel check** (0.3.9): MongoDB 8 (`mongo:8`, `mongo:8.0.x`, `mongo:latest`) exits at start on
+  Linux 6.19.0 to 7.0.13 (Ubuntu 26.04's first 7.0 kernels). The console shows a **Kernel** row
+  with a warning under a Server's **What is installed** and the platform host's **What this host
+  is running**, and warns in the database form, a MongoDB's Overview and a Template setup that
+  runs MongoDB 8. Nothing is refused. Fix: `sudo apt update && sudo apt full-upgrade`, reboot;
+  until then `mongo:7`.
 
 ## Teams and access
 
@@ -169,6 +179,28 @@ or a ready-made Docker image.
   from the environment, the last install, or the detected public IPv4. `CLOUDGATE_REF` and
   `CLOUDGATE_REPOSITORY` are gone. Then sign up at `http://<host>:3000/sign-up`. No access
   request, no deploy key.
+- **Signed versions** (0.3.3, first published in 0.3.5, ADR-0087): each published version has a
+  `.sha256.sig` beside each tarball and `.sha256`. The install carries Cloudgate's public key and
+  checks the signature with `ssh-keygen -Y verify` before downloading the tarball; a missing or
+  failed signature, or a `.sha256` naming another file, stops with nothing changed. A release
+  counts as the latest only once signed (the console's update notice too). `openssh-client` is
+  installed from apt if `ssh-keygen` is missing.
+- **arm64**: each version is published for amd64 and arm64, but arm64 is for the Hosted instance
+  only (ADR-0088). A Self-hosted install on arm64 is refused by name.
+- **Public address** (0.3.7/0.3.8): the install finds the host's public IP (`CLOUDGATE_PUBLIC_HOST`
+  if it is a public IP, else `api.ipify.org`, `checkip.amazonaws.com`, `ipv4.icanhazip.com`, 5 s
+  each) and the backend saves it as **Settings > Instance > Public address** at boot, only while
+  that setting was never set. `CLOUDGATE_PUBLIC_IP=<ip>` names it, `CLOUDGATE_PUBLIC_IP=none`
+  turns it off. The field takes only an IP; one the server does not know as its own needs
+  **Save it anyway** (NAT, load balancer). It is what sslip.io Domains on the platform host use.
+- The install ends with the Cloudgate mark, the version and the sign-up (or sign-in) address,
+  where it used to end with `==> Done.`
+- **Boot recovery** (0.3.9): the install and Server setup (step 8, "Install boot recovery") add a
+  systemd unit `cloudgate-boot-recover` that runs after every start of Docker, waits up to 3
+  minutes for `cloudgate-network`, and starts the containers (Traefik, Compose containers on
+  `cloudgate-network`/`cloudgate-ai`) whose start failed because the network was missing. A stack
+  you stopped stays stopped. `journalctl -u cloudgate-boot-recover -b`. Existing Servers get it
+  with **Run setup again**.
 - Before downloading it warns (never stops) about a busy port 80/443/3000/4000, less than 15 GB
   free, less than 4 GB memory, or an unreachable download host (`CLOUDGATE_SKIP_PREFLIGHT=1`
   skips). Downloads are retried up to 3 times. Every run is logged to
@@ -184,8 +216,8 @@ or a ready-made Docker image.
   files, and keeps the instance (database, env files, `/etc/cloudgate`, backups, logs) so a later
   install is the same instance. `--purge` removes those too, after you type the public host.
   Docker, Postgres and the firewall are left in place.
-- The Instance (server) reports version **0.3.2**. 0.3.1 was the first version with a published
-  tarball (0.3.0 has none).
+- The latest Instance (server) version is **0.3.9**. 0.3.1 was the first version with a published
+  tarball (0.3.0 has none); 0.3.3, 0.3.4 and 0.3.7 were tagged but never published.
 
 ## Source, contributing and security reports
 
@@ -205,3 +237,9 @@ Immich, listmonk, Matomo, Mattermost, Metabase, n8n, Nextcloud, Outline, Plausib
 Umami, Uptime Kuma, Vaultwarden, WordPress, growing to hundreds. The catalogue's own website,
 https://cgt.octabyte.io, is the only home of template pages: this site never repeats one, and
 never states a fixed count. Deploy link `deployUrl(id)` from `src/data/site.ts`.
+
+Setup in the console (0.3.8+): opens on the Template (logo, name, version, description, links,
+tags); the Project is picked from cards (New Project and each Project; a picker past five); a
+Project with no Environment offers to add one. Typing your own domain in place of the generated
+sslip.io host shows the A record (Name, address) and **Check DNS** (0.3.9); a failed check does
+not block Set up. A Template's logo and name open its website in a new tab.

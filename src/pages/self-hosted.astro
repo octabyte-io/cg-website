@@ -73,7 +73,7 @@ const howTo = howToSchema({
   description: 'Install self-hosted Cloudgate on one Ubuntu 24.04 or 26.04 server with a single command.',
   steps: [
     { name: 'Prepare the server', text: 'Start a fresh Ubuntu 24.04 or 26.04 x86-64 server with 2 vCPU, 4 GB memory and 40 GB disk, and open ports 22, 80, 443, 3000 and 4000.' },
-    { name: 'Run the install command', text: `As a user who can sudo, run: ${installCommand}. It downloads the latest published Cloudgate version, checks its checksum, finds the server's public IP address and installs everything.`, url: sourceUrl },
+    { name: 'Run the install command', text: `As a user who can sudo, run: ${installCommand}. It downloads the latest published Cloudgate version, checks the signature on its checksum and the checksum itself, finds the server's public IP address and installs everything.`, url: sourceUrl },
     { name: 'Claim the instance', text: "Open http://<your server's IP>:3000/sign-up. The first account created owns the instance." },
   ],
 });
@@ -314,8 +314,9 @@ const description =
           <li>
             <h3>Run the install command</h3>
             <p>
-              It downloads the latest published Cloudgate version, already built, checks it against
-              its published checksum, finds the server's public IP address and installs everything.
+              It downloads the latest published Cloudgate version, already built, checks the signature
+              on its checksum and the checksum itself, finds the server's public IP address and
+              installs everything.
               Nothing is compiled on the server. It stops early on anything but Ubuntu 24.04 or 26.04
               on x86-64, and warns first about busy ports, low disk or memory. Each run leaves a log
               in <code>/var/log/cloudgate</code>.
@@ -324,7 +325,7 @@ const description =
             <p>
               Using a hostname, or a different address? Name it with
               {" "}<code>CLOUDGATE_PUBLIC_HOST</code>, the host alone. To pin a version, add
-              {" "}<code>CLOUDGATE_VERSION=v0.3.2</code> the same way.
+              {" "}<code>CLOUDGATE_VERSION=v0.3.9</code> the same way.
             </p>
             <pre class="code"><code><span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">cloud.example.com</span> <span class="k">sh</span></code></pre>
           </li>
