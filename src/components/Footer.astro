@@ -55,6 +55,8 @@ const columns = [
       { href: site.npm, label: 'CLI on npm' },
       { href: `mailto:${site.support}`, label: site.support },
       { href: '/llms.txt', label: 'llms.txt for AI assistants' },
+      // Opens in a new tab and carries no link equity (see site.askGpt).
+      { href: site.askGpt, label: 'Ask GPT', newTab: true },
     ],
   },
 ];
@@ -78,7 +80,15 @@ const year = new Date().getFullYear();
     {columns.map((col) => (
       <nav aria-label={col.title}>
         <h2>{col.title}</h2>
-        <ul>{col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+        <ul>{col.links.map((l) => (
+          <li>
+            {'newTab' in l && l.newTab ? (
+              <a href={l.href} target="_blank" rel="noopener noreferrer nofollow">{l.label}<span class="visually-hidden"> (opens in a new tab)</span></a>
+            ) : (
+              <a href={l.href}>{l.label}</a>
+            )}
+          </li>
+        ))}</ul>
       </nav>
     ))}
   </div>

@@ -17,6 +17,9 @@ export const site = {
   templatesSite: 'https://cgt.octabyte.io/',
   npm: 'https://www.npmjs.com/package/@octabyte-io/cloudgate',
   support: 'support@octabyte.io',
+  // A shared ChatGPT conversation about Cloudgate, linked from the header and footer only.
+  // Keep it out of every search and AI surface: no sitemap, llms*.txt, JSON-LD or sameAs, and always rel="nofollow".
+  askGpt: 'https://chatgpt.com/share/6afca8d4-272c-83ee-a74b-ce8bbac37470',
   company: { name: 'Octabyte', url: 'https://octabyte.io' },
 } as const;
 
