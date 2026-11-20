@@ -22,15 +22,35 @@ account. A Deployment is one attempt to build and release a Service.
   used a deployment tool. Three steps: sign up or in, get a Server (buy one from Cloudgate, or
   use your own: the wizard makes a key and gives the one command to run), then Deploy. Cloudgate
   applies the setup by itself once the Server is ready, then shows "Open <app>" and the address.
-  A free sslip.io address works right away (plain http); add your own domain for https.
-- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). **0.1.0**, the first stable release, is on
-  npm's `latest` tag, so every install line on the site is `npm install -g @octabyte-io/cloudgate`
+  A free sslip.io address works right away: HTTPS with Let's Encrypt on a Server with a public
+  address, plain http on a private one (0.3.9); or type your own domain (0.3.10).
+  - **Real progress** (0.3.10): which of the setup's eight steps runs and the machine's newest
+    line; the launch's stages and the deploy's output; how long a card (Stripe) confirmation has
+    taken. Step 1 offers every Buy option (OS image, backups, extra storage, map). After Buy, step 2
+    opens at once with the server's progress in a strip; it asks the values, **Web address** (own
+    domain + Check DNS) and **Where it goes** (**More options**: existing Project, Project name,
+    Setup name).
+  - **HTTPS wait** (0.3.11): an https address adds a **Getting its HTTPS certificate** stage; Open
+    shows once Let's Encrypt has issued (until then Traefik serves its self-signed certificate).
+  - **How to sign in** (0.3.11): from the template's optional `signIn` in `template.yaml`. Account
+    made at setup: username (optional) and masked password with Show/Copy, read from the stack's
+    variables under the stack's read (a member who can't read sees no password); `path`/`domain`
+    give an **Open /admin** link. Or `firstVisit: { path, note }`: where to open the app to make the
+    first account. No `signIn`, no block. **What next** links to the stack's Variables tab.
+  - A Template setup for a new Project with nowhere to deploy opens Get started (0.3.11).
+- **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). **0.1.1** is the current release (0.1.0 was
+  the first stable one), on npm's `latest` tag, so every install line on the site is `npm install -g @octabyte-io/cloudgate`
   (no `@next`, no "beta"). It holds everything from the 0.0.2 betas. Source in the repo's
   `cli/`. Commands: `login` (approve a code in the console), `whoami`, `instance list|use`,
   `logout`, `link`/`unlink`, `deploy` (respects .gitignore and .cloudgateignore, skips .env),
   `status`, `logs`, `vars list|set|unset`, `template check|pack|try`, `config pull|plan`. In CI:
   `CLOUDGATE_KEY=<personal key>`. A declined `config plan` exits 1 (0.1.0). A template config
-  file may end in `.js` (CLI 0.1.0, Instance 0.3.0, ADR-0083).
+  file may end in `.js` (CLI 0.1.0, Instance 0.3.0, ADR-0083). `template check`/`pack` take a
+  template's `signIn` block (CLI 0.1.1; 0.1.0 refuses it): `password` (+ optional `username`, input
+  or `{ value }`, `path`, `domain: <service>`), or `firstVisit: { path, note, domain }`. A password
+  in a `value` input must be exactly one reference to a secret input. Refused: both forms, an unknown
+  or unread input, a `domain` not in `domains` or shared by several, a non-secret password. Such
+  templates name `cloudgate: "0.3.11"`.
   - **Changed files only** (since 0.0.2-beta.3): `deploy` sends file checksums (SHA-256) and uploads
     only files the Instance lacks or holds different; local deletions are deleted there too.
     `--full` sends every file. Needs an Instance at 0.2.0+; an older one gets the full upload.
@@ -79,6 +99,12 @@ or a ready-made Docker image.
   locations, sizes, optional backups and extra storage (10 GB to 10 TB). Billed monthly in
   advance on the same invoice. Machines are Hetzner Cloud, but do not name the provider on the
   site unless asked.
+  - 0.3.10: an **Operating system** select (filtered to the size's architecture, opens on Ubuntu
+    24.04, named in the summary); families Standard, Performance, Arm, Dedicated; suggestions
+    **Closest** and **Cheapest**; the summary stays in view. The first setup run waits up to ten
+    minutes for SSH. A Server **Powered off by an operator** (reason, support link) is refused as a
+    deploy target: deploy, rollback, Start/restart, Run now, upload, preview get a 409 naming it; a
+    Template setup waits; pickers leave it out.
 - **AWS**: ECS (Fargate) for web, workers, private web services and cron; RDS for Postgres and
   MySQL; ElastiCache for Redis; S3 and CloudFront for buckets and static sites.
 - **Google Cloud**: Cloud Run for web; Cloud SQL; Memorystore for Redis.
@@ -101,7 +127,23 @@ or a ready-made Docker image.
 - Environment variables per Project, Environment and Service; wired variables link one Service's
   outputs (for example `DATABASE_URL: pg-1.url`) and are filled in at deploy, never saved.
 - Secrets are encrypted at rest; API responses show only whether a secret is set.
-- Shell into a container from the console.
+- Shell into a container from the console. A Server's shell is its **Shell** tab
+  (`/servers/<id>/shell`; `/terminal` forwards, 0.3.10). On Hosted, the **This host** card (a shell
+  on the platform host) shows only to the instance's operators (0.3.11).
+- **Expand** (0.3.10): every file editor (Compose file, Project config, Traefik files, Variables,
+  patch editor, whole-file text boxes) opens filling the window, with Discard/Save in a top bar and a
+  status line (line count, YAML valid). Back to page or Esc keeps the edit. Read-only for an
+  Environment's copy of a repository-kept config.
+- **Config files tab** (0.3.11): a Compose stack's file mounts from its Template, listed by path and
+  edited in the console; Save writes them where the stack runs; **Restart to apply**. Absent with no
+  mount or no read of mounts.
+- **Served certificate** (0.3.11): the Domains tab's Certificate column says Let's Encrypt
+  · issuing (usually under a minute), · valid until <date>, or · not issued yet (check the A record
+  and port 80; attempts in the Server's Traefik log). The Service Overview says so beside its
+  address. `GET /domains/:id/served-certificate`.
+- **Templates list** (0.3.11): logos by address (`GET /templates/:templateId/logo`, cached, SVG
+  sandboxed), no longer ~10 MB inline. An official-catalogue Template's name/logo open its page on
+  cgt.octabyte.io; a mirror or private catalogue opens the app's website.
 - **Generate one for me** (Add a domain) makes an sslip.io host and, when the server's address is
   public, turns on HTTPS with Let's Encrypt (0.3.9); a private address stays plain HTTP.
 - A running Docker Compose stack offers **Restart** in place of **Start** (0.3.9). **Remove
@@ -216,7 +258,7 @@ or a ready-made Docker image.
   files, and keeps the instance (database, env files, `/etc/cloudgate`, backups, logs) so a later
   install is the same instance. `--purge` removes those too, after you type the public host.
   Docker, Postgres and the firewall are left in place.
-- The latest Instance (server) version is **0.3.9**. 0.3.1 was the first version with a published
+- The latest Instance (server) version is **0.3.11**. 0.3.1 was the first version with a published
   tarball (0.3.0 has none); 0.3.3, 0.3.4 and 0.3.7 were tagged but never published.
 
 ## Source, contributing and security reports
@@ -242,4 +284,4 @@ Setup in the console (0.3.8+): opens on the Template (logo, name, version, descr
 tags); the Project is picked from cards (New Project and each Project; a picker past five); a
 Project with no Environment offers to add one. Typing your own domain in place of the generated
 sslip.io host shows the A record (Name, address) and **Check DNS** (0.3.9); a failed check does
-not block Set up. A Template's logo and name open its website in a new tab.
+not block Set up. A Template's logo and name open its website in a new tab (0.3.9); from 0.3.11 an official one opens its cgt.octabyte.io page.

@@ -4,7 +4,7 @@ seoTitle: Troubleshoot Cloudgate builds, Servers and domains
 description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup, apps down after a reboot, certificates, MongoDB 8, CLI exit codes, 429s.'
 lede: Each problem below is a question you might type into search, with what causes it and how to fix it. Start with the Deployment log or the error text; most answers are in one of them.
 section: help
-updated: '2026-11-17'
+updated: '2026-11-20'
 order: 2
 navTitle: Troubleshooting
 badges: ['Hosted and self-hosted']
@@ -12,6 +12,7 @@ faq:
   - { q: Where do I see why a build failed?, a: 'In the Deployment log. Open the Service''s <strong>Deployments</strong> tab and the failed Deployment, or run <code>cloudgate logs --deployment</code>. With an AI provider set up, <strong>Explain this log</strong> asks it what went wrong.' }
   - { q: Why does my Deployment stay pending?, a: 'Without an Enterprise license each Server builds one Deployment at a time, so the next one waits for the current build. A <code>held</code> Deployment waits for a Plan instead.' }
   - { q: Why are my apps down after a server reboot?, a: 'Docker may start Traefik and Compose containers before the Swarm network is up, and not try again. From Cloudgate 0.3.9 the <code>cloudgate-boot-recover</code> unit starts them. Upgrade, then press <strong>Run setup again</strong> on each Server.' }
+  - { q: Why does my browser warn about the certificate of a new app?, a: 'Let''s Encrypt has not issued it yet, so Traefik serves its own self-signed certificate. It usually takes under a minute. The Domains tab says issuing, valid until a date, or not issued yet; if it is not issued, check the A record and that port 80 reaches the Server.' }
   - { q: What does Not found or not permitted mean for an Agent?, a: 'The Service or Environment does not exist, belongs to another Organization, or is not in the Agent''s grant. It is an access decision: retrying will not change it. An owner or admin widens the grant under <strong>Manage access</strong>.' }
 ---
 
@@ -85,7 +86,10 @@ stops a running setup, and nothing starts one but a confirmed press. See [Server
 ## Why does my domain have no certificate?
 
 On a Server, Traefik asks Let's Encrypt for the certificate when you save a Domain with
-**Serve over HTTPS** and **Let's Encrypt**. It cannot get one when:
+**Serve over HTTPS** and **Let's Encrypt**. Until it comes, Traefik serves its own self-signed
+certificate, so a browser warns about the address. The **Certificate** column of the Domain's
+**Domains** tab says what is really served: **issuing, usually under a minute**, **valid until** a
+date, or **not issued yet**. If it stays not issued, Traefik cannot get one, usually because:
 
 - **DNS does not point at the Server yet.** The DNS helper under the Domain shows the record to add
   and checks it. Add the record, wait for it to resolve, and save the Domain again.
@@ -97,7 +101,8 @@ On a Server, Traefik asks Let's Encrypt for the certificate when you save a Doma
 
 In a Cloud account, a Domain is always HTTPS with the cloud's certificate, and Cloudgate never writes
 DNS for you. Its status stays **Waiting for DNS** until the validation and pointing records it shows
-are in place. A free sslip.io address is plain HTTP. See [Domains](/docs/guide/domains).
+are in place. A free sslip.io address is served over HTTPS on a Server with a public address, and
+plain HTTP on a private one. See [Domains](/docs/guide/domains#check-that-the-https-certificate-is-issued).
 
 ## Why is nothing answering after my server rebooted?
 
@@ -130,6 +135,14 @@ not running. "…'s Stack VM is stopped: start it first, then deploy" means some
 press **Start** on the stack, then deploy. "…'s Stack VM is not made yet" means the stack was made in
 the console and the Environment's next [Plan](/docs/guide/project-config) makes its VM: apply that
 Plan first. See [Compose stacks](/docs/guide/compose-stacks#compose-stacks-in-aws-and-google-cloud).
+
+## Why is a deploy to my bought Server refused?
+
+An operator of the Hosted instance powered the Server off. Its notice says **Powered off by an
+operator**, with the reason and a link to support. Until it is powered on, a deploy, rollback,
+Start or restart, Run now, upload or preview is refused with `409` naming the Server, and a
+Template setup waits instead of applying. See
+[Buy a Server](/docs/guide/bought-servers#if-an-operator-powers-it-off).
 
 ## Why does an app built from a folder not deploy?
 

@@ -4,7 +4,7 @@ seoTitle: Install self-hosted Cloudgate on Ubuntu 24.04 or 26.04
 description: Install a published Cloudgate version on an Ubuntu 24.04 or 26.04 server with one command, claim it with the first sign-up, upgrade, back up and uninstall.
 lede: One command turns a fresh Ubuntu 24.04 or 26.04 server into a Cloudgate instance. This page covers what the server needs, what the script sets up, the first sign-up, and what to do after.
 section: self-host
-updated: '2026-11-17'
+updated: '2026-11-20'
 order: 2
 navTitle: Install
 badges: ['Self-hosted only', 'Root on the server']
@@ -81,11 +81,11 @@ curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_PUBLIC_HOST
 ```
 
 To install a particular version rather than the latest, name it with `CLOUDGATE_VERSION`
-(`v0.3.9` and `0.3.9` both work). A version older than the one installed is refused, because
+(`v0.3.11` and `0.3.11` both work). A version older than the one installed is refused, because
 database migrations only go forward.
 
 ```bash
-curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.9 sh
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.11 sh
 ```
 
 <Callout type="note" title="Every version is signed">
@@ -110,7 +110,7 @@ download host that does not answer. No warning stops the run; `CLOUDGATE_SKIP_PR
 the checks. Downloads are tried again up to 3 times when the connection drops, and a second run
 started while one is under way stops without changing anything.
 
-The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.9`,
+The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.11`,
 `==> Docker` and so on, then a verification block. Every run is logged to
 `/var/log/cloudgate/install-<date>-<time>.log` (root only, the newest 10 kept), and a failed run
 ends by naming its log.
@@ -133,7 +133,7 @@ traefik: true traefik:v3.6.7
 
 A `404` from Traefik on port 80 is the success case: it is listening and has no app to serve yet.
 After a note about backing up the secrets, the run ends with the Cloudgate mark and, beside it,
-`Cloudgate 0.3.9 is installed.` and `Open http://<host>:3000/sign-up`. On a re-run of an
+`Cloudgate 0.3.11 is installed.` and `Open http://<host>:3000/sign-up`. On a re-run of an
 instance that already has an owner it says `is running.` and gives the sign-in address instead.
 
 </Step>
@@ -244,7 +244,7 @@ Read the **What to do on upgrade** lines in the repository's
 [changelog](https://github.com/octabyte-io/cloudgate/blob/main/CHANGELOG.md) before you upgrade: most
 releases need nothing, and the ones that do say exactly what. **Settings** > **Instance** >
 **This instance** shows the version an instance runs, and when a newer one is out. The latest is
-0.3.9. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
+0.3.11. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
 newer.
 
 The console's **Update and restart** button does not work on a native install, and **Restart

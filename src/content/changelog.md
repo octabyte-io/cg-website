@@ -1,3 +1,61 @@
+## 0.3.11: how to sign in to a new app, a Config files tab and HTTPS before Open (20 November 2026)
+
+A release about the last step of a first deploy: opening the app and signing in. Nothing to do on upgrade.
+
+### Get started's done card says how to sign in to the app
+
+A template may now say how a person signs in once the app runs, in an optional `signIn` block in its `template.yaml`. The wizard's done card shows a **How to sign in** block from it. For an account made at setup, it shows the username and a masked password with **Show** and **Copy**, read from the stack's own variables, so a member who cannot read them sees no password. For an app that makes its first account on the first visit, it says where to open the app to make it. An app that signs in on another page (`/admin`) or on another Domain, such as a bundled Keycloak, gets an **Open** link to exactly that page. Without `signIn`, no block. **What next** links straight to the stack's **Variables** tab.
+
+Templates that carry `signIn` name Cloudgate 0.3.11, so an older Instance hides them.
+
+### A stack's Config files tab edits the files its Template shipped
+
+The config files a Template ships were kept as the stack's file mounts but never shown, so changing one meant SSH and an edit Cloudgate's copy would later overwrite. A **Config files** tab, after **Shell**, lists them by path and opens one in the editor. **Save** writes the new content where the stack runs, and **Restart to apply** restarts the stack. The tab is absent for a stack with no file mount, or for a role that cannot read its mounts.
+
+### A Domain says when its HTTPS certificate is still being issued
+
+Until Let's Encrypt answers, Traefik serves its own self-signed certificate, so opening a brand-new app could land on a browser warning. Get started now adds a **Getting its HTTPS certificate** stage and shows **Open** once the certificate is issued. The Domains tab and the Overview's Domain card say whether the certificate is issuing, valid until a date, or not issued yet, read from what the Domain's host really serves (`GET /domains/:id/served-certificate`).
+
+### A faster Templates list
+
+The Templates list carried every logo inline, about 10 MB for the official catalogue, so the screen sat on placeholders. It now carries each logo's address, served and cached on its own, with an SVG logo sandboxed so it runs no script. A Template from the official catalogue opens its page in the [template directory](https://cgt.octabyte.io/) from its name and logo; a mirror or a private catalogue still opens the app's website.
+
+### Smaller fixes
+
+- On Hosted, the **This host** card, a shell on the platform host, is shown only to the instance's operators.
+- Get started's **Location** card shows the world map, as **Buy a server** does.
+- Setting up a Template in a new Project with nowhere to deploy opens Get started, instead of a form with no Deploy target.
+- The masthead's Organization cell is the rail's width, so their borders meet.
+
+## CLI 0.1.1: template check takes signIn (20 November 2026)
+
+`cloudgate template check` and `cloudgate template pack` take a template's `signIn` block, which 0.1.0 refused as a field a template does not have. Both of its forms are taken: an account made at setup (`password`, with `username` when the app asks one, and `path` when its sign-in page is not `/`), and an account made on the first visit (`firstVisit: { path, note }`). Either may name the Domain it is on with `domain: <service>`. A password held in a `value` input is taken when its text is exactly one reference to a secret input, such as `{ value: "{{ADMIN_PASSWORD_RANDOM}}" }`. The check refuses both forms at once, an input the template has no rule for or its compose file does not read, a `domain` that `domains` does not list or several Domains share, and a password that is not a secret. Its check is Cloudgate 0.3.11's.
+
+## 0.3.10: expand any file editor, real progress in Get started and the operating system at Buy (18 November 2026)
+
+Nothing to do on upgrade.
+
+### Expand a file editor to fill the window
+
+Every file editor in the console has an **Expand** button. It opens the same file filling the browser window: a top bar with the file's name, where it belongs, an **Unsaved changes** mark and the editor's own **Discard** and **Save**, then the file edge to edge, and a status line with its line count and, for a compose file or a Project config, whether the YAML is valid. **Back to page** or Esc returns with the edit kept. It is on the Compose file card, the Project config panel, the Traefik files, the Variables editor, the patch editor and every text box that holds a whole file, such as mounts, certificates, custom CSS and the Server's setup command. An Environment's copy of a repository-kept config expands too, read-only.
+
+### The Get started wizard shows real progress
+
+The wizard's single spinners are gone. Setting up a server says which of its eight setup steps is running and the machine's newest line, the launch shows each of its parts and the deploy's output, and a card confirmation says how long it has taken.
+
+### Buy a server picks the operating system, and the wizard buys with every option
+
+**Buy a server** has an **Operating system** select, filtered to the chosen size's architecture and named in the summary. It opens on Ubuntu 24.04, what every bought Server ran before. Server families are named Standard, Performance, Arm and Dedicated, the screen opens on two suggestions, **Closest** and **Cheapest**, and the summary stays in view as you scroll. The Get started wizard now offers every option the Buy screen has, the operating system, backups and extra storage among them. After you buy, its next step opens at once, with the server's progress in a strip above it, and asks the web address, Project and setup name as a Template setup does, so your own domain and its DNS check work there too.
+
+### A powered-off bought Server is refused as a deploy target
+
+A bought Server an operator powered off was still offered as a deploy target, and a deploy to it failed with a server error. A deploy, rollback, Start or restart, Run now, upload or preview is now refused with a clear message naming the Server, a Template setup waits for it to be powered on, and the pickers leave it out. Its notice says **Powered off by an operator**, gives the reason and links support.
+
+### Smaller fixes
+
+- A new bought Server's first setup waits up to ten minutes for the machine to accept SSH, where it could time out and leave the Server at **Setup failed**.
+- A Server's **Terminal** tab is now its **Shell** tab, at `/servers/<id>/shell`; the old address forwards there.
+
 ## 0.3.9: reboot recovery, a MongoDB 8 kernel warning and a DNS check in template setup (18 November 2026)
 
 A release about what happens after a reboot, and about saying why before something fails. One step on upgrade, for each Server you added: press **Run setup again** once.

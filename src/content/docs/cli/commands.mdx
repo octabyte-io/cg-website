@@ -4,10 +4,10 @@ seoTitle: 'Cloudgate CLI commands, flags and exit codes reference'
 description: Every Cloudgate CLI command with its usage line, arguments, flags and defaults, environment variables and JSON output, from login and deploy to templates.
 lede: Every command the cloudgate CLI has, what it prints and how it exits. Run cloudgate <command> --help for the same usage lines in your terminal.
 section: cli
-updated: '2026-11-15'
+updated: '2026-11-20'
 order: 2
 navTitle: Command reference
-badges: ['Hosted and self-hosted', 'Beta']
+badges: ['Hosted and self-hosted']
 faq:
   - { q: 'Which commands print JSON?', a: '<code>whoami</code>, <code>instance list</code>, <code>status</code>, <code>vars list</code> and <code>deploy --detach</code> take <code>--json</code>. <code>logs</code> is text only. With <code>--json</code>, stdout is empty when the command fails.' }
   - { q: 'Where does the CLI print errors?', a: 'On stderr, as <code>Error: &lt;message&gt;</code> with at most one hint line under it. Data goes to stdout and everything else, including <code>Using instance &lt;url&gt;</code>, goes to stderr.' }
@@ -17,7 +17,7 @@ faq:
 ---
 
 The CLI groups its commands by what they act on: your login, the folder you are in, and templates.
-This page matches CLI 0.1.0, the first stable release, on npm's `latest` tag. For a walk-through
+This page matches CLI 0.1.1, the current stable release, on npm's `latest` tag. For a walk-through
 in order, read the [CLI guide](/docs/cli); for automation, see
 [CI recipes](/docs/cli/ci); for exit codes and error messages, see
 [troubleshooting](/docs/cli/troubleshooting).
@@ -542,6 +542,34 @@ config file under a template's `files/` may end in `.js`, for an app that reads 
 JavaScript module; other scripts (`.sh`, `.py`, `.mjs`, `.cjs`, `.ts`) are refused. An old
 `catalogue.json` is refused with a message naming `catalogue.zip`.
 
+#### How a template says to sign in: `signIn`
+
+A template's `template.yaml` may say how a person signs in to the app once it runs, in an optional
+`signIn` block. The [get-started wizard](/docs/guide/get-started#sign-in-to-your-new-app) shows it on
+its done card. It takes one of two forms:
+
+```yaml
+# An account made at setup: the inputs that hold it
+signIn:
+  username: ADMIN_EMAIL   # optional: an input, or { value: admin }
+  password: ADMIN_PASSWORD  # an input holding a secret
+  path: /admin            # optional: the sign-in page, when not /
+  domain: admin           # optional: another Domain, by its service
+
+# Or an account made on the first visit
+signIn:
+  firstVisit: { path: /ghost, note: Create the owner account. }
+```
+
+A password held in a `value` input is taken when its text is exactly one reference to a secret
+input, such as `ADMIN_PASSWORD: { value: "{{ADMIN_PASSWORD_RANDOM}}" }` with
+`ADMIN_PASSWORD_RANDOM: { generate: password }`. The check refuses both forms at once, a setup form
+with no `password`, an input the template has no rule for or its compose file does not read, a
+`domain` that `domains` does not list or that several of its Domains share, and a `password` that
+is not a secret (asked with `secret: true`, or generated as a password, hex or base64). A template
+with `signIn` names `cloudgate: "0.3.11"`, so an older Instance hides it. CLI 0.1.0 refuses every
+template that has it; update to 0.1.1.
+
 ### cloudgate template pack
 
 ```text
@@ -597,5 +625,5 @@ admin_email: owner@northwind.example
 `template check` skips the file and `template pack` leaves it out of `catalogue.zip`.
 
 `template check` and `template pack` arrived in 0.0.2-beta.2, `template try` and `test-values.yaml`
-in 0.0.2-beta.3, and the `.js` config file in 0.1.0. An Instance older than 0.3.0 refuses a
+in 0.0.2-beta.3, the `.js` config file in 0.1.0, and `signIn` in 0.1.1. An Instance older than 0.3.0 refuses a
 catalogue that holds a `.js` config file.
