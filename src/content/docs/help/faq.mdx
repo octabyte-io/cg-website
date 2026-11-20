@@ -4,7 +4,7 @@ seoTitle: 'Cloudgate FAQ: answers about plans, data, agents and hosting'
 description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, security and access, and AI agents over MCP.
 lede: Short, direct answers to the questions people ask most, grouped by topic. Each one links to the page that covers it in full.
 section: help
-updated: '2026-11-15'
+updated: '2026-11-20'
 order: 3
 navTitle: FAQ
 badges: ['Hosted and self-hosted']
@@ -38,8 +38,9 @@ from Cloudgate in the console. See [Servers](/docs/guide/servers) and [Bought Se
 
 ### Do I need a domain name?
 
-No. A free sslip.io address that points at your Server works straight away, over plain HTTP. Add your
-own domain when you want HTTPS. See [Domains](/docs/guide/domains).
+No. A free sslip.io address that points at your Server works straight away, served over HTTPS with
+a Let's Encrypt certificate when the Server's address is public, and plain HTTP on a private one.
+Add your own domain when you want a name people remember. See [Domains](/docs/guide/domains).
 
 ### Can I deploy without a Dockerfile?
 

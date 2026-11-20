@@ -4,7 +4,7 @@ seoTitle: 'Cloudgate quickstart: put your first app online in minutes'
 description: Deploy your first app with Cloudgate in minutes, from an app template in the get-started wizard, your own code in the console, or a folder with the CLI.
 lede: Three ways to a running app, from the quickest to the most hands-on. Pick the tab that matches what you have, a ready-made app, your own code in git, or a folder on your computer.
 section: start
-updated: '2026-11-15'
+updated: '2026-11-20'
 order: 1
 navTitle: Quickstart
 badges: ['Hosted and self-hosted', 'Owner or Admin']
@@ -15,9 +15,9 @@ howto:
     - { name: Choose where it runs, text: 'Use a Server you already have, get a server from Cloudgate (Hosted only), or connect your own server over SSH.' }
     - { name: Fill in the details, text: 'Answer the values the app asks for. Passwords and keys it needs are made for you.' }
     - { name: Deploy, text: 'Press Deploy. Cloudgate makes a Project with a production Environment, applies the setup once the Server is ready, and shows the address.' }
-    - { name: Open the app, text: 'Press Open to visit the app at its free sslip.io address, then add your own domain for HTTPS.' }
+    - { name: Open the app, text: 'Press Open to visit the app at its free sslip.io address, served over HTTPS when the Server''s address is public.' }
 faq:
-  - { q: Do I need a domain name to start?, a: 'No. A free sslip.io address works straight away, over plain HTTP. Add your own domain later and Cloudgate gets a Let''s Encrypt certificate for it.' }
+  - { q: Do I need a domain name to start?, a: 'No. A free sslip.io address works straight away. On a Server with a public address it is served over HTTPS with a Let''s Encrypt certificate; on a private address it is plain HTTP. Add your own domain whenever you want a name people remember.' }
   - { q: Do I need my own server?, a: 'You need a Server or a Cloud account before anything can deploy. On the Hosted instance the wizard can buy one for you; otherwise bring any Ubuntu machine you can reach over SSH as root or a user with passwordless sudo.' }
   - { q: Can a member who is not an owner or admin use the wizard?, a: 'Only with a Server that already exists. Adding or buying a Server needs an owner or admin, and the wizard tells a member to ask one.' }
   - { q: How long does it take?, a: 'Buying a server and setting it up usually takes a few minutes, and you can leave the page while it carries on. Connecting your own server takes as long as its setup run: installing Docker, a Swarm and Traefik.' }
@@ -200,7 +200,8 @@ has a Deployment with its log, and an address. From here:
 <Callout type="limit" title="Before your first app">
   - Nothing deploys until the Organization has a Server or a Cloud account. On the Hosted instance
     an Environment cannot even be made before that.
-  - The sslip.io address is plain HTTP. HTTPS needs a Domain you own.
+  - On a Server with a private address, the sslip.io address is plain HTTP, since no certificate
+    authority can reach it.
   - The wizard starts from an app template only. Your own code goes through the console, a git
     push or the CLI.
   - The CLI deploys Applications only. It creates a Project only from **Create a new Project**, and

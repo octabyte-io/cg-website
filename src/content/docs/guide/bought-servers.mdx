@@ -2,24 +2,27 @@
 title: Buy a Server from Cloudgate
 navTitle: Bought Servers
 seoTitle: 'Buy a ready-to-use Server from Cloudgate in the console'
-description: Buy a Server in the Cloudgate console by location and size, with optional backups and extra storage, billed monthly in advance on your Hosted plan invoice.
+description: Buy a Server in the Cloudgate console by location, size and operating system, with optional backups and extra storage, billed monthly on your Hosted invoice.
 lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you. No SSH keys or setup commands needed.
 section: guide
 group: Where it runs
 order: 2
+updated: '2026-11-20'
 badges: ['Hosted only', 'Owner or Admin']
 howto:
   name: Buy a Server
   steps:
     - { name: 'Open Buy a Server', text: 'In Servers, press Buy a Server.' }
     - { name: 'Pick a location', text: 'Choose a location on the map. Show where I am highlights the nearest ones.' }
-    - { name: 'Pick a size', text: 'Choose a size sold in that location, and optionally backups and extra storage.' }
+    - { name: 'Pick a size and operating system', text: 'Choose a size sold in that location and its operating system, and optionally backups and extra storage.' }
     - { name: 'Buy', text: 'Check the summary of the monthly price and today''s charge, accept the terms and press Buy.' }
     - { name: 'Wait until ready', text: 'The Server is created and set up by itself. It can take Services once it is Ready.' }
 faq:
   - { q: 'Is a bought Server included in the free trial?', a: 'No. A bought Server is charged at once, even during the free trial.' }
   - { q: 'How is a bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The summary shows the monthly price and today''s charge before you buy.' }
   - { q: 'Can I make a bought Server bigger later?', a: 'Yes. Change size moves it up or down among the sizes sold in its location. The machine is powered off for a few minutes, and its disk is not grown.' }
+  - { q: 'Which operating system does a bought Server run?', a: 'Ubuntu 24.04 unless you pick another. The Operating system select lists the images the chosen size''s architecture can run, and the summary names the one you picked.' }
+  - { q: 'Why is my bought Server refused as a deploy target?', a: 'An operator powered it off. Its notice says Powered off by an operator, with the reason and a link to support. Deploys, rollbacks, starts, uploads and previews are refused until it is powered on again, and a Template setup waits for it.' }
   - { q: 'What happens if a payment fails?', a: 'The Server is due for deletion 7 days after the failed invoice. A red bar shows the date. Pay before then to keep it.' }
 ---
 
@@ -29,7 +32,7 @@ You do not need to make an SSH key or run the setup: Cloudgate does both.
 
 ## What you can do
 
-- Buy a Server by location and size, from a world map.
+- Buy a Server by location, size and operating system, from a world map.
 - Add backups of the Server, and extra storage from 10 GB to 10 TB.
 - Change its size up or down, turn backups on or off, and grow its storage later.
 - Delete it, with the unused part of the month credited.
@@ -42,22 +45,28 @@ In **Servers**, press **Buy a Server**. You can also get here from the
 [get-started wizard](/docs/guide/get-started) by choosing **Get a server from Cloudgate**.
 </Step>
 <Step title="Pick a location">
-Choose a location on the world map. **Show where I am** highlights the ones near you, using your
-browser's time zone; it is never sent anywhere.
+The screen opens on two suggestions, **Closest** and **Cheapest**. Or choose a location on the
+world map: **Show where I am** highlights the ones near you, using your browser's time zone; it is
+never sent anywhere.
 <Screenshot name="servers-buy" alt="The Buy a Server page with a world map of locations, a list of sizes and a price summary" caption="Pick a location, then a size; sizes not sold there are greyed out." />
 </Step>
-<Step title="Pick a size and extras">
-Choose a size sold in that location; sizes not sold there are greyed out. Optionally turn on
-backups and add extra storage, from 10 GB to 10 TB.
+<Step title="Pick a size, operating system and extras">
+Choose a size sold in that location; sizes not sold there are greyed out. Sizes come in four
+families: **Standard**, **Performance**, **Arm** and **Dedicated**. The **Operating system**
+select lists only the images the size's architecture can run and opens on Ubuntu 24.04; Buy refuses
+an image the size cannot run. Optionally turn on backups and add extra storage, from 10 GB to
+10 TB.
 </Step>
 <Step title="Check the summary and buy">
-The summary shows the monthly price, today's charge and the dates. Tick that you accept Octabyte's
+The summary stays in view as you scroll and shows the operating system, the monthly price, today's
+charge and the dates. Tick that you accept Octabyte's
 terms and acceptable-use policy, then press **Buy**. The first time, your bank may ask you to
 confirm the payment (3D Secure).
 </Step>
 <Step title="Wait until it is ready">
 The Server moves through **Waiting for payment**, **Creating**, **Setting up** and **Ready**. Its
-first setup run starts by itself. Nothing deploys onto it until it is ready.
+first setup run starts by itself, after waiting up to ten minutes for the new machine to accept
+SSH. Nothing deploys onto it until it is ready.
 </Step>
 </Steps>
 
@@ -90,6 +99,14 @@ unused part of the month is credited.
 Unlike a Server you added over SSH, deleting a bought Server destroys the machine and everything on
 it. Back up the databases and volumes you need first; see [Backups](/docs/guide/backups).
 </Callout>
+
+## If an operator powers it off
+
+An operator of the Hosted instance can power off a bought Server. Its notice then says
+**Powered off by an operator**, gives the reason and links support. While it is off, a deploy, a
+rollback, a Start or restart, a Run now, an upload and a preview are refused with a message naming
+the Server, a Template setup waits for it to be powered on instead of applying, and the build-server
+pickers leave it out.
 
 ## If a payment fails
 

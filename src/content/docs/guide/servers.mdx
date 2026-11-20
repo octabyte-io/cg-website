@@ -6,7 +6,7 @@ lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto
 section: guide
 group: Where it runs
 order: 1
-updated: '2026-11-17'
+updated: '2026-11-20'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Add a Server over SSH
@@ -126,8 +126,8 @@ port also forgets it.
   [Monitoring](/docs/guide/monitoring).
 - **Docker & Swarm**: Swarm services, containers, the join command and nodes.
 - **Access**: the SSH key (**Change the key**) and the host key.
-- **Terminal**: **Open a shell** over SSH. Cloudgate records nothing you run there and undoes none
-  of it.
+- **Shell**: **Open a shell** over SSH, at `/servers/<id>/shell` (the old `/terminal` address
+  forwards there). Cloudgate records nothing you run there and undoes none of it.
 - **Settings**: name and connection (saving checks nothing; use **Check now**), **Setup command**,
   **Prune Docker nightly**, **Request logging** and **Request metrics**. Turning either of the last
   two on restarts Traefik on that Server.

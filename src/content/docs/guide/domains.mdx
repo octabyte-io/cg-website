@@ -4,7 +4,7 @@ seoTitle: Add a custom domain and HTTPS to a Service
 description: Point your own domain at a Service, get a Let's Encrypt certificate, use a free sslip.io address, add redirects and run behind a CDN, on a Server or in a cloud.
 lede: A Domain is a host, and optionally a path, that a Service answers on. Add one when you want people to reach an Application at your own address, over HTTPS.
 section: guide
-updated: '2026-11-17'
+updated: '2026-11-20'
 group: Operate
 order: 1
 navTitle: Domains
@@ -19,7 +19,8 @@ howto:
     - { name: Save, text: 'Press Add domain. Changes reach Traefik as soon as they are saved.' }
 faq:
   - { q: Does Cloudgate create DNS records for me?, a: 'No. Cloudgate never writes DNS. The console shows the record to create at your DNS provider and checks it once you have.' }
-  - { q: Is the free sslip.io address served over HTTPS?, a: 'When you press <strong>Generate one for me</strong> on a server with a public address, yes: it turns on HTTPS with a Let''s Encrypt certificate. On a private address it stays plain HTTP. The address the Get started wizard makes is plain HTTP.' }
+  - { q: Is the free sslip.io address served over HTTPS?, a: 'When you press <strong>Generate one for me</strong> on a server with a public address, yes: it turns on HTTPS with a Let''s Encrypt certificate. On a private address it stays plain HTTP. The Get started wizard and a Template setup follow the same rule.' }
+  - { q: Why does my browser warn about the certificate on a new Domain?, a: 'Until Let''s Encrypt issues the certificate, Traefik serves its own self-signed one. The Domains tab says issuing until the real certificate is served, usually under a minute, then valid until a date. If it says not issued yet, check that the A record points at the Server and that port 80 is reachable.' }
   - { q: Can I put Cloudflare or another CDN in front?, a: 'Yes, but Cloudgate has no CDN integration. The DNS check recognises Cloudflare, Bunny CDN, Fastly and Arvancloud and stops at the proxy. If the CDN terminates TLS, turn Serve over HTTPS off.' }
   - { q: What happens to DNS when I remove a Domain?, a: 'Nothing. Removing a Domain removes only the route in Cloudgate. Delete the record at your DNS provider yourself.' }
 ---
@@ -83,6 +84,24 @@ Press **Add domain**. Changes reach Traefik as soon as they are saved.
 The Application now answers at `https://shop.northwind.example`. Let's Encrypt issues the
 certificate on the first request after the record resolves; DNS changes can take a while to
 spread.
+
+## Check that the HTTPS certificate is issued
+
+Until Let's Encrypt answers, Traefik serves its own self-signed certificate, and a browser warns
+about it. Cloudgate reads the certificate the Domain's host really serves, and the **Certificate**
+column of the **Domains** tab says which of three it is:
+
+- **Let's Encrypt · issuing, usually under a minute**: the self-signed certificate is still served.
+  The tab reads it again every few seconds.
+- **Let's Encrypt · valid until** a date: the real certificate is served.
+- **Let's Encrypt · not issued yet**: no certificate has come. Check that the A record points at the
+  Server's address and that port 80 is reachable; each attempt is in the Server's Traefik log.
+
+The Service's Overview says the same beside its address while the certificate is issuing or not
+issued. A stored or custom certificate warns only when what the host serves would not be trusted.
+The [get-started wizard](/docs/guide/get-started) waits on the same read, under **Getting its HTTPS
+certificate**, before it shows **Open**. A script can ask it too, at
+`GET /domains/:id/served-certificate`; see the [API](/docs/api).
 
 ## Use a free sslip.io address
 

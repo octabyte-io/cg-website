@@ -5,7 +5,7 @@ seoTitle: Describe a Project in cloudgate.yaml with Plans
 description: Describe a Project's Services in one cloudgate.yaml, kept in Cloudgate or your repository, and review each Plan of creates, changes and destroys before Apply.
 lede: The Project config is one YAML file that says what a Project runs. You change the file; Cloudgate shows a Plan for each Environment, and nothing happens until you Apply it.
 section: guide
-updated: '2026-11-13'
+updated: '2026-11-20'
 group: Deploy
 order: 6
 badges: ['Members can read and plan', 'Applying needs permission on each Service']
@@ -151,7 +151,9 @@ Open the Project, for example `storefront`, and its **Config** tab.
 <Step title="Edit and plan">
 Change the text and press **Save and plan**. Cloudgate plans each Environment below; nothing is
 applied, and the text is stored only when a Plan of it is applied. **Discard edits** throws the
-change away.
+change away. For a long config, **Expand** opens it filling the browser window, with **Save and
+plan** in its top bar and a status line saying whether the YAML is valid; **Back to page** or Esc
+returns with your edit kept.
 </Step>
 <Step title="Review the Plan">
 Each Environment's Plan lists **Creates**, **Changes** and **Destroys**, plus drift, notes, held
@@ -250,7 +252,7 @@ reads `main`.
 
 From then on, a push to the Config branch makes a Plan for that Environment, and **Check for
 changes** makes one on demand. The console shows the file read-only and never writes to your
-repository. **Move into Cloudgate** brings it back, keeping the copy from the default branch or
+repository; each Environment's copy expands to fill the window, read-only. **Move into Cloudgate** brings it back, keeping the copy from the default branch or
 from an Environment's branch. A move applies nothing; it shows each Environment's Plan first.
 
 <Callout type="limit" title="Repository-kept configs">

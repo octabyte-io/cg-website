@@ -7,6 +7,7 @@ lede: The get-started wizard is the shortest way from "I want this app" to a run
 section: guide
 group: Deploy
 order: 1
+updated: '2026-11-20'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Deploy an app with the get-started wizard
@@ -14,10 +15,12 @@ howto:
     - { name: 'Pick an app', text: 'On the template catalogue website, open the app you want and press its Deploy button. The console opens the wizard.' }
     - { name: 'Sign in', text: 'Sign in, or create an account. The wizard remembers which app you picked.' }
     - { name: 'Choose where it runs', text: 'Use a Server you already have, get a server from Cloudgate (Hosted only), or connect your own server with the one command the wizard gives you.' }
-    - { name: 'Deploy', text: 'Fill in the few values the app asks for and press Deploy. Cloudgate applies the setup once the Server is ready.' }
-    - { name: 'Open the app', text: 'When it is running, press Open to visit the address Cloudgate made for you.' }
+    - { name: 'Deploy', text: 'Fill in the few values the app asks for, keep or change the web address, and press Deploy. Cloudgate applies the setup once the Server is ready.' }
+    - { name: 'Open the app and sign in', text: 'When it is running and its HTTPS certificate is issued, press Open. The done card says how to sign in to the app.' }
 faq:
-  - { q: 'Do I need my own domain name to start?', a: 'No. Cloudgate makes a free sslip.io address that works straight away over plain HTTP. Add your own domain later to get HTTPS.' }
+  - { q: 'Do I need my own domain name to start?', a: 'No. Cloudgate makes a free sslip.io address for the app. On a server with a public address it is served over HTTPS with a Let''s Encrypt certificate; on a private address it is plain HTTP. You can type your own domain instead, or add one later.' }
+  - { q: 'How do I sign in to the app the wizard deployed?', a: 'The done card has a How to sign in block when the template says how: the username and password made at setup, with Show and Copy, or the page where the app makes its first account. A template that says nothing shows no block; the password is then on the stack''s Variables tab.' }
+  - { q: 'Why does Open take a little longer than the deploy?', a: 'On an HTTPS address the wizard waits for Let''s Encrypt to issue the certificate, under the stage Getting its HTTPS certificate, usually under a minute. Until then the server answers with a self-signed certificate, which a browser warns about.' }
   - { q: 'Can I use a server I already rent?', a: 'Yes. Choose Use my own server, enter its address and SSH details, and run the one command the wizard shows on that server. You need SSH access to it.' }
   - { q: 'Why did my app not start by itself?', a: 'Cloudgate applies the setup on its own only when the Plan holds nothing but what the wizard asked for. If anything else is in it, the Plan waits for you to review and Apply it, and the wizard says why.' }
   - { q: 'Does the wizard work for every template?', a: 'It works for any app in the catalogue that the Server can take. If the app is not in the catalogue the console you use offers, the wizard says so.' }
@@ -33,7 +36,10 @@ payment or confirm your email and land back where you were.
 - Deploy any app from the template catalogue in three steps, without writing any configuration.
 - Run it on a Server you already added, a server you buy from Cloudgate (Hosted only), or a server
   you rent elsewhere, such as a VPS.
-- Get a working web address at once, with passwords and keys the app needs made for you.
+- Get a working web address at once, over HTTPS on a server with a public address, with passwords
+  and keys the app needs made for you.
+- See each step as it happens: the server's setup, the launch and the deploy's output.
+- Read how to sign in to the app on the last screen.
 
 ## Deploy an app
 
@@ -66,26 +72,39 @@ mkdir -p ~/.ssh && echo "ssh-ed25519 AAAA... cloudgate" >> ~/.ssh/authorized_key
 ```
 
 Copy the exact line from the wizard (it holds your real key), run it on the server, then press
-**Save and continue** and **Connect my server**. Progress shows **Signed in to your server**,
-then **Installing what apps need**, then **Ready**.
+**Save and continue** and **Connect my server**. The progress says which of the setup's eight steps
+is running and shows the machine's newest line of output, so a long install never looks stuck.
 </Step>
 <Step title="Or wait for your bought server">
-If you chose to buy one, pay at checkout. The wizard then shows **Payment**, **Creating your
-server**, **Setting it up** and **Ready to use**. Nothing deploys until the server is ready.
+If you chose to buy one, the wizard offers every option the
+[Buy a Server](/docs/guide/bought-servers) screen has: the location on a world map, the size, the
+operating system, backups and extra storage. Pay at checkout; the card confirmation says how long
+it has taken. Once you have bought, the next step opens at once, with the server's progress
+(**Payment**, **Creating your server**, **Setting it up**, **Ready to use**) in a strip above it,
+so you can fill in the details while it is made. Nothing deploys until the server is ready.
 Reloading the page is safe: the wizard picks up where it was.
 </Step>
 <Step title="Fill in the details and deploy">
-The last step asks only for the values the app needs. **Passwords and keys it needs are made for
-you.** A summary, **What Deploy makes**, lists the Server, a **New Project** named after the app
-and the **Web address** (**Made for you**). Press **Deploy Ghost** (with your app's name).
+The last step, **A few details for Ghost** (with your app's name), asks only for the values the
+app needs. **Passwords and keys it needs are made for you.** Under **Web address** the wizard has
+filled in a free sslip.io host; type your own domain instead and it shows the A record to create,
+with **Check DNS**, as a [Template setup](/docs/guide/templates) does. **Where it goes** says the
+Project, Environment, Server and setup name; **More options** picks an existing Project instead of
+a new one named after the app, and changes the Project and setup names. Press **Deploy Ghost**.
+</Step>
+<Step title="Watch it launch">
+The launch shows its stages, **Preparing Ghost**, **Starting Ghost** and **Ghost is running**, with the
+deploy's own output. On an HTTPS address it adds **Getting its HTTPS certificate** and waits for
+Let's Encrypt, usually under a minute, so your first click does not land on a browser warning.
 </Step>
 <Step title="Open your app">
 When the app is running, the wizard shows its address, a button to open it, **Open the Project**,
-and **What next**. Open the address to finish the app's own first-run setup.
+**How to sign in** when the template says, and **What next**, which links straight to the stack's
+**Variables** tab. Open the address to finish the app's own first-run setup.
 </Step>
 </Steps>
 
-What you get: a new Project named after the app, with a `production` Environment on your Server,
+What you get: a Project, new and named after the app unless you picked one, with a `production` Environment on your Server,
 and the app's Services deployed in it. From here it is an ordinary Project: see
 [Projects and Environments](/docs/guide/projects-and-environments).
 
@@ -96,11 +115,29 @@ the Plan holds more, it is left for you to review and **Apply**, and the wizard 
 refused Apply also says why.
 </Callout>
 
-## Add HTTPS with your own domain
+## Sign in to your new app
 
-The address the wizard makes is a free `sslip.io` host, served over plain HTTP. To serve the app
-over HTTPS, add your own domain to its Service, for example `shop.northwind.example`, and point
-its DNS at the Server. See [Domains and HTTPS](/docs/guide/domains).
+A template may say how a person signs in once the app runs, and the done card follows it under
+**How to sign in**:
+
+- **An account made at setup**: the username (when the app asks one) and the password, masked, with
+  **Show** and **Copy**. They are read from the stack's own variables, so a member whose role cannot
+  read them sees no password. When the sign-in page is not the home page, or is on another Domain
+  such as an admin dashboard, **Open /admin** (with its path) goes straight there.
+- **An account made on the first visit**: where to open the app to make the first account, such as
+  `/ghost` for Ghost.
+
+A template that says neither shows no block. Its generated passwords are still on the stack's
+**Variables** tab. Template authors write this as `signIn` in `template.yaml`; see
+[`signIn` in the CLI reference](/docs/cli/commands#how-a-template-says-to-sign-in-signin).
+
+## HTTPS and your own domain
+
+The address the wizard makes is a free `sslip.io` host. On a server with a public address it is
+served over HTTPS with a Let's Encrypt certificate; on a private address, which no certificate
+authority can reach, it is plain HTTP. For your own name, type your domain in the details step,
+or add it to the Service later, for example `shop.northwind.example`, and point its DNS at the
+Server. See [Domains and HTTPS](/docs/guide/domains).
 
 ## If you have no plan yet
 
@@ -120,8 +157,9 @@ role that allows it). A member without it is told to ask the Organization's owne
 </Callout>
 
 - Buying a server is offered only on the Hosted instance, and only where buying is set up.
-- The wizard always makes a new Project. To add a template to an existing Project, use
-  [Templates](/docs/guide/templates) in the console instead.
+- The wizard makes a new Project unless you pick one under **More options**, and it deploys onto
+  a Server. To set an app up in a Cloud Environment, use [Templates](/docs/guide/templates) in the
+  console instead.
 - Cloudgate cannot apply the setup by itself for a Project whose config is kept in a repository;
   you paste the template's part into your `cloudgate.yaml` instead.
 - An app installed from a template gets no updates from the catalogue afterwards.
