@@ -1,0 +1,188 @@
+---
+// Hero prototype G: "The gate, abstract". The mark's three slices drawn huge, with light passing down
+// through them and the keyhole cut out of the middle. Not indexed.
+import Base from '../../layouts/Base.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+
+// The mark's three clip polygons (Mark.astro), times ten, in a 640 x 640 box.
+const slices = [
+  { p: '0,0 250,0 170,640 0,640', g: 'g1', label: 'Console' },
+  { p: '280,0 440,0 360,640 200,640', g: 'g2', label: 'AI agent' },
+  { p: '470,0 640,0 640,640 390,640', g: 'g3', label: 'Terminal' },
+];
+---
+
+<Base title="Hero prototype G: the gate, abstract" description="Prototype of an abstract home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="copy">
+        <h1>The gate between your code and servers you own</h1>
+        <p class="lede">
+          Cloudgate builds and runs your apps, databases and AI models on your own server, AWS or Google Cloud, with
+          domains, https, backups and monitoring set up. Three ways in: the console, your terminal, your AI agent.
+        </p>
+        <div class="actions">
+          <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+          <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+        </div>
+        <p class="aside">Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
+      </div>
+
+      <div class="art" aria-hidden="true">
+        <svg viewBox="20 140 600 390">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0.3" style="stop-color: var(--slice-1)" />
+              <stop offset="1" style="stop-color: var(--slice-1); stop-opacity: 0.35" />
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0.3" style="stop-color: var(--slice-2)" />
+              <stop offset="1" style="stop-color: var(--slice-2); stop-opacity: 0.35" />
+            </linearGradient>
+            <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0.3" style="stop-color: var(--slice-3)" />
+              <stop offset="1" style="stop-color: var(--slice-3); stop-opacity: 0.35" />
+            </linearGradient>
+            <linearGradient id="sweep" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" stop-opacity="0" />
+              <stop offset="0.5" style="stop-color: var(--beam-c)" stop-opacity="0.9" />
+              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <g id="cloud"><rect x="30" y="330" width="580" height="190" rx="95" /><circle cx="190" cy="340" r="95" /><circle cx="370" cy="280" r="130" /><circle cx="500" cy="355" r="80" /></g>
+            {slices.map((s, i) => <clipPath id={`c${i}`}><polygon points={s.p} /></clipPath>)}
+            <mask id="key" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="640">
+              <rect width="640" height="640" fill="#fff" />
+              <circle cx="317" cy="340" r="28" fill="#000" />
+              <path d="M306 350 L294 425 H332 L328 350 Z" fill="#000" />
+            </mask>
+            <clipPath id="cloudclip"><use href="#cloud" /></clipPath>
+          </defs>
+          <g mask="url(#key)">
+            {slices.map((s, i) => (
+              <g clip-path={`url(#c${i})`}>
+                <use class="sl" href="#cloud" fill={`url(#${s.g})`} />
+              </g>
+            ))}
+            <g clip-path="url(#cloudclip)">
+              {slices.map((s, i) => (
+                <g clip-path={`url(#c${i})`}><rect class="sweep" x="0" y="0" width="640" height="160" fill="url(#sweep)" /></g>
+              ))}
+            </g>
+          </g>
+        </svg>
+        <ol class="legend">
+          {slices.map((s, i) => <li><span class={`slice ${i ? `slice--${i + 1}` : ''}`}></span>{s.label}</li>)}
+        </ol>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-9);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: center;
+  }
+  .copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  h1 {
+    font-size: clamp(2.4rem, 5.4vw, 4.5rem);
+    letter-spacing: -0.045em;
+  }
+  .lede {
+    max-width: 54ch;
+  }
+  .aside {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .art {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .art::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 10%;
+    background: radial-gradient(closest-side, var(--glow), transparent);
+    filter: blur(40px);
+  }
+  .art svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .sweep {
+    opacity: 0.5;
+    transform: translateY(240px);
+  }
+
+  .legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .legend .slice {
+    width: 4px;
+    height: 16px;
+    border-radius: 2px;
+  }
+
+  /* Motion: a band of warm light falls down through the slices every few seconds. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .sweep {
+      animation: fall 5.5s var(--ease-in-out) infinite;
+    }
+  }
+  @keyframes fall {
+    0% { transform: translateY(0); }
+    70%, 100% { transform: translateY(560px); }
+  }
+
+  @media (max-width: 960px) {
+    .hero {
+      padding-block: var(--space-8);
+    }
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-7);
+    }
+    .art {
+      max-width: 440px;
+      justify-self: center;
+      width: 100%;
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

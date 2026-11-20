@@ -1,0 +1,487 @@
+---
+// Hero prototype J: "Isometric cloud city". A cloud-shaped platform with the three places to run standing on it,
+// and Services dropping onto them. Not linked, not indexed. Only for choosing a direction.
+import Base from '../../layouts/Base.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+
+// Isometric projection: ground x runs down-right, ground y down-left, z straight up (1 unit = 1 px).
+const C = Math.cos(Math.PI / 6);
+const r = (n: number) => Math.round(n * 10) / 10;
+const iso = (ax: number, ay: number, x: number, y: number, z = 0): [number, number] => [
+  r(ax + (x - y) * C),
+  r(ay + (x + y) * 0.5 - z),
+];
+const pts = (list: [number, number][]) => list.map((p) => p.join(',')).join(' ');
+
+type Box = { x: number; y: number; w: number; d: number; h: number };
+// The three faces a viewer sees of a box standing at ground (x, y) on an anchor point.
+function faces(ax: number, ay: number, b: Box, z0 = 0) {
+  const P = (x: number, y: number, z: number) => iso(ax, ay, b.x + x, b.y + y, z0 + z);
+  return {
+    top: pts([P(0, 0, b.h), P(b.w, 0, b.h), P(b.w, b.d, b.h), P(0, b.d, b.h)]),
+    left: pts([P(0, b.d, 0), P(b.w, b.d, 0), P(b.w, b.d, b.h), P(0, b.d, b.h)]),
+    right: pts([P(b.w, 0, 0), P(b.w, b.d, 0), P(b.w, b.d, b.h), P(b.w, 0, b.h)]),
+    // Origin of the left face, for text set along it.
+    leftOrigin: P(0, b.d, 0),
+  };
+}
+
+// The cloud platform: overlapping isometric discs (ellipses at the 30-degree ratio) with a thickness.
+const T = 26;
+const lobes = [
+  { cx: 205, cy: 338, rx: 112 },
+  { cx: 312, cy: 306, rx: 170 },
+  { cx: 500, cy: 274, rx: 236 },
+  { cx: 690, cy: 306, rx: 170 },
+  { cx: 798, cy: 338, rx: 112 },
+  { cx: 412, cy: 356, rx: 172 },
+  { cx: 596, cy: 356, rx: 172 },
+].map((l) => ({ ...l, ry: r(l.rx * Math.tan(Math.PI / 6)) }));
+const sidePath = (l: (typeof lobes)[number]) =>
+  `M${l.cx - l.rx} ${l.cy} L${l.cx - l.rx} ${l.cy + T} A${l.rx} ${l.ry} 0 0 0 ${l.cx + l.rx} ${l.cy + T} L${l.cx + l.rx} ${l.cy} Z`;
+
+// A faint isometric grid on the platform's top, clipped to it.
+const gridLines: string[] = [];
+for (let k = -520; k <= 520; k += 44) {
+  const a = iso(500, 300, k, -520);
+  const b = iso(500, 300, k, 520);
+  const c = iso(500, 300, -520, k);
+  const d = iso(500, 300, 520, k);
+  gridLines.push(`M${a.join(' ')} L${b.join(' ')}`, `M${c.join(' ')} L${d.join(' ')}`);
+}
+
+// Three places to run, each a group of blocks in its slice tone.
+const groups = [
+  {
+    id: 'server',
+    name: 'Your server',
+    tone: 1,
+    ax: 290,
+    ay: 300,
+    label: [290, 404],
+    blocks: [{ x: -36, y: -28, w: 72, d: 56, h: 150, rack: true }],
+  },
+  {
+    id: 'aws',
+    name: 'AWS',
+    tone: 2,
+    ax: 500,
+    ay: 270,
+    label: [500, 404],
+    blocks: [
+      { x: -62, y: -46, w: 60, d: 44, h: 112 },
+      { x: 2, y: -46, w: 60, d: 44, h: 70 },
+      { x: -62, y: 2, w: 60, d: 44, h: 54 },
+      { x: 2, y: 2, w: 60, d: 44, h: 90 },
+    ],
+  },
+  {
+    id: 'gcp',
+    name: 'Google Cloud',
+    tone: 3,
+    ax: 716,
+    ay: 298,
+    label: [716, 404],
+    blocks: [
+      { x: -46, y: -44, w: 58, d: 42, h: 96 },
+      { x: 16, y: -44, w: 36, d: 42, h: 40 },
+      { x: -46, y: 2, w: 58, d: 42, h: 58 },
+    ],
+  },
+].map((g) => ({
+  ...g,
+  raw: g.blocks,
+  blocks: g.blocks
+    .slice()
+    .sort((p, q) => p.x + p.y - (q.x + q.y))
+    .map((b) => {
+      const f = faces(g.ax, g.ay, b);
+      // Rack units: lines across the front (left) face, with a status light near each.
+      const units =
+        'rack' in b && b.rack
+          ? Array.from({ length: 6 }, (_, i) => {
+              const z = 20 + i * 22;
+              const a = iso(g.ax, g.ay, b.x + 6, b.y + b.d, z);
+              const e = iso(g.ax, g.ay, b.x + b.w - 6, b.y + b.d, z);
+              const led = iso(g.ax, g.ay, b.x + 12, b.y + b.d, z + 9);
+              const slot = iso(g.ax, g.ay, b.x + 22, b.y + b.d, z + 9);
+              const slotEnd = iso(g.ax, g.ay, b.x + b.w - 10, b.y + b.d, z + 9);
+              return { line: `M${a.join(' ')} L${e.join(' ')}`, led, slot: `M${slot.join(' ')} L${slotEnd.join(' ')}` };
+            })
+          : [];
+      return { ...b, f, units };
+    }),
+}));
+
+// Services that drop onto the blocks, in this order. Each sits centred on the named block's top.
+const CW = 54;
+const CD = 30;
+const CH = 20;
+const drops = [
+  { name: 'web', group: 'aws', block: 3 },
+  { name: 'postgres', group: 'server', block: 0 },
+  { name: 'redis', group: 'gcp', block: 0 },
+  { name: 'cron', group: 'gcp', block: 2 },
+].map((s, i) => {
+  const g = groups.find((x) => x.id === s.group)!;
+  const src = g.raw[s.block];
+  const box = { x: src.x + (src.w - CW) / 2, y: src.y + (src.d - CD) / 2, w: CW, d: CD, h: CH };
+  const f = faces(g.ax, g.ay, box, src.h);
+  return { ...s, i: i + 1, f, behind: src };
+});
+// A drop draws right after the block it lands on, so blocks in front still cover it.
+const dropFor = (gid: string, b: { x: number; y: number }) =>
+  drops.filter((d) => d.group === gid && d.behind.x === b.x && d.behind.y === b.y);
+---
+
+<Base title="Hero prototype J: isometric cloud city" description="Prototype of an isometric illustrated home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="wrap inner">
+      <h1>Build your own cloud on servers you own</h1>
+      <p class="lede">
+        Cloudgate builds and runs your apps, databases and AI models on your own server, AWS or Google Cloud, with
+        domains, https, backups and monitoring set up. Click Deploy, run one command, or let your AI agent do it.
+      </p>
+      <div class="actions">
+        <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+        <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+      </div>
+
+      <figure class="city">
+        <svg
+          viewBox="60 40 880 420"
+          width="880"
+          height="420"
+          role="img"
+          aria-label="A cloud-shaped platform holding your own server, AWS and Google Cloud. A web app, a Postgres database, Redis and a cron job land on them and show Running."
+        >
+          <defs>
+            <radialGradient id="j-shadow">
+              <stop offset="0" class="shadow-stop" />
+              <stop offset="1" class="shadow-stop shadow-stop--end" />
+            </radialGradient>
+            <clipPath id="j-top">
+              {lobes.map((l) => <ellipse cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry} />)}
+            </clipPath>
+          </defs>
+
+          <ellipse class="shadow" cx="500" cy="420" rx="430" ry="70" fill="url(#j-shadow)" />
+
+          <g class="platform">
+            {lobes.map((l) => <path class="edge" d={sidePath(l)} />)}
+            {lobes.map((l) => <path class="side" d={sidePath(l)} />)}
+            {lobes.map((l) => <ellipse class="edge" cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry} />)}
+            {lobes.map((l) => <ellipse class="top" cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry} />)}
+            <path class="grid" clip-path="url(#j-top)" d={gridLines.join(' ')} />
+          </g>
+
+          {groups.map((g) => (
+            <g class={`group tone-${g.tone}`}>
+              <ellipse class="foot" cx={g.ax} cy={g.ay + 12} rx={g.id === 'server' ? 70 : 104} ry={g.id === 'server' ? 40 : 60} />
+              {g.blocks.map((b) => (
+                <>
+                  <g class="block">
+                    <polygon class="f-left" points={b.f.left} />
+                    <polygon class="f-right" points={b.f.right} />
+                    <polygon class="f-top" points={b.f.top} />
+                    {b.units.map((u) => (
+                      <>
+                        <path class="unit" d={u.line} />
+                        <path class="slot" d={u.slot} />
+                        <circle class="led" cx={u.led[0]} cy={u.led[1]} r="1.8" />
+                      </>
+                    ))}
+                  </g>
+                  {dropFor(g.id, b).map((d) => (
+                    <g class={`drop drop-${d.i}`}>
+                      <polygon class="c-left" points={d.f.left} />
+                      <polygon class="c-right" points={d.f.right} />
+                      <polygon class="c-top" points={d.f.top} />
+                      <text
+                        class="c-name"
+                        transform={`matrix(${r(C)} 0.5 0 1 ${d.f.leftOrigin[0]} ${d.f.leftOrigin[1]})`}
+                        x="6"
+                        y="-6.5"
+                      >
+                        {d.name}
+                      </text>
+                    </g>
+                  ))}
+                </>
+              ))}
+            </g>
+          ))}
+
+          {groups.map((g) => (
+            <g class={`label tone-${g.tone}`} transform={`translate(${g.label[0]} ${g.label[1]})`}>
+              <text text-anchor="middle" y="5">{g.name}</text>
+            </g>
+          ))}
+
+          <g class="chip" transform="translate(612 118)">
+            <g class="chip-in">
+              <rect x="0" y="0" width="92" height="28" rx="14" />
+              <circle cx="17" cy="14" r="4" />
+              <text x="28" y="18.5">Running</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption class="legend">
+          {groups.map((g) => (
+            <span><i class={`swatch tone-${g.tone}`}></i>{g.name}</span>
+          ))}
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-8) var(--space-8);
+  }
+  .inner {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-5);
+  }
+  h1 {
+    max-width: 17ch;
+    font-size: var(--text-hero);
+    letter-spacing: -0.045em;
+  }
+  .lede {
+    max-width: 60ch;
+  }
+  .actions {
+    justify-content: center;
+  }
+
+  /* The illustration */
+  .city {
+    width: 100%;
+    max-width: 980px;
+    margin: var(--space-4) 0 0;
+  }
+  .city svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .shadow-stop {
+    stop-color: var(--glow);
+  }
+  .shadow-stop--end {
+    stop-opacity: 0;
+  }
+
+  /* Platform: strokes drawn under the fills, so only the cloud's outer outline shows. */
+  .platform .edge {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 2;
+  }
+  .platform .side {
+    fill: color-mix(in srgb, var(--line-strong) 45%, var(--paper-2));
+  }
+  .platform .top {
+    fill: var(--surface);
+  }
+  .platform .grid {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  /* Blocks: the slice tone on top, two darker sides from the night tone, hairline edges in the page tone. */
+  .tone-1 {
+    --tone: var(--slice-1);
+  }
+  .tone-2 {
+    --tone: var(--slice-2);
+  }
+  .tone-3 {
+    --tone: var(--slice-3);
+  }
+  .foot {
+    fill: color-mix(in srgb, var(--tone) 10%, transparent);
+  }
+  .block polygon {
+    stroke: color-mix(in srgb, var(--paper) 75%, transparent);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+  .f-top {
+    fill: var(--tone);
+  }
+  .f-left {
+    fill: color-mix(in srgb, var(--tone) 74%, var(--night));
+  }
+  .f-right {
+    fill: color-mix(in srgb, var(--tone) 52%, var(--night));
+  }
+  .unit {
+    stroke: color-mix(in srgb, var(--tone) 50%, var(--night));
+    stroke-width: 1;
+  }
+  .slot {
+    stroke: color-mix(in srgb, var(--tone) 40%, var(--night));
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .led {
+    fill: var(--live);
+  }
+
+  /* Services: neutral boxes with their name on the front face. */
+  .drop polygon {
+    stroke: var(--line-strong);
+    stroke-width: 0.75;
+    stroke-linejoin: round;
+  }
+  .c-top {
+    fill: var(--surface);
+  }
+  .c-left {
+    fill: color-mix(in srgb, var(--surface) 88%, var(--line-strong));
+  }
+  .c-right {
+    fill: color-mix(in srgb, var(--surface) 55%, var(--line-strong));
+  }
+  .c-name {
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 600;
+    fill: var(--ink);
+  }
+
+  .label text {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--ink-2);
+  }
+
+  .chip rect {
+    fill: var(--live-tint);
+    stroke: color-mix(in srgb, var(--live) 45%, transparent);
+    stroke-width: 1;
+  }
+  .chip circle {
+    fill: var(--live);
+  }
+  .chip text {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--live);
+  }
+
+  .legend {
+    display: none;
+  }
+
+  /* Motion: Services drop onto the blocks one after another, then Running shows; a slow 12s loop. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .drop,
+    :global(.js) .chip-in {
+      animation: 12s var(--ease-out) infinite both;
+    }
+    :global(.js) .drop-1 {
+      animation-name: drop-1;
+    }
+    :global(.js) .drop-2 {
+      animation-name: drop-2;
+    }
+    :global(.js) .drop-3 {
+      animation-name: drop-3;
+    }
+    :global(.js) .drop-4 {
+      animation-name: drop-4;
+    }
+    :global(.js) .chip-in {
+      animation-name: chip;
+      transform-box: fill-box;
+      transform-origin: 50% 50%;
+    }
+    :global(.js) .city {
+      animation: rise 900ms var(--ease-out) both;
+    }
+  }
+  @keyframes drop-1 {
+    0%, 4% { transform: translateY(-48px); opacity: 0; }
+    10%, 86% { transform: none; opacity: 1; }
+    92%, 100% { transform: none; opacity: 0; }
+  }
+  @keyframes drop-2 {
+    0%, 12% { transform: translateY(-48px); opacity: 0; }
+    18%, 86% { transform: none; opacity: 1; }
+    92%, 100% { transform: none; opacity: 0; }
+  }
+  @keyframes drop-3 {
+    0%, 20% { transform: translateY(-48px); opacity: 0; }
+    26%, 86% { transform: none; opacity: 1; }
+    92%, 100% { transform: none; opacity: 0; }
+  }
+  @keyframes drop-4 {
+    0%, 28% { transform: translateY(-48px); opacity: 0; }
+    34%, 86% { transform: none; opacity: 1; }
+    92%, 100% { transform: none; opacity: 0; }
+  }
+  @keyframes chip {
+    0%, 38% { transform: translateY(6px) scale(0.96); opacity: 0; }
+    43%, 86% { transform: none; opacity: 1; }
+    92%, 100% { transform: none; opacity: 0; }
+  }
+  @keyframes rise {
+    from { transform: translateY(16px); }
+  }
+
+  @media (max-width: 720px) {
+    .hero {
+      padding-block: var(--space-8) var(--space-7);
+    }
+    .city {
+      margin-top: var(--space-4);
+    }
+    /* The SVG labels get too small to read; a legend under the picture takes their place. */
+    .label {
+      display: none;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-2) var(--space-5);
+      margin-top: var(--space-4);
+      font-size: var(--text-sm);
+      color: var(--ink-2);
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      background: var(--tone);
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+  }
+</style>

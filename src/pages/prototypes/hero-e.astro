@@ -1,0 +1,282 @@
+---
+// Hero prototype E: "Galaxy". The gate at the centre of a small solar system: ways in and places to
+// run orbit it. Stars are box-shadows from a seeded generator, so the HTML is static. Not indexed.
+import Base from '../../layouts/Base.astro';
+import Mark from '../../components/Mark.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const stars = (n: number) =>
+  Array.from({ length: n }, () => `${Math.round(rnd() * 2000)}px ${Math.round(rnd() * 1100)}px currentColor`).join(',');
+const s1 = stars(140);
+const s2 = stars(60);
+const s3 = stars(22);
+
+// Two orbits. Each body sits at an angle on its ring; the ring turns, the label turns back.
+const inner = [
+  { a: 200, t: 'Console', s: '' },
+  { a: 320, t: 'AI agent', s: 'slice--2' },
+  { a: 80, t: 'Terminal', s: 'slice--3' },
+];
+const outer = [
+  { a: 160, t: 'Your server', s: '' },
+  { a: 250, t: 'AWS', s: 'slice--2' },
+  { a: 20, t: 'Google Cloud', s: 'slice--3' },
+  { a: 300, t: 'Postgres', s: 'slice--2', minor: true },
+  { a: 110, t: 'Ollama', s: 'slice--3', minor: true },
+];
+---
+
+<Base title="Hero prototype E: galaxy" description="Prototype of a galaxy home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="sky" aria-hidden="true">
+      <i class="stars s1" style={`box-shadow:${s1}`}></i>
+      <i class="stars s2" style={`box-shadow:${s2}`}></i>
+      <i class="stars s3" style={`box-shadow:${s3}`}></i>
+      <div class="nebula"></div>
+    </div>
+
+    <div class="wrap inner">
+      <h1>All your servers. <br />One place to deploy.</h1>
+      <p class="lede">
+        Cloudgate builds and runs your apps, databases and AI models on your own server, AWS or Google Cloud, with
+        domains, https, backups and monitoring set up. Deploy from the console, your terminal or your AI agent.
+      </p>
+      <div class="actions">
+        <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+        <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+      </div>
+    </div>
+
+    <div class="system" aria-hidden="true">
+      <div class="orbit o3"></div>
+      <div class="orbit o2">
+        {outer.map((b) => (
+          <span class:list={['body', { minor: b.minor }]} style={`--a:${b.a}deg`}><span class="tag"><span class={`slice ${b.s}`}></span>{b.t}</span></span>
+        ))}
+      </div>
+      <div class="orbit o1">
+        {inner.map((b) => (
+          <span class="body" style={`--a:${b.a}deg`}><span class="tag"><span class={`slice ${b.s}`}></span>{b.t}</span></span>
+        ))}
+      </div>
+      <div class="sun"><Mark size={84} /></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-top: var(--space-9);
+    min-height: 1080px;
+    background: radial-gradient(120% 70% at 50% 100%, color-mix(in srgb, var(--brand) 14%, var(--paper)), var(--paper) 70%);
+  }
+  .sky {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    color: var(--ink);
+  }
+  .stars {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    border-radius: 50%;
+  }
+  .s1 {
+    opacity: 0.35;
+  }
+  .s2 {
+    width: 2px;
+    height: 2px;
+    opacity: 0.5;
+    color: var(--brand);
+  }
+  .s3 {
+    width: 3px;
+    height: 3px;
+    opacity: 0.7;
+    color: var(--beam-c);
+  }
+  .nebula {
+    position: absolute;
+    left: 50%;
+    bottom: -10%;
+    width: 1100px;
+    height: 600px;
+    transform: translateX(-50%) rotate(-12deg);
+    background:
+      radial-gradient(closest-side at 40% 50%, color-mix(in srgb, var(--beam-a) 45%, transparent), transparent),
+      radial-gradient(closest-side at 65% 45%, color-mix(in srgb, var(--beam-c) 30%, transparent), transparent);
+    filter: blur(60px);
+    opacity: 0.6;
+  }
+  .inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-5);
+  }
+  h1 {
+    font-size: clamp(2.4rem, 6.2vw, 4.8rem);
+    letter-spacing: -0.045em;
+  }
+  .lede {
+    max-width: 60ch;
+  }
+  .actions {
+    justify-content: center;
+  }
+
+  /* The solar system: flattened by a perspective tilt, so the rings read as ellipses. */
+  .system {
+    position: absolute;
+    left: 50%;
+    top: 760px;
+    width: 0;
+    height: 0;
+  }
+  .orbit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent);
+    transform: translate(-50%, -50%) scaleY(0.36);
+  }
+  .o1 {
+    width: 560px;
+    height: 560px;
+  }
+  .o2 {
+    width: 1000px;
+    height: 1000px;
+    border-color: color-mix(in srgb, var(--brand) 25%, transparent);
+  }
+  .o3 {
+    width: 1500px;
+    height: 1500px;
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--brand) 14%, transparent);
+  }
+  /* A body: placed at its angle on the (unsquashed) circle, then un-squashed so the tag stays round. */
+  .body {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform: rotate(var(--a)) translateX(calc(var(--r) / 2)) rotate(calc(-1 * var(--a)));
+  }
+  .o1 .body {
+    --r: 560px;
+  }
+  .o2 .body {
+    --r: 1000px;
+  }
+  .tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    color: var(--ink);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 10px 30px -12px var(--glow);
+    transform: translate(-50%, -50%) scaleY(2.778);
+  }
+  .tag .slice {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .sun {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 150px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--surface) 92%, transparent) 55%, transparent 72%);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--brand) 40%, transparent),
+      0 0 120px 20px var(--glow);
+  }
+
+  /* Motion: the rings turn slowly, each body turns back so its tag stays level; stars twinkle. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .o1 .body {
+      animation: orbit 60s linear infinite;
+    }
+    :global(.js) .o2 .body {
+      animation: orbit 110s linear infinite;
+    }
+    :global(.js) .s2 {
+      animation: twinkle 5s ease-in-out infinite alternate;
+    }
+    :global(.js) .s3 {
+      animation: twinkle 7s ease-in-out 1s infinite alternate;
+    }
+  }
+  @keyframes orbit {
+    from {
+      transform: rotate(var(--a)) translateX(calc(var(--r) / 2)) rotate(calc(-1 * var(--a)));
+    }
+    to {
+      transform: rotate(calc(var(--a) + 360deg)) translateX(calc(var(--r) / 2)) rotate(calc(-1 * var(--a) - 360deg));
+    }
+  }
+  @keyframes twinkle {
+    to {
+      opacity: 0.15;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .hero {
+      min-height: 860px;
+      padding-top: var(--space-8);
+    }
+    h1 br {
+      display: none;
+    }
+    .system {
+      top: 640px;
+      transform: scale(0.5);
+    }
+    .minor {
+      display: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+    .system {
+      top: 700px;
+    }
+  }
+</style>

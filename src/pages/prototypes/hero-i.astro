@@ -1,0 +1,414 @@
+---
+// Hero prototype I: "Constellation". Copy on the left; on the right a network of nodes and thin lines,
+// drawn like a star constellation, that traces the outline of the Cloudgate mark (Mark.astro: a pill
+// plus three circles, viewBox "3 15 58 37"). A few nodes carry the Services Cloudgate runs; the three
+// places to run sit under the base, one per slice. Not indexed.
+import Base from '../../layouts/Base.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+
+// Mark coordinates (3..61 x 15..52) scaled 9x into a 602 x 413 box with a 40-unit margin.
+const W = 602;
+const H = 413;
+const X = (x: number) => +((x - 3) * 9 + 40).toFixed(1);
+const Y = (y: number) => +((y - 15) * 9 + 40).toFixed(1);
+
+// Points on the outline of the mark's union (pill, left circle, big circle, right circle), plus a few
+// inside it. `s` is the slice the point falls in (1, 2, 3), which sets its tone.
+type N = { id: string; x: number; y: number; s: 1 | 2 | 3; big?: boolean };
+const raw: [string, number, number][] = [
+  ['a', 3, 42.5],
+  ['b', 5.8, 35.8],
+  ['c', 9.8, 31.5],
+  ['c2', 12.3, 27.3],
+  ['d', 17.35, 24.65],
+  ['e', 24.15, 26],
+  ['f', 25.75, 21.5],
+  ['g', 31.5, 16.2],
+  ['g2', 39.25, 15.2],
+  ['h', 46.2, 18.8],
+  ['i', 50, 27.5],
+  ['j', 55.65, 29.85],
+  ['j2', 57.9, 34.1],
+  ['k', 61, 42.5],
+  ['l', 58.2, 49.2],
+  ['m', 44, 52],
+  ['n', 32, 52],
+  ['o', 20, 52],
+  ['p', 5.8, 49.2],
+  // inside
+  ['hub', 31.7, 34],
+  ['q', 20.5, 40.5],
+  ['r', 44, 40.5],
+  ['t', 36, 23.5],
+];
+// The slice borders in Mark.astro: x = 25 - y/8 and x = 44 - y/8.
+const sliceOf = (x: number, y: number): 1 | 2 | 3 => (x < 25 - y / 8 ? 1 : x < 44 - y / 8 ? 2 : 3);
+const nodes: N[] = raw.map(([id, x, y]) => ({ id, x: X(x), y: Y(y), s: sliceOf(x, y), big: id === 'hub' }));
+const at = Object.fromEntries(nodes.map((n) => [n.id, n]));
+
+// Edges: the outline loop, then a few lines inside, like a constellation's figure.
+const ring = ['a', 'b', 'c', 'c2', 'd', 'e', 'f', 'g', 'g2', 'h', 'i', 'j', 'j2', 'k', 'l', 'm', 'n', 'o', 'p', 'a'];
+const edges: [string, string][] = ring.slice(1).map((id, i) => [ring[i], id]);
+edges.push(['hub', 'q'], ['q', 'o'], ['q', 'b'], ['hub', 'r'], ['r', 'm'], ['r', 'j'], ['hub', 't'], ['t', 'g2'], ['t', 'e'], ['t', 'i'], ['hub', 'n']);
+const inner = new Set(['hub', 'q', 'r', 't']);
+
+// Faint dashed slice borders, clipped by eye to the shape.
+const cuts = [
+  [X(25 - 22 / 8), Y(22), X(25 - 52 / 8), Y(52)],
+  [X(44 - 16 / 8), Y(16), X(44 - 52 / 8), Y(52)],
+];
+
+// Pulses: each follows a short chain of edges. Path strings in the SVG's user units.
+const chain = (ids: string[]) => 'M' + ids.map((id) => `${at[id].x} ${at[id].y}`).join(' L');
+const pulses = [
+  { d: chain(['o', 'q', 'hub', 't', 'g2']), s: 1, dur: 9, delay: 0 },
+  { d: chain(['n', 'hub', 'r', 'j']), s: 2, dur: 8, delay: 3 },
+  { d: chain(['m', 'r', 'hub', 'q', 'b']), s: 3, dur: 10, delay: 6 },
+  { d: chain(['e', 'f', 'g', 'g2', 'h', 'i']), s: 2, dur: 11, delay: 1.5 },
+];
+
+// Labels: what runs (Service kinds and databases) on the outline, where it runs under the base.
+// `side` places the label beside its node.
+const kinds = [
+  { n: 'a', t: 'postgres', side: 'l' },
+  { n: 'd', t: 'cron', side: 'tl' },
+  { n: 'g2', t: 'web', side: 't' },
+  { n: 'h', t: 'worker', side: 'tr' },
+  { n: 'j', t: 'redis', side: 'tr' },
+  { n: 'k', t: 'ollama', side: 'r' },
+  { n: 'p', t: 'bucket', side: 'bl', minor: true },
+];
+const places = [
+  { n: 'o', t: 'Your server', s: '' },
+  { n: 'n', t: 'AWS', s: 'slice--2' },
+  { n: 'm', t: 'Google Cloud', s: 'slice--3' },
+];
+const pct = (n: N) => `left:${((n.x / W) * 100).toFixed(2)}%;top:${((n.y / H) * 100).toFixed(2)}%`;
+---
+
+<Base title="Hero prototype I: constellation" description="Prototype of a constellation home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="wrap inner">
+      <div class="copy">
+        <h1>Every app, database and model, deployed to servers you own</h1>
+        <p class="lede">
+          Cloudgate builds and runs your apps, databases and AI models on your own server, AWS or Google Cloud, with
+          domains, https, backups and monitoring set up. Click Deploy, run one command, or let your AI agent do it.
+        </p>
+        <div class="actions">
+          <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+          <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+        </div>
+      </div>
+
+      <figure
+        class="sky"
+        role="img"
+        aria-label="A network of web, worker, cron, postgres, redis, bucket and ollama Services, joined in the shape of the Cloudgate cloud, running on your own server, AWS or Google Cloud."
+      >
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden="true" focusable="false">
+          <g class="cuts">
+            {cuts.map(([x1, y1, x2, y2]) => <line x1={x1} y1={y1} x2={x2} y2={y2} />)}
+          </g>
+          <g class="edges">
+            {edges.map(([a, b]) => (
+              <line class:list={{ in: inner.has(a) || inner.has(b) }} x1={at[a].x} y1={at[a].y} x2={at[b].x} y2={at[b].y} />
+            ))}
+          </g>
+          <g class="pulses">
+            {pulses.map((p) => (
+              <circle class={`pulse t${p.s}`} r="3.2" style={`offset-path:path('${p.d}');--dur:${p.dur}s;--delay:${p.delay}s`} />
+            ))}
+          </g>
+          <g class="nodes">
+            {nodes.map((n, i) => (
+              <g class={`node t${n.s}`} transform={`translate(${n.x} ${n.y})`}>
+                {n.big ? (
+                  <>
+                    <circle class="halo" r="16" />
+                    <circle class="ring" r="9" />
+                    <circle class="core" r="4.5" />
+                  </>
+                ) : (
+                  <>
+                    <circle class="halo" r="7" />
+                    <circle class="core" r={inner.has(n.id) ? 2.6 : 3.4} style={`--tw:${5 + (i % 4) * 1.3}s;--twd:${-((i * 1.7) % 6)}s`} />
+                  </>
+                )}
+              </g>
+            ))}
+          </g>
+        </svg>
+
+        {kinds.map((k) => (
+          <span class:list={['kind', `side-${k.side}`, { minor: k.minor }]} style={pct(at[k.n])}>{k.t}</span>
+        ))}
+        <span class="places">
+          {places.map((p) => (
+            <span class="place" style={pct(at[p.n])}><span class={`slice ${p.s}`}></span>{p.t}</span>
+          ))}
+        </span>
+      </figure>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-9) var(--space-8);
+  }
+  .grid-bg {
+    mask-image: radial-gradient(70% 80% at 72% 45%, #000, transparent 75%);
+  }
+  .inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: var(--space-7);
+    align-items: center;
+  }
+  .copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  h1 {
+    max-width: 14ch;
+    font-size: var(--text-hero);
+    letter-spacing: -0.045em;
+  }
+  .lede {
+    max-width: 50ch;
+    margin: 0;
+  }
+
+  /* The constellation. Labels are HTML over the SVG so their type stays the same size at any width. */
+  .sky {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 602 / 413;
+    width: 100%;
+  }
+  .sky::before {
+    content: '';
+    position: absolute;
+    inset: 8% 10%;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--glow), transparent);
+    opacity: 0.55;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .cuts line {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+  }
+  .edges line {
+    stroke: color-mix(in srgb, var(--brand) 42%, transparent);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .edges line.in {
+    stroke: color-mix(in srgb, var(--brand) 22%, transparent);
+  }
+  .t1 {
+    --tone: var(--slice-1);
+  }
+  .t2 {
+    --tone: var(--slice-2);
+  }
+  .t3 {
+    --tone: var(--slice-3);
+  }
+  .node .core {
+    fill: var(--tone);
+  }
+  .node .halo {
+    fill: color-mix(in srgb, var(--tone) 16%, transparent);
+  }
+  .node .ring {
+    fill: var(--paper);
+    stroke: var(--brand);
+    stroke-width: 1.2;
+  }
+  .node .ring + .core {
+    fill: var(--brand);
+  }
+  .pulse {
+    fill: var(--beam-c);
+    opacity: 0;
+    offset-distance: 0%;
+    offset-rotate: 0deg;
+  }
+  .pulse.t2 {
+    fill: var(--brand-hi);
+  }
+  .pulse.t3 {
+    fill: var(--beam-b);
+  }
+
+  .kind,
+  .place {
+    position: absolute;
+    white-space: nowrap;
+    font-size: var(--text-xs);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .kind {
+    font-family: var(--font-mono);
+    color: var(--muted);
+    --gap: 14px;
+  }
+  .side-l {
+    transform: translate(calc(-100% - var(--gap)), -50%);
+  }
+  .side-r {
+    transform: translate(var(--gap), -50%);
+  }
+  .side-t {
+    transform: translate(-50%, calc(-100% - var(--gap)));
+  }
+  .side-tl {
+    transform: translate(calc(-100% - 10px), calc(-100% - 6px));
+  }
+  .side-tr {
+    transform: translate(10px, calc(-100% - 6px));
+  }
+  .side-bl {
+    transform: translate(calc(-100% - 10px), 6px);
+  }
+  .places {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .place {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+    transform: translate(-50%, 22px);
+  }
+  .place .slice {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  /* Motion: nodes twinkle on slow, offset loops; a pulse of light runs along a chain of edges now and then. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .node .core:not(.ring + .core) {
+      animation: twinkle var(--tw, 6s) ease-in-out var(--twd, 0s) infinite alternate;
+    }
+    :global(.js) .node .ring {
+      animation: breathe 6s var(--ease-in-out) infinite alternate;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    :global(.js) .pulse {
+      animation: travel var(--dur) var(--ease-in-out) var(--delay) infinite;
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    40% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.35;
+    }
+  }
+  @keyframes breathe {
+    to {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes travel {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+    6% {
+      opacity: 0.95;
+    }
+    48% {
+      offset-distance: 100%;
+      opacity: 0.95;
+    }
+    54%,
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    h1 {
+      max-width: 18ch;
+    }
+    .sky {
+      width: min(100%, 620px);
+      justify-self: center;
+      margin-block: var(--space-4) var(--space-6);
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      padding-block: var(--space-8) var(--space-6);
+    }
+    .sky {
+      width: 70%;
+      margin-bottom: calc(var(--space-6) + 2.5rem);
+    }
+    .kind {
+      --gap: 8px;
+      font-size: calc(var(--text-xs) * 0.85);
+    }
+    .minor {
+      display: none;
+    }
+    /* The three places leave the outline and sit in one centred row under it. */
+    .places {
+      inset: auto -30% calc(-1 * var(--space-6) - 0.5rem);
+      display: flex;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+    .place {
+      position: static;
+      padding: 0.3rem 0.55rem;
+      font-size: var(--text-xs);
+      transform: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+  }
+</style>
