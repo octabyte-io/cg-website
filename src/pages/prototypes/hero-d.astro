@@ -1,0 +1,282 @@
+---
+// Hero prototype D: "One command". Terminal-first, for developers. Not indexed.
+import Base from '../../layouts/Base.astro';
+import { site, trialDays, installCommand } from '../../data/site';
+---
+
+<Base title="Hero prototype D: one command to deploy" description="Prototype of a terminal-first home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap inner">
+      <div class="top">
+        <h1>Deploy any app to your own server with one command</h1>
+        <div class="side">
+          <p class="lede">
+            Point Cloudgate at a folder, a git repo or a Docker image. It builds it, runs it on your server, AWS or
+            Google Cloud, and gives it a domain with https, backups and monitoring. Prefer clicking? The console does
+            the same. So can your AI agent.
+          </p>
+          <div class="actions">
+            <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+            <a class="btn btn--ghost btn--lg" href="/cli">Read the CLI guide</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="install">
+        <code><span class="d">$</span> npm install -g @octabyte-io/cloudgate</code>
+        <button class="copy" type="button" data-copy="npm install -g @octabyte-io/cloudgate" aria-label="Copy the install command">Copy</button>
+      </div>
+
+      <div class="stage">
+        <div class="window term" aria-hidden="true">
+          <div class="window-bar">~/my-recipe-app</div>
+          <pre class="code" data-play style="--type-step:420ms"><code><span class="ln" style="--i:0"><span class="d">$</span> <span class="k">cloudgate deploy</span></span>
+<span class="ln" style="--i:1"><span class="d">Deploying</span> recipes-web <span class="d">to</span> recipes / production</span>
+<span class="ln" style="--i:2"><span class="d">Uploading 9 changed files, 48 KB (205 unchanged)…</span></span>
+<span class="ln" style="--i:3"><span class="d">Deployment</span> dpl_4f2c <span class="d">queued</span></span>
+<span class="ln" style="--i:4"><span class="d">  install</span>  npm ci</span>
+<span class="ln" style="--i:5"><span class="d">  build</span>    npm run build</span>
+<span class="ln" style="--i:6"><span class="d">  start</span>    npm start</span>
+<span class="ln" style="--i:7"><span class="s">✓</span> Deployment dpl_4f2c <span class="s">done</span></span>
+<span class="ln" style="--i:8"><span class="d">$</span> <span class="cursor"></span></span></code></pre>
+        </div>
+        <div class="window browser" aria-hidden="true">
+          <div class="window-bar">recipes.example.com</div>
+          <div class="app">
+            <p class="app-name">My Recipes</p>
+            <p class="app-h">What are we cooking tonight?</p>
+            <div class="tiles"><i></i><i></i><i></i></div>
+            <p class="app-status"><span class="dot"></span>Running on your server, Frankfurt</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="aside">
+        Run Cloudgate yourself, free: <code>{installCommand}</code>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy ?? '');
+        b.textContent = 'Copied';
+        setTimeout(() => (b.textContent = 'Copy'), 1600);
+      } catch {}
+    }),
+  );
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-9) var(--space-8);
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    left: 20%;
+    bottom: -20%;
+    width: 70%;
+    height: 60%;
+    background: radial-gradient(closest-side, var(--glow), transparent);
+    filter: blur(40px);
+  }
+  .inner {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: end;
+  }
+  h1 {
+    font-size: clamp(2.4rem, 5.6vw, 4.6rem);
+    letter-spacing: -0.045em;
+  }
+  .side {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .lede {
+    font-size: var(--text-md);
+  }
+
+  .install {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--night);
+    border: 1px solid var(--night-line);
+    color: var(--night-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    max-width: 560px;
+  }
+  .install code {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .install .d {
+    color: var(--code-dim);
+  }
+  .copy {
+    flex: none;
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--night-line);
+    background: var(--night-2);
+    color: var(--night-ink);
+    font: 500 var(--text-sm) var(--font-sans);
+    cursor: pointer;
+    transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-fast);
+  }
+  .copy:hover {
+    background: var(--night-line);
+  }
+  .copy:active {
+    transform: scale(0.97);
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: stretch;
+    margin-top: var(--space-3);
+  }
+  .term .code {
+    border: 0;
+    border-radius: 0;
+    min-height: 100%;
+  }
+  .cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    vertical-align: -0.2em;
+    background: var(--night-brand);
+  }
+  .app {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+  }
+  .app-name {
+    margin: 0;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .app-h {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
+  .tiles i {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--brand-tint), var(--paper-2));
+    border: 1px solid var(--line);
+  }
+  .tiles i:nth-child(2) {
+    background: linear-gradient(135deg, var(--paper-2), color-mix(in srgb, var(--beam-c) 25%, var(--paper-2)));
+  }
+  .app-status {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+  .aside {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .aside code {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  /* Motion: the browser rises in once the terminal has printed "done". The cursor blinks slowly. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .browser {
+      animation: rise 700ms var(--ease-out) 3.4s both;
+    }
+    :global(.js) .cursor {
+      animation: blink 1.2s steps(1) infinite;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .top,
+    .stage {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      padding-block: var(--space-8) var(--space-7);
+    }
+    .install {
+      font-size: var(--text-xs);
+      padding-left: var(--space-4);
+    }
+    .term .code {
+      font-size: var(--text-xs);
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>

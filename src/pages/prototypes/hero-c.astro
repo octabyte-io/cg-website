@@ -1,0 +1,273 @@
+---
+// Hero prototype C: "Three ways in, three places to run". The mark's three slices as a diagram. Not indexed.
+import Base from '../../layouts/Base.astro';
+import Mark from '../../components/Mark.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+
+const ins = [
+  { s: '', t: 'In the console', d: 'Pick a template or a repo, press Deploy' },
+  { s: 'slice--2', t: 'From your AI agent', d: 'Its own key and role, over MCP' },
+  { s: 'slice--3', t: 'From your terminal', d: 'cloudgate deploy', mono: true },
+];
+const outs = [
+  { s: '', t: 'Your own server', d: 'Any Ubuntu machine, or one you buy from us' },
+  { s: 'slice--2', t: 'Your AWS account', d: 'ECS Fargate, RDS, S3 and CloudFront' },
+  { s: 'slice--3', t: 'Your Google Cloud', d: 'Cloud Run, Cloud SQL, Memorystore' },
+];
+// Curves from each side row's middle (y = 50, 150, 250) to the gate (y = 150), in a 160 x 300 box.
+const left = ['M0 50 C 90 50, 70 150, 160 150', 'M0 150 L160 150', 'M0 250 C 90 250, 70 150, 160 150'];
+const right = ['M0 150 C 90 150, 70 50, 160 50', 'M0 150 L160 150', 'M0 150 C 90 150, 70 250, 160 250'];
+---
+
+<Base title="Hero prototype C: three ways in, three places to run" description="Prototype of a diagram home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="wrap inner">
+      <h1>Deploy from anywhere to servers you own</h1>
+      <p class="lede">
+        Cloudgate builds and runs your apps, databases and AI models with domains, https, backups and monitoring set
+        up. Three ways in, three places to run, one Project config.
+      </p>
+      <div class="actions">
+        <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+        <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+      </div>
+
+      <div class="map" role="img" aria-label="The console, your AI agent and your terminal all deploy through Cloudgate to your own server, your AWS account or your Google Cloud project.">
+        <ul class="col col--in">
+          {ins.map((x) => (
+            <li class="node"><span class={`slice ${x.s}`}></span><span><b>{x.t}</b><span class={x.mono ? 'mono' : ''}>{x.d}</span></span></li>
+          ))}
+        </ul>
+        <svg class="wires" viewBox="0 0 160 300" width="160" height="300" aria-hidden="true">
+          {left.map((d, i) => <path class={`w w${i}`} d={d} />)}
+          {left.map((d, i) => <circle class={`p p${i}`} r="3" style={`offset-path: path('${d}')`} />)}
+        </svg>
+        <div class="gate">
+          <span class="gate-mark"><Mark size={72} /></span>
+          <ul>
+            <li>Builds</li>
+            <li>Domains and https</li>
+            <li>Backups</li>
+            <li>Logs and monitoring</li>
+          </ul>
+        </div>
+        <svg class="wires" viewBox="0 0 160 300" width="160" height="300" aria-hidden="true">
+          {right.map((d, i) => <path class={`w w${i}`} d={d} />)}
+          {right.map((d, i) => <circle class={`p p${i} late`} r="3" style={`offset-path: path('${d}')`} />)}
+        </svg>
+        <ul class="col col--out">
+          {outs.map((x) => (
+            <li class="node"><span class={`slice ${x.s}`}></span><span><b>{x.t}</b><span>{x.d}</span></span></li>
+          ))}
+        </ul>
+      </div>
+      <p class="aside">Rather run Cloudgate itself? <a href="/self-hosted">It is free to self-host</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-9) var(--space-8);
+  }
+  .inner {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-5);
+  }
+  h1 {
+    max-width: 16ch;
+    font-size: clamp(2.4rem, 6vw, 4.6rem);
+    letter-spacing: -0.045em;
+  }
+  .lede {
+    max-width: 58ch;
+  }
+  .actions {
+    justify-content: center;
+  }
+  .aside {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .map {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 160px auto 160px minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    margin-top: var(--space-7);
+    text-align: left;
+  }
+  .col {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-rows: repeat(3, 100px);
+    align-items: center;
+  }
+  .node {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, var(--line-strong), var(--line)) border-box;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 var(--panel-top);
+  }
+  .node > span:last-child {
+    display: grid;
+    min-width: 0;
+  }
+  .node b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .node span span {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .node .mono {
+    font-family: var(--font-mono);
+  }
+  .node .slice {
+    flex: none;
+    width: 6px;
+    height: 34px;
+    border-radius: 3px;
+  }
+  .wires {
+    display: block;
+    width: 160px;
+    height: 300px;
+    overflow: visible;
+  }
+  .w {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+  .p {
+    fill: var(--slice-1);
+    offset-distance: 100%;
+    opacity: 0;
+  }
+  .p1 {
+    fill: var(--slice-2);
+  }
+  .p2 {
+    fill: var(--slice-3);
+  }
+  .gate {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(180deg, color-mix(in srgb, var(--beam-b) 80%, transparent), var(--line-strong) 50%, color-mix(in srgb, var(--beam-c) 50%, transparent)) border-box;
+    border: 1px solid transparent;
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 0 0 6px color-mix(in srgb, var(--brand) 6%, transparent),
+      0 0 90px -10px var(--glow);
+  }
+  .gate ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+    text-align: center;
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+
+  /* Motion: a packet runs down each wire into the gate, then out to its place, on a slow loop. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .p {
+      animation: travel 4.8s var(--ease-in-out) infinite;
+    }
+    :global(.js) .p1 {
+      animation-delay: 1.6s;
+    }
+    :global(.js) .p2 {
+      animation-delay: 3.2s;
+    }
+    :global(.js) .late {
+      animation-name: travel-late;
+    }
+  }
+  @keyframes travel {
+    0% { offset-distance: 0%; opacity: 0; }
+    5% { opacity: 1; }
+    40% { offset-distance: 100%; opacity: 1; }
+    45%, 100% { offset-distance: 100%; opacity: 0; }
+  }
+  @keyframes travel-late {
+    0%, 45% { offset-distance: 0%; opacity: 0; }
+    50% { opacity: 1; }
+    85% { offset-distance: 100%; opacity: 1; }
+    90%, 100% { offset-distance: 100%; opacity: 0; }
+  }
+
+  /* Narrow screens: ways in on top, the gate, places to run below. No wires. */
+  @media (max-width: 960px) {
+    .map {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+      justify-items: stretch;
+    }
+    .wires {
+      display: none;
+    }
+    .col {
+      grid-template-rows: none;
+      gap: var(--space-2);
+    }
+    .gate {
+      justify-self: center;
+      grid-auto-flow: column;
+      align-items: center;
+      padding: var(--space-4) var(--space-5);
+    }
+    .gate ul {
+      text-align: left;
+    }
+    .col--in::after,
+    .col--out::before {
+      content: '';
+      justify-self: center;
+      width: 1.5px;
+      height: 24px;
+      background: var(--line-strong);
+    }
+    .col--out::before {
+      order: -1;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      padding-block: var(--space-8) var(--space-7);
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+  }
+</style>

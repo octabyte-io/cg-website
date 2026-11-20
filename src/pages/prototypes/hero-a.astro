@@ -1,0 +1,352 @@
+---
+// Hero prototype A: "Split, product on the right". Not linked, not indexed. Only for choosing a direction.
+import Base from '../../layouts/Base.astro';
+import { site, trialDays } from '../../data/site';
+import { templatesHome } from '../../data/template-links';
+---
+
+<Base title="Hero prototype A: split with live console" description="Prototype of a split home page hero for Cloudgate, kept out of search." noindex>
+  <section class="hero" data-loop>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="copy">
+        <h1>Deploy apps to servers you own</h1>
+        <p class="lede">
+          Cloudgate builds and runs your apps, databases and AI models on your own server, AWS or Google Cloud.
+          Domains, https, backups and monitoring come set up. Click Deploy, run one command, or let your AI agent do it.
+        </p>
+        <div class="actions">
+          <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+          <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+        </div>
+        <ul class="proof">
+          <li>Your own server, AWS or Google Cloud</li>
+          <li>Free to self-host</li>
+          <li>Works with any MCP client</li>
+        </ul>
+      </div>
+
+      <div class="shot window ui" aria-hidden="true">
+        <div class="window-bar">cloudgate.octabyte.app / shop / production</div>
+        <div class="ui-body">
+          <div class="svc">
+            <div>
+              <p class="svc-name">shop-web</p>
+              <p class="svc-meta">web · small · Your server, Frankfurt</p>
+            </div>
+            <span class="pill pill-live"><i></i>Running</span>
+          </div>
+          <p class="addr">https://shop.example.com</p>
+
+          <p class="sub">Deployments</p>
+          <ol class="deps">
+            <li class="dep dep--new">
+              <span class="slice slice--2"></span>
+              <span class="who"><span class="l1"><b>agent ops-bot</b> over MCP</span><span>fix-checkout · preview, expires in 60 min</span></span>
+              <span class="st"><span class="build">Building<span class="bar"><span></span></span></span><span class="done">Running</span></span>
+            </li>
+            <li class="dep">
+              <span class="slice slice--3"></span>
+              <span class="who"><span class="l1"><b>cloudgate deploy</b> from a terminal</span><span>main · 214 files, 9 changed</span></span>
+              <span class="st ok">Running</span>
+            </li>
+            <li class="dep">
+              <span class="slice"></span>
+              <span class="who"><span class="l1"><b>Maya</b> in the console</span><span>main · rollback to v41</span></span>
+              <span class="st old">Previous</span>
+            </li>
+          </ol>
+
+          <div class="metrics">
+            <div><span>CPU</span><b>18%</b><i class="spark s1"></i></div>
+            <div><span>Memory</span><b>412 MB</b><i class="spark s2"></i></div>
+            <div><span>Uptime check</span><b class="ok">Up</b><i class="spark s3"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--space-9) var(--space-9);
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    right: -10%;
+    top: 10%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(closest-side, var(--glow), transparent);
+    filter: blur(30px);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: var(--space-8);
+    align-items: center;
+  }
+  h1 {
+    font-size: clamp(2.5rem, 5.4vw, 4.4rem);
+    letter-spacing: -0.045em;
+  }
+  .copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .lede {
+    max-width: 52ch;
+  }
+  .proof {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .proof li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .proof li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+
+  .shot {
+    font-size: var(--text-sm);
+  }
+  .ui-body {
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+  }
+  .svc {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-4);
+  }
+  .svc-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 650;
+    color: var(--ink);
+  }
+  .svc-meta,
+  .sub {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+  .sub {
+    margin-top: var(--space-2);
+    font-weight: 500;
+  }
+  .addr {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--brand);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    background: var(--live-tint);
+    color: var(--live);
+  }
+  .pill i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .deps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .dep {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+  }
+  .dep + .dep {
+    border-top: 1px solid var(--line);
+  }
+  .dep .slice {
+    width: 4px;
+    height: 32px;
+    border-radius: 2px;
+  }
+  .who {
+    display: grid;
+    color: var(--ink-2);
+  }
+  .who b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .who > span:not(.l1) {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+  .st {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .st.ok,
+  .ok {
+    color: var(--live);
+  }
+  .st.old {
+    color: var(--muted);
+  }
+  .dep--new {
+    background: var(--brand-tint);
+  }
+  .st {
+    display: inline-grid;
+    justify-items: end;
+  }
+  .st > span {
+    grid-area: 1 / 1;
+  }
+  .build {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0;
+  }
+  .done {
+    color: var(--live);
+  }
+  .bar {
+    display: inline-block;
+    width: 48px;
+    height: 4px;
+    margin-left: 0.5rem;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+    vertical-align: middle;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: var(--brand);
+    transform-origin: left;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+  .metrics div {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .metrics span {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .metrics b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .metrics b.ok {
+    color: var(--live);
+  }
+  .spark {
+    height: 18px;
+    margin-top: 4px;
+    background: linear-gradient(90deg, var(--slice-3), var(--slice-1));
+    clip-path: polygon(0 80%, 15% 60%, 30% 70%, 45% 40%, 60% 55%, 75% 30%, 90% 45%, 100% 35%, 100% 100%, 0 100%);
+    opacity: 0.55;
+  }
+  .s2 {
+    clip-path: polygon(0 60%, 20% 55%, 40% 58%, 60% 50%, 80% 52%, 100% 48%, 100% 100%, 0 100%);
+  }
+  .s3 {
+    clip-path: polygon(0 30%, 100% 30%, 100% 100%, 0 100%);
+    background: var(--live);
+    opacity: 0.3;
+  }
+
+  /* Motion: the agent's preview builds, then turns Running, on a slow loop. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .build {
+      animation: show-build 7s infinite steps(1);
+    }
+    :global(.js) .done {
+      animation: show-done 7s infinite steps(1);
+    }
+    :global(.js) .bar span {
+      animation: fill 7s infinite var(--ease-in-out);
+    }
+    :global(.js) .shot {
+      animation: rise 900ms var(--ease-out) both;
+    }
+  }
+  @keyframes show-build {
+    0% { opacity: 1; }
+    55% { opacity: 0; }
+  }
+  @keyframes show-done {
+    0% { opacity: 0; }
+    55% { opacity: 1; }
+  }
+  @keyframes fill {
+    0% { transform: scaleX(0); }
+    50%, 100% { transform: scaleX(1); }
+  }
+  @keyframes rise {
+    from { transform: translateY(16px); }
+  }
+
+  @media (max-width: 960px) {
+    .hero {
+      padding-block: var(--space-8);
+    }
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-7);
+    }
+  }
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .metrics {
+      grid-template-columns: 1fr 1fr;
+    }
+    .metrics div:last-child {
+      display: none;
+    }
+  }
+</style>
