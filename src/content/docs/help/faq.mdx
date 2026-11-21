@@ -4,7 +4,7 @@ seoTitle: 'Cloudgate FAQ: answers about plans, data, agents and hosting'
 description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, security and access, and AI agents over MCP.
 lede: Short, direct answers to the questions people ask most, grouped by topic. Each one links to the page that covers it in full.
 section: help
-updated: '2026-11-20'
+updated: '2026-11-21'
 order: 3
 navTitle: FAQ
 badges: ['Hosted and self-hosted']
@@ -16,6 +16,7 @@ faq:
   - { q: How much does the Hosted instance cost?, a: 'Starter is 15 USD a month and Business 35 USD a month, each with 3 Servers and 3 Cloud Environments and a 30-day free trial. An Add-on adds one of each for 5 USD.' }
   - { q: Can I deploy without a Dockerfile?, a: 'Yes. Nixpacks, the default builder, works out how to build your code from its files. Railpack, buildpacks, static files and a ready-made Docker image are also options.' }
   - { q: Can an AI agent deploy for me?, a: 'Yes, as an Agent with the Operator role over MCP. It can deploy, start, stop, cancel and ask for previews and Plans within its grant, but never apply a Plan or change settings.' }
+  - { q: Where do I find help inside the console?, a: 'Open Help & support at the foot of the Organization rail. It links the Quickstart, the user guide, the CLI, MCP and API docs, Troubleshooting, the FAQ, Limits and the changelog, and gives the support address, support@octabyte.io.' }
   - { q: Are my secrets safe?, a: 'Secrets are encrypted at rest, API answers show only whether one is set, and every Agent result passes a mask that replaces stored secrets with dots.' }
 ---
 
@@ -128,6 +129,15 @@ such as `${{project.KEY}}`. See [Environment variables](/docs/guide/environment-
 
 Secrets are encrypted at rest, API answers say only whether a secret is set, and every Agent result
 passes a mask that replaces stored secrets with dots. See [Security](/security).
+
+### Where do I find help inside the console?
+
+Open **Help & support** at the foot of the Organization rail. It links the
+[Quickstart](/docs/quickstart), the [user guide](/docs/guide/get-started), the [CLI](/docs/cli),
+[MCP and agents](/docs/mcp) and the [API reference](/docs/api), the common answers
+([Troubleshooting](/docs/help/troubleshooting), this FAQ, [Limits](/docs/help/limits) and the
+[changelog](/changelog)), and the support address,
+[support@octabyte.io](mailto:support@octabyte.io), with **Email support** and a copy button.
 
 ### How do I report a bug or a security problem?
 

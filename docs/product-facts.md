@@ -38,6 +38,8 @@ account. A Deployment is one attempt to build and release a Service.
     give an **Open /admin** link. Or `firstVisit: { path, note }`: where to open the app to make the
     first account. No `signIn`, no block. **What next** links to the stack's Variables tab.
   - A Template setup for a new Project with nowhere to deploy opens Get started (0.3.11).
+  - **Show** on the How to sign in rows widens them to the card and wraps a long password whole
+    (0.3.12).
 - **CLI** `@octabyte-io/cloudgate` on npm (Node 22+). **0.1.1** is the current release (0.1.0 was
   the first stable one), on npm's `latest` tag, so every install line on the site is `npm install -g @octabyte-io/cloudgate`
   (no `@next`, no "beta"). It holds everything from the 0.0.2 betas. Source in the repo's
@@ -258,11 +260,15 @@ or a ready-made Docker image.
   files, and keeps the instance (database, env files, `/etc/cloudgate`, backups, logs) so a later
   install is the same instance. `--purge` removes those too, after you type the public host.
   Docker, Postgres and the firewall are left in place.
-- The latest Instance (server) version is **0.3.11**. 0.3.1 was the first version with a published
+- The latest Instance (server) version is **0.3.12**. 0.3.1 was the first version with a published
   tarball (0.3.0 has none); 0.3.3, 0.3.4 and 0.3.7 were tagged but never published.
 
 ## Source, contributing and security reports
 
+- **Help & support** (0.3.12): a row at the foot of the console's Organization rail opens `/help`,
+  linking Quickstart, the user guide (get-started), concepts, CLI, MCP, API, Troubleshooting, FAQ,
+  Limits and the changelog on this site (new tab), plus support@octabyte.io with Email support and
+  copy. It never links the issue tracker.
 - Bug reports and feature ideas: GitHub issues (Bug report / Feature request forms). Pull
   requests welcome; `CONTRIBUTING.md` has the setup, the tests and the contribution terms (agreed
   once on the first pull request: the contributor keeps copyright and grants Octabyte a license).
@@ -284,4 +290,4 @@ Setup in the console (0.3.8+): opens on the Template (logo, name, version, descr
 tags); the Project is picked from cards (New Project and each Project; a picker past five); a
 Project with no Environment offers to add one. Typing your own domain in place of the generated
 sslip.io host shows the A record (Name, address) and **Check DNS** (0.3.9); a failed check does
-not block Set up. A Template's logo and name open its website in a new tab (0.3.9); from 0.3.11 an official one opens its cgt.octabyte.io page.
+not block Set up. A Template's logo and name open its website in a new tab (0.3.9); from 0.3.11 an official one opens its cgt.octabyte.io page, at `https://cgt.octabyte.io/templates/<id>/` (0.3.12).
