@@ -7,7 +7,7 @@ lede: The get-started wizard is the shortest way from "I want this app" to a run
 section: guide
 group: Deploy
 order: 1
-updated: '2026-11-20'
+updated: '2026-11-21'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Deploy an app with the get-started wizard
@@ -122,7 +122,8 @@ A template may say how a person signs in once the app runs, and the done card fo
 
 - **An account made at setup**: the username (when the app asks one) and the password, masked, with
   **Show** and **Copy**. They are read from the stack's own variables, so a member whose role cannot
-  read them sees no password. When the sign-in page is not the home page, or is on another Domain
+  read them sees no password. **Show** widens the rows to the card and wraps a long password onto
+  more lines, so it is shown whole. When the sign-in page is not the home page, or is on another Domain
   such as an admin dashboard, **Open /admin** (with its path) goes straight there.
 - **An account made on the first visit**: where to open the app to make the first account, such as
   `/ghost` for Ghost.

@@ -1,3 +1,19 @@
+## 0.3.12: a Help & support page in the console (21 November 2026)
+
+A small release about finding help without leaving the console. Nothing to do on upgrade.
+
+### The console has a Help & support page
+
+A **Help & support** row at the foot of the Organization rail opens a page with the guides on this site ([Quickstart](/docs/quickstart), the [user guide](/docs/guide/get-started), [how Cloudgate fits together](/docs/concepts), the [CLI](/docs/cli), [MCP and agents](/docs/mcp) and the [API reference](/docs/api)), the common answers ([Troubleshooting](/docs/help/troubleshooting), the [FAQ](/docs/help/faq), [Limits](/docs/help/limits) and this changelog), and the support address, [support@octabyte.io](mailto:support@octabyte.io), with **Email support** and a copy button. Every docs link opens in a new tab.
+
+### A Template's page opens on cgt.octabyte.io, and a shown password is whole
+
+A Template's name and logo open its page on the [template directory](https://cgt.octabyte.io/)'s own domain, `https://cgt.octabyte.io/templates/<id>/`. On Get started's done card, **Show** widens the **How to sign in** rows to the card and wraps a long password onto more lines, where it used to end in "…".
+
+### Smaller fixes
+
+- The gate drawn behind the sign-in and sign-up screens is shown whole on a wide monitor, with only its sides falling off a narrow screen.
+
 ## 0.3.11: how to sign in to a new app, a Config files tab and HTTPS before Open (20 November 2026)
 
 A release about the last step of a first deploy: opening the app and signing in. Nothing to do on upgrade.
