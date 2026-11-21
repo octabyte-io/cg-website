@@ -2,10 +2,9 @@
 import { templatesHome } from '../data/template-links';
 import Base from '../layouts/Base.astro';
 import HeroPanel from '../components/home/HeroPanel.astro';
-import HeroField from '../components/home/HeroField.astro';
+import HeroGlobe from '../components/home/HeroGlobe.astro';
 import Lanes from '../components/home/Lanes.astro';
 import Bento from '../components/home/Bento.astro';
-import Mark from '../components/Mark.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
 import ConsoleTour from '../components/ConsoleTour.astro';
@@ -78,26 +77,28 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 >
   <section class="hero" data-loop>
     <div class="grid-bg" aria-hidden="true"></div>
-    <div class="beam" aria-hidden="true"></div>
-    <HeroField />
     <div class="wrap hero-inner">
-      <div class="keyhole" aria-hidden="true" data-field-focus><Mark size={92} /></div>
-      <h1 data-field-avoid>
-        <span class="line"><span>Deploy what you</span></span>{' '}
-        <span class="line"><span>and your AI build,</span></span>{' '}
-        <span class="line"><span>on servers you own</span></span>
-      </h1>
-      <p class="lede" data-field-avoid>
-        Cloudgate puts apps, databases and AI models on your own server, AWS or Google Cloud, with domains, https,
-        backups and monitoring already set up. Click Deploy in the console, run one command, or let your AI agent do
-        it over MCP.
-      </p>
-      <div class="actions" data-field-avoid>
-        <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
-        <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+      <div class="hero-top">
+        <div class="hero-copy">
+          <h1>
+            <span class="line"><span>Deploy what you</span></span>{' '}
+            <span class="line"><span>and your AI build,</span></span>{' '}
+            <span class="line"><span>on servers you own</span></span>
+          </h1>
+          <p class="lede">
+            Cloudgate puts apps, databases and AI models on your own server, AWS or Google Cloud, with domains, https,
+            backups and monitoring already set up. Click Deploy in the console, run one command, or let your AI agent
+            do it over MCP.
+          </p>
+          <div class="actions">
+            <a class="btn btn--primary btn--lg" href={site.signUp}>Start {trialDays}-day free trial</a>
+            <a class="btn btn--ghost btn--lg" href={templatesHome}>Deploy an app template</a>
+          </div>
+          <p class="aside">Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
+        </div>
+        <HeroGlobe />
       </div>
-      <p class="aside" data-field-avoid>Rather run it yourself? <a href="/self-hosted">Cloudgate is free to self-host</a>.</p>
-      <div class="hero-product" data-field-target>
+      <div class="hero-product">
         <div class="hero-tilt">
           <HeroPanel />
         </div>
@@ -374,30 +375,12 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
 </Base>
 
 <style>
-  /* ---- Hero: the beam through the keyhole ---- */
+  /* ---- Hero: text and the globe ---- */
   .hero {
     position: relative;
     isolation: isolate;
     overflow: hidden;
     padding-block: calc(var(--space-8) + var(--space-3)) 0;
-  }
-  .beam {
-    position: absolute;
-    z-index: -1;
-    top: -10%;
-    left: 50%;
-    width: 220px;
-    height: 70%;
-    transform: translateX(-50%);
-    background: linear-gradient(180deg, transparent, var(--beam-a) 30%, var(--beam-b) 55%, var(--beam-c) 75%, transparent);
-    filter: blur(70px);
-    opacity: 0.5;
-  }
-  @keyframes beam-in {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) scaleY(0.6);
-    }
   }
   .hero-inner {
     display: grid;
@@ -405,47 +388,31 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     text-align: center;
     gap: var(--space-5);
   }
-  /* The mark in a lit gate, with two quiet rings around it. */
-  .keyhole {
-    position: relative;
-    margin-bottom: var(--space-3);
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-lg);
-    background:
-      linear-gradient(color-mix(in srgb, var(--surface) 78%, transparent), color-mix(in srgb, var(--surface) 78%, transparent))
-        padding-box,
-      linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--beam-b) 80%, transparent),
-          var(--line-strong) 50%,
-          color-mix(in srgb, var(--beam-c) 45%, transparent)
-        )
-        border-box;
-    border: 1px solid transparent;
-    box-shadow:
-      inset 0 1px 0 var(--panel-top),
-      0 0 0 6px color-mix(in srgb, var(--brand) 5%, transparent),
-      0 0 90px -4px var(--glow),
-      0 24px 60px -30px var(--glow);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+  /* Text left, the globe right; the product panel below both. */
+  .hero-top {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-6);
+    text-align: left;
   }
-  .keyhole::before,
-  .keyhole::after {
-    content: '';
-    position: absolute;
-    inset: -16px;
-    border-radius: calc(var(--radius-lg) + 16px);
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
-    pointer-events: none;
+  .hero-copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    min-width: 0;
   }
-  .keyhole::after {
-    inset: -34px;
-    border-radius: calc(var(--radius-lg) + 34px);
-    border-color: color-mix(in srgb, var(--brand) 14%, transparent);
+  @media (max-width: 900px) {
+    .hero-top {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-top :global(.hero-globe) {
+      max-width: 440px;
+    }
   }
   .hero h1 {
-    font-size: clamp(2.3rem, 6.2vw, 4.75rem);
+    font-size: clamp(2.3rem, 5.2vw, 4.25rem);
     letter-spacing: -0.045em;
   }
   /* One block per line, each its own mask for the load-in. */
@@ -462,7 +429,7 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     max-width: 60ch;
   }
   .hero .actions {
-    justify-content: center;
+    justify-content: flex-start;
   }
   /* On a phone the two calls to action stack as one column of equal buttons. */
   @media (max-width: 480px) {
@@ -470,8 +437,6 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
       flex-direction: column;
       align-items: stretch;
       width: 100%;
-      max-width: 22rem;
-      margin-inline: auto;
     }
   }
   .aside {
@@ -522,23 +487,10 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   }
 
   /* ---- Hero: the one page-load sequence. Content is in the HTML at rest; these only animate it in.
-     One wave, settled by ~1.45s. The gate opens (keyhole, beam) at 0; the headline is the lead and
+     One wave, settled by ~1.45s. The globe fades in from 0.35s (HeroGlobe); the headline is the lead and
      rises line by line on shrinking gaps (100, 170, 220ms); the lede and actions follow with less
      travel; the aside the least; the panel rises last, and its demo starts as it lands (HeroPanel). */
   @media (prefers-reduced-motion: no-preference) {
-    .beam {
-      animation: beam-in 1s var(--ease-out) both;
-    }
-    .keyhole {
-      animation: key-in 700ms var(--ease-out) both;
-    }
-    .keyhole::before,
-    .keyhole::after {
-      animation: ring 5.6s var(--ease-out) 1.4s infinite;
-    }
-    .keyhole::after {
-      animation-delay: 4.2s;
-    }
     .hero h1 .line > span {
       animation: line-up 750ms var(--ease-out) both;
     }
@@ -568,25 +520,6 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     }
     .hero-product {
       animation: panel-in 900ms var(--ease-out) 540ms both;
-    }
-  }
-  @keyframes key-in {
-    from {
-      opacity: 0;
-      transform: scale(0.94);
-    }
-  }
-  @keyframes ring {
-    0% {
-      opacity: 0;
-      transform: scale(0.94);
-    }
-    20% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1.22);
     }
   }
   @keyframes line-up {
@@ -627,24 +560,6 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
   @media (max-width: 640px) {
     .hero {
       padding-top: var(--space-8);
-    }
-    .beam {
-      width: 120px;
-      opacity: 0.38;
-    }
-    .keyhole {
-      padding: var(--space-3) var(--space-4);
-    }
-    .keyhole :global(svg) {
-      width: 64px;
-      height: auto;
-    }
-    .keyhole::before {
-      inset: -10px;
-      border-radius: calc(var(--radius-lg) + 10px);
-    }
-    .keyhole::after {
-      display: none;
     }
   }
 

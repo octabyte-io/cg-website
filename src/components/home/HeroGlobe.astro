@@ -1,0 +1,650 @@
+---
+// The home hero's globe ("Three ways in"): the three ways to deploy (the console, an AI agent over
+// MCP, the terminal) sit above the Cloudgate mark, and below it a dotted Earth carries a handful of
+// servers, each tagged with its lane (your own server, AWS, Google Cloud) in the slice tones. One
+// deploy at a time travels from a way in, through Cloudgate, to a server facing the visitor; a short
+// column of light rises and a card turns from Deploying to running, then names one thing Cloudgate
+// did for you. Few servers on purpose: "one Cloudgate, servers you bring", not a worldwide network.
+//
+// Decorative only (aria-hidden). It draws on a canvas, reads every colour from the theme tokens, and
+// loads its land map (/globe/land.bin, Natural Earth 50m at 0.5°, one bit per cell) after the page
+// has painted. It rests off screen and in hidden tabs. With reduced motion it is one still frame of
+// a finished deploy; without JavaScript only the mark is shown.
+import Mark from '../Mark.astro';
+---
+<div class="hero-globe" aria-hidden="true" data-hero-globe>
+  <canvas></canvas>
+  <div class="globe-hub"><Mark size={44} /></div>
+  <ul class="globe-legend">
+    <li><i class="slice"></i>Your server</li>
+    <li><i class="slice slice--2"></i>AWS</li>
+    <li><i class="slice slice--3"></i>Google Cloud</li>
+  </ul>
+</div>
+
+<style>
+  .hero-globe {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 1 / 1.2;
+    justify-self: center;
+  }
+  .hero-globe canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: pan-y;
+    cursor: grab;
+  }
+  .hero-globe canvas:active {
+    cursor: grabbing;
+  }
+  .globe-hub {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    width: 76px;
+    height: 76px;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    pointer-events: none;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    box-shadow:
+      inset 0 1px 0 var(--panel-top),
+      0 0 0 6px color-mix(in srgb, var(--paper) 70%, transparent),
+      0 12px 44px -10px var(--glow);
+    /* Centred until the script places it on the globe's centre. */
+    transform: translate(calc(var(--hx, 50cqw) - 38px), calc(var(--hy, 16cqh) - 38px));
+  }
+  .globe-hub::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1.5px solid var(--brand);
+    opacity: 0;
+  }
+  .globe-hub.is-sending::after {
+    animation: hub-send 900ms var(--ease-out);
+  }
+  @keyframes hub-send {
+    from {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.45);
+    }
+  }
+  .globe-legend {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 6px 14px;
+    list-style: none;
+    width: max-content;
+    white-space: nowrap;
+    font-size: var(--text-xs, 0.8rem);
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .globe-legend li {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .globe-legend .slice {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--slice-1);
+  }
+  .globe-legend .slice--2 {
+    background: var(--slice-2);
+  }
+  .globe-legend .slice--3 {
+    background: var(--slice-3);
+  }
+  .hero-globe {
+    container-type: size;
+  }
+  @media (max-width: 640px) {
+    .globe-hub {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      transform: translate(calc(var(--hx, 50cqw) - 29px), calc(var(--hy, 16cqh) - 29px));
+    }
+    .globe-hub :global(svg) {
+      width: 36px;
+      height: auto;
+    }
+    .globe-legend {
+      gap: var(--space-3);
+      padding: 5px 10px;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-globe canvas {
+      animation: globe-in 1.1s var(--ease-out) 0.35s both;
+    }
+    .globe-hub {
+      animation: hub-in 700ms var(--ease-out) 0.55s both;
+    }
+  }
+  @keyframes globe-in {
+    from {
+      opacity: 0;
+      transform: scale(0.965);
+    }
+  }
+  @keyframes hub-in {
+    from {
+      opacity: 0;
+      scale: 0.9;
+    }
+  }
+</style>
+
+<script>
+  type RGB = [number, number, number];
+  type Pos = { x: number; y: number; z: number };
+  type Origin = 'console' | 'agent' | 'cli';
+  interface Node {
+    lane: number;
+    wx: number;
+    wy: number;
+    wz: number;
+  }
+  interface Scene {
+    o: Origin;
+    app: string;
+    cmd: string;
+    benefit: string;
+  }
+  interface Deploy {
+    i: number;
+    s: number;
+    scene: Scene;
+    sent: boolean;
+    side: number | null;
+  }
+  interface Pill {
+    k: Origin;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+  interface Line {
+    t: string;
+    f: string;
+    col: RGB;
+    sw?: RGB;
+    status?: boolean;
+    late?: boolean;
+  }
+
+  const D2R = Math.PI / 180;
+  const TAU = Math.PI * 2;
+  const LANES = ['Your server', 'AWS', 'Google Cloud'];
+  // Illustrative places only; lane 0 your server, 1 AWS, 2 Google Cloud.
+  const NODES: Node[] = (
+    [
+      [51.5, -0.1, 0],
+      [40.7, -74.0, 1],
+      [50.1, 8.7, 2],
+      [1.35, 103.8, 1],
+      [37.8, -122.4, 0],
+    ] as const
+  ).map(([lat, lon, lane]) => ({
+    lane,
+    wx: Math.cos(lat * D2R) * Math.sin(lon * D2R),
+    wy: Math.sin(lat * D2R),
+    wz: Math.cos(lat * D2R) * Math.cos(lon * D2R),
+  }));
+  const ORDER: Origin[] = ['console', 'agent', 'cli'];
+  const NAMES: Record<Origin, string> = { console: 'Console', agent: 'AI agent', cli: 'Terminal' };
+  const IDLE: Record<Origin, string> = { console: 'one click', agent: 'over MCP', cli: 'one command' };
+  // Each deploy says one true thing (docs/product-facts.md); the agent comes up most.
+  const SCENES: Scene[] = [
+    { o: 'agent', app: 'n8n', cmd: 'deploy_service', benefit: 'Logged in the audit log, secrets masked' },
+    { o: 'console', app: 'Ghost', cmd: 'Deploy', benefit: 'HTTPS from Let’s Encrypt, set up for you' },
+    { o: 'cli', app: 'your app', cmd: 'cloudgate deploy', benefit: 'Respects .gitignore and skips .env' },
+    { o: 'agent', app: 'a preview', cmd: 'create_preview', benefit: 'A preview that expires on its own' },
+    { o: 'console', app: 'Plausible', cmd: 'Deploy', benefit: 'Backups and monitoring already on' },
+  ];
+  // One deploy, as one gesture (ms, from the moment it leaves Cloudgate):
+  //   -T_IN   a packet leaves the source pill, which lights up
+  //   0       it reaches Cloudgate: the mark's ring pulses, the arc pulse leaves
+  //   T_TRAVEL it lands: the server rings, the light column rises, the card rises in (from T_TRAVEL - 150)
+  //   + T_BUILD Deploying turns to running; the benefit line fades in (the card is sized for it from the start)
+  //   end     card, column, pill and lit server all fade out together
+  const T_IN = 750;
+  const T_TRAVEL = 1150;
+  const T_BUILD = 1000;
+  const T_RUN = 2600;
+  const T_FADE = 450;
+  const T_TOTAL = T_TRAVEL + T_BUILD + T_RUN + T_FADE;
+  const TURN_MS = 150000; // one turn in 2.5 minutes; it nearly stops while a card is up
+
+  const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+  const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const rgba = (c: RGB, a: number) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  function parse(v: string): RGB {
+    const s = v.trim();
+    const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
+    if (m) {
+      const h = m[1].length === 3 ? [...m[1]].map((c) => c + c).join('') : m[1];
+      const n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const r = /rgba?\(([^)]+)\)/.exec(s);
+    if (r) {
+      const p = r[1].split(/[ ,/]+/).map(Number);
+      return [p[0] || 0, p[1] || 0, p[2] || 0];
+    }
+    return [128, 128, 128];
+  }
+
+  function start(wrap: HTMLElement) {
+    const canvas = wrap.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d');
+    const hub = wrap.querySelector<HTMLElement>('.globe-hub')!;
+    if (!ctx) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let land: Uint8Array | null = null;
+    let pts = new Float32Array(0);
+    let builtStep = 0;
+    let w = 0, h = 0, dpr = 1, R = 0, cx = 0, cy = 0, gap = 6;
+    let hs = 76, hy = 0, band = 0, pillH = 44, small = false, subSize = 11;
+    let lambda = 0.35, vel = 0;
+    const tilt = 18 * D2R;
+    let visible = true, dragging = false, raf = 0, last = 0;
+    let t0 = performance.now(), nextDep = t0 + 1600, lastI = -1, sceneIx = -1;
+    let dep: Deploy | null = null;
+    let c = colors();
+    const cs0 = getComputedStyle(document.documentElement);
+    let font = getComputedStyle(document.body).fontFamily;
+    let mono = cs0.getPropertyValue('--font-mono') || 'ui-monospace, monospace';
+
+    function colors() {
+      const cs = getComputedStyle(document.documentElement);
+      const g = (k: string) => parse(cs.getPropertyValue(k));
+      return {
+        brand: g('--brand'), muted: g('--muted'), ink: g('--ink'), line: g('--line'), paper: g('--paper'),
+        surface: g('--surface'), live: g('--live'), peach: g('--beam-c'),
+        lanes: [g('--slice-1'), g('--slice-2'), g('--slice-3')] as RGB[],
+      };
+    }
+    const isLand = (lat: number, lon: number) => {
+      if (!land) return false;
+      const r = clamp(Math.floor((90 - lat) / 0.5), 0, 359);
+      const col = Math.min(719, Math.floor((((lon + 180) % 360) + 360) % 360 / 0.5));
+      const i = r * 720 + col;
+      return ((land[i >> 3] >> (i & 7)) & 1) === 1;
+    };
+    function build() {
+      const step = clamp(6.6 / (R * D2R), 0.9, 4);
+      if (!land || Math.abs(step - builtStep) < 0.01) return;
+      builtStep = step;
+      gap = step * R * D2R;
+      const out: number[] = [];
+      for (let lat = -84; lat <= 84; lat += step) {
+        const n = Math.max(1, Math.round((360 * Math.cos(lat * D2R)) / step));
+        for (let k = 0; k < n; k++) {
+          const lon = -180 + ((k + 0.5) * 360) / n;
+          if (isLand(lat, lon)) out.push(Math.cos(lat * D2R), Math.sin(lat * D2R), Math.sin(lon * D2R), Math.cos(lon * D2R));
+        }
+      }
+      pts = new Float32Array(out);
+    }
+    // Top to bottom: the three ways in, Cloudgate, the globe, the legend. Nothing crosses the globe's middle.
+    function resize() {
+      const r = wrap.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = r.width; h = r.height;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      small = w < 420; pillH = small ? 40 : 44; subSize = small ? 10 : 11;
+      hs = hub.offsetWidth || 76;
+      hy = pillH + (small ? 18 : 26) + hs / 2;
+      band = hy + hs / 2;
+      const top = band + (small ? 16 : 22), bottom = h - (small ? 40 : 46);
+      R = Math.min((bottom - top) / 2, w * 0.44); cx = w / 2; cy = (top + bottom) / 2;
+      wrap.style.setProperty('--hx', `${cx}px`);
+      wrap.style.setProperty('--hy', `${hy}px`);
+      builtStep = 0; build(); kick();
+    }
+    function rot(wx: number, wy: number, wz: number): [number, number, number] {
+      const sl = Math.sin(lambda), cl = Math.cos(lambda), st = Math.sin(tilt), ct = Math.cos(tilt);
+      const x0 = wx * cl + wz * sl, z0 = wz * cl - wx * sl;
+      return [x0, wy * ct - z0 * st, wy * st + z0 * ct];
+    }
+    function pills(): Pill[] {
+      const gapx = small ? 6 : 14;
+      const subs: Record<Origin, string[]> = { console: [IDLE.console, 'Deploy'], agent: [IDLE.agent, 'deploy_service', 'create_preview'], cli: [IDLE.cli, 'cloudgate deploy'] };
+      const widths = ORDER.map((k) => {
+        ctx!.font = `600 ${small ? 12 : 13}px ${font}`;
+        let m = ctx!.measureText(NAMES[k]).width;
+        ctx!.font = `500 ${subSize}px ${mono}`;
+        subs[k].forEach((t) => (m = Math.max(m, ctx!.measureText(t).width)));
+        return Math.ceil(m) + (small ? 16 : 24);
+      });
+      let x = Math.max(2, (w - widths.reduce((a, b) => a + b, 0) - gapx * 2) / 2);
+      return ORDER.map((k, j) => { const p = { k, x, y: 2, w: widths[j], h: pillH }; x += widths[j] + gapx; return p; });
+    }
+    function cardLines(sc: Scene, i: number, running: boolean) {
+      const col = c.lanes[NODES[i].lane];
+      const lines: Line[] = [
+        { t: LANES[NODES[i].lane], f: `500 11px ${font}`, col: c.muted, sw: col },
+        { t: running ? `${sc.app} is running` : `Deploying ${sc.app}`, f: `600 12.5px ${font}`, col: running ? c.live : c.ink, status: true },
+        { t: sc.benefit, f: `400 11px ${font}`, col: c.muted, late: true },
+      ];
+      let bw = 0;
+      [...lines, { ...lines[1], t: `Deploying ${sc.app}` }, { ...lines[1], t: `${sc.app} is running` }].forEach((L) => { ctx!.font = L.f; bw = Math.max(bw, ctx!.measureText(L.t).width); });
+      return { lines, bw: Math.min(Math.ceil(bw) + 34, w - 8), bh: 14 + lines.length * 16 };
+    }
+    const anchors = (p: Pos, bw: number, bh: number): [number, number][] => [
+      [p.x + 14, p.y - bh / 2], [p.x - 14 - bw, p.y - bh / 2], [p.x - bw / 2, p.y + 14],
+      [p.x + 10, p.y + 10], [p.x - 10 - bw, p.y + 10], [(w - bw) / 2, p.y + 16],
+    ];
+    // Where the card can sit without covering the ways in, Cloudgate, the legend or another server.
+    function placeCard(P: Pos[], i: number, bw: number, bh: number): number | null {
+      const obst: number[][] = [[0, 0, w, band + 6], [w / 2 - 175, h - 38, 350, 38]];
+      P.forEach((q, j) => { if (j !== i && q.z > 0) obst.push([q.x - 9, q.y - 9, 18, 18]); });
+      const list = anchors(P[i], bw, bh);
+      for (let k = 0; k < list.length; k++) {
+        const [x, y] = list[k];
+        if (x >= 4 && y >= 4 && x + bw <= w - 4 && y + bh <= h - 4 && !obst.some((o) => x < o[0] + o[2] && o[0] < x + bw && y < o[1] + o[3] && o[1] < y + bh)) return k;
+      }
+      return null;
+    }
+
+    const live = () => !reduce.matches && visible && !document.hidden;
+    function kick() {
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+    function frame(now: number) {
+      raf = 0;
+      const dt = Math.min(64, now - (last || now));
+      last = now;
+      const on = live();
+      if (on && !dragging) {
+        const base = (TAU / TURN_MS) * (dep ? 0.12 : 1.6);
+        vel += (base - vel) * Math.min(1, dt / 700);
+        lambda += vel * dt;
+      }
+      draw(now, on);
+      if (on || dragging) kick();
+      else last = 0;
+    }
+
+    function draw(now: number, on: boolean) {
+      if (!w || !ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      const still = reduce.matches;
+      const tAge = still ? 1e9 : now - t0;
+      const fadeIn = clamp((tAge - 300) / 700, 0, 1);
+      const P: Pos[] = NODES.map((n) => {
+        const [x, y, z] = rot(n.wx, n.wy, n.wz);
+        return { x: cx + x * R, y: cy - y * R, z };
+      });
+      const fits = (sc: Scene, i: number) => { const z = cardLines(sc, i, true); return placeCard(P, i, z.bw, z.bh) !== null; };
+
+      // one deploy at a time, the scenes in turn, only to a server facing you with room for its card
+      if (still) {
+        if (!dep) {
+          const ok = P.map((_, i) => i).filter((i) => P[i].z > 0.5 && fits(SCENES[0], i));
+          let best = 0;
+          P.forEach((p, i) => { if (p.z > P[best].z) best = i; });
+          dep = { i: ok.length ? ok[0] : best, s: 0, scene: SCENES[0], sent: true, side: null };
+        }
+        dep.s = now - (T_TRAVEL + T_BUILD + 900);
+      } else if (on) {
+        if (dep && now - dep.s > T_TOTAL) { dep = null; nextDep = now + 500; }
+        if (!dep && now > nextDep && land) {
+          const next = SCENES[(sceneIx + 1) % SCENES.length];
+          const cand = P.map((p, i) => [p, i] as const).filter(([p, i]) => p.z > 0.5 && i !== lastI && fits(next, i));
+          if (cand.length) {
+            const [, i] = cand[(Math.random() * cand.length) | 0];
+            sceneIx = (sceneIx + 1) % SCENES.length;
+            dep = { i, s: now + T_IN, scene: next, sent: false, side: null }; lastI = i;
+          } else nextDep = now + 400;
+        }
+        if (dep && !dep.sent && now >= dep.s) {
+          dep.sent = true;
+          hub.classList.remove('is-sending'); void hub.offsetWidth; hub.classList.add('is-sending');
+        }
+      }
+      const dt = dep ? now - dep.s : -1e9;
+      const travel = dep ? clamp(dt / T_TRAVEL, 0, 1) : 0;
+      const lit = dep && dt > T_TRAVEL ? clamp(1 - (dt - (T_TOTAL - T_FADE)) / T_FADE, 0, 1) : 0;
+      // the whole deploy's presence: on from the packet's start, out with the card
+      const presence = dep ? (dt < T_TRAVEL ? clamp((dt + T_IN + 200) / 200, 0, 1) : lit) : 0;
+      const visA = (p: Pos) => clamp(p.z / 0.3, 0, 1);
+
+      // sphere, atmosphere, land
+      const g = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R * 1.14);
+      g.addColorStop(0, rgba(c.brand, 0)); g.addColorStop(0.16, rgba(c.brand, 0.09)); g.addColorStop(1, rgba(c.brand, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.14, 0, TAU); ctx.fill();
+      ctx.fillStyle = rgba(c.surface, 0.55); ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
+      ctx.strokeStyle = rgba(c.line, 1); ctx.lineWidth = 1; ctx.stroke();
+      const sl = Math.sin(lambda), cl = Math.cos(lambda), sT = Math.sin(tilt), cT = Math.cos(tilt);
+      const alphas = [0.14, 0.22, 0.34, 0.48];
+      const paths = alphas.map(() => new Path2D());
+      for (let k = 0; k < pts.length; k += 4) {
+        const cp = pts[k], sp = pts[k + 1], sth = pts[k + 2], cth = pts[k + 3];
+        const s = sth * cl + cth * sl, co = cth * cl - sth * sl, x0 = cp * s, z0 = cp * co;
+        const z = sp * sT + z0 * cT;
+        if (z <= 0) continue;
+        const y = sp * cT - z0 * sT, sx = cx + x0 * R, sy = cy - y * R;
+        const b = Math.min(3, (z * 4) | 0), r = gap * 0.3 * (0.55 + 0.45 * z);
+        paths[b].moveTo(sx + r, sy); paths[b].arc(sx, sy, r, 0, TAU);
+      }
+      ctx.fillStyle = rgba(c.brand, 1);
+      paths.forEach((p, i) => { ctx.globalAlpha = alphas[i] * fadeIn; ctx.fill(p); });
+      ctx.globalAlpha = 1;
+
+      // the three ways in, each linked to Cloudgate's top edge
+      const ht = hy - hs / 2;
+      const pl = pills();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      pl.forEach((b) => {
+        const act = dep && dep.scene.o === b.k ? presence : 0;
+        const bx = b.x + b.w / 2, by = b.y + b.h, my = (by + ht) / 2;
+        ctx.strokeStyle = rgba(c.brand, (0.25 + 0.4 * act) * fadeIn); ctx.lineWidth = 1 + 0.5 * act;
+        ctx.setLineDash(act > 0.5 ? [] : [2, 4]);
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.bezierCurveTo(bx, my, cx, my, cx, ht); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = fadeIn;
+        ctx.fillStyle = rgba(c.surface, 1); ctx.strokeStyle = rgba(c.line, 1); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 10); ctx.fill(); ctx.stroke();
+        if (act > 0) { ctx.globalAlpha = fadeIn * act; ctx.strokeStyle = rgba(c.brand, 1); ctx.stroke(); }
+        ctx.globalAlpha = fadeIn;
+        ctx.font = `600 ${small ? 12 : 13}px ${font}`; ctx.fillStyle = rgba(c.ink, 1);
+        ctx.fillText(NAMES[b.k], bx, b.y + (small ? 14 : 15));
+        // the idle hint and the real command crossfade in place
+        const sy = b.y + (small ? 29 : 31);
+        ctx.font = `400 ${subSize}px ${font}`; ctx.fillStyle = rgba(c.muted, 1);
+        ctx.globalAlpha = fadeIn * (1 - act); ctx.fillText(IDLE[b.k], bx, sy);
+        if (act > 0 && dep) {
+          ctx.font = `500 ${subSize}px ${b.k === 'console' ? font : mono}`; ctx.fillStyle = rgba(c.brand, 1);
+          ctx.globalAlpha = fadeIn * act; ctx.fillText(dep.scene.cmd, bx, sy);
+        }
+        ctx.globalAlpha = 1;
+      });
+      ctx.textAlign = 'left';
+      if (dep && dt < 0 && dt > -T_IN && !still) {
+        const b = pl.find((p) => p.k === dep!.scene.o)!;
+        const t = easeInOut(1 + dt / T_IN), u = 1 - t, bx = b.x + b.w / 2, by = b.y + b.h, my = (by + ht) / 2;
+        const px = u * u * u * bx + 3 * u * u * t * bx + 3 * u * t * t * cx + t * t * t * cx;
+        const py = u * u * u * by + 3 * u * u * t * my + 3 * u * t * t * my + t * t * t * ht;
+        ctx.fillStyle = rgba(c.brand, 0.22); ctx.beginPath(); ctx.arc(px, py, 7, 0, TAU); ctx.fill();
+        ctx.fillStyle = rgba(c.brand, 1); ctx.beginPath(); ctx.arc(px, py, 2.8, 0, TAU); ctx.fill();
+      }
+
+      // arcs from Cloudgate's bottom edge down to each server
+      const S = { x: cx, y: band };
+      const ctrl = (p: Pos) => ({ x: p.x, y: S.y + Math.min(30, (p.y - S.y) * 0.3) });
+      const qpt = (p: Pos, k: { x: number; y: number }, t: number) => {
+        const u = 1 - t;
+        return { x: u * u * S.x + 2 * u * t * k.x + t * t * p.x, y: u * u * S.y + 2 * u * t * k.y + t * t * p.y };
+      };
+      const stroke = (p: Pos, t1: number, t2: number) => {
+        const k = ctrl(p);
+        ctx.beginPath();
+        for (let s = 0; s <= 20; s++) {
+          const q = qpt(p, k, t1 + ((t2 - t1) * s) / 20);
+          if (s) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y);
+        }
+        ctx.stroke();
+      };
+      ctx.lineCap = 'round';
+      P.forEach((p, i) => {
+        if (p.z <= 0) return;
+        const appear = easeOut(clamp((tAge - 600 - i * 140) / 800, 0, 1));
+        const a = visA(p) * appear;
+        if (a <= 0.01) return;
+        const act = dep && dep.i === i && dt > 0 ? presence : 0;
+        ctx.strokeStyle = rgba(c.lanes[NODES[i].lane], (0.4 + 0.3 * act) * a);
+        ctx.lineWidth = 1 + 0.5 * act;
+        ctx.setLineDash(act > 0.5 ? [] : [2, 4]);
+        stroke(p, 0, appear);
+      });
+      ctx.setLineDash([]);
+
+      // the deploy pulse
+      if (dep && dt >= 0 && dt < T_TRAVEL && !still) {
+        const p = P[dep.i], col = c.lanes[NODES[dep.i].lane], te = easeInOut(travel), t1 = Math.max(0, te - 0.22);
+        ctx.strokeStyle = rgba(col, 0.95); ctx.lineWidth = 2.4; stroke(p, t1, te);
+        const hd = qpt(p, ctrl(p), te);
+        ctx.fillStyle = rgba(col, 0.22); ctx.beginPath(); ctx.arc(hd.x, hd.y, 7, 0, TAU); ctx.fill();
+        ctx.fillStyle = rgba(col, 1); ctx.beginPath(); ctx.arc(hd.x, hd.y, 2.8, 0, TAU); ctx.fill();
+      }
+
+      // the beacon: a column of light that stops short of Cloudgate
+      if (dep && dt > T_TRAVEL) {
+        const p = P[dep.i], rise = still ? 1 : easeOut(clamp((dt - T_TRAVEL) / 700, 0, 1));
+        const Lb = Math.max(0, Math.min(R * 0.6, p.y - band - 10)) * rise, a = lit * visA(p);
+        const gr = ctx.createLinearGradient(p.x, p.y, p.x, p.y - Lb);
+        gr.addColorStop(0, rgba(c.peach, 0.95 * a)); gr.addColorStop(0.35, rgba(c.brand, 0.55 * a)); gr.addColorStop(1, rgba(c.brand, 0));
+        ctx.fillStyle = gr;
+        ctx.globalAlpha = 0.35; ctx.fillRect(p.x - 5, p.y - Lb, 10, Lb);
+        ctx.globalAlpha = 1; ctx.fillRect(p.x - 1.5, p.y - Lb, 3, Lb);
+        ctx.fillStyle = rgba(c.peach, 0.14 * a); ctx.beginPath(); ctx.ellipse(p.x, p.y, 16 * rise, 6 * rise, 0, 0, TAU); ctx.fill();
+      }
+
+      // servers
+      P.map((_, i) => i).sort((a, b) => P[a].z - P[b].z).forEach((i) => {
+        const p = P[i];
+        if (p.z <= 0) return;
+        const a = visA(p) * fadeIn;
+        if (a <= 0.01) return;
+        const col = c.lanes[NODES[i].lane], active = dep && dep.i === i, l = active ? lit : 0, s = 7;
+        if (active && dt > T_TRAVEL && dt < T_TRAVEL + 1000 && !still) {
+          const pt = (dt - T_TRAVEL) / 1000;
+          ctx.strokeStyle = rgba(col, (1 - pt) * 0.85); ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 5 + easeOut(pt) * 18, 0, TAU); ctx.stroke();
+        }
+        ctx.globalAlpha = a;
+        if (l > 0) { ctx.fillStyle = rgba(col, 0.22 * l); ctx.fillRect(p.x - s - 4, p.y - s - 4, (s + 4) * 2, (s + 4) * 2); }
+        ctx.fillStyle = rgba(c.paper, 1); ctx.fillRect(p.x - s / 2 - 2, p.y - s / 2 - 2, s + 4, s + 4);
+        ctx.fillStyle = rgba(col, 1); ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+        ctx.globalAlpha = 1;
+      });
+
+      // the card: one size for the whole deploy, one side for the whole deploy
+      if (!dep || dt <= T_TRAVEL - 150) return;
+      const i = dep.i, p = P[i], col = c.lanes[NODES[i].lane], sc = dep.scene;
+      const running = dt > T_TRAVEL + T_BUILD;
+      const enter = still ? 1 : easeOut(clamp((dt - T_TRAVEL + 150) / 320, 0, 1));
+      const ap = enter * lit * visA(p);
+      if (ap <= 0.01) return;
+      const { lines, bw, bh } = cardLines(sc, i, running);
+      if (dep.side === null) dep.side = placeCard(P, i, bw, bh) ?? 0;
+      const [ax, ay] = anchors(p, bw, bh)[dep.side];
+      const bx = clamp(ax, 4, w - bw - 4), by = clamp(ay + (1 - enter) * 6, 4, h - bh - 4);
+      const swap = still ? 1 : clamp((dt - T_TRAVEL - T_BUILD) / 260, 0, 1);
+      ctx.globalAlpha = ap; ctx.textBaseline = 'middle';
+      ctx.fillStyle = rgba(c.surface, 1); ctx.strokeStyle = rgba(col, 0.75); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 9); ctx.fill(); ctx.stroke();
+      lines.forEach((L, k) => {
+        const y = by + 15 + k * 16;
+        ctx.font = L.f;
+        const la = L.late ? swap : 1;
+        if (L.sw) { ctx.fillStyle = rgba(L.sw, 1); ctx.fillRect(bx + 11, y - 3, 6, 6); }
+        if (L.status) {
+          // spinner and dot crossfade at the moment it turns to running
+          ctx.globalAlpha = ap * (1 - swap);
+          const sp = now / 140;
+          ctx.strokeStyle = rgba(c.brand, 1); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(bx + 14, y, 3.6, sp, sp + 4.2); ctx.stroke();
+          ctx.globalAlpha = ap * swap;
+          ctx.fillStyle = rgba(c.live, 1); ctx.beginPath(); ctx.arc(bx + 14, y, 3.2, 0, TAU); ctx.fill();
+          ctx.globalAlpha = ap;
+        }
+        ctx.globalAlpha = ap * la;
+        ctx.fillStyle = rgba(L.col, 1); ctx.fillText(L.t, bx + 22, y + 0.5);
+        ctx.globalAlpha = ap;
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    // drag to turn
+    let lx: number | null = null, lt = 0;
+    canvas.addEventListener('pointerdown', (e) => {
+      lx = e.clientX; lt = performance.now(); dragging = true; vel = 0;
+      canvas.setPointerCapture(e.pointerId); kick();
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (lx === null) return;
+      const now = performance.now(), d = (e.clientX - lx) / R;
+      lambda += d; vel = d / Math.max(8, now - lt); lx = e.clientX; lt = now; kick();
+    });
+    const up = () => { lx = null; dragging = false; kick(); };
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
+
+    new ResizeObserver(resize).observe(wrap);
+    new IntersectionObserver((e) => { visible = e[0].isIntersecting; kick(); }).observe(wrap);
+    document.addEventListener('visibilitychange', kick);
+    reduce.addEventListener('change', () => { dep = null; kick(); });
+    const recolor = () => requestAnimationFrame(() => {
+      c = colors(); font = getComputedStyle(document.body).fontFamily;
+      mono = getComputedStyle(document.documentElement).getPropertyValue('--font-mono') || mono; kick();
+    });
+    new MutationObserver(recolor).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', recolor);
+    document.fonts?.ready.then(recolor);
+
+    fetch('/globe/land.bin')
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+      .then((buf) => { land = new Uint8Array(buf); builtStep = 0; build(); t0 = performance.now(); nextDep = t0 + 1600; kick(); })
+      .catch(() => {});
+    resize();
+  }
+
+  const el = document.querySelector<HTMLElement>('[data-hero-globe]');
+  if (el) {
+    const go = () => start(el);
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 600 });
+    else setTimeout(go, 120);
+  }
+</script>
