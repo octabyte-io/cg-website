@@ -47,6 +47,9 @@ function sourcesOf(root, path) {
   const p = path === '/' ? 'index' : path.replace(/^\//, '');
   const candidates = [`src/pages/${p}.astro`, `src/pages/${p}/index.astro`];
   if (p.startsWith('docs/')) candidates.push(`src/content/docs/${p.slice(5)}.mdx`);
+  // A blog post is its Markdown file; the hub and the author pages change with every post.
+  if (/^blog\/[^/]+$/.test(p) && p !== 'blog/authors') candidates.push(`src/content/blog/${p.slice(5)}.md`, `src/content/blog/${p.slice(5)}.mdx`);
+  if (p === 'blog' || p.startsWith('blog/authors/')) candidates.push('src/content/blog', 'src/data/authors.ts');
   const own = candidates.filter((f) => existsSync(root + f));
   // A page from a dynamic route with no file of its own (an API reference group) uses the route.
   // It is made from the OpenAPI document.

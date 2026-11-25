@@ -160,3 +160,12 @@ Motion answers the reader: search opens and closes (200/140ms), screenshots zoom
 ink slides (260ms), the copy button swaps its icon. Console screenshots are real captures of the
 console with fictional data (the "Northwind Labs" organization), shipped in both themes. How to
 write a page: `docs/docs-authoring.md`.
+
+## Blog (v5)
+
+`/blog` holds dated articles (`docs/blog-authoring.md`). Posts read like the docs: `PageHero` with
+`compact` (a sentence-length `<h1>` at `--text-3xl`), a byline of author, Published and Updated, the
+article at a 68ch measure, and a quiet side column ("On this page", related pages, the feed). The hub
+is a plain list, newest first, then the posts by topic in a `.band`. The home page shows the newest
+three posts and release in a `.band` before its questions. No new tokens, no new motion beyond the
+existing `data-reveal-stagger` and `data-spotlight`.

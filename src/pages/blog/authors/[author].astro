@@ -1,0 +1,97 @@
+---
+// An author's page: who they are and what they wrote. Only authors with at least one post get one,
+// so no page here is ever empty.
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import CtaBand from '../../../components/CtaBand.astro';
+import { breadcrumbSchema } from '../../../data/schema';
+import { site } from '../../../data/site';
+import { authors, type Author } from '../../../data/authors';
+import { getPosts, postUrl, authorUrl, longDate, topics, personSchema, type Post } from '../../../data/blog';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return authors
+    .map((author) => ({ author, mine: posts.filter((p) => p.data.author === author.id) }))
+    .filter((a) => a.mine.length > 0)
+    .map(({ author, mine }) => ({ params: { author: author.id }, props: { author, mine } }));
+}
+
+const { author, mine } = Astro.props as { author: Author; mine: Post[] };
+const trail = [
+  { name: 'Blog', path: '/blog' },
+  { name: author.name, path: authorUrl(author.id) },
+];
+const profile = {
+  '@type': 'ProfilePage',
+  '@id': `${site.url}${authorUrl(author.id)}#profile`,
+  url: `${site.url}${authorUrl(author.id)}`,
+  mainEntity: personSchema(author.id),
+};
+const count = `${mine.length} ${mine.length === 1 ? 'post' : 'posts'}`;
+const title = `${author.name}, writing on the Cloudgate blog`;
+const description = `Posts by ${author.name} on the Cloudgate blog (${count}): releases, guides and engineering notes about deploying apps to servers and clouds you own.`;
+---
+
+<Base title={title} description={description} schema={[breadcrumbSchema(trail), profile]}>
+  <PageHero title={author.name} lede={`${author.bio} ${count} so far, newest first.`} trail={trail} compact />
+
+  <section class="section">
+    <div class="wrap">
+      <ol class="posts">
+        {mine.map((p) => (
+          <li>
+            <p class="meta">
+              <time datetime={p.data.published}>{longDate(p.data.published)}</time>
+              <span>{topics[p.data.topic].name}</span>
+            </p>
+            <h2><a href={postUrl(p)}>{p.data.title}</a></h2>
+            <p class="desc">{p.data.lede}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="more"><a class="text-link" href="/blog">Every post on the Cloudgate blog</a></p>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .posts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 52rem;
+  }
+  .posts > li {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  h2 {
+    font-size: var(--text-xl);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 0 0 var(--space-3);
+  }
+  h2 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  h2 a:hover {
+    color: var(--brand);
+  }
+  .desc {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+</style>

@@ -13,6 +13,8 @@ import { site, plans, addOn, trialDays, deployUrl } from '../data/site';
 import { faqSchema, softwareSchema } from '../data/schema';
 import templates from '../data/templates.json';
 import { templatePageUrl } from '../data/template-links';
+import { getPosts, postUrl, longDate } from '../data/blog';
+import { getHeadings as changelogHeadings } from '../content/changelog.md';
 
 const lanes = [
   {
@@ -68,6 +70,10 @@ const runsOn = ['Any Ubuntu server', 'AWS', 'Google Cloud', 'Docker Swarm', 'Pos
 // A featured few: the full catalogue lives on the templates website and will grow to hundreds.
 const featured = ['n8n', 'wordpress', 'ghost', 'plausible', 'vaultwarden', 'nextcloud', 'mattermost', 'uptime-kuma'];
 const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t) => t !== undefined);
+
+// The newest three posts and the newest release, so the most-visited page changes as the product does.
+const latestPosts = (await getPosts()).slice(0, 3);
+const latestRelease = changelogHeadings().find((h) => h.depth === 2);
 ---
 
 <Base
@@ -370,11 +376,71 @@ const shown = featured.map((id) => templates.find((t) => t.id === id)).filter((t
     </div>
   </section>
 
+  {latestPosts.length > 0 && (
+    <section class="section band" aria-labelledby="latest">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <h2 id="latest">Latest from the Cloudgate blog</h2>
+          <p class="lede">
+            What shipped this month, and why Cloudgate works the way it does.
+            {latestRelease && (
+              <>
+                {' '}The newest release is <a href={`/changelog#${latestRelease.slug}`}>{latestRelease.text.replace(/\s*\(.*\)\s*$/, '')}</a>.
+              </>
+            )}
+          </p>
+        </div>
+        <ul class="latest" data-reveal-stagger="60">
+          {latestPosts.map((p) => (
+            <li>
+              <a href={postUrl(p)} data-spotlight>
+                <small><time datetime={p.data.published}>{longDate(p.data.published)}</time></small>
+                <strong>{p.data.title}</strong>
+                <span>{p.data.description}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="more"><a class="text-link" href="/blog">Every post on the blog</a></p>
+      </div>
+    </section>
+  )}
+
   <Faq items={faq} />
   <CtaBand />
 </Base>
 
 <style>
+  .latest {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
+  }
+  .latest a {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .latest strong {
+    color: var(--ink);
+    font-size: var(--text-lg);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .latest a:hover strong {
+    color: var(--brand);
+  }
+
   /* ---- Hero: text and the globe ---- */
   .hero {
     position: relative;

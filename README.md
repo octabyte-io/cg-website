@@ -29,6 +29,7 @@ src/
 public/              favicon, Open Graph image, template logos, CNAME
 docs/design.md       the design plan: audience, tokens, layout rules, what to avoid
 docs/product-facts.md  what the site may claim, traced to the cloudgate repository
+docs/blog-authoring.md how to write a post for /blog (src/content/blog)
 ```
 
 Read `docs/design.md` and `docs/product-facts.md` before changing a page.

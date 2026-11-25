@@ -15,6 +15,11 @@ interface Props {
   /** Extra JSON-LD objects for this page (FAQPage, BreadcrumbList, HowTo...). */
   schema?: Record<string, unknown>[];
   noindex?: boolean;
+  /** The day the page's content last changed (ISO date), when the page states one itself (a blog
+   * post's `updated`). Default: the date of the last commit to the page's files. */
+  modified?: string;
+  /** 'article' on a blog post; 'website' everywhere else. */
+  ogType?: 'website' | 'article';
 }
 
 const {
@@ -24,6 +29,8 @@ const {
   imageAlt,
   schema = [],
   noindex = false,
+  modified: ownModified,
+  ogType = 'website',
 } = Astro.props;
 
 // build.format 'file' + trailingSlash 'never': pages are served as /x from x.html, and the home page
@@ -69,7 +76,7 @@ const website = {
 };
 const breadcrumb = schema.find((s) => s['@type'] === 'BreadcrumbList');
 // The date of the last commit to the page's files, the same date the sitemap's <lastmod> carries.
-const modified = noindex ? undefined : lastmodOf(path || '/');
+const modified = noindex ? undefined : (ownModified ?? lastmodOf(path || '/'));
 const webpage = noindex
   ? null
   : {
@@ -99,7 +106,7 @@ const graph = {
 <meta name="color-scheme" content="light dark" />
 {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content={ogType} />
 <meta property="og:site_name" content={site.name} />
 <meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
@@ -117,6 +124,7 @@ const graph = {
 
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title="Cloudgate changelog" href="/changelog.xml" />
+<link rel="alternate" type="application/rss+xml" title="Cloudgate blog" href="/blog.xml" />
 <link rel="alternate" type="text/plain" title="Cloudgate summary for AI assistants" href="/llms.txt" />
 <link rel="alternate" type="text/plain" title="Cloudgate full text for AI assistants" href="/llms-full.txt" />
 
