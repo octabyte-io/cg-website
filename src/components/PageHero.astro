@@ -3,11 +3,17 @@
 // blueprint grid and a narrow beam, echoing the home page's hero at a smaller scale.
 // An optional `visual` slot sits beside the copy on wide screens.
 import Breadcrumbs from './Breadcrumbs.astro';
-interface Props { title: string; lede: string; trail: { name: string; path: string }[] }
-const { title, lede, trail } = Astro.props;
+interface Props {
+  title: string;
+  lede: string;
+  trail: { name: string; path: string }[];
+  /** A smaller heading for long titles that are sentences, such as a blog post's. */
+  compact?: boolean;
+}
+const { title, lede, trail, compact = false } = Astro.props;
 const hasVisual = Astro.slots.has('visual');
 ---
-<section class:list={['page-hero', { 'has-visual': hasVisual }]}>
+<section class:list={['page-hero', { 'has-visual': hasVisual, compact }]}>
   <div class="grid-bg" aria-hidden="true"></div>
   <div class="beam" aria-hidden="true"></div>
   <div class="wrap inner">
@@ -56,6 +62,11 @@ const hasVisual = Astro.slots.has('visual');
   }
   .slot {
     margin-top: var(--space-6);
+  }
+  .compact h1 {
+    max-width: 24ch;
+    font-size: var(--text-3xl);
+    letter-spacing: -0.03em;
   }
   .copy,
   .visual {

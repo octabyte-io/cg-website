@@ -1,0 +1,172 @@
+---
+// The blog's hub: every post, newest first, then the posts grouped by topic so each topic has one
+// place that links all of it. Topics with no posts yet are left out.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { breadcrumbSchema } from '../../data/schema';
+import { site } from '../../data/site';
+import { authorById } from '../../data/authors';
+import { getPosts, postUrl, authorUrl, longDate, topics, modifiedOf, personSchema } from '../../data/blog';
+
+const posts = await getPosts();
+const trail = [{ name: 'Blog', path: '/blog' }];
+const used = (Object.keys(topics) as (keyof typeof topics)[]).filter((t) => posts.some((p) => p.data.topic === t));
+
+const blogSchema = {
+  '@type': 'Blog',
+  '@id': `${site.url}/blog#blog`,
+  name: 'The Cloudgate blog',
+  url: `${site.url}/blog`,
+  description: 'Release roundups, guides and engineering notes from the team that makes Cloudgate.',
+  publisher: { '@id': `${site.url}/#organization` },
+  inLanguage: 'en',
+  blogPost: posts.map((p) => ({
+    '@type': 'BlogPosting',
+    '@id': `${site.url}${postUrl(p)}#article`,
+    headline: p.data.title,
+    url: `${site.url}${postUrl(p)}`,
+    datePublished: p.data.published,
+    dateModified: modifiedOf(p),
+    author: personSchema(p.data.author),
+  })),
+};
+
+const title = 'Cloudgate blog: releases, deploy guides and engineering notes';
+const description =
+  "What's new in Cloudgate each month, how to deploy and run apps on servers you own, and why Cloudgate is built the way it is, from the team that makes it.";
+---
+
+<Base title={title} description={description} schema={[breadcrumbSchema(trail), blogSchema]}>
+  <PageHero
+    title="The Cloudgate blog"
+    lede="What changed in Cloudgate this month, how to deploy and run apps on servers and cloud accounts you own, and the reasons behind how Cloudgate works. Written by the team that makes it."
+    trail={trail}
+  >
+    <a class="btn btn--primary" href="/blog.xml" type="application/rss+xml">Follow with RSS</a>
+    <a class="btn btn--ghost" href="/changelog">Read the changelog</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="latest">
+    <div class="wrap">
+      <h2 id="latest" class="visually-hidden">Latest posts</h2>
+      <ol class="posts" data-reveal-stagger="60">
+        {posts.map((p) => {
+          const a = authorById(p.data.author);
+          return (
+            <li>
+              <article>
+                <p class="meta">
+                  <time datetime={p.data.published}>{longDate(p.data.published)}</time>
+                  <span>{topics[p.data.topic].name}</span>
+                </p>
+                <h3><a href={postUrl(p)}>{p.data.title}</a></h3>
+                <p class="desc">{p.data.lede}</p>
+                <p class="by">By <a href={authorUrl(a.id)}>{a.name}</a></p>
+              </article>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  </section>
+
+  {used.length > 0 && (
+    <section class="section band" aria-labelledby="topics">
+      <div class="wrap">
+        <h2 id="topics" class="topics-title">Posts by topic</h2>
+        <div class="topics">
+          {used.map((t) => (
+            <section id={t} aria-labelledby={`topic-${t}`}>
+              <h3 id={`topic-${t}`}>{topics[t].name}</h3>
+              <p>{topics[t].blurb}</p>
+              <ul>
+                {posts.filter((p) => p.data.topic === t).map((p) => <li><a href={postUrl(p)}>{p.data.title}</a></li>)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <CtaBand />
+</Base>
+
+<style>
+  .posts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    max-width: 52rem;
+  }
+  .posts > li {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+  .posts > li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0 0 var(--space-2);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .posts h3 {
+    font-size: var(--text-xl);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 0 0 var(--space-3);
+  }
+  .posts h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .posts h3 a:hover {
+    color: var(--brand);
+  }
+  .desc {
+    margin: 0 0 var(--space-3);
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+  .by {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .by a {
+    color: var(--ink);
+  }
+
+  .topics-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-6);
+  }
+  .topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-7);
+  }
+  .topics section {
+    scroll-margin-top: 6rem;
+  }
+  .topics h3 {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-2);
+  }
+  .topics p {
+    color: var(--muted);
+    margin: 0 0 var(--space-3);
+  }
+  .topics ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+</style>

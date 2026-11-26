@@ -10,6 +10,8 @@ interface Props {
   image?: string;
   schema?: Record<string, unknown>[];
   noindex?: boolean;
+  modified?: string;
+  ogType?: 'website' | 'article';
 }
 const props = Astro.props;
 ---

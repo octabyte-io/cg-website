@@ -3,6 +3,7 @@
 import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
+import { authorIds } from './data/authors';
 
 const docs = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/docs' }),
@@ -38,4 +39,34 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { docs };
+// The blog: one Markdown file per post under src/content/blog; its file name is its URL under /blog.
+// See docs/blog-authoring.md.
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
+  schema: z.object({
+    /** The post's one <h1>, phrased as people search or ask. */
+    title: z.string(),
+    /** <title> (50-60 characters with " | Cloudgate"); defaults to `title`. */
+    seoTitle: z.string().optional(),
+    /** Meta description, 140-160 characters, unique. */
+    description: z.string(),
+    /** One or two sentences under the <h1> that answer the title outright. */
+    lede: z.string(),
+    /** Who wrote it: an id from src/data/authors.ts. */
+    author: z.enum(authorIds),
+    /** The day it was first published (YYYY-MM-DD). Never a future date. */
+    published: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** The day its content last changed in substance (YYYY-MM-DD). Never moved for a typo. */
+    updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    /** The topic it belongs to on /blog; see src/data/blog.ts. */
+    topic: z.enum(['releases', 'engineering', 'guides', 'ai', 'comparisons', 'data']),
+    /** Pages on this site the post leads to, shown beside it: product pages, docs, compare pages. */
+    related: z.array(z.object({ href: z.string(), title: z.string() })).default([]),
+    /** Questions the post answers, emitted as FAQPage JSON-LD and rendered at the end. */
+    faq: z.array(z.object({ q: z.string(), a: z.string() })).optional(),
+    /** While true the post is not built at all: no page, no list, no feed. */
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { docs, blog };

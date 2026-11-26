@@ -4,6 +4,7 @@ import { templatesHome } from '../data/template-links';
 import { getDocsNav } from '../data/docs-nav';
 import { getCollection } from 'astro:content';
 import { competitors } from '../data/compare';
+import { getPosts, postUrl } from '../data/blog';
 
 // llms.txt (https://llmstxt.org): a plain summary an AI assistant can read in one request.
 export const GET: APIRoute = async () => {
@@ -12,6 +13,8 @@ export const GET: APIRoute = async () => {
   const docLines = docsNav
     .map((s) => `### ${s.title}\n\n` + s.groups.flatMap((g) => g.links).map((l) => `- [${l.title}](${site.url}${l.href})${docsMeta.get(l.href) ? `: ${docsMeta.get(l.href)}` : ''}`).join('\n'))
     .join('\n\n');
+  const posts = await getPosts();
+  const postLines = posts.map((p) => `- [${p.data.title}](${site.url}${postUrl(p)}) (${p.data.published}): ${p.data.description}`).join('\n');
   const planLines = plans.map((p) => `- ${p.name}: $${p.price} a month. ${p.includes.join('; ')}.`).join('\n');
 
   const body = `# ${site.name}
@@ -60,8 +63,13 @@ ${competitors.map((c) => `- [Cloudgate vs ${c.name}](${site.url}/compare/${c.id}
 - [Security](${site.url}/security): how agent keys, secrets, roles and the audit log protect you, and how to report a vulnerability
 - [License](${site.url}/license): the Elastic License 2.0 in plain English
 - [Changelog](${site.url}/changelog): what has shipped
+- [Blog](${site.url}/blog): monthly release roundups, deploy guides and engineering notes; feed at ${site.url}/blog.xml
 - [Contact](${site.url}/contact): support and sales by email, bugs and ideas on GitHub, and how to report a security problem
 - [Legal](${site.url}/legal): terms of service, privacy policy, acceptable use, cookies, subprocessors and the DPA
+
+## Blog posts
+
+${postLines}
 
 ## Documentation
 
