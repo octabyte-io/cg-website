@@ -4,7 +4,7 @@ seoTitle: How Cloudgate keeps self-hosted upgrades safe
 description: "Why Cloudgate's installer runs only signed, fully tested versions, saves your database before an upgrade and keeps the old version until the new one is healthy."
 lede: "A self-hosted Cloudgate installs only a version that passed the full test run and carries a valid signature, dumps its database before an upgrade, and keeps the old version until the new one is healthy. Here is why each of those three decisions was made, and what it costs."
 author: arfan
-published: '2026-11-25'
+published: '2026-11-26'
 topic: engineering
 related:
   - { href: '/docs/self-host/install', title: 'Install and upgrade a self-hosted Cloudgate' }

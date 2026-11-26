@@ -4,7 +4,7 @@ seoTitle: "What's new in Cloudgate: November 2026 releases"
 description: "Cloudgate's November 2026 releases, 0.2.0 to 0.3.12 and CLI 0.1: a public source, a signed one-command install, a stable CLI and a first deploy for anyone."
 lede: "November 2026 took Cloudgate from its first numbered release, 0.2.0, to 0.3.12 in eight days, and the command-line tool to its first stable version. Here is what changed, grouped by what it means for you, and the one step to take when you upgrade."
 author: azeem
-published: '2026-11-25'
+published: '2026-11-26'
 topic: releases
 related:
   - { href: '/changelog', title: 'The full changelog, release by release' }
