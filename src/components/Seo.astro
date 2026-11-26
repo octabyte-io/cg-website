@@ -59,17 +59,22 @@ const organization = {
   '@type': 'Organization',
   '@id': `${site.url}/#organization`,
   name: site.name,
+  // Other products share the Cloudgate name; the maker's name tells this one apart.
+  alternateName: 'Cloudgate by Octabyte',
+  description: site.description,
   url: site.url,
   logo: `${site.url}/cloudgate-mark.png`,
   email: site.support,
   parentOrganization: { '@type': 'Organization', name: site.company.name, url: site.company.url },
-  sameAs: [site.sourceUrl, site.npm, site.templatesRepo],
+  sameAs: [site.sourceUrl, site.npm, site.templatesRepo, site.templatesSite],
 };
 const website = {
   '@type': 'WebSite',
   '@id': `${site.url}/#website`,
   url: site.url,
   name: site.name,
+  // Google's site name for the result, with a fallback it may show instead.
+  alternateName: 'Cloudgate by Octabyte',
   description: site.description,
   publisher: { '@id': `${site.url}/#organization` },
   inLanguage: 'en',
