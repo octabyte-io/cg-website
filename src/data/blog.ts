@@ -38,6 +38,7 @@ export const personSchema = (id: string) => {
     '@type': 'Person',
     '@id': `${site.url}${authorUrl(id)}#person`,
     name: a.name,
+    description: a.bio,
     url: `${site.url}${authorUrl(id)}`,
     worksFor: { '@type': 'Organization', name: site.company.name, url: site.company.url },
   };
