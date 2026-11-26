@@ -3,16 +3,53 @@ import { templatesHome } from '../data/template-links';
 import Mark from './Mark.astro';
 import { site } from '../data/site';
 
-const nav = [
-  { href: '/ai-agents', label: 'AI agents' },
-  { href: '/vibe-coding', label: 'Vibe coding' },
-  { href: '/features', label: 'Features' },
+type Link = { href: string; label: string; note?: string; newTab?: boolean };
+type Group = { id: string; label: string; links: Link[] };
+type Item = Link | Group;
+
+// Six entries on a wide screen: three short menus and the three pages people come for by name.
+// Every link stays a plain <a href> in the static HTML, so crawlers and readers without
+// JavaScript reach each page; the menus only decide when a list is shown.
+const nav: Item[] = [
+  {
+    id: 'product',
+    label: 'Product',
+    links: [
+      { href: '/features', label: 'Features', note: 'Deploy, run and monitor apps on servers you own' },
+      { href: '/tour', label: 'Console tour', note: 'Real screenshots of deploys, logs and Plans' },
+      { href: '/cli', label: 'Command-line tool', note: 'Deploy any folder from your terminal' },
+      { href: '/self-hosted', label: 'Self-host Cloudgate', note: 'Run it free on one Ubuntu server' },
+    ],
+  },
+  {
+    id: 'use-cases',
+    label: 'Use cases',
+    links: [
+      { href: '/vibe-coding', label: 'Vibe coding', note: 'Put an app you built with AI online' },
+      { href: '/ai-agents', label: 'AI agents', note: 'Let agents deploy over MCP, every call audited' },
+      { href: '/ai-models', label: 'AI models', note: 'Serve open models on your own GPUs' },
+    ],
+  },
   { href: templatesHome, label: 'Templates' },
   { href: '/pricing', label: 'Pricing' },
-  { href: '/self-hosted', label: 'Self-host' },
   { href: '/docs', label: 'Docs' },
+  {
+    id: 'resources',
+    label: 'Resources',
+    links: [
+      { href: '/blog', label: 'Blog', note: 'Release roundups, guides and engineering notes' },
+      { href: '/changelog', label: 'Changelog', note: 'What changed in every release' },
+      { href: '/compare', label: 'Compare', note: 'Cloudgate next to Heroku, Vercel, Railway and more' },
+      { href: '/about', label: 'About', note: 'A deployment platform for servers you own' },
+    ],
+  },
 ];
-const here = Astro.url.pathname.replace(/\.html$/, '');
+const isGroup = (item: Item): item is Group => 'links' in item;
+const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+const current = (href: string) =>
+  href.startsWith('/') && (here === href || here.startsWith(`${href}/`)) ? 'page' : undefined;
+const groupHere = (g: Group) => g.links.some((l) => current(l.href));
+const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
 ---
 <header class="site-header">
   <div class="wrap bar">
@@ -21,32 +58,75 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
       <span>Cloudgate</span>
     </a>
     <nav aria-label="Main" class="wide">
-      <ul>
-        {nav.map((item) => (
-          <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
-        ))}
+      <ul class="top">
+        {nav.map((item) =>
+          isGroup(item) ? (
+            <li class="drop">
+              <button type="button" class:list={['trigger', { here: groupHere(item) }]} aria-expanded="false" aria-controls={`nav-${item.id}`}>
+                {item.label}
+                <svg class="chev" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.75 6 7.75l3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </button>
+              <div class="panel" id={`nav-${item.id}`}>
+                <ul>
+                  {item.links.map((l) => (
+                    <li>
+                      <a href={l.href} aria-current={current(l.href)} {...(l.newTab ? ext : {})}>
+                        <span class="name">
+                          {l.label}
+                          {l.newTab && <svg class="out" viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M4.5 2.75h4.75V7.5M9 3 3 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>}
+                        </span>
+                        <span class="desc">{l.note}</span>
+                        {l.newTab && <span class="visually-hidden"> (opens in a new tab)</span>}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ) : (
+            <li><a class="trigger" href={item.href} aria-current={current(item.href)}>{item.label}</a></li>
+          ),
+        )}
       </ul>
     </nav>
     <div class="end">
-      <button class="theme" type="button" aria-label="Switch between light and dark theme" title="Switch theme">
-        <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor" /><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></g></svg>
-        <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.2 14.6A8.5 8.5 0 0 1 9.4 3.8a8.5 8.5 0 1 0 10.8 10.8Z" /></svg>
-      </button>
-      <a class="gh" href={site.sourceUrl} aria-label="Cloudgate source on GitHub" title="Cloudgate source on GitHub">
-        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+      <div class="tools">
+        <button class="theme" type="button" aria-label="Switch between light and dark theme" title="Switch theme">
+          <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor" /><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></g></svg>
+          <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.2 14.6A8.5 8.5 0 0 1 9.4 3.8a8.5 8.5 0 1 0 10.8 10.8Z" /></svg>
+        </button>
+        <a class="gh" href={site.sourceUrl} aria-label="Cloudgate source on GitHub" title="Cloudgate source on GitHub">
+          <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+        </a>
+      </div>
+      <a class="ask" href={site.askGpt} {...ext} title="Ask ChatGPT about Cloudgate">
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2.75 4.25a1.5 1.5 0 0 1 1.5-1.5h7.5a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7.5l-2.75 2.5v-2.5h-.5a1.5 1.5 0 0 1-1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 4.9l.45 1.15 1.15.45-1.15.45L8 8.1l-.45-1.15L6.4 6.5l1.15-.45Z" fill="currentColor" /></svg>
+        <span>Ask GPT</span><span class="visually-hidden"> about Cloudgate (opens in a new tab)</span>
       </a>
-      <a class="signin" href={site.askGpt} target="_blank" rel="noopener noreferrer nofollow">Ask GPT<span class="visually-hidden"> (opens in a new tab)</span></a>
       <a class="signin" href={site.signIn}>Sign in</a>
       <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
       <details class="menu">
         <summary><span class="when-shut">Menu</span><span class="when-open">Close</span></summary>
         <nav aria-label="Main, small screens">
-          <ul>
-            {nav.map((item) => (
-              <li><a href={item.href} aria-current={here.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
+          <a class="ask ask--sheet" href={site.askGpt} {...ext}>
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2.75 4.25a1.5 1.5 0 0 1 1.5-1.5h7.5a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7.5l-2.75 2.5v-2.5h-.5a1.5 1.5 0 0 1-1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 4.9l.45 1.15 1.15.45-1.15.45L8 8.1l-.45-1.15L6.4 6.5l1.15-.45Z" fill="currentColor" /></svg>
+            <span>Ask GPT about Cloudgate</span><span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <div class="sheet">
+            <section>
+              <ul>
+                {nav.filter((i): i is Link => !isGroup(i)).map((l) => <li><a href={l.href} aria-current={current(l.href)}>{l.label}</a></li>)}
+              </ul>
+            </section>
+            {nav.filter(isGroup).map((g) => (
+              <section>
+                <p class="group" id={`menu-${g.id}`}>{g.label}</p>
+                <ul aria-labelledby={`menu-${g.id}`}>{g.links.map((l) => <li><a href={l.href} aria-current={current(l.href)} {...(l.newTab ? ext : {})}>{l.label}{l.newTab && <span class="visually-hidden"> (opens in a new tab)</span>}</a></li>)}</ul>
+              </section>
             ))}
+          </div>
+          <ul class="account">
             <li><a href={site.sourceUrl}>Source on GitHub</a></li>
-            <li><a href={site.askGpt} target="_blank" rel="noopener noreferrer nofollow">Ask GPT<span class="visually-hidden"> (opens in a new tab)</span></a></li>
             <li><a href={site.signIn}>Sign in</a></li>
             <li class="menu-trial"><a href={site.signUp}>Start free trial</a></li>
           </ul>
@@ -78,6 +158,51 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
   });
 </script>
 
+<script>
+  // Desktop menus: a disclosure button per group. A fine pointer opens it on hover (with a short
+  // grace period on leave, so a diagonal move to the panel doesn't drop it); a click, Enter or Space
+  // toggles it; Escape or a click or focus elsewhere closes it. Without JavaScript, CSS opens a menu
+  // on hover and on focus inside it, and every link is in the HTML either way.
+  const drops = [...document.querySelectorAll<HTMLLIElement>('.site-header .drop')];
+  const timers = new WeakMap<HTMLLIElement, number>();
+  const hoverOpenedAt = new WeakMap<HTMLLIElement, number>();
+  const set = (drop: HTMLLIElement, open: boolean) => {
+    window.clearTimeout(timers.get(drop));
+    if (open) drops.forEach((d) => d !== drop && set(d, false));
+    drop.toggleAttribute('data-open', open);
+    drop.querySelector('button')?.setAttribute('aria-expanded', String(open));
+  };
+  for (const drop of drops) {
+    const button = drop.querySelector('button')!;
+    button.addEventListener('click', () => {
+      // A click straight after the hover opened it means "open", not "close again".
+      if (drop.hasAttribute('data-open') && Date.now() - (hoverOpenedAt.get(drop) ?? 0) < 400) return;
+      set(drop, !drop.hasAttribute('data-open'));
+    });
+    drop.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      if (!drop.hasAttribute('data-open')) hoverOpenedAt.set(drop, Date.now());
+      set(drop, true);
+    });
+    drop.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      timers.set(drop, window.setTimeout(() => set(drop, false), 160));
+    });
+    drop.addEventListener('focusout', (e) => {
+      if (!drop.contains(e.relatedTarget as Node | null)) set(drop, false);
+    });
+    drop.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && drop.hasAttribute('data-open')) {
+        set(drop, false);
+        button.focus();
+      }
+    });
+  }
+  document.addEventListener('pointerdown', (e) => {
+    drops.forEach((d) => !d.contains(e.target as Node) && set(d, false));
+  });
+</script>
+
 <style>
   .site-header {
     position: sticky;
@@ -106,38 +231,169 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
   }
   .wide {
     flex: 1;
+    min-width: max-content;
   }
   ul {
-    display: flex;
-    gap: var(--space-1);
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  nav a {
-    display: block;
-    padding: 0.5rem 0.7rem;
+  .top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  /* Top-level entries: links and menu buttons share one quiet look. */
+  .trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 40px;
+    padding: 0 0.75rem;
+    border: 0;
     border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--muted);
+    font: inherit;
     font-size: var(--text-sm);
+    line-height: 1;
     text-decoration: none;
     white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color 160ms var(--ease),
+      background-color 160ms var(--ease);
   }
-  nav a[aria-current='page'] {
+  .trigger[aria-current='page'],
+  .trigger.here,
+  .drop[data-open] > .trigger {
     color: var(--ink);
+  }
+  .trigger[aria-current='page'],
+  .drop[data-open] > .trigger {
     background: var(--paper-2);
   }
+  /* A menu that holds the current page marks itself with a dot of the brand colour. */
+  .trigger.here::after {
+    content: '';
+    order: -1;
+    width: 5px;
+    height: 5px;
+    margin-right: 0.15rem;
+    border-radius: 50%;
+    background: var(--brand);
+  }
   @media (hover: hover) and (pointer: fine) {
-    nav a:hover {
+    .trigger:hover {
       color: var(--ink);
       background: var(--paper-2);
     }
   }
+  .trigger > svg,
+  .trigger::after {
+    flex: none;
+  }
+  .chev {
+    opacity: 0.7;
+    transition: transform 200ms var(--ease-out);
+  }
+  .drop[data-open] .chev {
+    transform: rotate(180deg);
+  }
+
+  /* The menu panel. */
+  .drop {
+    position: relative;
+  }
+  .panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -0.5rem;
+    width: 21rem;
+    padding: var(--space-2);
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    box-shadow:
+      0 1px 0 0 color-mix(in srgb, var(--ink) 4%, transparent) inset,
+      0 22px 44px -22px var(--glow),
+      0 8px 20px -12px rgba(0, 0, 0, 0.25);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity 120ms var(--ease),
+      transform 120ms var(--ease),
+      visibility 0s linear 120ms;
+  }
+  /* An invisible bridge over the gap so the pointer can travel from the button to the panel. */
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: -12px 0 auto;
+    height: 12px;
+  }
+  .drop[data-open] > .panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 180ms var(--ease-out),
+      visibility 0s;
+  }
+  :global(:root:not(.js)) .drop:is(:hover, :focus-within) > .panel {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+  .panel a {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+  .name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .out {
+    color: var(--muted);
+  }
+  .desc {
+    color: var(--muted);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+  }
+  .panel a[aria-current='page'] {
+    background: var(--paper-2);
+  }
+  .panel a[aria-current='page'] .name {
+    color: var(--brand);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .panel a:hover {
+      background: var(--paper-2);
+    }
+  }
+
   .end {
     display: flex;
     align-items: center;
     gap: var(--space-4);
     margin-left: auto;
+  }
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
   }
   .theme,
   .gh {
@@ -182,6 +438,46 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
       display: block;
     }
   }
+  /* Ask GPT: the one extra the bar keeps on show, a quiet outlined chip with a brand-coloured icon. */
+  .ask {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 36px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color 160ms var(--ease),
+      border-color 160ms var(--ease),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .ask svg {
+    flex: none;
+    color: var(--brand);
+  }
+  .ask:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .ask:hover {
+      background: var(--paper-2);
+      border-color: var(--brand);
+    }
+  }
+  .menu .ask--sheet {
+    display: flex;
+    justify-content: center;
+    min-height: 48px;
+    margin-bottom: var(--space-4);
+    padding: 0 1rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-md);
+  }
   .signin {
     font-size: var(--text-sm);
     color: var(--muted);
@@ -193,6 +489,29 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
       color: var(--ink);
     }
   }
+
+  /* Wide screens: the two icons drop their rings and sit as one quiet pair, a hairline apart
+     from the account actions, so the bar reads as nav | tools | account. */
+  @media (min-width: 1141px) {
+    .theme,
+    .gh {
+      width: 40px;
+      height: 40px;
+      border-color: transparent;
+      color: var(--muted);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .theme:hover,
+      .gh:hover {
+        color: var(--ink);
+      }
+    }
+    .tools {
+      padding-right: var(--space-4);
+      border-right: 1px solid var(--line);
+    }
+  }
+
   .menu {
     display: none;
   }
@@ -248,24 +567,99 @@ const here = Astro.url.pathname.replace(/\.html$/, '');
       transform: translateY(-6px);
     }
   }
-  .menu ul {
-    flex-direction: column;
+  /* The small-screen menu: the three pages people ask for by name, then each group under its name. */
+  .sheet {
+    display: grid;
+    gap: var(--space-4) var(--space-6);
+  }
+  .sheet section + section {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .group {
+    margin: 0 0 var(--space-1);
+    padding: 0 0.5rem;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 500;
   }
   .menu a {
+    display: block;
+    padding: 0.7rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
     font-size: var(--text-md);
-    padding: 0.75rem 0.5rem;
+    text-decoration: none;
+  }
+  .menu a[aria-current='page'] {
+    background: var(--paper-2);
+    color: var(--brand);
+  }
+  .account {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .account a {
+    color: var(--muted);
+  }
+  /* A tablet has the width for the groups side by side. */
+  @media (min-width: 640px) {
+    .sheet {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sheet section + section {
+      padding-top: 0;
+      border-top: 0;
+    }
   }
 
-  /* Below this the six links no longer fit on one line beside the actions. */
-  @media (max-width: 1160px) {
+  /* A narrower desktop: tighter spacing so every entry and Ask GPT keep their labels. */
+  @media (min-width: 1141px) and (max-width: 1299px) {
+    .bar {
+      gap: var(--space-5);
+    }
+    .end {
+      gap: var(--space-3);
+    }
+    .tools {
+      padding-right: var(--space-3);
+    }
+    .trigger {
+      padding: 0 0.6rem;
+    }
+  }
+  /* Narrowest desktop: Ask GPT keeps its icon and its accessible name, and drops the visible label. */
+  @media (min-width: 1141px) and (max-width: 1199px) {
+    .end > .ask {
+      width: 36px;
+      padding: 0;
+      justify-content: center;
+    }
+    .end > .ask > span:not(.visually-hidden) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* Below this the six entries no longer fit on one line beside the actions. */
+  @media (max-width: 1140px) {
     .wide,
-    .signin {
+    .signin,
+    .end > .ask {
       display: none;
     }
     .menu {
       display: block;
     }
     .end {
+      gap: var(--space-3);
+    }
+    .tools {
       gap: var(--space-3);
     }
   }

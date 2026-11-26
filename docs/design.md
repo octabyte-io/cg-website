@@ -169,3 +169,13 @@ article at a 68ch measure, and a quiet side column ("On this page", related page
 is a plain list, newest first, then the posts by topic in a `.band`. The home page shows the newest
 three posts and release in a `.band` before its questions. No new tokens, no new motion beyond the
 existing `data-reveal-stagger` and `data-spotlight`.
+
+## Header (v6)
+
+The desktop bar holds six entries: three short menus (Product, Use cases, Resources) and the three
+pages people ask for by name (Templates, Pricing, Docs). Each menu item has a one-line note taken
+from its page's description. The theme switch and GitHub sit as a quiet icon pair, a hairline apart
+from Ask GPT (an outlined chip with a chat icon, kept on show), Sign in and the trial button. Ask GPT is also the first item in the Menu sheet. Every link is a plain `<a href>` in
+the static HTML (crawlable, and opened by CSS hover and focus without JavaScript); the script only
+adds click, Escape and outside-click handling. Below 1140px the bar collapses to the Menu sheet,
+which lists the same links under the same group names.
