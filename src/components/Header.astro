@@ -41,7 +41,6 @@ const nav: Item[] = [
       { href: '/changelog', label: 'Changelog', note: 'What changed in every release' },
       { href: '/compare', label: 'Compare', note: 'Cloudgate next to Heroku, Vercel, Railway and more' },
       { href: '/about', label: 'About', note: 'A deployment platform for servers you own' },
-      { href: site.askGpt, label: 'Ask GPT', note: 'Ask ChatGPT about Cloudgate', newTab: true },
     ],
   },
 ];
@@ -100,11 +99,19 @@ const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
           <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
         </a>
       </div>
+      <a class="ask" href={site.askGpt} {...ext} title="Ask ChatGPT about Cloudgate">
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2.75 4.25a1.5 1.5 0 0 1 1.5-1.5h7.5a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7.5l-2.75 2.5v-2.5h-.5a1.5 1.5 0 0 1-1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 4.9l.45 1.15 1.15.45-1.15.45L8 8.1l-.45-1.15L6.4 6.5l1.15-.45Z" fill="currentColor" /></svg>
+        <span>Ask GPT</span><span class="visually-hidden"> about Cloudgate (opens in a new tab)</span>
+      </a>
       <a class="signin" href={site.signIn}>Sign in</a>
       <a class="btn btn--primary" href={site.signUp}>Start free trial</a>
       <details class="menu">
         <summary><span class="when-shut">Menu</span><span class="when-open">Close</span></summary>
         <nav aria-label="Main, small screens">
+          <a class="ask ask--sheet" href={site.askGpt} {...ext}>
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2.75 4.25a1.5 1.5 0 0 1 1.5-1.5h7.5a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H7.5l-2.75 2.5v-2.5h-.5a1.5 1.5 0 0 1-1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /><path d="M8 4.9l.45 1.15 1.15.45-1.15.45L8 8.1l-.45-1.15L6.4 6.5l1.15-.45Z" fill="currentColor" /></svg>
+            <span>Ask GPT about Cloudgate</span><span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
           <div class="sheet">
             <section>
               <ul>
@@ -431,6 +438,46 @@ const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
       display: block;
     }
   }
+  /* Ask GPT: the one extra the bar keeps on show, a quiet outlined chip with a brand-coloured icon. */
+  .ask {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 36px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color 160ms var(--ease),
+      border-color 160ms var(--ease),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .ask svg {
+    flex: none;
+    color: var(--brand);
+  }
+  .ask:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .ask:hover {
+      background: var(--paper-2);
+      border-color: var(--brand);
+    }
+  }
+  .menu .ask--sheet {
+    display: flex;
+    justify-content: center;
+    min-height: 48px;
+    margin-bottom: var(--space-4);
+    padding: 0 1rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-md);
+  }
   .signin {
     font-size: var(--text-sm);
     color: var(--muted);
@@ -567,10 +614,43 @@ const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
     }
   }
 
+  /* A narrower desktop: tighter spacing so every entry and Ask GPT keep their labels. */
+  @media (min-width: 1141px) and (max-width: 1299px) {
+    .bar {
+      gap: var(--space-5);
+    }
+    .end {
+      gap: var(--space-3);
+    }
+    .tools {
+      padding-right: var(--space-3);
+    }
+    .trigger {
+      padding: 0 0.6rem;
+    }
+  }
+  /* Narrowest desktop: Ask GPT keeps its icon and its accessible name, and drops the visible label. */
+  @media (min-width: 1141px) and (max-width: 1199px) {
+    .end > .ask {
+      width: 36px;
+      padding: 0;
+      justify-content: center;
+    }
+    .end > .ask > span:not(.visually-hidden) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
   /* Below this the six entries no longer fit on one line beside the actions. */
   @media (max-width: 1140px) {
     .wide,
-    .signin {
+    .signin,
+    .end > .ask {
       display: none;
     }
     .menu {
