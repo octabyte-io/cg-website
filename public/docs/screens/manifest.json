@@ -66,7 +66,7 @@
   {
     "name": "application-overview",
     "title": "Application overview",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-",
+    "route": "/applications/[applicationId]",
     "description": "The web Application overview: build output, its GitHub source northwind-labs/storefront on main, the Build card, and the Application and Where it runs cards.",
     "width": 2000,
     "height": 1250
@@ -106,7 +106,7 @@
   {
     "name": "application-domains",
     "title": "Application domains",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/domains",
+    "route": "/applications/[applicationId]/domains",
     "description": "The web Application Domains tab listing its hosts with HTTPS and their certificates.",
     "width": 2000,
     "height": 1250
@@ -122,7 +122,7 @@
   {
     "name": "application-advanced",
     "title": "Application settings",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/advanced",
+    "route": "/applications/[applicationId]/advanced",
     "description": "The web Application Advanced tab with its section bar: Resources, Runtime, Routing, Docker Swarm and Danger zone.",
     "width": 2000,
     "height": 1250
@@ -146,7 +146,7 @@
   {
     "name": "service-health",
     "title": "Health tab",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/health",
+    "route": "/applications/[applicationId]/health",
     "description": "Uptime checks, Error rate and Incident history of a Service",
     "width": 2000,
     "height": 2486
@@ -154,7 +154,7 @@
   {
     "name": "database-overview",
     "title": "Database overview",
-    "route": "/databases/postgres/Yg-v_9jwYVBwt0vUPpzoc",
+    "route": "/databases/postgres/[databaseId]",
     "description": "The orders-db PostgreSQL database in storefront / production.",
     "width": 2000,
     "height": 1250
@@ -162,7 +162,7 @@
   {
     "name": "database-credentials",
     "title": "Database credentials",
-    "route": "/databases/postgres/Yg-v_9jwYVBwt0vUPpzoc/credentials",
+    "route": "/databases/postgres/[databaseId]/credentials",
     "description": "The Credentials tab of orders-db: host, port, database and user inside the Environment, with the password and connection string hidden.",
     "width": 2000,
     "height": 1250
@@ -170,7 +170,7 @@
   {
     "name": "database-backups",
     "title": "Database backups",
-    "route": "/databases/postgres/Yg-v_9jwYVBwt0vUPpzoc/backups",
+    "route": "/databases/postgres/[databaseId]/backups",
     "description": "The Backups tab of orders-db with a daily 03:00 dump to northwind-backups keeping 14.",
     "width": 2000,
     "height": 1250
@@ -178,7 +178,7 @@
   {
     "name": "database-create",
     "title": "Add a database",
-    "route": "/environments/7FlL9JRfNU74gm1-fj_mA",
+    "route": "/environments/[environmentId]",
     "description": "The Add a database dialog on its first step, choosing an engine, in storefront / production.",
     "width": 1720,
     "height": 924
@@ -186,7 +186,7 @@
   {
     "name": "compose-overview",
     "title": "Compose stack Overview",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t",
+    "route": "/compose/[composeId]",
     "description": "The Overview tab of the plausible Compose stack",
     "width": 2000,
     "height": 1250
@@ -194,7 +194,7 @@
   {
     "name": "bucket-screen",
     "title": "Bucket",
-    "route": "/buckets/SNqFBPfPiB08DZ5yJcZpY",
+    "route": "/buckets/[bucketId]",
     "description": "The media bucket on fra-1 in storefront / production, with its real name, region, key and domains.",
     "width": 2000,
     "height": 1250
@@ -202,7 +202,7 @@
   {
     "name": "ai-model-model-tab",
     "title": "AI model",
-    "route": "/applications/eEFDGkqmMOVKTzGsSwidD/model",
+    "route": "/applications/[applicationId]/model",
     "description": "The Model tab of the llm AI model.",
     "width": 2000,
     "height": 2174
@@ -218,7 +218,7 @@
   {
     "name": "server-overview",
     "title": "Server Overview",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW",
+    "route": "/servers/[serverId]",
     "description": "Readiness, Running here and Utilisation of a Server",
     "width": 2000,
     "height": 1250
@@ -226,7 +226,7 @@
   {
     "name": "server-telemetry",
     "title": "Server Telemetry tab",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW/telemetry",
+    "route": "/servers/[serverId]/telemetry",
     "description": "A Server's stored CPU and utilisation history",
     "width": 2000,
     "height": 1250
@@ -234,7 +234,7 @@
   {
     "name": "server-infrastructure",
     "title": "Server Infrastructure tab",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW/infrastructure",
+    "route": "/servers/[serverId]/infrastructure",
     "description": "Reach, installed software and setup of a Server",
     "width": 2000,
     "height": 1250
@@ -402,7 +402,7 @@
   {
     "name": "ai-model-create",
     "title": "Add an AI model",
-    "route": "/environments/7FlL9JRfNU74gm1-fj_mA",
+    "route": "/environments/[environmentId]",
     "description": "The Add an AI model dialog.",
     "width": 1720,
     "height": 1713
@@ -410,7 +410,7 @@
   {
     "name": "application-add-domain-dialog",
     "title": "Application: add a domain",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/domains",
+    "route": "/applications/[applicationId]/domains",
     "description": "The Add a domain dialog on the web Application with the A record to create, the DNS check and HTTPS with Let's Encrypt.",
     "width": 1200,
     "height": 2034
@@ -418,7 +418,7 @@
   {
     "name": "application-build-card",
     "title": "Application: build card",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-",
+    "route": "/applications/[applicationId]",
     "description": "The Build card of the web Application in edit mode with the Dockerfile builder chosen.",
     "width": 1574,
     "height": 1635
@@ -426,7 +426,7 @@
   {
     "name": "application-delete-dialog",
     "title": "Application: delete dialog",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/advanced",
+    "route": "/applications/[applicationId]/advanced",
     "description": "The Delete web dialog listing what it removes, the Delete its volumes too checkbox and the name field.",
     "width": 1200,
     "height": 1127
@@ -434,7 +434,7 @@
   {
     "name": "application-logs",
     "title": "Application: runtime log",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/logs",
+    "route": "/applications/[applicationId]/logs",
     "description": "The Logs tab of the web Application following the runtime log of its running copies.",
     "width": 2000,
     "height": 887
@@ -442,7 +442,7 @@
   {
     "name": "application-routing",
     "title": "Application: routing",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/advanced",
+    "route": "/applications/[applicationId]/advanced",
     "description": "The Routing section of the web Application's Advanced tab: container port, published ports, redirects and basic authentication.",
     "width": 2000,
     "height": 2124
@@ -450,7 +450,7 @@
   {
     "name": "application-shell",
     "title": "Application: shell container picker",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/shell",
+    "route": "/applications/[applicationId]/shell",
     "description": "The Shell tab of the web Application with the Container picker open on its two running copies.",
     "width": 2000,
     "height": 474
@@ -458,7 +458,7 @@
   {
     "name": "application-source-picker",
     "title": "Application: change source",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-",
+    "route": "/applications/[applicationId]",
     "description": "The Source card of the web Application in edit mode with the seven source cards and the GitHub form.",
     "width": 1574,
     "height": 1072
@@ -482,7 +482,7 @@
   {
     "name": "bucket-browser-uploads",
     "title": "Bucket browser uploads",
-    "route": "/buckets/SNqFBPfPiB08DZ5yJcZpY",
+    "route": "/buckets/[bucketId]",
     "description": "The Browser uploads card of the media bucket.",
     "width": 2000,
     "height": 654
@@ -514,7 +514,7 @@
   {
     "name": "compose-add-domain",
     "title": "Add a domain to a stack",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t/domains",
+    "route": "/compose/[composeId]/domains",
     "description": "The Add a domain dialog for a Compose stack",
     "width": 1264,
     "height": 1576
@@ -522,7 +522,7 @@
   {
     "name": "compose-containers",
     "title": "Compose stack containers",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t/containers",
+    "route": "/compose/[composeId]/containers",
     "description": "Containers tab with a row Actions menu open",
     "width": 1574,
     "height": 858
@@ -530,7 +530,7 @@
   {
     "name": "compose-converted",
     "title": "Converted tab",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t/converted",
+    "route": "/compose/[composeId]/converted",
     "description": "What deploying the stack will change",
     "width": 1574,
     "height": 1030
@@ -538,7 +538,7 @@
   {
     "name": "compose-create",
     "title": "Add a Compose stack",
-    "route": "/environments/7FlL9JRfNU74gm1-fj_mA",
+    "route": "/environments/[environmentId]",
     "description": "The Add a Compose stack dialog on an Environment that deploys to Servers",
     "width": 1784,
     "height": 1422
@@ -546,7 +546,7 @@
   {
     "name": "compose-delete",
     "title": "Delete a Compose stack",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t/advanced",
+    "route": "/compose/[composeId]/advanced",
     "description": "The Delete dialog of a Compose stack",
     "width": 1264,
     "height": 1154
@@ -554,7 +554,7 @@
   {
     "name": "compose-source-change",
     "title": "Change a stack's source",
-    "route": "/compose/mONLYxTcTnfYq8msFxt4t",
+    "route": "/compose/[composeId]",
     "description": "The Source card in edit mode",
     "width": 1574,
     "height": 1876
@@ -586,7 +586,7 @@
   {
     "name": "cron-timetable",
     "title": "Cron service: timetable",
-    "route": "/applications/6-9K6SPcK7P7uwXm_J3ep",
+    "route": "/applications/[applicationId]",
     "description": "The Timetable card of the nightly-report Cron service with its schedule, time zone, time limit and next runs.",
     "width": 1574,
     "height": 996
@@ -594,7 +594,7 @@
   {
     "name": "database-advanced",
     "title": "Database advanced",
-    "route": "/databases/postgres/Yg-v_9jwYVBwt0vUPpzoc/advanced",
+    "route": "/databases/postgres/[databaseId]/advanced",
     "description": "The Advanced tab of orders-db with its run command, resources and delete cards.",
     "width": 2000,
     "height": 2696
@@ -602,7 +602,7 @@
   {
     "name": "database-create-details",
     "title": "Add a database: details",
-    "route": "/environments/7FlL9JRfNU74gm1-fj_mA",
+    "route": "/environments/[environmentId]",
     "description": "The second step of Add a database for PostgreSQL with name, description, database name, user, password, image and Server.",
     "width": 1720,
     "height": 1946
@@ -610,7 +610,7 @@
   {
     "name": "database-published-ports",
     "title": "Database published ports",
-    "route": "/databases/postgres/Yg-v_9jwYVBwt0vUPpzoc/credentials",
+    "route": "/databases/postgres/[databaseId]/credentials",
     "description": "The Published ports card of orders-db with 15432 typed as the Database port.",
     "width": 1574,
     "height": 864
@@ -810,7 +810,7 @@
   {
     "name": "server-access",
     "title": "Server Access tab",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW/access",
+    "route": "/servers/[serverId]/access",
     "description": "The SSH and Host key cards of a Server",
     "width": 1574,
     "height": 1332
@@ -818,7 +818,7 @@
   {
     "name": "server-docker",
     "title": "Docker & Swarm tab",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW/docker",
+    "route": "/servers/[serverId]/docker",
     "description": "The Containers list with a row Actions menu open",
     "width": 1570,
     "height": 1040
@@ -826,7 +826,7 @@
   {
     "name": "server-setup-confirm",
     "title": "Run setup confirmation",
-    "route": "/servers/NvHSZBwvdO2OFJq37HFhW/infrastructure",
+    "route": "/servers/[serverId]/infrastructure",
     "description": "The confirmation before setup runs on a Server",
     "width": 1264,
     "height": 754
@@ -890,7 +890,7 @@
   {
     "name": "uptime-check-add",
     "title": "Add an Uptime check",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/health",
+    "route": "/applications/[applicationId]/health",
     "description": "The Add an Uptime check form",
     "width": 1264,
     "height": 2248
@@ -898,9 +898,49 @@
   {
     "name": "volume-backups",
     "title": "Volume backups",
-    "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/volume-backups",
+    "route": "/applications/[applicationId]/volume-backups",
     "description": "The Volume backups tab of the web Application.",
     "width": 2000,
     "height": 1679
+  },
+  {
+    "name": "billing",
+    "title": "Billing: Current plan",
+    "route": "/settings/billing",
+    "description": "Starter on a free trial with one Add-on: trial end, first charge, allowance and usage meters.",
+    "width": 1802,
+    "height": 1110
+  },
+  {
+    "name": "billing-plans",
+    "title": "Billing: Plans",
+    "route": "/settings/billing",
+    "description": "Starter and Business with prices, what each includes, the Add-ons stepper and the switch button.",
+    "width": 1802,
+    "height": 1040
+  },
+  {
+    "name": "servers-buy",
+    "title": "Buy a Server",
+    "route": "/servers/buy",
+    "description": "Suggestions, the location map with city cards, and the sizes sold in the chosen city.",
+    "width": 1574,
+    "height": 2272
+  },
+  {
+    "name": "servers-buy-summary",
+    "title": "Buy a Server: Summary",
+    "route": "/servers/buy",
+    "description": "The Summary for a 4 vCPU Performance Server in Ashburn with backups, with the total per month and today's charge.",
+    "width": 736,
+    "height": 1204
+  },
+  {
+    "name": "bought-server-card",
+    "title": "Bought Server card",
+    "route": "/servers/[serverId]/settings",
+    "description": "A ready Bought Server on its Settings tab: monthly price, backups switch, extra storage and size.",
+    "width": 2000,
+    "height": 597
   }
 ]
