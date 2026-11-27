@@ -50,7 +50,7 @@ of a GitHub source does the same when **Deploy automatically** is on.
 <Step title="Follow the output">
 The **Build output** card streams the log as the build writes it. While it waits it says "Queued.
 It starts when a build slot frees up." The Deployments table updates as each step is recorded.
-<Screenshot name="deployment-log" alt="A finished Deployment of the web Application: its times, the log file and the Nixpacks build log" caption="The log streams while the build runs and stays readable afterwards." />
+<Screenshot name="deployment-log" alt="A finished Deployment of the web Application: Queued, Started, Finished, Took and the log file, then the build log ending in Image Pushed, the Swarm update to 2 replicas, a passing health check and Docker Deployed" caption="The log streams while the build runs and stays readable afterwards." />
 </Step>
 <Step title="Check how it ended">
 A build ends `done`, `error` or `cancelled`. Press **Open** on its row for the times and the whole
@@ -58,7 +58,7 @@ log.
 </Step>
 </Steps>
 
-<Screenshot name="application-deployments" alt="The Deployments tab of the web Application: one running, earlier ones done, one failed (Bump next to 15.5) and one cancelled, beside the Phases of a Deployment card" caption="Newest first, with Cancel on a running build and Open on every row." />
+<Screenshot name="application-deployments" alt="The Deployments tab of the web Application: the Build output of a queued Deployment with Cancel and Dock, the Deployments table with pending, running and done rows, each with Open, and the Phases of a Deployment card" caption="Newest first, with Cancel on a queued or running build and Open on every row." />
 
 ## What are the phases of a Deployment?
 
@@ -114,7 +114,7 @@ the browser cannot open the stream, the build is unaffected and its log can be r
 finishes. An empty log usually means the build was refused before it wrote anything; the reason is
 on the Deployment.
 
-<Screenshot name="deployment-log-failed" alt="A failed Deployment of web, Bump next to 15.5, whose build log ends in a TypeScript error and Nixpacks build failed" caption="A failed build says where it stopped; the previous Deployment keeps serving." />
+<Screenshot name="deployment-log-failed" alt="A failed Deployment of web, Refactor cart totals hook, its build log ending in a TypeScript error on shippingRate and Nixpacks build failed" caption="The cause is almost always in the last lines of the build log." />
 
 ## How does the build queue work?
 
@@ -147,7 +147,7 @@ queued." Variable changes also need a Deployment to reach the container; press *
 **Deployments** in the rail lists every Deployment of the Applications and Compose stacks you can
 reach, across Projects.
 
-<Screenshot name="deployments-list" alt="The Deployments page listing Deployments of web, emails, nightly-report and plausible over 7 days, with running, done, error and cancelled states" caption="Pick a time range and a status; the counts on each status follow the range." />
+<Screenshot name="deployments-list" alt="The Deployments page over 7 days: All 109, Running 1, Done 100 and Error 6, Every Project, and a table of Deployments, backups and cron runs with status, Service, duration, time and Log" caption="Pick a time range and a status; the counts on each status follow the range." />
 
 | Control | What it does |
 |---|---|
@@ -175,7 +175,7 @@ keeps the snapshots already taken.
 </Step>
 <Step title="Pick a point">
 **Rollback points** lists each one's **Version**, **Image**, **Built from** and **Captured**.
-<Screenshot name="application-rollbacks" alt="The Rollbacks tab of the web Application with five rollback points listed by version, image and capture time" caption="One point per successful Deployment while the switch is on." />
+<Screenshot name="application-rollbacks" alt="The Rollbacks tab of the web Application: Keep rollback points switched on, and 15 rollback points from v15 down, each with its image, branch, capture time, Roll back and Delete" caption="One point per successful Deployment while the switch is on." />
 </Step>
 <Step title="Roll back">
 Press **Roll back** on the point. The dialog shows the image, branch, builder and capture time, then

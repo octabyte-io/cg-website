@@ -77,7 +77,7 @@
     "route": "/applications/[applicationId]/deployments",
     "description": "The web Application’s Deployments: one running, earlier ones done, one failed (Bump next to 15.5) and one cancelled.",
     "width": 2000,
-    "height": 1528
+    "height": 1599
   },
   {
     "name": "deployments-list",
@@ -85,37 +85,29 @@
     "route": "/deployments",
     "description": "Every Deployment in Northwind Labs over 7 days across web, emails, nightly-report and plausible, with running, done, error and cancelled states.",
     "width": 2000,
-    "height": 1250
+    "height": 1599
   },
   {
     "name": "deployment-log",
     "title": "Deployment log",
     "route": "/applications/[applicationId]/deployments",
     "description": "A finished Deployment of web (“Cache product listing for 60s”, commit 4f2a91c by leo): times, the log file and the Nixpacks build log ending in Docker Deployed.",
-    "width": 2000,
-    "height": 1250
+    "width": 1752,
+    "height": 1536
   },
   {
     "name": "deployment-log-failed",
     "title": "Failed deployment log",
     "route": "/applications/[applicationId]/deployments",
     "description": "A failed Deployment of web (“Bump next to 15.5”): the build log ending in a TypeScript error and “Nixpacks build failed”.",
-    "width": 2000,
-    "height": 1250
+    "width": 1752,
+    "height": 1536
   },
   {
     "name": "application-domains",
     "title": "Application domains",
     "route": "/applications/7qzlJpXzbSiY_TqCBJGE-/domains",
     "description": "The web Application Domains tab listing its hosts with HTTPS and their certificates.",
-    "width": 2000,
-    "height": 1250
-  },
-  {
-    "name": "application-add-domain",
-    "title": "Add a domain",
-    "route": "/applications/[applicationId]/domains",
-    "description": "The Add a domain dialog on the web Application.",
     "width": 2000,
     "height": 1250
   },
@@ -141,15 +133,15 @@
     "route": "/applications/[applicationId]/rollbacks",
     "description": "The web Application’s rollback points: five image snapshots (ghcr.io/northwind/storefront-web) from successful Deployments.",
     "width": 2000,
-    "height": 1528
+    "height": 1599
   },
   {
     "name": "application-previews",
     "title": "Previews",
     "route": "/applications/[applicationId]/previews",
     "description": "The web Application’s previews: a requested preview of feature/gift-cards and pull request #142 “Wishlist on product pages”, under *.preview.northwind.example.",
-    "width": 2000,
-    "height": 1528
+    "width": 1962,
+    "height": 666
   },
   {
     "name": "service-health",
@@ -256,14 +248,6 @@
     "height": 1200
   },
   {
-    "name": "servers-buy",
-    "title": "Buy a Server",
-    "route": "/servers/buy",
-    "description": "The Buy a Server page: Locations on a map and the sizes with monthly prices.",
-    "width": 2000,
-    "height": 1528
-  },
-  {
     "name": "cloud-accounts",
     "title": "Cloud accounts",
     "route": "/settings/cloud-accounts",
@@ -285,7 +269,7 @@
     "route": "/templates",
     "description": "The Template catalogue: Activepieces, Automatisch, Baserow, Cal.com, Ghost and more, each with Set up.",
     "width": 2000,
-    "height": 1250
+    "height": 1599
   },
   {
     "name": "members",
@@ -360,14 +344,6 @@
     "height": 1250
   },
   {
-    "name": "billing",
-    "title": "Billing",
-    "route": "/settings/billing",
-    "description": "Billing on the Hosted instance: the Business plan with its Server allowance and usage, and recent invoices.",
-    "width": 2000,
-    "height": 1528
-  },
-  {
     "name": "sso",
     "title": "Single sign-on",
     "route": "/settings/sso",
@@ -388,8 +364,8 @@
     "title": "Personal keys",
     "route": "/settings/account",
     "description": "The personal keys on Maya Chen’s account: laptop-cli and github-actions.",
-    "width": 2000,
-    "height": 1528
+    "width": 1466,
+    "height": 464
   },
   {
     "name": "account-sessions",
