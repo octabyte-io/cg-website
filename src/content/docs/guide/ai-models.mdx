@@ -1,55 +1,74 @@
 ---
 title: AI models and the Gateway
 seoTitle: Self-host AI models behind an OpenAI API
-description: Serve a model with Ollama, vLLM or llama.cpp on your own Server, reserve GPUs, call it through the OpenAI-compatible Gateway and see token spend per Agent.
-lede: An AI model is an Application that serves one model on your own Server. Your Services and tools call it through Cloudgate's Gateway with any OpenAI client, and Cloudgate counts the tokens each caller spends.
+description: Serve a model with Ollama, vLLM or llama.cpp on your Server, reserve GPUs, call it through the OpenAI-compatible Gateway and add AI providers in Settings.
+lede: An AI model is an Application that serves one model on your own Server. Your Services and tools call it through Cloudgate's Gateway with any OpenAI client and a caller Agent's key, and Cloudgate counts the tokens each caller spends.
 section: guide
 group: Services
 order: 5
 navTitle: AI models
+updated: '2026-11-27'
 badges: ['Owner or Admin to create', 'Runs on a Server']
 howto:
   name: Serve a model and call it
   steps:
-    - { name: Add the AI model, text: 'In the Environment Services tab, press Add an AI model and set its name, Server, GPUs, Inference runtime and Model.' }
+    - { name: Add the AI model, text: 'In the Environment Services tab, press Add an AI model and set its name, Server, Inference runtime, Model and GPUs, then press Create AI model.' }
     - { name: Deploy it, text: 'Press Deploy. The first Deployment pulls or loads the model.' }
-    - { name: Create a caller Agent, text: 'On the Model tab, under Connect a client, press Create a caller Agent and copy its key.' }
+    - { name: Create a caller Agent, text: 'On the Model tab, on the Connect a client card, press Create a caller Agent and copy its key.' }
     - { name: Give the caller the endpoint and key, text: 'Set OPENAI_BASE_URL to the Endpoint and OPENAI_API_KEY to the key on the calling Service, then deploy it.' }
 faq:
   - { q: Can any OpenAI client call an AI model?, a: 'Yes. The Gateway speaks the OpenAI API for chat completions, completions, embeddings and the models list, whatever runtime is behind it.' }
   - { q: Can my Service call the AI model directly on the network?, a: 'No. An AI model has no Domain and no published port, and no other Service can reach it. Every call goes through the Gateway with a caller Agent key.' }
   - { q: Does an AI model need a GPU?, a: 'No. Set GPUs to zero to run it on the CPU. Whole GPUs are reserved per running copy, never shared or split.' }
   - { q: Who pays the token spend when another Project calls my model?, a: 'The AI model. Token spend belongs to the AI model and adds up to its own Environment and Project, broken down by the Agent that called.' }
+  - { q: What is the difference between an AI model and an AI provider?, a: 'An AI model is a Service you run that others call. An AI provider, in Settings, AI, is the OpenAI-compatible endpoint Cloudgate itself calls for Draft one with AI and Explain this log. You can point a provider at one of your AI models.' }
 ---
 
 The examples use an AI model named `support-assistant` in the `production` Environment of
 `storefront`, on the Server `fra-1`, called by a `web` Application through a caller Agent named
 `support-chat`.
 
-## What you can do
+## What can you do with an AI model?
 
 - Serve one model with **Ollama**, **vLLM** or **llama.cpp**, on the CPU or on reserved GPUs.
 - Call it with any OpenAI client through the Gateway: chat, completions, embeddings, streaming.
 - Give each calling Service its own caller Agent and key, and suspend one without the others.
-- See **Token spend** per Agent and model, over 7, 30 or 90 days.
-- Point Cloudgate's own AI features at your model.
+- See **Token spend** per Agent and model, over 7, 30 or 90 days or since it was created.
+- Point Cloudgate's own AI features at your model, in **Settings** > **AI**.
 
-## Add an AI model
+## How do I add an AI model?
+
+Press **Add an AI model** on the Environment's **Services** tab, choose the Server, runtime and model,
+then create and deploy it:
 
 <Steps>
 <Step title="Open the Environment">
 Open the Environment and its **Services** tab, then press **Add an AI model**.
 </Step>
-<Step title="Name it and pick its Server">
-Enter a **Name** and **Description**, then choose the **Server**. The picker shows each Server's
-GPUs and how many are free right now.
+<Step title="Fill in the dialog">
+Fill in the fields in the table below. The Server picker shows each Server's GPUs and how many are
+free right now.
+<Screenshot name="ai-model-create" alt="The Add an AI model dialog with Name, Description, Server fra-1 with no GPUs set up, Inference runtime set to vLLM, Model, Hugging Face token and GPUs" caption="The runtime is fixed once the AI model is created; the model and GPUs can change later." />
 </Step>
-<Step title="Reserve GPUs">
-Set **GPUs**: whole cards per running copy. Zero runs it on the CPU.
+<Step title="Create it">
+Press **Create AI model**. It opens on its **Model** tab, not yet deployed.
 </Step>
-<Step title="Choose the runtime and the model">
-Pick the **Inference runtime**; it is fixed once the AI model is created. Then name the **Model**
-in that runtime's own naming:
+<Step title="Deploy it">
+Press **Deploy**. The first Deployment pulls (Ollama) or loads (vLLM, llama.cpp) the model; wait
+until the AI model reads as ready before calling it.
+<Screenshot name="ai-model-model-tab" alt="The Model tab of the llm AI model, with its Ollama runtime and model llama3.1:8b, the Connect a client card, and the Token spend card" caption="Connect a client holds the endpoint once the instance has an address; the Token spend chart counts calls by day." />
+</Step>
+</Steps>
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What it is called in Cloudgate, such as `support-assistant`. | |
+| **Description** | Optional: what it is for. | |
+| **Server** | Where it runs. Each entry reads, for example, `fra-1 · 2 GPUs, 1 free`, or "no GPUs set up". | Servers not ready are turned off. |
+| **Inference runtime** | **Ollama**, **vLLM** or **llama.cpp**. | Fixed once created. |
+| **Model** | The one model it serves, in that runtime's naming (below). | |
+| **Hugging Face token** | For gated weights. Given to the model as `HF_TOKEN`, never shown again. | vLLM and llama.cpp only. |
+| **GPUs** | Whole cards per running copy. | `0` runs it on the CPU. |
 
 | Runtime | Model naming | Example |
 |---|---|---|
@@ -57,32 +76,53 @@ in that runtime's own naming:
 | vLLM | a Hugging Face repo id | `Qwen/Qwen2.5-0.5B-Instruct` |
 | llama.cpp | a Hugging Face GGUF repo id, with a quant after the colon if you want one | `ggml-org/gemma-3-1b-it-GGUF:Q4_K_M` |
 
-For gated weights on vLLM or llama.cpp, add a **Hugging Face token**. It is never shown again.
-</Step>
-<Step title="Deploy it">
-The AI model opens on its **Model** tab, not yet deployed. Press **Deploy**. The first Deployment
-pulls or loads the model; wait until the AI model reads as ready before calling it.
-<Screenshot name="ai-model-model-tab" alt="The Model tab of an AI model, with its model settings, the Connect a client card showing the endpoint, and the Token spend chart" caption="Connect a client holds the endpoint and an OpenAI SDK snippet; the snippet never holds a key." />
-</Step>
-</Steps>
-
 One AI model serves one model. A chat front end that also embeds documents needs two: one chat
 model and one embedding model.
 
-## Call it through the Gateway
+<Callout type="limit" title="Who can add one">
+**Add an AI model** is shown only to people with the `service: create` permission (owners and
+admins). An AI model runs on a Server, or on a Self-hosted install on this Cloudgate host.
+</Callout>
+
+## Which tabs does an AI model have?
+
+An AI model is an Application, so it has an Application's tabs with **Model** second: **Overview**,
+**Model**, **Deployments**, **Logs**, **Shell**, **Variables**, **Health**, **Traces**,
+**Advanced**, **Rollbacks**, **Schedules** and **Volume backups**. It has no **Domains**,
+**Requests**, **Previews** or **Patches**: it is reached only through the Gateway, and nothing
+about it is built from source. Change its GPUs on **Advanced**, in the **Resources** card. See
+[Applications](/docs/guide/applications) for the shared tabs.
+
+## What is on the Model tab?
+
+- **Model**: the **Inference runtime**, the **Image** it runs (marked **Off the pin** when you chose
+  another tag), and **GPUs reserved**. Change the **Model** or the **Image tag** here; leave the tag
+  empty to run the one the platform was tested with. Neither reaches the running AI model until the
+  next Deployment.
+- **Hugging Face token** (vLLM and llama.cpp): whether one is set, a field to set or replace it, and
+  **Remove token**. The running model keeps the token it started with until the next Deployment.
+- **Connect a client**: the **Endpoint**, an OpenAI SDK for JavaScript snippet, **Create a caller
+  Agent**, and **Agents that can call it**.
+- **Token spend**: tokens and calls through the Gateway.
+
+## How do I call it through the Gateway?
 
 Every call enters through the **Gateway**, an OpenAI-compatible proxy inside Cloudgate. The
-**Connect a client** card on the **Model** tab shows the **Endpoint**:
+**Connect a client** card shows the **Endpoint**:
 
 ```text
 https://<console domain>/ai/<AI model id>/v1
 ```
 
+If the card says there is no endpoint yet, the instance has no console domain or server IP: set
+one in **Settings** > **Instance**.
+
 <Steps>
 <Step title="Create a caller Agent">
 Press **Create a caller Agent**. It opens the Agents dialog on the **Caller** role with a grant on
-this AI model. Name it after the Service that will call, such as `support-chat`, and copy its key:
-it is shown once. The button is shown only to people who may add members to the Organization.
+this AI model and its Environment and Project. Name it after the Service that will call, such as
+`support-chat`, and copy its key: it is shown once. The button is shown only to people who may add
+members to the Organization.
 </Step>
 <Step title="Set the calling Service's variables">
 On the calling Service's **Variables** tab, set the two names the OpenAI SDKs read by themselves,
@@ -112,14 +152,26 @@ reply = client.chat.completions.create(
 print(reply.choices[0].message.content)
 ```
 
+**Agents that can call it** lists every Caller Agent granted this AI model, with **Suspended** on
+a suspended one; you need to be able to read the Organization's members to see it. To let one Agent
+call a second AI model, grant it that AI model in **Settings** > **Agents**. See
+[Agents](/docs/guide/agents).
+
+### What does the Gateway forward and refuse?
+
 The Gateway forwards four calls: `POST /v1/chat/completions`, `POST /v1/completions`,
-`POST /v1/embeddings` and `GET /v1/models`. Streams are passed on as the runtime produces them.
+`POST /v1/embeddings` and `GET /v1/models`. Streams are passed on as the runtime produces them, and
+a call has no deadline. A body may be up to 16 MiB. Refusals come in the OpenAI error shape, so a
+client shows the sentence:
 
 | Status | Message | Why |
 |---|---|---|
 | 401 | `Key refused` | Unknown, revoked or expired key, a personal key, or a suspended Agent. |
-| 404 | `AI model not found or not permitted` | No such AI model, or the Agent is not granted it. |
-| 400 | `This AI model serves '<model>'; set "model" to it` | The body names another model. |
+| 404 | `AI model not found or not permitted` | No such AI model, or the Agent is not a Caller granted it. |
+| 404 | `The gateway forwards only POST /v1/chat/completions, ...` | Any other path, including the runtime's own API. |
+| 400 | `This AI model serves '<model>'; set "model" to it` | The body names another model. It is never rewritten. |
+| 400 | `The request body is not valid JSON` | The body could not be read. |
+| 413 | `The request body is larger than the gateway takes (16 MiB)` | The body is too large. |
 | 503 | `AI model is not running` | Never deployed, or stopped. |
 | 502 | `AI model did not answer` | The Gateway could not reach the runtime. |
 
@@ -128,28 +180,61 @@ Token spend is broken down by the Agent that called. A key shared across your st
 its spend one line, and suspending it cuts everyone off.
 </Callout>
 
-## See token spend
+## How do I see token spend?
 
-The **Token spend** section on the **Model** tab shows tokens over the last 7, 30 or 90 days, or
-since the AI model was created, as a daily chart and a table per Agent and model with calls per
-outcome. Tokens are **reported** by the runtime or **estimated** when it gives none, such as a cut
-stream.
+The **Token spend** section on the **Model** tab shows tokens over **7 days**, **30 days**,
+**90 days** or **All**, by UTC day, as a chart and a table per **Agent** and **Model served**, with
+**Tokens**, **Of which estimated** and calls per outcome (`ok`, `runtime-error`, `client-aborted`,
+`refused`). Tokens are **reported** by the runtime or **estimated** when it gives none, such as a
+cut stream. A removed Agent keeps its row, marked **Removed**. With no calls yet it reads "No
+calls" for the window.
 
 Spend belongs to the AI model, not the caller: it adds up to the AI model's Environment and
-Project, which show **Token spend, 30 days**. Per-call entries are kept 90 days; daily totals for
-as long as the AI model exists.
+Project, which show **Token spend, 30 days**, and the Environment's **Services** tab has a
+**Spend** column. Per-call entries are kept 90 days; daily totals for as long as the AI model
+exists.
 
-## Change the model
+## How do I change the model?
 
 Save a new **Model** on the **Model** tab, then deploy. The Gateway starts holding calls to the new
 name at once, but the runtime serves it only after the Deployment finishes. Save, deploy, then
 update the callers' `AI_MODEL`.
 
-## Use your model for Cloudgate's own AI features
+## What is Settings, AI for?
 
-In **Settings** > **AI**, press **Add a provider** and give the AI model's endpoint and a caller
-Agent's key. Features such as **Draft one with AI** then run on your model, counted like any
-other caller.
+**Settings** > **AI** lists the **AI providers** Cloudgate itself calls: an OpenAI-compatible
+endpoint, such as a hosted provider, Ollama, or one of your own AI models. A provider powers two
+features elsewhere in the console:
+
+- **Draft one with AI** on an Environment's **Services** tab: describe what you need and get up to
+  three complete Compose stacks to choose from. The one you pick becomes an ordinary Compose stack,
+  not deployed until you deploy it.
+- **Explain this log** on a Deployment's log: what is on screen is sent to the provider, which
+  answers with a summary, the errors, the likely cause and what to change.
+
+<Screenshot name="settings-ai" alt="The AI providers list in Settings, AI, with no provider yet, and the card What a provider is used for" caption="Add a provider to draft Compose stacks and explain build logs." />
+
+Press **Add a provider** and fill in:
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the provider is called in Cloudgate. | |
+| **API URL** | The base URL you would give an OpenAI client, such as `https://api.openai.com/v1`. | For one of your AI models, its **Endpoint**. |
+| **API key** | The provider's key; for your AI model, a caller Agent's key. | Stored encrypted, never shown again. Empty when editing keeps the saved one. |
+| **Model** | Exactly as the provider spells it. **List models** asks the endpoint with the key you typed and fills it in. | |
+| **Available to use** | Off keeps the provider and stops it being offered. | On by default. |
+
+**Test connection** sends one token through the model. With a key typed in it tests those values;
+with the key left empty it tests the provider as saved. The list shows **Name**, **Model**,
+**Endpoint** and **In use**. Deleting a provider deletes its key; Compose stacks already drafted
+with it are not affected.
+
+<Callout type="limit" title="Who can manage providers">
+Adding, editing, testing and deleting providers, and **List models**, are for owners and admins.
+Any member can use the features a provider powers. An API URL that resolves to a private address
+works only for the instance's own Organization: on an install with several Organizations, the
+others must use a public address.
+</Callout>
 
 ## What you cannot do
 
@@ -161,6 +246,7 @@ other caller.
 - Rate-limit a caller at the Gateway: there is no per-Agent limit. Suspend the Agent to stop one.
 - Keep calls open across a Cloudgate restart: the Gateway runs inside the backend, so callers
   should retry.
+- Back up a model's weights volume: the weights are downloaded again instead.
 
 <Callout type="limit" title="The last hop is plain HTTP">
 Calls enter at the console's address and go back out to the AI model's Server over plain HTTP,
@@ -171,8 +257,9 @@ console domain, a stream that goes quiet for four minutes is cut.
 ## Related pages
 
 - [Agents and agent keys](/docs/guide/agents), including the Caller role.
-- [Servers](/docs/guide/servers), where AI models run.
+- [Servers](/docs/guide/servers), where AI models run and their GPUs are set up.
 - [Applications](/docs/guide/applications): an AI model is one, with a few exceptions.
-- [Environment variables](/docs/guide/environment-variables).
+- [Environment variables and secrets](/docs/guide/environment-variables).
+- [Compose stacks](/docs/guide/compose-stacks), which Draft one with AI creates.
 - [AI agents and Cloudgate](/ai-agents).
 - [Run open AI models on your own GPUs](/ai-models): the overview, with the runtimes and how GPUs are reserved.

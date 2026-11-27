@@ -1,141 +1,231 @@
 ---
 title: Deployments and rollbacks
 navTitle: Deployments and rollbacks
-seoTitle: Deployments, build logs and rollbacks guide
-description: Follow a Deployment through the build queue, read its live log, cancel or redeploy it, and roll a Service back to an earlier Deployment without rebuilding.
-lede: A Deployment is one attempt to build and release a Service, with its own log, status and timings. This page covers the queue, what each status means, reading the log, cancelling, redeploying and rolling back.
+seoTitle: Deployments, build logs and rollbacks in Cloudgate
+description: Start and follow a Deployment, read its live build log, cancel or rebuild it, filter every Deployment in the Organization, and roll an Application back.
+lede: A Deployment is one attempt to build and release a Service, with its own log, status and timings. This page covers deploying, the phases and statuses, reading the log, cancelling, the Deployments page and rolling back.
 section: guide
+updated: '2026-11-27'
 group: Deploy
-order: 4
+order: 6
 badges: ['Members can deploy and cancel']
 howto:
   name: Roll an Application back to an earlier Deployment
   steps:
-    - { name: 'Keep rollback points', text: 'Open the Application, then its Rollbacks tab, and turn on Keep rollback points.' }
-    - { name: 'Deploy as usual', text: 'Every successful Deployment from now on captures a rollback point.' }
-    - { name: 'Choose a point', text: 'In Rollback points, find the version you want.' }
-    - { name: 'Roll back', text: 'Press Roll back. The running Service is updated to that image; nothing is rebuilt.' }
+    - { name: 'Keep rollback points', text: 'Open the Application, then its Rollbacks tab, turn on Capture a snapshot on every successful Deployment, and press Save changes.' }
+    - { name: 'Deploy as usual', text: 'Every successful Deployment from now on leaves a rollback point.' }
+    - { name: 'Choose a point', text: 'In Rollback points, find the version you want and press Roll back.' }
+    - { name: 'Confirm', text: 'Read what the dialog says will happen, then press Roll back to v and the version number. The Swarm service is updated to that image; nothing is rebuilt.' }
 faq:
-  - { q: 'Why is my Deployment stuck on pending?', a: 'It is waiting in the queue. Without an Enterprise license each Server builds one Deployment at a time, so a second one waits until the first finishes.' }
-  - { q: 'What does held mean?', a: 'A push changed both the code and the Service''s entry in cloudgate.yaml. The build waits until that Plan is applied or dismissed, or until you press Build now with saved settings.' }
-  - { q: 'Can I roll back to a Deployment from before I turned on rollback points?', a: 'No. Rollback points are captured only while Keep rollback points is on, one per successful Deployment.' }
-  - { q: 'How long are Deployment logs kept?', a: 'Cloudgate keeps each Deployment log for 90 days, then removes it.' }
+  - { q: 'Why is my Deployment stuck on pending?', a: 'It is queued, waiting for a build slot. Without an Enterprise license each Server builds one Deployment at a time, so a second one waits until the first finishes.' }
+  - { q: 'What does held mean?', a: 'A push changed both the code and the Service''s entry in a repository-kept cloudgate.yaml. The build waits until that Plan is applied or dismissed, or until you press Build now with saved settings.' }
+  - { q: 'Does a failed Deployment take my Application offline?', a: 'No. Nothing is swapped in, so the previous successful Deployment keeps serving. The Overview says whether something is still serving traffic.' }
+  - { q: 'Can I roll back to a Deployment from before I turned on rollback points?', a: 'No. A rollback point is captured only while the switch is on, one per successful Deployment.' }
+  - { q: 'How long are Deployment logs kept?', a: 'Each Deployment log is kept for 90 days and then deleted. The Deployment itself, with its status and timings, is kept.' }
 ---
 
-Every build, cron run, backup run and cloud change is a Deployment. You find them in three places:
-**Deployments** in the rail (everything you can reach, across Projects), an Environment's
-**Deployments** tab, and each Service's **Deployments** tab.
+Every build, cron run, volume backup run and cloud change is a Deployment. You find them in three
+places: **Deployments** in the rail (everything you can reach in the Organization), an
+Environment's **Deployments** tab, and each Application's or Compose stack's **Deployments** tab.
 
-## What you can do
+## What can you do with a Deployment?
 
-- Start a Deployment, and see it queue, build and go live.
-- Read its log live while it runs, or later.
-- Cancel a Deployment that is waiting or building.
-- Redeploy the source a Service already has.
-- Roll an Application back to an earlier Deployment's image, without rebuilding.
+- Start one with **Deploy**, or let a push to GitHub start it.
+- Read its log live while it runs, or later, and move the log into the Dock.
+- Cancel one that is queued, building or held.
+- Build the same source again with **Redeploy** after a failure.
+- Roll an Application back to an earlier image without rebuilding.
 
-## Start and follow a Deployment
+## How do I start and follow a Deployment?
+
+Press **Deploy** on the Application, then watch its **Build output** until the Deployment reads
+`done` or `error`.
 
 <Steps>
 <Step title="Deploy">
-On the Service's **Overview**, press **Deploy**. Cloudgate answers "Deployment queued." A push to
-the tracked branch does the same when **Deploy automatically** is on.
+On the Application's **Overview** or **Deployments** tab, press **Deploy**. Cloudgate answers
+"Deployment queued. The build starts as soon as a worker picks it up." A push to the tracked branch
+of a GitHub source does the same when **Deploy automatically** is on.
 </Step>
-<Step title="Watch it move through the phases">
-Open the Deployment. The phases card shows **Clone**, **Build**, **Push** and **Update**, and the
-log streams live underneath. Press **Show it in the Dock** to keep the log open while you move to
-other pages.
-<Screenshot name="deployment-log" alt="A running Deployment of the web Application, with its phases and the build log streaming" caption="The log streams as the build runs; the phases show where it is." />
+<Step title="Follow the output">
+The **Build output** card streams the log as the build writes it. While it waits it says "Queued.
+It starts when a build slot frees up." The Deployments table updates as each step is recorded.
+<Screenshot name="deployment-log" alt="A finished Deployment of the web Application: Queued, Started, Finished, Took and the log file, then the build log ending in Image Pushed, the Swarm update to 2 replicas, a passing health check and Docker Deployed" caption="The log streams while the build runs and stays readable afterwards." />
 </Step>
-<Step title="Check the result">
-A Deployment ends as `done`, `error` or `cancelled`. The detail shows when it was queued,
-started and finished, and how long it took.
+<Step title="Check how it ended">
+A build ends `done`, `error` or `cancelled`. Press **Open** on its row for the times and the whole
+log.
 </Step>
 </Steps>
 
-<Screenshot name="deployments-list" alt="The Deployments page listing recent Deployments across the Northwind Labs Projects, filtered by status" caption="Filter by Project or status, or show only the Services you have open." />
+<Screenshot name="application-deployments" alt="The Deployments tab of the web Application: the Build output of a queued Deployment with Cancel and Dock, the Deployments table with pending, running and done rows, each with Open, and the Phases of a Deployment card" caption="Newest first, with Cancel on a queued or running build and Open on every row." />
 
-## What each status means
+## What are the phases of a Deployment?
+
+A Deployment runs four phases in order: Clone, Build, Push and Update. The **Phases of a
+Deployment** card beside the table lists them:
+
+1. **Clone**: the source is fetched at the commit being deployed.
+2. **Build**: the builder turns the code into an image. A Docker image source skips this.
+3. **Push**: the image goes to the registry if one is set; otherwise it stays on the Server that
+   built it. A Docker image source pushes nothing.
+4. **Update**: the Swarm service is updated, and the Deployment waits for its tasks to run. The log
+   ends with one of three marks: ✅ the tasks are running and it is done; ❌ Swarm rolled back to
+   the previous spec and the Deployment failed, so the one before it is serving; ⚠️ the wait ran out
+   with neither, so it is done but its tasks were never confirmed running.
+
+A build is one phase of a Deployment, which is why a failed Deployment can leave the previous one
+serving.
+
+## What does each status mean?
+
+A Deployment is `pending` while queued, `running` while it builds and releases, and ends `done`,
+`error` or `cancelled`; `held` waits for a Plan.
 
 | Status | Meaning |
 |---|---|
-| `pending` | Queued, waiting for its turn on the build host. |
+| `pending` | Queued, waiting for a build slot. |
 | `running` | Building or releasing now. |
-| `done` | Finished and live. |
-| `error` | Failed. The log says where. |
-| `cancelled` | Stopped by someone before it finished. |
-| `held` | Waiting for a Plan: the push changed both code and its entry in `cloudgate.yaml`. |
+| `done` | Finished. A Cron service's run reads **succeeded**. |
+| `error` | Failed; the log says where. A Cron service's run reads **failed**. |
+| `cancelled` | Stopped before it finished. A run its Cron service's Stop ended reads **stopped**. |
+| `held` | Waiting for a Plan: the push changed both the code and the Service's entry in a repository-kept `cloudgate.yaml`. |
 
 A `held` build continues when the Environment's [Plan](/docs/guide/project-config) is applied or
-dismissed. **Build now with saved settings** builds the code with the settings already saved,
-ignoring the config change.
+dismissed. **Build now with saved settings** on its row builds the code at once with the settings
+already saved, ignoring the config change.
 
-## How the build queue works
+## Read a Deployment log
 
-Without an Enterprise license, each Server builds one Deployment at a time; the others wait as
-`pending`. With a license, the Cloudgate host builds up to the number set in **Concurrent
-builds** (self-hosted, Settings > Instance).
+Press **Open** on a row of the **Deployments** tab, or **Log** on the Deployments page, to open the
+Deployment in a dialog: **Queued**, **Started**, **Finished**, **Took**, the **Log file** path and
+the log itself.
+
+| Control | What it does |
+|---|---|
+| **Dock** | Moves the log into a panel along the bottom of the console. A live log keeps following there while you go to other pages. The Dock holds four logs. |
+| **Show the Dock** / **Read it here too** | Shown in place of a docked log, to jump to it or read it on the page as well. |
+| **Reload** | Reads a finished log again. |
+| **Explain this log** | Sends the finished log's lines to your AI provider and shows what it thinks went wrong. Shown only when an AI provider is set up. |
+
+The words beside a live log say how the stream is doing: **Connecting to the build…**,
+**Streaming**, **Reconnecting…**, **Stream closed**, **Stream refused** or **Not connected**. If
+the browser cannot open the stream, the build is unaffected and its log can be read once it
+finishes. An empty log usually means the build was refused before it wrote anything; the reason is
+on the Deployment.
+
+<Screenshot name="deployment-log-failed" alt="A failed Deployment of web, Refactor cart totals hook, its build log ending in a TypeScript error on shippingRate and Nixpacks build failed" caption="The cause is almost always in the last lines of the build log." />
+
+## How does the build queue work?
+
+Without an Enterprise license, each Server builds one Deployment at a time and the others wait as
+`pending`. With a license, the instance builds up to its **Concurrent builds** setting at once
+(self-hosted, Settings > Instance).
 
 A queued Deployment survives a restart of Cloudgate. A running one is cut off by a restart, ends as
 `error` and is not started again: deploy again when Cloudgate is back.
 
 ## Cancel a Deployment
 
-Press **Cancel** on a `pending`, `running` or `held` Deployment. Cancelling a cron run stops that
-run only; the timetable keeps going.
+Press **Cancel** on a `pending`, `running` or `held` Deployment, on the output card or its row.
+Cloudgate says "The build was cancelled before it started", "The build was stopped", or, for a cron
+run, "The run was cancelled. Its timetable keeps going."
 
-## Redeploy
+A Cloud run (an OpenTofu change in AWS or Google Cloud) has **Stop the run** instead. It asks first:
+OpenTofu is interrupted and killed if it has not stopped within 5 minutes, the Deployment ends as an
+error that says you stopped it, and changes made so far stay in the cloud for the next deploy to
+pick up. A cloud deploy that stopped for review has **Review the open plan**.
 
-**Redeploy** in the Service's header builds the source the Service already has again, for example
-after you changed a variable. Variable changes need a Deployment to take effect.
+## Rebuild after a failure with Redeploy
+
+When the last Deployment failed, the Overview's banner has **Redeploy**: it builds the source the
+Application already has again, with no new commit, and records the attempt as a rebuild. "Rebuild
+queued." Variable changes also need a Deployment to reach the container; press **Deploy**.
+
+## Filter every Deployment on the Deployments page
+
+**Deployments** in the rail lists every Deployment of the Applications and Compose stacks you can
+reach, across Projects.
+
+<Screenshot name="deployments-list" alt="The Deployments page over 7 days: All 109, Running 1, Done 100 and Error 6, Every Project, and a table of Deployments, backups and cron runs with status, Service, duration, time and Log" caption="Pick a time range and a status; the counts on each status follow the range." />
+
+| Control | What it does |
+|---|---|
+| Time range | **Last hour** (the default), **6 hours**, **24 hours** or **7 days**, by when each was queued. |
+| Status | **All**, **Running**, **Done** or **Error**, each with its count in the range. |
+| **Every Project** | Narrows to one Project. Shown when more than one Project has Deployments. |
+| **Every service** / **Services you have opened** | Narrows to the Services in your recents. |
+| **Refresh** | Reads the list again. |
+
+Each row names the Service (linked to its Deployments tab) with its Project and Environment, or the
+kind of run (**Scheduled run**, **Volume backup**, **Database backup**, **Environment network**,
+**Cloud run**). **Log** opens its log in a dialog without losing your filters. The page reads a
+bounded number of pages; when older Deployments in the range are left out, the count says so. To
+cancel, open the Service's own Deployments tab.
 
 ## Roll back to an earlier Deployment
 
+The **Rollbacks** tab puts an Application on an earlier version without rebuilding it.
+
 <Steps>
 <Step title="Turn on rollback points">
-Open the Application's **Rollbacks** tab and turn on **Keep rollback points**. From now on, every
-successful Deployment captures a snapshot.
+In **Keep rollback points**, turn on **Capture a snapshot on every successful Deployment** and press
+**Save changes**. Each snapshot keeps a tagged copy of the image on the Server. Turning it off later
+keeps the snapshots already taken.
 </Step>
 <Step title="Pick a point">
-The **Rollback points** list shows each one's version, what it was built from, its image and when
-it was captured.
-<Screenshot name="application-rollbacks" alt="The Rollbacks tab of the web Application with rollback points listed by version, image and capture time" caption="Each successful Deployment adds one point while the switch is on." />
+**Rollback points** lists each one's **Version**, **Image**, **Built from** and **Captured**.
+<Screenshot name="application-rollbacks" alt="The Rollbacks tab of the web Application: Keep rollback points switched on, and 15 rollback points from v15 down, each with its image, branch, capture time, Roll back and Delete" caption="One point per successful Deployment while the switch is on." />
 </Step>
 <Step title="Roll back">
-Press **Roll back** on the point. The running Service is updated to that snapshot's image.
-Nothing is rebuilt.
+Press **Roll back** on the point. The dialog shows the image, branch, builder and capture time, then
+press **Roll back to v4** (its version). The Swarm service is updated in place in seconds.
 </Step>
 </Steps>
 
-On a Server, a rollback restores the image and its settings at once, with no Deployment of its own.
-A `static` site in a cloud keeps the files of every Deployment instead; rolling back restores those
-files and runs as a Deployment.
+What a rollback does and does not change:
+
+- It restores the image and its service spec. It writes **no Deployment**, so it does not appear on
+  the Deployments tab.
+- A snapshot holds no secrets, so the Application keeps the variables, build arguments and
+  credentials it has now.
+- Its settings are not changed, so the next Deployment builds from them as they are now. To stay on
+  the old version, change the source first.
 
 <Callout type="warn" title="Deleting a rollback point">
-**Delete** on a rollback point deletes its image from the Server, not just the row. A Maintenance
-prune of every image can also remove images a rollback point needs.
+**Delete** on a point deletes its image from the Server, not just the row. Getting that version
+back means building its commit again. Nothing running changes.
 </Callout>
+
+### Rollbacks in a Cloud account
+
+A static site in a Cloud account (built with **Static files**) keeps each Deployment's files in the site's bucket as a rollback point when
+**Keep the files of every Deployment as a rollback point** is on. Rolling back restores that
+version's files and runs as a Deployment, which you follow on the Deployments tab. Any other
+Service in a Cloud account has no rollback yet: the tab says "Rollback is not available on AWS yet"
+(or Google Cloud), because each deploy keeps only its live image. Deploy again to change what runs.
 
 ## What you cannot do
 
-- Roll back to a Deployment made before **Keep rollback points** was on. Turning it off keeps the
-  points you already have.
+- Roll back to a Deployment made before rollback points were on.
 - Roll back a database or a Compose stack: they have no Rollbacks tab. Use
   [backups](/docs/guide/backups) for data.
 - Undo what a Deployment did to your data: a rollback changes the image, never a database.
+- Cancel from the Deployments page: use the Service's own tab.
 - Restart a Deployment cut off by a Cloudgate restart; deploy again instead.
 - Read a Deployment log older than 90 days.
 
 <Callout type="limit" title="Who can do it">
-Deploying and cancelling need permission on the Service, which the member role has for the
-Services it is granted. Agents with the Operator role can deploy and cancel through
-[MCP](/docs/mcp), and two `deploy_service` calls join one queued Deployment.
+Deploying, cancelling and **Build now with saved settings** need the create or cancel action on
+Deployments, which the member role has for the Services it is granted. The rollback switch needs
+the update action on Services. Agents with the Operator role can deploy and cancel through
+[MCP](/docs/mcp).
 </Callout>
 
 ## Related pages
 
 - [Applications](/docs/guide/applications): sources, builders and what Deploy builds.
 - [Preview deployments](/docs/guide/previews) of a branch or pull request.
-- [Plans and cloudgate.yaml](/docs/guide/project-config): why a build is held.
+- [Project config and Plans](/docs/guide/project-config): why a build is held.
 - [Notifications](/docs/guide/notifications) when a Deployment fails.
 - [Deploy from CI with the CLI](/docs/cli/ci), and the [CLI overview](/cli).

@@ -1,0 +1,140 @@
+---
+title: Connect a container registry
+seoTitle: Connect a container registry to Cloudgate
+description: Connect Docker Hub, GitHub Container Registry, ECR or your own registry so a build pushes its image there and a Server other than the build Server can run it.
+lede: A registry is where a build pushes the image it made, and where the Server that runs it pulls it from. Connect one when an Application builds on one Server and runs on another, or when you want built images kept off the build machine.
+section: guide
+updated: '2026-11-27'
+group: Deploy
+order: 11
+navTitle: Registries
+badges: ['Owner or Admin', 'Hosted and self-hosted', 'Servers only']
+howto:
+  name: Connect a container registry to Cloudgate
+  steps:
+    - { name: Open Registries, text: 'In the console, open Settings, then Registries, and press Connect a registry.' }
+    - { name: Enter the registry, text: 'Give it a Name, the Hostname (empty for Docker Hub), an optional Image prefix and the Username.' }
+    - { name: Enter the password, text: 'Paste the password or access token into Password or access token.' }
+    - { name: Test it, text: 'Press Test connection. Cloudgate logs in the same way the push will.' }
+    - { name: Save, text: 'Press Connect a registry. Then choose it in Push the image to on an Application''s Build card.' }
+faq:
+  - { q: Do I need a registry to deploy?, a: 'No. Without one, a build keeps its image on the Server that built it, and that Server runs it. You need a registry when an Application builds on one Server and runs on another.' }
+  - { q: What do I put in Hostname for Docker Hub?, a: 'Nothing. An empty Hostname means Docker Hub. For any other registry type the hostname alone, optionally with a port, such as ghcr.io or registry.northwind.example:5000: no https:// and no path.' }
+  - { q: How do I connect Amazon ECR?, a: 'Use the ECR registry hostname, the literal username AWS and a current ECR password as the Password or access token. Cloudgate keeps the username exactly as typed.' }
+  - { q: Can I see a saved registry password again?, a: 'No. It is stored encrypted and never shown again. When editing, leave it empty to keep the saved one, or type a new one to replace it.' }
+  - { q: What happens to images when I remove a registry?, a: 'Nothing already pushed is touched. Applications that pushed to it stop pushing: their next Deployment keeps the image on the Server that built it.' }
+---
+
+**Settings** > **Registries** is one list of the container registries your Organization has
+connected. A connected registry shows up in **Push the image to** on every Application's
+**Build** card. Pushing there is what makes an image built on one Server runnable on another,
+for example when the Application's **Build server** is not the machine it runs on.
+
+## What you can do
+
+- Connect Docker Hub, GitHub Container Registry, GitLab's registry, Amazon ECR, or any registry
+  that accepts `docker login`.
+- Test the login before you save it, and again later as it is saved.
+- Put an image prefix (an organization or namespace) in front of every image name pushed there.
+- Change the login, or remove a registry.
+
+<Callout type="limit" title="Who may connect a registry">
+Owners and admins of the Organization, or a custom role that allows registries. Members cannot
+open the list. Registries are for Services on Servers: Services in a Cloud account never use
+one. See [Cloud accounts](/docs/guide/cloud-accounts).
+</Callout>
+
+## Connect a registry
+
+<Steps>
+<Step title="Open the dialog">
+Open **Settings** > **Registries** and press **Connect a registry**. With none connected yet, the
+list reads **No registries yet** with the same button.
+</Step>
+<Step title="Fill in the login">
+
+<Screenshot name="registries-connect-dialog" alt="The Connect a registry dialog with the name Production images, hostname ghcr.io, image prefix northwind-labs and username northwind-bot" caption="Test connection runs the same login the push will." />
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the registry is called in Cloudgate, for example `Production images`. | Required. Only your Organization sees it. |
+| **Hostname** | The registry's host, optionally with a port, such as `ghcr.io` or `registry.northwind.example:5000`. | Empty means Docker Hub. No `https://`, no path. |
+| **Image prefix** | Put in front of the image name: an organization or namespace, such as `northwind-labs`. | Optional. |
+| **Username** | The account the password belongs to. | Required. Kept exactly as typed: Amazon ECR wants the literal `AWS`. |
+| **Password or access token** | The password, or a token with push and pull rights. | Required when adding. Stored encrypted and never shown again. |
+| **Test from** | The Server the test runs on. | Hosted instance only. |
+
+</Step>
+<Step title="Test the connection">
+Press **Test connection**. Cloudgate runs the same `docker login` the push will, with what is in
+the dialog. A success reads, for example, **ghcr.io accepted northwind-bot with the password you
+typed.** A refusal is the registry's own sentence, so a wrong password, a refused connection and
+an unknown host read differently.
+
+On a self-hosted instance the test runs on the machine Cloudgate is installed on. On the Hosted
+instance it runs from one of your Servers, which you choose in **Test from**; with no Server yet,
+add one first.
+</Step>
+<Step title="Save it">
+Press **Connect a registry**. Then open an Application's **Build** card, choose the registry in
+**Push the image to**, and deploy. See [Applications](/docs/guide/applications).
+</Step>
+</Steps>
+
+<Callout type="tip" title="Test before you build">
+Without a test, a wrong password is found only at the push, after a whole build. The test takes a
+few seconds.
+</Callout>
+
+## The registries list
+
+| Column | What it shows |
+|---|---|
+| **Name** | The name you gave it. |
+| **Registry** | The hostname, or **Docker Hub** when it is empty, with the username underneath (`as northwind-bot`). |
+| **Prefix** | The image prefix, or **None**. |
+
+Each row has **Edit** and **Remove**.
+
+## Edit a registry or test it as saved
+
+**Edit** opens the same dialog. The password box starts empty because the saved password never
+comes back: leave it empty to keep it, or type one to replace it.
+
+**Test connection** behaves differently depending on the password box:
+
+- **Password typed in**: the values on screen are tested.
+- **Password left empty**: the registry is tested as it is saved, with its saved hostname and
+  username too. The answer says so: **The registry accepted this login as it is saved.** Anything
+  changed in the dialog was not part of that test.
+
+When you add a registry, the test needs a password (there is nothing saved to log in with yet),
+and a password needs its username.
+
+## Remove a registry
+
+**Remove** asks **Remove Production images?**. Every Application pushing to it loses it: the
+setting is cleared rather than the build refused, so the next Deployment builds the image and
+keeps it on the machine that built it. Nothing already pushed to the registry is touched. Press
+**Remove registry** or **Keep it**.
+
+<Callout type="warn" title="An Application that builds elsewhere needs its registry">
+If an Application builds on a different **Build server** than the one it runs on, removing its
+registry leaves the running Server unable to read the new image. Pick another registry in **Push
+the image to** first.
+</Callout>
+
+## Pulling a private image without a connected registry
+
+An Application whose source is a **Docker image** has its own registry login on its Source card,
+with its own **Test connection**. That login is for pulling that one image and is separate from
+the registries on this screen. See [Applications](/docs/guide/applications).
+
+## Related pages
+
+- [Applications](/docs/guide/applications): **Push the image to**, **Build server** and Docker
+  image sources.
+- [Deployments and rollbacks](/docs/guide/deployments): what a build does, and where its log is.
+- [Servers](/docs/guide/servers): the machines that build and run your images.
+- [Git providers](/docs/guide/git-providers): where the code being built comes from.
+- [Everything Cloudgate builds](/features).

@@ -1,0 +1,280 @@
+---
+title: Connect GitHub, GitLab, Bitbucket or Gitea
+seoTitle: Connect a Git provider to Cloudgate for deploys
+description: Connect a GitHub App, a GitLab or Gitea OAuth application, or a Bitbucket token so Applications deploy from your repositories, and check what each one reaches.
+lede: A Git provider connection is the account Cloudgate clones from. Connect one when you want to pick an Application's repository and branch from a list and deploy on every push, instead of typing a git URL.
+section: guide
+updated: '2026-11-27'
+group: Deploy
+order: 10
+navTitle: Git providers
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+howto:
+  name: Connect GitHub to Cloudgate with a GitHub App
+  steps:
+    - { name: Open Git providers, text: 'In the console, open Settings, then Git providers.' }
+    - { name: Name the connection, text: 'On the Create the GitHub App for me card, type a name in Name this connection, and a GitHub organization if the App should belong to one.' }
+    - { name: Create the App on GitHub, text: 'Press Create the app on GitHub, review the App GitHub shows you, and create it.' }
+    - { name: Install the App, text: 'Install the App on the account or organization whose repositories you want, and grant it the repositories.' }
+    - { name: Check the connection, text: 'Back on Git providers, press List repositories under Check a connection to see what it reaches.' }
+faq:
+  - { q: Which Git providers can Cloudgate deploy from?, a: 'GitHub, GitLab, Bitbucket Cloud and Gitea (Forgejo too). Any other host works as a plain git URL on the Application, without a connection, but without a repository picker.' }
+  - { q: Can a Member connect a Git provider?, a: 'No. Connecting, editing and removing a connection takes an owner or an admin of the Organization, or a custom role that allows it. Members cannot see the list either.' }
+  - { q: Why does my GitLab connection refuse every call?, a: 'It has not been authorized yet. GitLab needs the token pair and the expiry that only the Authorize trip records. Save the application ID and secret, press <strong>Authorize</strong> on the connection, and register the callback URL Cloudgate fills in.' }
+  - { q: The connection works but lists no repositories. What is wrong?, a: 'The credentials are accepted and nothing has been shared with them. On GitHub, grant the App repositories on its installation page. On GitLab, set the Groups field. On Bitbucket, set a Workspace or give the token repository read access.' }
+  - { q: What happens to my Applications if I remove a connection?, a: 'Every Application whose source is that connection can no longer clone, and its next Deployment fails. Nothing at the provider changes: the App or token you made there is still yours.' }
+---
+
+**Settings** > **Git providers** holds the accounts Cloudgate clones from. Each connection belongs
+to the Organization, and once one exists its repositories become selectable as an Application's
+source, with **Deploy automatically** on every push. How much of connecting Cloudgate does for you
+depends on the provider: GitHub needs nothing from you first, GitLab and Gitea want an OAuth
+application registered, and Bitbucket takes a token.
+
+<Screenshot name="git-providers" alt="The GitHub list on Settings, Git providers, with the connection northwind-labs reaching the App cloudgate-northwind-labs" caption="Each list shows the connection's name and what it reaches." />
+
+## What you can do
+
+- Create a GitHub App for Cloudgate in one trip to github.com, or paste an App you already have.
+- Connect a GitLab or Gitea server, including one you run yourself on a private address.
+- Connect Bitbucket Cloud with an Atlassian API token or an app password.
+- Check what a connection reaches before you use it, with **List repositories**.
+- Edit a connection to finish it or replace a credential, and remove one you no longer use.
+
+<Callout type="limit" title="Who may connect a provider">
+Owners and admins of the Organization connect, edit, authorize and remove connections. A custom
+role can be given the same rights. Members cannot open the list: they see a refusal instead of
+the connections. No Agent can manage Git providers.
+</Callout>
+
+## How the Git providers screen is laid out
+
+From top to bottom:
+
+1. A notice after you come back from a provider: **GitHub finished the handshake.** (or GitLab,
+   Gitea). It means the credentials are stored; check the connection to see what it reaches.
+2. A banner, **How much of connecting is done for you differs by provider**, with one line per
+   provider and two reminders: a connection can be saved before it is finished, and Cloudgate
+   never shows a credential again.
+3. Only when there is one: a card listing connections that were saved and are not listed (see
+   [What does "saved and not listed" mean?](#what-does-saved-and-not-listed-mean)).
+4. For GitHub, the **Create the GitHub App for me** card.
+5. One list each for **GitHub**, **Gitea**, **GitLab** and **Bitbucket**, with a **Connect
+   GitHub** (and so on) button. An empty list reads **No GitHub accounts yet** with the same button.
+6. Under each list that has connections, a **Check a connection** card.
+
+Each list has the columns **Name** and **Reaches** (the App, the server URL or the Bitbucket
+workspace). GitLab and Gitea add **Grant**, described under
+[Authorize a GitLab or Gitea connection](#authorize-a-gitlab-or-gitea-connection). Each row has
+**Edit** and **Remove**.
+
+## Connect GitHub with a new GitHub App
+
+The quickest way is to let Cloudgate describe the App it needs and have GitHub create it. The
+private key, client secret and webhook secret come straight back to Cloudgate and are never on
+screen.
+
+<Steps>
+<Step title="Name the connection">
+On the **Create the GitHub App for me** card, type **Name this connection**, for example
+`Northwind on GitHub`. Only your Organization sees the name. To create the App under a GitHub
+organization rather than your own GitHub account, type it in **GitHub organization**, for example
+`northwind-labs`.
+
+<Screenshot name="git-providers-create-github-app" alt="The Create the GitHub App for me card with Northwind on GitHub as the connection name and northwind-labs as the GitHub organization" caption="Cloudgate saves the connection, then hands you to github.com to approve the App." />
+</Step>
+<Step title="Create the App on GitHub">
+Press **Create the app on GitHub**. The button reads **Taking you to GitHub…** while it works.
+GitHub shows the App before creating it. It asks for read access to repository contents and
+metadata, write access to pull requests (for preview comments), and the `push` and
+`pull_request` events, sent to this Cloudgate instance. The App is private to the account that
+creates it.
+</Step>
+<Step title="Install it on your repositories">
+GitHub then asks you to install the App on an account. Choose the account or organization whose
+repositories you want and the repositories it may read. Until it is installed, the connection
+reaches nothing.
+</Step>
+<Step title="Check it">
+You land back on **Git providers** with **GitHub finished the handshake.** Under **Check a
+connection**, press **List repositories** beside the new connection.
+</Step>
+</Steps>
+
+<Callout type="note" title="An abandoned trip leaves an empty connection">
+Cloudgate saves the connection before it sends you to GitHub, so a trip you abandon at github.com
+leaves an empty connection in the GitHub list. Remove it, or edit it and paste the App's
+credentials.
+</Callout>
+
+If the name is empty, the card says **Give this connection a name first.** A refusal from
+Cloudgate appears under the button.
+
+## Connect an existing GitHub App
+
+Already have a GitHub App? Press **Connect GitHub** on the GitHub list and paste its credentials.
+The dialog opens with **Before Cloudgate can clone from GitHub**: it needs an App ID, a private key
+and an installation ID. You can save without them, and the connection is listed, but it cannot
+clone until they are there.
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the connection is called in Cloudgate. | Required. |
+| **App name** | The App's slug on GitHub, used only to link back to it. | Optional. |
+| **App ID** | The number on the App's settings page. | Needed to clone. |
+| **Installation ID** | The number at the end of the URL after you install the App. | Without it Cloudgate signs in as the App and reaches no repositories. |
+| **Client ID** | The App's client ID. | Optional. |
+| **Client secret** | The App's client secret. | Optional. Stored encrypted. |
+| **Private key** | The whole `.pem` file, header and footer lines included. | Needed to clone. Stored encrypted. |
+| **Webhook secret** | What proves an inbound webhook came from GitHub. | Only for push deploys. Stored encrypted. |
+
+At GitHub, the App needs repository permissions for **Contents** (read) and **Metadata** (read),
+and webhooks if you want push deploys. Cloudgate makes a short-lived token for each clone.
+
+## Connect GitLab
+
+GitLab is reached through an OAuth application you register on your GitLab, then authorize once.
+
+<Steps>
+<Step title="Register an application in GitLab">
+In GitLab, open **Settings** > **Applications** and create one with the `api`, `read_user` and
+`read_repository` scopes. Copy its application ID and secret.
+</Step>
+<Step title="Save the connection">
+In Cloudgate, press **Connect GitLab**, fill in the fields below and press **Connect GitLab** in
+the dialog.
+</Step>
+<Step title="Authorize it">
+Press **Authorize** on the connection's row and approve at GitLab. See
+[Authorize a GitLab or Gitea connection](#authorize-a-gitlab-or-gitea-connection).
+</Step>
+</Steps>
+
+<Screenshot name="git-providers-gitlab-dialog" alt="The Connect GitLab dialog with the note on what GitLab needs, the name Northwind on GitLab, GitLab URL https://gitlab.com and an application ID" caption="The note at the top says what GitLab still needs before it can clone." />
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the connection is called in Cloudgate. | Required. |
+| **GitLab URL** | Your GitLab's address. | Starts as `https://gitlab.com`. |
+| **Internal URL** | Used instead of the public URL when Cloudgate can reach GitLab on a private address. | Optional. |
+| **Application ID** | The OAuth application's ID. | |
+| **Application secret** | The OAuth application's secret. | Stored encrypted. |
+| **Callback URL** | Where GitLab sends you back. | Leave empty: Cloudgate fills in its own the first time you authorize. Register that exact value in GitLab. |
+| **Access token**, **Refresh token** | The token pair. | Authorizing fills both in, with the expiry. Paste them only if you already hold them. |
+| **Groups** | Comma-separated group paths, such as `northwind, northwind/platform`. | Empty offers your personal projects only. |
+
+<Callout type="warn" title="A GitLab connection that was never authorized refuses every call">
+GitLab needs the token expiry that only the **Authorize** trip records. Without it every call is
+refused, however valid a pasted access token is. The dialog says so under **Before Cloudgate can
+clone from GitLab**.
+</Callout>
+
+## Connect Gitea or Forgejo
+
+Gitea (and Forgejo) works two ways: authorize an OAuth application, or paste an access token.
+
+- **With OAuth**: in Gitea, open **Settings** > **Applications** and create an OAuth2
+  application. Copy its client ID and secret into Cloudgate, save, then press **Authorize** on the
+  connection.
+- **With a token**: create one under **Settings** > **Applications** > **Access tokens** in Gitea
+  and paste it into **Access token**. No application is needed. Without a refresh token, a pasted
+  access token works until it expires and then stops.
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the connection is called in Cloudgate. | Required. |
+| **Gitea URL** | Your Gitea's address, such as `https://git.northwind.example`. | Required. |
+| **Internal URL** | Used instead of the public URL when Cloudgate can reach Gitea on a private address. | Optional. |
+| **Client ID**, **Client secret** | The OAuth2 application's credentials. | The secret is stored encrypted. |
+| **Callback URL** | Where Gitea sends you back. | Leave empty: Cloudgate fills in its own the first time you authorize. Register that exact value in Gitea. |
+| **Access token** | What Cloudgate clones and lists with. | Authorizing fills it in; or paste one. |
+| **Refresh token** | Renews the access token. | Authorizing fills it in. |
+
+## Connect Bitbucket
+
+Bitbucket Cloud takes a token, with no redirect. Press **Connect Bitbucket** and use one of the
+two kinds:
+
+- **An Atlassian API token** (create it at id.atlassian.com): fill in **Atlassian account email**
+  and **API token**. Bitbucket refuses a token without the email beside it.
+- **An app password** (the older kind, from **Personal settings** > **App passwords**, with
+  **Repositories** read): fill in **Username** and **App password**. It is used only when there
+  is no API token.
+
+Set **Workspace**, for example `northwind`, to reach a workspace's repositories rather than your
+own. The **Reaches** column then shows `Workspace northwind`.
+
+## Authorize a GitLab or Gitea connection
+
+**Authorize** sits on each saved GitLab and Gitea row. It sends you to the provider's own sign-in
+page and back to **Git providers** with a token pair and its expiry. The application ID and secret
+must be saved first; Cloudgate says so if they are not. If the provider refuses the redirect,
+register the callback URL the connection shows (it ends in
+`/git-providers/oauth/gitlab/callback` or `/git-providers/oauth/gitea/callback`) at the provider,
+exactly as shown.
+
+The **Grant** column says where the connection stands:
+
+| Grant | What it means |
+|---|---|
+| **Not authorized** | The trip has never completed. For GitLab, every call is refused. |
+| **Authorized** until a date | The token pair is current. |
+| **Refreshes on use**, expired on a date | The access token has expired and is renewed on the next call. Nothing to do. |
+
+Once authorized, the button reads **Re-authorize at GitLab** (or Gitea): use it if the provider
+revoked the grant.
+
+## Check what a connection reaches
+
+Under each list, **Check a connection** has a **List repositories** button per connection. It
+lists repositories with the stored credentials: the same read an Application's source picker
+makes later. There are three answers:
+
+- **12 repositories reachable.** with the first six as `owner/name` and "and 6 more". Check they
+  are the account you expected.
+- **This connection works and can see no repositories.** The credentials are accepted and nothing
+  has been shared with them. The line says what to change at the provider: grant the GitHub App
+  repositories, set GitLab **Groups**, or set a Bitbucket **Workspace**.
+- **GitHub refused.** followed by the provider's own words. Edit the connection and fix the
+  credential it names.
+
+## Edit or remove a connection
+
+**Edit** opens the same fields. Credentials never come back: every secret field starts empty, and
+leaving it empty keeps the stored value. Typing in it replaces it. This is also how you finish a
+connection saved half-done.
+
+**Remove** asks **Remove Northwind on GitHub?** and warns that every Application whose source is
+that connection stops being able to clone, so its next Deployment fails. Press **Remove
+connection**, or **Keep it**. Nothing at the provider changes: delete the App or token there
+yourself if you want it gone.
+
+## What does "saved and not listed" mean?
+
+A card titled **One connection was saved and is not listed** appears only when a connection's
+record exists and no provider list returns it. That means its two halves disagree, for example
+after a half-finished removal or a restored backup. Nothing can open such a connection, so its
+only action is **Remove**, which asks **Remove Northwind on GitHub?** and then **Remove
+connection**. Connect again afterwards.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- Cloudgate shows no "can clone" status: it cannot know without the secrets it never returns. Use
+  **List repositories**.
+- Pull-request previews come from GitHub only. See [Preview deployments](/docs/guide/previews).
+- Removing a connection never deletes anything at the provider.
+- Any other git host has no connection: use **Any git URL**
+  on the Application with an SSH key instead.
+</Callout>
+
+## Related pages
+
+- [Applications](/docs/guide/applications): choose a repository, branch and **Deploy
+  automatically** on the Source card.
+- [Preview deployments](/docs/guide/previews): one preview per GitHub pull request.
+- [Project config and Plans](/docs/guide/project-config): keep `cloudgate.yaml` in a connected
+  repository.
+- [Container registries](/docs/guide/registries): where a build can push its image.
+- [Members and roles](/docs/guide/members-and-roles): who is an owner or admin, and custom roles.
+- [Everything Cloudgate deploys from](/features).

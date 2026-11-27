@@ -1,29 +1,31 @@
 ---
 title: Buckets
 seoTitle: S3-compatible buckets for your Services
-description: Add an S3-compatible bucket in the Project config, link its name, endpoint and key to your Services, allow browser uploads, and back it up on a Server.
-lede: A bucket is a Service that holds files your other Services read and write, and runs nothing itself. The same config gives you a Garage bucket on a Server, S3 on AWS, or Cloud Storage on Google Cloud.
+description: Add an S3-compatible bucket in the Project config, link its name, endpoint and key to Services, allow browser uploads, rotate its key, back it up and delete it.
+lede: A bucket is a Service that holds files your other Services read and write, and runs nothing itself. The same Project config gives you a Garage bucket on a Server, an S3 bucket on AWS, or a Cloud Storage bucket on Google Cloud.
 section: guide
 group: Services
 order: 3
+updated: '2026-11-27'
 badges: ['Created by the Project config', 'Server, AWS and Google Cloud']
 howto:
   name: Add a bucket and link it to a Service
   steps:
-    - { name: Write the bucket in the Project config, text: 'Add an entry with kind bucket, such as uploads, to the Project config.' }
+    - { name: Write the bucket in the Project config, text: 'Add an entry with kind bucket, such as media, to the Project config.' }
     - { name: Link its Outputs, text: 'Under the Service that uses it, link variables to the bucket Outputs: name, region, endpoint, path_style, access_key_id and secret_access_key.' }
     - { name: Apply the Plan, text: 'Save the config or push it, review the Plan in each Environment and press Apply.' }
     - { name: Deploy the Service, text: 'Deploy the linked Service so its container gets the values.' }
 faq:
-  - { q: How do I create a bucket in the console?, a: 'You do not press a button for it: a bucket is created by the Project config. Add an entry with kind bucket and apply the Plan.' }
+  - { q: How do I create a bucket in the console?, a: 'There is no button for it: a bucket is created by the Project config. Add an entry with kind bucket and apply the Plan. The console shows and manages the bucket afterwards.' }
   - { q: Why are the key variables empty on AWS?, a: 'On AWS a bucket has no key. Each Service reaches it with its own task role, so variables linked to access_key_id and secret_access_key are left unset and the AWS SDK finds its credentials by itself.' }
-  - { q: Does deleting a bucket delete its files?, a: 'Only if you tick Also delete its files. A bucket that still holds files is otherwise kept, and the Delete report names it.' }
+  - { q: Does deleting a bucket delete its files?, a: 'Only if you tick Also delete its files. A bucket that still holds files is otherwise kept, and Cloudgate names it when the Delete ends.' }
+  - { q: Why do presigned URLs not work for a bucket on a Server?, a: 'A bucket on a Server is reached only from that Server until it has a Domain. Add one on its Domains card; the oldest Domain becomes its endpoint.' }
 ---
 
-The examples use a bucket named `uploads` in the `storefront` Project and the `web` Application
+The examples use a bucket named `media` in the `storefront` Project and the `web` Application
 that stores customer images in it.
 
-## What you can do
+## What can you do with a bucket?
 
 - Add a bucket in the [Project config](/docs/guide/project-config) and link it to any number of
   Services.
@@ -33,7 +35,7 @@ that stores customer images in it.
 - Back up and restore a bucket on a Server.
 - Use a bucket you already have in a cloud, as given.
 
-## Add a bucket
+## How do I add a bucket?
 
 A bucket is created only by the Project config. The console has no add button for it.
 
@@ -44,19 +46,19 @@ Add an entry with `kind: bucket`, and link its Outputs under the Service that us
 ```yaml
 version: 1
 services:
-  uploads:
+  media:
     kind: bucket
   web:
     kind: web
     source:
       github: northwind/storefront
     env:
-      - S3_BUCKET: uploads.name
-      - AWS_REGION: uploads.region
-      - S3_ENDPOINT: uploads.endpoint
-      - S3_FORCE_PATH_STYLE: uploads.path_style
-      - AWS_ACCESS_KEY_ID: uploads.access_key_id
-      - AWS_SECRET_ACCESS_KEY: uploads.secret_access_key
+      - S3_BUCKET: media.name
+      - AWS_REGION: media.region
+      - S3_ENDPOINT: media.endpoint
+      - S3_FORCE_PATH_STYLE: media.path_style
+      - AWS_ACCESS_KEY_ID: media.access_key_id
+      - AWS_SECRET_ACCESS_KEY: media.secret_access_key
 ```
 </Step>
 <Step title="Review and apply the Plan">
@@ -69,7 +71,12 @@ Service.
 </Step>
 </Steps>
 
-## What each Output is
+The bucket then appears on its Environment's **Services** tab; its row opens the bucket's screen.
+
+## What does each Output hold?
+
+Every bucket hands out the same six Outputs on every target, so one codebase works on a Server and
+in a cloud; only the values differ:
 
 | Output | On a Server | On AWS |
 |---|---|---|
@@ -88,39 +95,62 @@ On AWS the key variables are left unset, not set to empty. An app that builds it
 find the task role, so the same code works everywhere.
 </Callout>
 
-## Open a bucket's screen
+## What is on a bucket's screen?
 
-A bucket has one screen, reached from its Environment's **Services** tab. It shows its
-**Real name**, **Region** and **Access**, and these cards:
+A bucket has one screen, with no tabs: everything about it beyond these cards is in the Project
+config. The header shows its status, a `bucket` chip (and `existing` for a bucket made outside
+Cloudgate) and **Delete**.
 
-- **Key**: the one key every linking Service reads and writes with, and **Rotate key**.
-- **Browser uploads**: the web origins trusted to upload straight from a browser.
-- **Domains**: where a bucket on a Server answers S3 requests from the internet.
-- **Volume backups** and **Restore**, on a Server.
+<Screenshot name="bucket-screen" alt="The screen of the media bucket, with its real name, region, key card and domains" caption="The oldest Domain is the bucket's endpoint." />
 
-<Screenshot name="bucket-screen" alt="The screen of the uploads bucket, with its real name, region, key card and browser uploads card" caption="The oldest Domain is the bucket's endpoint." />
+| Card | Shown when | What it holds |
+|---|---|---|
+| **Bucket** | Always | **Real name** (with copy), **Config name**, **Runs on** (Server) or **Cloud account**, **Region**, **Key** (set or not made yet) or **Access** (on AWS: each Service's own task role, no key), the **Swarm service** on a Server, **Environment** and **Created**. |
+| **Access** | An existing bucket on Google Cloud | Whether its key reaches the bucket, the key's service account, when it was checked, and the grant command to run. |
+| **Key** | On a Server or Google Cloud | **Rotate key** and **Last rotation**. |
+| **Domains** | On a Server | Where the bucket answers S3 requests from the internet. |
+| **Browser uploads** | A bucket Cloudgate made | The web origins trusted to upload from a browser. |
+| **Volume backups** and **Restore** | On a Server | Tarballs of the bucket's volume. |
 
-## Let a browser upload to the bucket
+If the bucket was destroyed by a Plan or belongs to another Organization, the screen reads "This
+bucket is not here".
 
-On **Browser uploads**, press **Add origin** and enter the origin as a browser sends it, such as
-`https://shop.northwind.example`, with no path. Origins are set per Environment and start empty.
+## How do I let a browser upload to the bucket?
 
-## Give a bucket on a Server a Domain
+On **Browser uploads**, enter the origin as a browser sends it, such as
+`https://shop.northwind.example`, with no path, and press **Add origin**. **Remove** takes one off.
+The list starts empty, which means no browser can upload. Each origin may read, upload and see an
+upload's ETag; the bucket's own key is never sent to a browser.
+
+<Screenshot name="bucket-browser-uploads" alt="The Browser uploads card of the media bucket with two trusted origins, https://shop.northwind.example and https://www.northwind.example, and the Origin field" caption="Origins are scheme and host, with an optional port, and no path." />
+
+An existing bucket has no **Browser uploads** card: its CORS rules are yours to set in the cloud.
+
+## How do I give a bucket on a Server a Domain?
 
 A bucket on a Server is reached only from that Server until you press **Add a domain** on its
 **Domains** card. Presigned URLs and browser uploads need it: a browser cannot reach the internal
-URL.
+URL. The oldest Domain is the bucket's `endpoint`. **Edit** and **Remove** work as on any Domain:
+see [Domains and TLS certificates](/docs/guide/domains). Adding one needs the `domain: create`
+permission.
 
-## Rotate a bucket's key
+## How do I rotate a bucket's key?
 
-Press **Rotate key** on the **Key** card. Cloudgate makes a new key, then deploys every Service
-that links the bucket again with it. If that fails, the Services are put back on the old key.
+Press **Rotate key** on the **Key** card and confirm. On a Server, Garage makes a new key, read and
+write on this bucket only; on Google Cloud, Cloudgate makes a new HMAC key for the bucket's own
+service account. Every Service that links the key is then deployed again with it, while the old key
+keeps working. Only once every redeploy succeeded is the old key removed. If one fails, the
+Services are put back on the old key, the new one is removed, and the card names the Service.
 
 <Callout type="warn" title="Rotating redeploys">
-Every Service that links this bucket's key is deployed again. Plan it like a deploy.
+Every Service that links this bucket's key is deployed again. Plan it like a deploy. The button is
+off until the bucket's first deploy has made a key, and while a rotation runs.
 </Callout>
 
-## Where a bucket lives
+## Where does a bucket live?
+
+Where its Environment deploys: in a Garage container on a Server, in S3 on AWS, or in Cloud Storage
+on Google Cloud.
 
 | Target | What Cloudgate makes |
 |---|---|
@@ -131,23 +161,45 @@ Every Service that links this bucket's key is deployed again. Plan it like a dep
 On AWS a presigned URL is signed with the task role's short-lived credentials, so it stops working
 when they expire. Make one just before it is used.
 
-## Use a bucket you already have
+## Can I use a bucket I already have?
 
-When a Plan would create a bucket in a Cloud account, choose **Use an existing bucket** on that
-line and name it. Cloudgate never changes it. On Google Cloud you add one access grant yourself; the
-bucket's **Access** card shows the exact command and checks it. Deleting the Service leaves the
-bucket and its files as they were.
+Yes, in a Cloud account. When a Plan would create a bucket, choose **Use an existing bucket** on
+that line and enter its **Bucket name** as the cloud's console lists it. A bucket Cloudgate made,
+for any Environment, is refused. Cloudgate looks it up at every Plan and never changes it or its
+files. On Google Cloud its key is one Cloudgate makes for it, and you grant that key access
+yourself: the bucket's **Access** card shows the exact command and checks it.
 
-## Delete a bucket
+## How do I delete a bucket?
 
-Remove the entry from the Project config, or delete it from its screen with **Delete bucket**,
-confirming its name. A bucket that holds files is kept and named in the report unless you tick
-**Also delete its files**.
+Remove the entry from the Project config, or press **Delete** on the bucket's screen, type its name
+and press **Delete bucket**.
+
+- **A bucket that holds files is kept.** Any file, old version or delete marker counts, and so does
+  a bucket Cloudgate cannot read. On a Server its volume stays with the files; in a cloud the
+  bucket stays, marked with Cloudgate's tag or labels. Cloudgate forgets it and names it when the
+  Delete ends.
+- **An empty bucket** is removed: with its volume on a Server, by a Cloud run in a cloud.
+- **Also delete its files** empties the bucket, old versions included, then removes it. If
+  emptying stops part way, the bucket is kept partly emptied; in a cloud the screen shows
+  **Delete incomplete** with **Retry** and **Forget**.
+- **An existing bucket** offers **Delete from Cloudgate**: only Cloudgate's records go (on Google
+  Cloud, also the key and service account it made), and the bucket and its files stay as they were.
 
 <Callout type="warn" title="Deleted files are gone">
 **Also delete its files** removes every file in the bucket. There is no copy unless you made a
-volume backup.
+[volume backup](/docs/guide/backups#how-do-i-back-up-a-volume).
 </Callout>
+
+## Who can change a bucket?
+
+Anyone granted the bucket can rotate its key and change browser origins; deleting it takes an owner
+or an admin.
+
+| Action | Needs |
+|---|---|
+| Rotate the key, add or remove browser origins | `service: update` (owners, admins and members granted the Service) |
+| Add a Domain | `domain: create` |
+| Delete the bucket | `service: delete` (owners and admins); off while a Project config kept in a repository describes it |
 
 ## What you cannot do
 
@@ -161,7 +213,8 @@ volume backup.
 ## Related pages
 
 - [The Project config and Plans](/docs/guide/project-config).
-- [Wired variables](/docs/guide/environment-variables).
+- [Environment variables and wired variables](/docs/guide/environment-variables).
 - [Volume backups and restore](/docs/guide/backups).
 - [Databases](/docs/guide/databases), linked the same way.
+- [Domains and TLS certificates](/docs/guide/domains).
 - [Cloud accounts](/docs/guide/cloud-accounts).

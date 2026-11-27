@@ -1,137 +1,203 @@
 ---
 title: SSO, SCIM and forward auth
 seoTitle: Set up SSO, SCIM and forward auth in Cloudgate
-description: Let members sign in with Okta, Entra ID, Auth0 or Keycloak over OIDC, provision them with SCIM, and put Applications behind your identity provider.
+description: Sign members in with Okta, Entra ID, Auth0 or Keycloak over OIDC, prove your email domain, provision people with SCIM, and put Applications behind a sign-in.
 lede: Single sign-on lets members sign in with the account they already have at your identity provider. SCIM lets your directory create and deactivate them, and forward auth puts the same sign-in in front of your own Applications.
 section: guide
 group: Team and access
 order: 5
 navTitle: SSO and SCIM
 badges: ['Owner or Admin', 'Business plan or Enterprise license']
+updated: '2026-11-27'
 howto:
   name: Set up single sign-on with an OIDC provider
   steps:
-    - { name: Prove your domain, text: 'On the Hosted instance, add your email domain under Proven domains, publish the TXT record and press Check now until it reads Proven.' }
-    - { name: Trust the provider origin, text: 'Under Trusted origins, add the origin of your identity provider.' }
-    - { name: Add the provider, text: 'Under Identity providers, press Add a provider and fill in the Provider id, Issuer URL, Email domains, Client id and Client secret.' }
-    - { name: Register the redirect URI, text: 'Copy the Redirect URI shown into your identity provider.' }
+    - { name: Open Single sign-on, text: 'Open Settings, then Single sign-on.' }
+    - { name: Prove your domain, text: 'On the Hosted instance, type your email domain under Proven domains, press Add domain, publish the TXT record it shows and press Check now until it reads Proven.' }
+    - { name: Add the provider, text: 'Under Identity providers, press Add a provider and fill in Provider id, Issuer URL, Email domains, Client id and Client secret. Leave Trust this issuer ticked.' }
+    - { name: Register the redirect URI, text: 'Copy the Redirect URI the dialog shows into your identity provider, then press Add the provider.' }
+    - { name: Test the sign-in, text: 'Sign out and sign in with an address on that domain; Cloudgate sends you through your provider.' }
 faq:
-  - { q: Which identity providers work?, a: 'Any OpenID Connect provider, such as Okta, Entra ID, Auth0 or Keycloak. SAML providers cannot be added or edited in the console.' }
-  - { q: Why must I prove my domain?, a: 'On the Hosted instance, a provider signs in only addresses in a domain its Organization has proven with a DNS TXT record, so nobody can sign in as people at a domain they do not own.' }
-  - { q: What happens when the plan or license lapses?, a: 'SSO sign-in stops, so SSO-only people use Forgot password to get in. SCIM refuses new members. Forward auth keeps protecting what it already protects but refuses new setups and changes.' }
+  - { q: 'Which identity providers work?', a: 'Any OpenID Connect provider, such as Okta, Entra ID, Auth0 or Keycloak. A SAML provider can be listed and removed, but not added or edited in the console.' }
+  - { q: 'Why must I prove my domain?', a: 'On the Hosted instance, a provider signs in only addresses in a domain its Organization has proven with a DNS TXT record, so nobody can sign in as people at a domain they do not own.' }
+  - { q: 'I lost the SCIM token. Can I see it again?', a: 'No. It is shown once, when the SCIM provider is created. Remove the provider and add a new one to get a new token, then paste it into your directory.' }
+  - { q: 'What happens when the plan or license lapses?', a: 'The settings are kept. SSO sign-in stops, so SSO-only people use Forgot password to set a password. SCIM can no longer add people but removals still work. Forward auth keeps protecting gated Domains but cannot be added to or changed.' }
 ---
 
 <Callout type="limit" title="Paid features">
 Single sign-on, SCIM and forward auth need the Business plan on the Hosted instance, or an
 Enterprise license on a self-hosted instance. Setting them up takes an owner or an admin.
+**Require single sign-on** needs more: an owner or admin of the instance's own Organization.
 </Callout>
 
 ## What you can do
 
 - Sign members in through an OIDC identity provider for your email domains.
+- On the Hosted instance, prove the email domains your providers may sign in.
 - Provision and deactivate members from your directory with SCIM.
 - Put an Application's Domain behind a sign-in at your identity provider, with forward auth.
 - On a self-hosted instance, turn off password sign-in for everyone.
 
-## Set up single sign-on
+## The Single sign-on screen
 
-Open **Settings** > **Single sign-on**.
+**Settings** > **Single sign-on** (`/settings/sso`) has, top to bottom: **Identity providers**,
+**Proven domains** (Hosted only), **How people sign in**, **Trusted origins** and **Directory
+provisioning (SCIM)**.
+
+<Screenshot name="sso" alt="Settings, Single sign-on for Northwind Labs on a self-hosted instance, before any identity provider is added, with How people sign in and Trusted origins below" caption="Identity providers, sign-in, trusted origins and SCIM on one screen." />
+
+Without the plan or license, the screen shows one card that says what single sign-on and SCIM are,
+with **Upgrade to Business**, **Start 30-day free trial** or **Subscribe** on the Hosted instance
+(for an owner or admin), or **Go to License** on a self-hosted instance.
+
+## Set up single sign-on
 
 <Steps>
 <Step title="Prove your email domain (Hosted)">
 Under **Proven domains**, type the part of your people's addresses after the @, such as
-`northwind.example`. Publish the TXT record it shows at your DNS provider and press **Check now**.
-Nothing polls, so press it again once the record is published, until the domain reads **Proven**.
-<Screenshot name="sso" alt="Settings, Single sign-on for Northwind Labs, with an OIDC provider, a proven domain northwind.example and trusted origins" caption="Proven domains, identity providers and trusted origins on one screen." />
-</Step>
-<Step title="Trust the provider's origin">
-Under **Trusted origins**, add the scheme and host of your provider, such as
-`https://login.northwind.example`, and press **Trust it**. On the Hosted instance it must be a
-public address.
+`northwind.example`, in **Add a domain** and press **Add domain**. The row reads **Waiting for the
+record** and shows the TXT record's **Type**, **Name** and **Value**, each with a copy button.
+Publish it at your DNS provider, then press **Check now**. Nothing checks by itself, so press it
+again once the record is live, until the row reads **Proven**.
+
 </Step>
 <Step title="Add the provider">
-Under **Identity providers**, press **Add a provider**. In **Add an OIDC provider**, fill in:
+Under **Identity providers**, press **Add a provider**. Fill in **Add an OIDC provider**:
 
-- **Provider id**: lower-case letters, numbers and dashes, unique on the whole instance. It cannot
-  be changed later.
-- **Issuer URL**, **Client id** and **Client secret** from your provider.
-- **Email domains**: comma separated, such as `northwind.example`. Members on these domains sign
-  in through this provider.
-- **Scopes** and endpoints only if your provider needs them; left empty, its own defaults apply.
+| Field | What it does | Notes |
+|---|---|---|
+| **Provider id** | A short name for this connection; it appears in the sign-in URL and the redirect URI. | Lower-case letters, numbers and dashes, unique on the whole instance. Cannot be changed later. |
+| **Issuer URL** | Your provider's base URL, such as `https://login.northwind.example`. | Cloudgate reads its discovery document, and fetches it only from a trusted origin. |
+| **Trust this issuer** | Adds the issuer's origin to **Trusted origins** for you. | Ticked by default. Untick it to add the origin yourself first. |
+| **Email domains** | The domains this provider signs in, comma separated: `northwind.example`, not a URL. | Required. A domain another provider on the instance already claims is refused. |
+| **Client id**, **Client secret** | From the application you registered at your provider. | The secret is stored and never shown again. |
+| **Authorization endpoint**, **Token endpoint**, **User info endpoint**, **JWKS endpoint** | Only if your provider needs them. | Optional. Left empty, they come from `<issuer>/.well-known/openid-configuration`. |
+| **Scopes** | Comma separated, such as `openid, email, profile`. | Optional. Left empty, the provider's defaults apply. |
 </Step>
 <Step title="Register the redirect URI">
-Copy the **Redirect URI** the dialog shows into your identity provider's application settings.
+As soon as you type the **Provider id**, the dialog shows the **Redirect URI** with a copy button.
+Add it to your identity provider's allowed list, or sign-ins are refused at the last step. Then
+press **Add the provider**.
 </Step>
 </Steps>
 
-People on your proven domains now sign in through your provider. Someone who arrives through SSO
-joins only that provider's Organization.
+People whose address is on the provider's domains now sign in through it instead of with a
+password. Someone who arrives through SSO joins only that provider's Organization.
 
-<Callout type="warn" title="Require single sign-on turns off passwords for everyone">
-On a self-hosted instance, **Require single sign-on** under **How people sign in** removes the
-password form from the sign-in screen for every Organization on the instance, including yours.
-Anyone without an account at one of your providers cannot get in. It needs authority over the whole
-instance.
+### Edit or remove a provider
+
+Each provider shows its **Provider id**, an **OIDC** or **SAML** chip, **Secret stored** when a
+client secret is saved, its issuer, the domains it signs in and its **Redirect URI**.
+
+- **Edit** opens the same form. The **Provider id** is fixed. To keep the stored client
+  configuration, leave the secret blank and change nothing under **OIDC client**; change any of it
+  and you must type the **Client secret** again. Moving to a different issuer needs its origin in
+  **Trusted origins** first.
+- **Remove** asks "Remove ...?". Nobody on its domains can sign in through it any more. Accounts
+  made through it, and their memberships, stay. A forward-auth proxy deployed against it stops
+  authenticating. Press **Remove the provider**.
+
+<Callout type="warn" title="Do not remove the only provider while SSO is required">
+If **Require single sign-on** is on and this is the only provider, removing it leaves nobody a way
+in, including you.
+</Callout>
+
+## Trusted origins
+
+**Trusted origins** lists the hosts Cloudgate may fetch a provider's configuration from, and the
+origins a browser may sign in from. No identity provider can be reached until its origin is listed.
+Type an origin (scheme and host, such as `https://login.northwind.example`) in **Add an origin**
+and press **Trust it**. The cross beside an origin stops trusting it. On the Hosted instance it
+must be a public address.
+
+## Require single sign-on
+
+**How people sign in** has one switch, **Require single sign-on**. It is instance-wide: it applies
+to every Organization on this deployment, not only yours. When it is on, the sign-in screen does
+not show a password form at all.
+
+- It is off until at least one provider is registered.
+- Turning it on asks "Turn off password sign-in for everyone?". Before you press **Require single
+  sign-on**, sign in through your provider in another browser and confirm it works.
+- Only an owner or admin of the instance's own Organization (the first one made on a self-hosted
+  instance) can switch it. On the Hosted instance that is Octabyte, so customers cannot turn it on.
+
+<Callout type="warn" title="There is no way back from the console">
+If nobody can sign in through a provider once passwords are off, nothing in the console can turn
+it off again: the way back is a change in the database.
 </Callout>
 
 ## Provision members with SCIM
 
 <Steps>
 <Step title="Add a SCIM provider">
-Under **Directory provisioning (SCIM)**, press **Add a provider**, give it a **Provider id** and
-continue. Have somewhere to paste the token first.
+Under **Directory provisioning (SCIM)**, press **Add a provider**. In **Add a SCIM provider**, type
+a **Provider id**: lower-case letters, numbers and dashes, unique on the whole instance. It cannot
+be changed: it becomes part of the token and of every account it creates. Have somewhere to paste
+the token, then press **Create the token**.
 </Step>
 <Step title="Copy the base URL and token">
-Copy the **SCIM base URL** and the **Bearer token** into your directory. The token is shown once.
+"... is connected" shows the **Bearer token**, the **SCIM base URL** (the console's address plus
+`/api/auth/scim/v2`) and the **Provider id**. Paste the URL and token into your directory; it sends
+the token as `Authorization: Bearer ...`. Press **I have copied it**.
+
+<Screenshot name="sso-scim-token" alt="The okta-scim is connected dialog showing a bearer token, the SCIM base URL and the provider id" caption="This is the only time the token is shown." />
 </Step>
 </Steps>
 
-Your directory now creates members and deactivates leavers. A member deactivated over SCIM cannot
-sign in, and only the directory can reactivate them. Removing a SCIM provider stops its token
-working immediately.
+Your directory now creates, updates and deactivates members. A member deactivated over SCIM is
+marked **deactivated** on the Members screen and cannot sign in; only the directory can reactivate
+them.
+
+Each SCIM provider row says its token was shown once, when it was created, and, if your
+directory tried to add someone while the Organization was below the paid features, **Last refused
+add** with the time and address. **Remove** asks "Remove ...?": the token stops working at once
+and your directory starts reporting failures. Members it created stay as they are. Press **Remove
+the provider**.
 
 ## Put an Application behind forward auth
 
 Forward auth runs an authentication proxy (oauth2-proxy) on a Server's Traefik, so visitors to a
-Domain must sign in at your identity provider first. It needs an OIDC provider under Single
-sign-on.
+Domain must sign in at your identity provider before they reach the Application. It uses an OIDC
+provider you added here: set an authentication domain under **Settings** > **Forward auth**,
+deploy the proxy against the provider, then turn on the sign-in switch beside a host on the
+Application's **Domains** tab. Every step is in [Forward auth](/docs/guide/forward-auth).
 
-<Steps>
-<Step title="Set an authentication domain">
-Open **Settings** > **Forward auth**. For the Server, press **Set an authentication domain**,
-enter a host such as `auth.northwind.example` and its certificate, then **Save the domain**. Its
-parent domain becomes the cookie domain, so it must share one with the Applications it protects,
-and it needs DNS pointing at the Server like any other Domain.
-</Step>
-<Step title="Deploy the proxy">
-Press **Deploy the proxy**, choose the provider under **Authenticate against**, and press
-**Deploy it**. Only OIDC providers are listed.
-</Step>
-<Step title="Gate a Domain">
-Open the Application's **Domains** tab and turn on the sign-in switch beside the host, such as
-`shop.northwind.example`.
-</Step>
-</Steps>
-
-<Callout type="warn" title="Removing the proxy opens gated Domains">
-**Remove the proxy** opens every Domain behind it to anyone with the link.
+<Callout type="warn" title="Removing the proxy breaks gated Domains">
+After **Remove the proxy**, every Domain whose sign-in switch is on fails every request until the
+proxy is deployed again or its switch is turned off.
 </Callout>
+
+## What happens when the plan or license lapses?
+
+The settings are kept, and work again on Business or once a license is active:
+
+- A strip at the top says what is off, such as "SSO sign-in is off, and SCIM can't add people."
+- Providers are marked **Off** with where, such as "Off on Starter". **Add a provider**, **Edit**,
+  **Add domain**, **Check now** and **Trust it** are off; **Remove** still works.
+- SCIM providers show **Removing only**: your directory can still deactivate people but not add them.
+- SSO-only people use **Forgot password** to set a password.
+- Forward auth keeps protecting gated Domains (**Still protected**) but cannot be added or changed.
+
+On the Hosted instance, after **Move to Starter** is scheduled, a strip names the date these stop,
+with **Keep Business**.
 
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
-- SAML providers can be listed but not added or edited in the console.
+- SAML providers can be listed and removed, but not added or edited in the console.
 - On the Hosted instance, a provider signs in only addresses in a proven domain, and its issuer,
   endpoints and trusted origins must be public addresses.
-- Compose stacks cannot be put behind forward auth.
-- On a lapsed plan or license, the settings are kept: SSO sign-in stops, SCIM shows
-  **Removing only**, and forward auth keeps protecting gated Domains but refuses changes.
+- A Provider id, for SSO or SCIM, cannot be changed after it is made.
+- A SCIM token is shown once; to replace it, remove the provider and add a new one.
 </Callout>
 
 ## Related pages
 
 - [Members and roles](/docs/guide/members-and-roles): roles and grants for people who sign in.
+- [Forward auth](/docs/guide/forward-auth): put an Application's Domain behind your identity provider.
 - [Domains](/docs/guide/domains): the Domains forward auth protects.
-- [Billing](/docs/guide/billing): moving to the Business plan.
-- [Instance settings](/docs/self-host/instance-settings): the Enterprise license on a self-hosted instance.
+- [Billing and plans](/docs/guide/billing): moving to the Business plan.
+- [License and branding](/docs/guide/license-and-branding): the Enterprise license on a self-hosted instance.
+- [Audit log](/docs/guide/audit-log): every SSO and SCIM change is recorded.
 - [Plans and prices](/pricing) and [security](/security).

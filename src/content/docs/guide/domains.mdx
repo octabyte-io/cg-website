@@ -1,158 +1,188 @@
 ---
 title: Domains and TLS certificates
 seoTitle: Add a custom domain and HTTPS to a Service
-description: Point your own domain at a Service, get a Let's Encrypt certificate, use a free sslip.io address, add redirects and run behind a CDN, on a Server or in a cloud.
-lede: A Domain is a host, and optionally a path, that a Service answers on. Add one when you want people to reach an Application at your own address, over HTTPS.
+description: Point your own domain at an Application, turn on HTTPS with Let's Encrypt or a stored certificate, use a free sslip.io host, or route a path.
+lede: A Domain is a host, and optionally a path, that a Service answers on. Add one when people should reach an Application at your own address, over HTTPS. Cloudgate writes the route; you create the DNS record it shows.
 section: guide
-updated: '2026-11-20'
+updated: '2026-11-27'
 group: Operate
 order: 1
 navTitle: Domains
 badges: ['Members can add Domains', 'Servers and Cloud accounts']
 howto:
-  name: Add a custom domain to an Application on a Server
+  name: Add a custom domain with HTTPS to an Application on a Server
   steps:
     - { name: Open the Domains tab, text: 'Open the Application and its Domains tab, then press Add a domain.' }
-    - { name: Enter the host, text: 'Type the hostname visitors use, such as shop.northwind.example, with no scheme and no path.' }
-    - { name: Choose HTTPS and a certificate, text: 'Leave Serve over HTTPS on and pick Let''s Encrypt as the Certificate.' }
-    - { name: Create the DNS record, text: 'At your DNS provider, create the A record the console shows, then press Check DNS.' }
-    - { name: Save, text: 'Press Add domain. Changes reach Traefik as soon as they are saved.' }
+    - { name: Enter the host and port, text: 'Type the hostname visitors use, such as shop.northwind.example, with no scheme and no path, and the Container port the app listens on.' }
+    - { name: Create the DNS record, text: 'At your DNS provider, create the A record the dialog shows, then press Check DNS until it says the host points here.' }
+    - { name: Turn on HTTPS, text: 'Turn on Serve over HTTPS and choose Let''s Encrypt as the Certificate.' }
+    - { name: Save, text: 'Press Add domain. The route reaches Traefik within a second, with no Deployment.' }
 faq:
-  - { q: Does Cloudgate create DNS records for me?, a: 'No. Cloudgate never writes DNS. The console shows the record to create at your DNS provider and checks it once you have.' }
-  - { q: Is the free sslip.io address served over HTTPS?, a: 'When you press <strong>Generate one for me</strong> on a server with a public address, yes: it turns on HTTPS with a Let''s Encrypt certificate. On a private address it stays plain HTTP. The Get started wizard and a Template setup follow the same rule.' }
-  - { q: Why does my browser warn about the certificate on a new Domain?, a: 'Until Let''s Encrypt issues the certificate, Traefik serves its own self-signed one. The Domains tab says issuing until the real certificate is served, usually under a minute, then valid until a date. If it says not issued yet, check that the A record points at the Server and that port 80 is reachable.' }
-  - { q: Can I put Cloudflare or another CDN in front?, a: 'Yes, but Cloudgate has no CDN integration. The DNS check recognises Cloudflare, Bunny CDN, Fastly and Arvancloud and stops at the proxy. If the CDN terminates TLS, turn Serve over HTTPS off.' }
-  - { q: What happens to DNS when I remove a Domain?, a: 'Nothing. Removing a Domain removes only the route in Cloudgate. Delete the record at your DNS provider yourself.' }
+  - { q: Does Cloudgate create DNS records for me?, a: 'No. Cloudgate never writes DNS, on a Server or in a cloud. The dialog shows the record to create at your DNS provider and Check DNS tells you once it resolves.' }
+  - { q: Is HTTPS on by default for a new Domain?, a: 'No. Serve over HTTPS starts off when you type a host. Turn it on and pick Let''s Encrypt. Generate one for me turns it on by itself when the Server has a public address.' }
+  - { q: Why does my browser warn about the certificate on a new Domain?, a: 'Until Let''s Encrypt issues the certificate, Traefik serves its own self-signed one. The Domains tab says issuing until the real one is served, usually under a minute. If it says not issued yet, check that the A record points at the Server and that port 80 is reachable.' }
+  - { q: Do I need to redeploy after adding a Domain?, a: 'Not for an Application on a Server: Traefik''s configuration is rewritten as you save and reloads within a second. A stopped Application answers once it is started or deployed. A Compose stack''s Domain waits for its next Deployment.' }
+  - { q: What happens to DNS when I remove a Domain?, a: 'Nothing. Removing a Domain removes only the route in Cloudgate, and the Uptime checks on it. Delete the record at your DNS provider yourself.' }
 ---
 
 On a Server, each Domain is a Traefik route to one Service, with a certificate from Let's Encrypt,
-one you upload, or none. In a Cloud account, a Domain sits on the cloud's own load balancer or
-CDN with the cloud's own certificate. Either way, you create the DNS record; Cloudgate shows you
-which one and checks it.
+one you upload, a resolver of your own, or none. In a Cloud account, a Domain sits on the cloud's
+own load balancer or CDN with the cloud's own certificate. Either way you create the DNS record;
+Cloudgate shows which one and checks it.
 
-## What you can do
+## What can you do with Domains?
 
-- Add your own hostname, such as `shop.northwind.example`, to an Application or a Compose stack.
-- Get a free `sslip.io` hostname with no DNS at all.
-- Serve over HTTPS with Let's Encrypt, a stored certificate, or a certificate resolver of your own.
+- Add your own hostname, such as `shop.northwind.example`, to an Application, a Compose stack or a
+  bucket.
+- Get a free `sslip.io` hostname that needs no DNS at all.
+- Serve over HTTPS with Let's Encrypt, a stored certificate, or a certificate resolver you set up.
 - Route only a path, such as `/api`, and strip it before the request reaches the container.
-- Redirect URLs with a regular expression, and protect an Application with basic authentication.
-- Run behind a CDN or proxy that you configure yourself.
+- Require sign-in in front of a host with forward auth.
+- See whether the certificate has been issued, and whether Traefik is serving the route.
+
+## What is on the Domains tab?
+
+Open an Application and its **Domains** tab. The **Domains** card lists each host the Application
+answers on.
+
+<Screenshot name="application-domains" alt="The Domains tab of the web Application listing shop.northwind.example and www.northwind.example, each on port 3000 with HTTPS and a Let's Encrypt certificate" caption="Each row is one host, with its path, port, HTTPS and certificate." />
+
+| Column | What it shows |
+|---|---|
+| **Host** | The host as a link, then its path (with **stripped** when the path is stripped), the container port, and **HTTPS** or **HTTP**. "Not being routed" marks a host whose router Traefik refused. |
+| **Certificate** | **Let's Encrypt**, **Stored certificate** (with its name), **Custom** (with the resolver), or **Not managed here** for HTTP. With Let's Encrypt it says whether the certificate is issued. |
+| **Sign-in** | A switch that puts this host behind the [forward-auth](/docs/guide/sso-and-scim) sign-in proxy. |
+| | **Edit** and **Remove**. |
+
+A strip above the table says changes reach Traefik within a second, with no Deployment. The side
+card **Internal address** says how other Services reach this one without a Domain: on a Server, at
+its **Host** (its internal name) on `cloudgate-network`, on whatever port it listens on, with no
+certificate and no trip through Traefik.
+
+With no Domain yet, the card says "No domain points here yet" with **Add a domain**; the dialog can
+generate a working host if you do not own one.
 
 ## Add a custom domain on a Server
 
 <Steps>
-<Step title="Open the Domains tab">
-Open the Application, for example `web` in `storefront` / `production`, and its **Domains** tab.
-Press **Add a domain**.
-<Screenshot name="application-domains" alt="The Domains tab of the web Application, listing shop.northwind.example with HTTPS and a Let's Encrypt certificate" caption="Each row is one host the Application answers on, with its certificate." />
+<Step title="Open the dialog">
+On the **Domains** tab, press **Add a domain**.
+<Screenshot name="application-add-domain-dialog" alt="The Add a domain dialog on the web Application with shop.northwind.example typed as the Host, the A record to create pointing at 203.0.113.10, a DNS check that says it does not point here yet, and Serve over HTTPS on with Let's Encrypt" caption="The record to create, the DNS check, then HTTPS and the certificate." />
 </Step>
-<Step title="Enter the host">
-In **Host**, type the hostname visitors use: `shop.northwind.example`. No scheme, no path. Set
-**Container port** to the port your app listens on.
-
-To answer on only part of the host, set **Path**. `/api` takes `/api` and everything under it,
-but not `/apix`; leave it at `/` for the whole host. Turn on **Strip the path before proxying** if
-your app expects requests without that prefix.
-
-<Screenshot name="application-add-domain" alt="The Add a domain dialog on the web Application" caption="The host, then HTTPS and the certificate in the next step." />
-
+<Step title="Enter the host, port and path">
+| Field | What it does | Default |
+|---|---|---|
+| **Host** | The hostname visitors type, such as `shop.northwind.example`. No scheme, no path. | Empty. |
+| **Container port** | The port the Application listens on inside its container. | `3000`. |
+| **Path** | Route this path and everything under it: `/api` takes `/api` and `/api/…`, not `/apix`. Ending it in `/` takes only what is under it: `/v2/` takes `/v2/…` but not `/v2`. | `/`, the whole host. |
+| **Strip the path before proxying** | The Application receives `/` instead of the path above. | Off. Needs a path other than `/`. |
 </Step>
-<Step title="Choose HTTPS and a certificate">
-Leave **Serve over HTTPS** on: Traefik then redirects HTTP to HTTPS and terminates TLS. Under
-**Certificate**, pick one:
+<Step title="Create the DNS record and check it">
+Under the host, the dialog shows **The record to create at your DNS provider**: an `A` record whose
+**Name** is the part in front of your zone (`shop` for `shop.northwind.example`, `@` for the bare
+domain) and whose **Value** is the Server's public address. Create it, then press **Check DNS**:
+
+- "shop.northwind.example points here." The record is right.
+- "… does not point here yet." It resolves elsewhere or not at all; DNS changes can take a while to
+  spread, so correct the record and check again.
+- "… is behind Cloudflare" (or Bunny, Fastly, Arvancloud): Cloudgate cannot see past the proxy, so
+  make sure the CDN's own origin is the Server's address.
+</Step>
+<Step title="Turn on HTTPS and choose the certificate">
+**Serve over HTTPS** starts off. Turn it on, and Traefik redirects HTTP to HTTPS and terminates
+TLS. Then pick the **Certificate**:
 
 | Certificate | What it does |
 |---|---|
 | **Let's Encrypt** | Issued automatically once DNS points at the Server. |
-| **Stored certificate** | Served from Settings > **Certificates**; add it there first. A wildcard counts. |
-| **Custom resolver** | A certificate resolver you configured on the Server's Traefik, named in **Traefik resolver**. |
-| **None** | No certificate. For a host behind a CDN that terminates TLS, turn HTTPS off instead. |
+| **Stored certificate** | Served from a certificate stored in Cloudgate that covers this host; a wildcard counts. A host none covers is refused. Certificates added under **Settings → Certificates** are for the platform host; a remote Server can use one only if a certificate was stored for that Server. |
+| **Custom resolver** | A certificate resolver you configured on the Server's Traefik, named in **Traefik resolver** (letters, numbers, `_` and `-`). |
+| **None** | Not allowed with HTTPS on. For a host behind a CDN or proxy that terminates TLS, turn HTTPS off instead. |
 
-A stored certificate that covers the host always wins over a resolver.
-</Step>
-<Step title="Create the DNS record">
-The console shows **The record to create at your DNS provider**: an `A` record whose name is the
-part in front of your zone (`shop` for `shop.northwind.example`) and whose value is the Server's
-public address. Create it, then press **Check DNS**.
+A stored certificate that covers the host is always served instead of Let's Encrypt or a resolver.
 </Step>
 <Step title="Save">
-Press **Add domain**. Changes reach Traefik as soon as they are saved.
+Press **Add domain**. If the Application is running it answers on the host at once; if it is
+stopped, it answers after its next Deployment or Start.
 </Step>
 </Steps>
 
-The Application now answers at `https://shop.northwind.example`. Let's Encrypt issues the
-certificate on the first request after the record resolves; DNS changes can take a while to
-spread.
+Let's Encrypt issues the certificate on the first request after the record resolves.
+
+## Use a free sslip.io address
+
+In the **Add a domain** dialog, press **Generate one for me** beside **Host**. Cloudgate writes a
+hostname such as `web.203.0.113.10.sslip.io`. sslip.io answers from the name itself, so there is no
+record to create and it works at once.
+
+When the Server's address is public, **Generate one for me** also turns on **Serve over HTTPS**
+with **Let's Encrypt**. On a private address it leaves HTTPS off. Anything you change after
+pressing it is kept. It needs the Server's public address recorded; for an Application on the
+Cloudgate host of a self-hosted instance, record the host's address under Settings > Instance.
 
 ## Check that the HTTPS certificate is issued
 
 Until Let's Encrypt answers, Traefik serves its own self-signed certificate, and a browser warns
-about it. Cloudgate reads the certificate the Domain's host really serves, and the **Certificate**
-column of the **Domains** tab says which of three it is:
+about it. Cloudgate reads the certificate the host really serves, and the **Certificate** column
+says which of three it is:
 
-- **Let's Encrypt · issuing, usually under a minute**: the self-signed certificate is still served.
-  The tab reads it again every few seconds.
+- **Let's Encrypt · issuing, usually under a minute**: the self-signed one is still served. The tab
+  reads it again every few seconds.
 - **Let's Encrypt · valid until** a date: the real certificate is served.
-- **Let's Encrypt · not issued yet**: no certificate has come. Check that the A record points at the
-  Server's address and that port 80 is reachable; each attempt is in the Server's Traefik log.
+- **Let's Encrypt · not issued yet**: check that the A record points at the Server's address and
+  that port 80 is reachable. Each attempt is in the Server's Traefik log, linked from the cell.
 
-The Service's Overview says the same beside its address while the certificate is issuing or not
-issued. A stored or custom certificate warns only when what the host serves would not be trusted.
-The [get-started wizard](/docs/guide/get-started) waits on the same read, under **Getting its HTTPS
-certificate**, before it shows **Open**. A script can ask it too, at
-`GET /domains/:id/served-certificate`; see the [API](/docs/api).
+The Overview's **Domain** card says the same beside the address. A stored or custom certificate
+warns only when what the host serves would not be trusted. The
+[get-started wizard](/docs/guide/get-started) waits on the same read before it shows **Open**. A
+script can read it at `GET /domains/:id/served-certificate`; see the [API](/docs/api).
 
-## Use a free sslip.io address
+## What if Traefik refuses a route?
 
-In the **Add a domain** dialog, press **Generate one for me** next to **Host**. Cloudgate writes a
-hostname such as `web.203.0.113.10.sslip.io`. sslip.io answers from the name itself, so there is
-no record to create and it works at once.
+When Traefik refuses the Application's routing configuration, a banner on the Domains tab says
+"Traefik refused this Application's routing configuration." and, per host, "shop.northwind.example
+is not being routed." with what Traefik reported and when. The host's row is marked too. Traefik
+drops a router whose middleware it cannot build, so a bad redirect or basic-auth user is the usual
+cause; [Application settings](/docs/guide/application-settings#routing-port-published-ports-redirects-and-basic-auth)
+marks the candidates. If Cloudgate could not ask Traefik at all, the banner says so: nothing then
+says whether the hosts are served.
 
-When the server's address is public, **Generate one for me** also turns on **Serve over HTTPS**
-with a **Let's Encrypt** certificate, as a Template setup does. For a private address it leaves
-HTTPS off. Anything you change after pressing it is kept. **Generate one for me** needs the
-Server's public address to be recorded; on a self-hosted instance the install records it for the
-platform host.
+## Edit or remove a Domain
+
+**Edit** opens the same dialog as **Edit shop.northwind.example**; **Save changes** reaches Traefik
+as soon as it is saved.
+
+**Remove** asks "Remove shop.northwind.example?": nothing deployed is deleted, only this route. The
+Application stops answering on it straight away. If the same host has other paths, the dialog says
+which requests still answer. Press **Remove domain**, or **Keep it**. Removing a Domain also deletes
+the [Uptime checks](/docs/guide/monitoring) on it, and never touches your DNS.
 
 ## Upload your own certificate
 
-For a host Let's Encrypt cannot issue for, open Settings > **Certificates** > **Add a certificate**.
-Give it a name, paste the PEM certificate chain and the private key. The private key is never
-shown again. Then choose **Stored certificate** on the Domain.
+For a host Let's Encrypt cannot issue for, open **Settings → Certificates** > **Add a certificate**.
+Give it a name, paste the PEM certificate chain and the private key. The private key is never shown
+again. Then choose **Stored certificate** on the Domain. See
+[Certificates](/docs/guide/certificates) for the details.
 
-<Callout type="limit" title="Owner or admin">
-Members can add and remove Domains on the Services they are granted. Stored certificates belong
-to the Organization and need an owner, an admin, or a custom role that allows them.
+<Callout type="limit" title="Who can manage Domains and certificates">
+Members can add, edit and remove Domains on the Services they are granted. A certificate added in
+the console is for the platform host, and adding one needs an owner or an admin of the instance's
+own Organization, so on the Hosted instance customers cannot add one: use Let's Encrypt instead.
 </Callout>
 
-## Redirect a URL
+## Redirect a URL or ask for a password
 
-Open the Application's **Advanced** tab, then **Routing** > **Redirects** > **Add a redirect**.
-
-- **Match this**: a Go regular expression matched against the whole URL, for example
-  `^https://northwind\.example/(.*)`.
-- **Send it here**: where to send it. Capture groups are `${1}`, `${2}` and so on, for example
-  `https://shop.northwind.example/${1}`.
-- **Permanent (301)**: off sends a 302.
-
-<Callout type="warn" title="A 301 is hard to take back">
-Browsers cache a permanent redirect indefinitely. Removing it in Cloudgate does not clear a cache
-a browser already has. Leave **Permanent (301)** off until the redirect is known to be right.
-</Callout>
-
-To ask for a password before the Application, use **Basic authentication** on the same tab. A
-saved password is never sent back to the browser; editing a user replaces it.
+Redirects and basic authentication are set on the Application's **Advanced** tab, **Routing**
+section, and protect every Domain it answers on. See
+[Add a redirect](/docs/guide/application-settings#add-a-redirect) and
+[basic authentication](/docs/guide/application-settings#ask-for-a-password-with-basic-authentication).
 
 ## Put a CDN in front of a Service
 
-Cloudgate has no CDN integration: you set the CDN up at your provider. When you check DNS for a
-host behind Cloudflare, Bunny CDN, Fastly or Arvancloud, Cloudgate recognises the provider and
-says it cannot see past the proxy to check the origin. Make sure the CDN's own origin is the
-Server's address.
-
-If the CDN terminates TLS itself, turn **Serve over HTTPS** off on the Domain, so Traefik does not
-ask Let's Encrypt for a certificate it cannot get.
+Cloudgate has no CDN integration: you set the CDN up at your provider. **Check DNS** recognises
+Cloudflare, Bunny CDN, Fastly and Arvancloud and stops at the proxy. If the CDN terminates TLS
+itself, leave **Serve over HTTPS** off on the Domain, so Traefik does not ask Let's Encrypt for a
+certificate it cannot get.
 
 ## Add a domain in a Cloud account
 
@@ -161,12 +191,14 @@ AWS, Google-managed on Google Cloud). Open the Service's **Domains** tab and pre
 
 <Steps>
 <Step title="Enter the host">
-Type the host, such as `shop.northwind.example`, and an optional **Path**, then press **Add domain**.
+Type the **Host**, such as `shop.northwind.example`, and an optional **Path**, then press **Add
+domain**.
 </Step>
 <Step title="Create the records it shows">
 The row shows the validation record for the certificate and the record that points the host at
-the cloud. On AWS a subdomain gets a `CNAME`; a bare name needs an `ALIAS`, `ANAME` or flattened
-`CNAME`, never an `A` record. Create them at your DNS provider.
+the cloud, each with copy buttons and whether it is seen in DNS yet. On AWS a subdomain gets a
+`CNAME`; a bare name needs an `ALIAS`, `ANAME` or flattened `CNAME`, never an `A` record. On Google
+Cloud it is an `A` record to the network's fixed address.
 </Step>
 <Step title="Wait for Live">
 The Domain moves through **Waiting for DNS**, **Checking** and **Live**, or **Failed** with the
@@ -175,24 +207,28 @@ reason. Each change runs as its own short Deployment.
 </Steps>
 
 Until a Domain is added, a Cloud Run Service answers at its `run.app` address and an AWS static
-site at its CloudFront name. A static site on Google Cloud has no address of its own.
+site at its CloudFront name, both shown as **Generated** rows. A static site on Google Cloud has no
+address of its own, and a Compose stack on a Stack VM has no generated host. Removing a cloud
+Domain lists the records to delete at your DNS provider.
 
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
 - Cloudgate never creates or deletes DNS records, on a Server or in a cloud.
-- Workers, private web Services and AI models take no Domain.
+- A worker, a private web service, a Cron service and an AI model take no Domain; the button is
+  greyed out and says why.
 - A host is unique per Server on a Server, and per Organization in a cloud.
-- An AWS static site takes one Domain; a CloudFront change can take up to 30 minutes.
+- An AWS static site takes one Domain, because CloudFront serves one certificate.
 - Compose stacks cannot be put behind forward auth.
-- Removing a Domain also deletes the Uptime check on it.
 </Callout>
 
 ## Related pages
 
 - [Applications](/docs/guide/applications): the Services that take Domains.
+- [Application settings](/docs/guide/application-settings): container port, redirects and basic auth.
 - [Monitoring](/docs/guide/monitoring): add an Uptime check and an Error-rate threshold on a Domain.
-- [SSO and SCIM](/docs/guide/sso-and-scim): put a Domain behind forward auth.
-- [Servers](/docs/guide/servers): the Traefik a Domain runs on, and request metrics.
-- [Cloud accounts](/docs/guide/cloud-accounts): load balancers and CDNs in AWS and Google Cloud.
+- [SSO and forward auth](/docs/guide/sso-and-scim): require sign-in on a host.
+- [Certificates](/docs/guide/certificates): stored certificates for hosts Let's Encrypt cannot issue for.
+- [Traefik](/docs/guide/traefik): the router a Domain runs on.
+- [Servers](/docs/guide/servers): the machines Traefik runs on.
 - [Everything Cloudgate runs in production](/features).

@@ -1,38 +1,43 @@
 ---
 title: Billing and plans
 seoTitle: Plans, free trial and billing on Hosted
-description: Start the 30-day free trial, choose Starter or Business, buy Add-ons, see what happens at your Server count, and how Bought Servers are billed on Hosted.
+description: Start the 30-day free trial, choose Starter or Business, buy Add-ons, change or cancel a plan, pay for other Organizations and get invoices on Hosted.
 lede: On the Hosted instance, an Organization pays for a plan that sets how many Servers and Cloud Environments it can have. Open billing to start a trial, change plan, buy Add-ons or download invoices.
 section: guide
 group: Account
 order: 2
 badges: ['Hosted only', 'Owner or Admin']
+updated: '2026-11-27'
 howto:
   name: Start the free trial
   steps:
-    - { name: Open Billing, text: 'Open Settings and then Billing.' }
-    - { name: Pick a plan, text: 'Under Plans, choose Starter or Business and press Start 30-day free trial.' }
-    - { name: Add a card at Stripe, text: 'Enter a card in Stripe Checkout. Nothing is charged until the trial ends.' }
+    - { name: Open Billing, text: 'Open Settings, then Billing.' }
+    - { name: Pick a plan, text: 'Under Plans, choose Starter or Business and, if you need more than 3 Servers, set the Add-ons.' }
+    - { name: Start the trial, text: 'Press Start 30-day free trial. You go to Stripe.' }
+    - { name: Add a card at Stripe, text: 'Enter a card in Stripe Checkout. Nothing is charged until the trial ends, and you can cancel before then and pay nothing.' }
 faq:
-  - { q: What happens when I reach my Server count?, a: 'Only the next addition is refused. Nothing that already runs is stopped. Buy an Add-on or upgrade to add more.' }
-  - { q: Are members or Projects counted?, a: 'No. Members, Projects and Environments on Servers are not counted. Only Servers and Cloud Environments are.' }
-  - { q: Is a Bought Server free during the trial?, a: 'No. A Bought Server is charged at once, even during the free trial, on top of the plan.' }
-  - { q: Do I pay to self-host Cloudgate?, a: 'No. A self-hosted instance has no plan and no billing screen. An Enterprise license is agreed separately.' }
+  - { q: 'What happens when I reach my Server count?', a: 'Only the next addition is refused. Nothing that already runs is stopped. Buy an Add-on or delete a Server, then add it again.' }
+  - { q: 'Are members or Projects counted?', a: 'No. Members, Projects and Environments on Servers are not counted. Only Servers and Cloud Environments are.' }
+  - { q: 'Can I cancel the free trial?', a: 'Yes. Press Cancel trial under Current plan. The plan stays until the trial''s last day, then the Organization has no plan and nothing is charged. Keep the plan takes it back until then.' }
+  - { q: 'Is a Bought Server free during the trial?', a: 'No. A Bought Server is charged at once, even during the free trial, on top of the plan.' }
+  - { q: 'Do I pay to self-host Cloudgate?', a: 'No. A self-hosted instance has no plans, and its Billing page says billing is not used there. An Enterprise license is agreed separately.' }
 ---
 
 import { plans, addOn, trialDays } from '../../../data/site';
 
 <Callout type="limit" title="Hosted instance only">
-Billing exists only on the Hosted instance at cloudgate.octabyte.app. A self-hosted instance is
-free to use under the Elastic License 2.0; see [Self-hosting](/docs/self-host).
+Billing exists only on the Hosted instance at cloudgate.octabyte.app, and only owners and admins
+can open it. On a self-hosted instance, **Settings** > **Billing** says "Billing is not used on
+this instance": it is free to use under the Elastic License 2.0. See
+[Self-hosting](/docs/self-host).
 </Callout>
 
 ## What you can do
 
-- Start a {trialDays}-day free trial of Starter or Business.
-- Subscribe, upgrade to Business, or move back to Starter.
-- Buy Add-ons for more Servers and Cloud Environments.
-- Download invoices and choose who is emailed about them.
+- Start a {trialDays}-day free trial of Starter or Business, or subscribe straight away.
+- Upgrade to Business, move back to Starter, or switch plan during the trial.
+- Buy or remove Add-ons for more Servers and Cloud Environments.
+- Cancel a trial, change the card, and download invoices.
 - On Business, pay for other Organizations from the same plan.
 
 ## Plans
@@ -52,46 +57,105 @@ once however many accounts or regions it uses, and connecting a Cloud account co
 Enterprise is billed by agreement: contact support@octabyte.io. Full prices are on
 [Pricing](/pricing).
 
+## The Billing screen
+
+**Settings** > **Billing** (`/settings/billing`) has four cards: **Current plan**, **Plans**,
+**Organizations on this plan** and the invoice cards.
+
+<Screenshot name="billing" alt="The Current plan card for an Organization on Starter with a Free trial, 18 days left: status trialing, trial ends December 15, a first charge of $20.00 on December 15 to the Visa ending 4242 (Starter + 1 Add-on), 1 Add-on, 4 Servers and 4 Cloud Environments allowed, a Cancel trial button, and meters showing 3 of 4 Servers and 1 of 4 Cloud Environments in use" caption="During the trial, Current plan says when it ends and what the first charge will be, and to which card." />
+
+### Current plan
+
+| Row | What it shows |
+|---|---|
+| **Plan** | Starter, Business or Enterprise, with **Free trial · N days left**, **Moves to Starter on ...** when a move is scheduled, or **Not active** when the plan has ended. |
+| **Status** | Stripe's own word for the subscription, such as `trialing`, `active` or `past_due`, or **No subscription**. |
+| **Trial ends** | During a trial, its last day. |
+| **First charge** | During a trial: the amount, the day and the card, such as "on ..., to the Visa ending 4242 (Business + 1 Add-on)". After **Cancel trial** it reads "No plan. Nothing is charged." |
+| **Add-ons** | How many the subscription holds. |
+| **Servers allowed**, **Cloud Environments allowed** | The plan's 3 each, plus one per Add-on. |
+
+Below them, a meter for **Servers in use** and **Cloud Environments in use**. At the count it says
+adding another is refused until an Add-on makes room; over it, that everything keeps running. With
+other Organizations on the plan, it says how many are used in this one and how many in the others.
+
+- **Manage billing at Stripe** opens Stripe's billing portal, where you change the card. It is shown
+  once the Organization has been through Stripe Checkout.
+- **Add a card at Stripe** appears during a trial with no card on file for the first charge.
+- **Cancel trial** and **Keep ...** are described under [Cancel the free
+  trial](#cancel-the-free-trial).
+
+With no plan, the card says what is needed: "Choose a plan to add Servers and Cloud Environments.
+Projects, members, Git connections and Cloud accounts need no plan."
+
 ## Start the free trial
 
 <Steps>
 <Step title="Open Billing">
-Open **Settings** > **Billing**. **Current plan** shows your plan, status, the Servers and Cloud
-Environments allowed, your Add-ons and when a trial ends.
-<Screenshot name="billing" alt="Settings, Billing for Northwind Labs on a Starter free trial, with Servers allowed, Cloud Environments allowed and the trial end date" caption="Current plan shows what the Organization may add and when the trial ends." />
+Open **Settings** > **Billing**.
 </Step>
-<Step title="Pick a plan">
-Under **Plans**, choose Starter or Business and press **Start 30-day free trial**.
+<Step title="Pick a plan and Add-ons">
+Under **Plans**, choose **Starter** or **Business** (Business is picked to begin with). Each shows
+its price, "3 Servers and 3 Cloud Environments", "More with Add-ons" and what else it includes.
+Use the **Add-ons** buttons (minus and plus) if you need more than three Servers; the line under
+them says how many Servers and Cloud Environments that allows.
+
+<Screenshot name="billing-plans" alt="The Plans card with Starter, marked Your plan, at $15.00 per month and Business at $35.00 per month, each listing what it includes, the Add-ons stepper set to 1 at $5.00 per month each, Every month $20.00, and the buttons Update Add-ons and Switch to Business" caption="Each Add-on adds one Server and one Cloud Environment; the line under the stepper gives the new totals." />
+</Step>
+<Step title="Start it">
+The terms read "Free for 30 days, then from ...", with the monthly total. Press **Start 30-day
+free trial**. You go to Stripe Checkout; nothing changes in Cloudgate until it goes through.
 </Step>
 <Step title="Add a card">
-Enter a card in Stripe Checkout. The trial counts as paid for the plan's counts, and Add-ons cost
-nothing until it ends.
+Enter a card at Stripe. The trial counts as paid for the plan's counts, and nothing is charged
+until it ends.
 </Step>
 </Steps>
 
 <Callout type="limit" title="One trial each">
-A card is needed to start the trial. There is one trial per Organization, per person and per card;
-anyone not eligible subscribes and pays today. During the trial you can switch between Starter and
-Business while the clock keeps running. **Cancel trial** ends it at the trial's last day with
-nothing charged.
+A card is needed to start the trial. There is one trial per Organization, per person and per card.
+If you are not eligible, the button reads **Subscribe** and you pay today ("Today, then every
+month"). An Organization paid for by another one never gets a trial.
 </Callout>
+
+## Cancel the free trial
+
+Press **Cancel trial** under **Current plan**. "Cancel the free trial?" says the plan stays until
+the trial's last day and then there is no plan and nothing is charged. Press **Cancel trial** to
+confirm, or **Back**. Until that day, **Keep Starter** or **Keep Business** takes it back.
 
 ## Change plan
 
-- **Upgrade to Business** takes effect at once and is prorated.
-- **Move to Starter** keeps Business until the end of the month you paid for, then moves to
-  Starter with the same Servers, Cloud Environments and Add-ons. Nothing is charged now. **Keep
-  Business** takes it back while it waits.
-- **Update Add-ons** adds or removes Add-ons. You cannot hold fewer than you already use.
-- **Manage billing at Stripe** changes the card; **Add a card at Stripe** adds one during a trial
-  with none on file.
+| Button | Shown when | What happens |
+|---|---|---|
+| **Upgrade to Business** | On an active Starter subscription. | "Upgrade to Business?" shows today's amount for the days left of this month and the monthly price after. Stripe charges the card now; if the payment fails, the Organization stays on Starter. |
+| **Move to Starter** | On an active Business subscription. | "Move to Starter?": Business stays until the end of the month you paid for, then Starter, with the same Servers, Cloud Environments and Add-ons. Nothing is charged now. The dialog lists what stops, then **Downgrade on ...**. |
+| **Switch to Business**, **Switch to Starter** | During the trial. | The new plan starts now; the trial still ends on the same day, and the first charge is for whatever you hold then. |
+| **Keep Business** | While a move to Starter is waiting. | Cancels the move. Nothing is charged. |
+| **Update Add-ons** | On any held plan, after changing the Add-ons. | Changes the subscription; Stripe prorates the difference. |
+
+Before a move to Starter, the dialog lists what stops: SSO sign-in (people who sign in only with
+SSO will use **Forgot password**), SCIM adds (removals still work), custom roles (allowing
+nothing, naming who holds one) and changes to forward auth (protected Applications stay
+protected). All these settings are kept and work again on Business.
+
+You cannot hold fewer Add-ons than you use: if the Organization already uses Servers beyond the
+plan's three, the minus button stops there and the line says why.
+
+<Callout type="note" title="Moving to Starter with other Organizations on the plan">
+Starter pays for one Organization. If your Business plan pays for others, **Before ... can move
+to Starter** lists them first: press **Stop paying for it** on each, or delete one you own. The
+move waits until none is left.
+</Callout>
 
 ## What happens at your limit
 
 When the Organization has all the Servers or Cloud Environments its plan allows, only the next one
-is refused. Everything already running keeps running. Buy an Add-on or upgrade, then add it again.
-Without any plan, adding a Server or a Cloud Environment is refused; Projects, members, Git
-connections and Cloud accounts need no plan.
+is refused. Everything already running keeps running. Where you add a Server, a notice says
+"This Organization has all the Servers its plan allows" with **Buy an Add-on**. Without any plan,
+adding a Server or a Cloud Environment is refused ("This Organization has no plan, so a Server
+cannot be added yet", with **Choose a plan**); Projects, members, Git connections and Cloud
+accounts need no plan.
 
 ## Bought Servers
 
@@ -109,29 +173,55 @@ More in [Bought Servers](/docs/guide/bought-servers).
 
 ## Pay for other Organizations (Business)
 
-On Business, **Organizations on this plan** > **Add an Organization to this plan** makes a new
-Organization this plan pays for. Each has its own members, and they all share the plan's Servers
-and Cloud Environments. **Stop paying for it** makes it lapse. Its owner can choose **Pay for it
-yourself** instead.
+**Organizations on this plan** lists the Organizations this plan pays for. Each has its own
+members, and they all share the plan's Servers and Cloud Environments.
+
+| Column | What it shows |
+|---|---|
+| **Organization** | Its name. |
+| **Owner** | Its owner's name and email. |
+| **Servers**, **Cloud Environments** | How many it uses from the shared counts. |
+| **Made** | When it was made. |
+
+- **Add an Organization to this plan** opens a dialog that says how many Servers and Cloud
+  Environments are free on the plan. Type a **Name** and press **Add Organization**. You are its
+  owner and only member, and you stay where you are. On Starter, or with no plan, the button is off
+  and a line says why, for example "... is on Starter, which pays for one Organization."
+- **Stop paying for it** asks "Stop paying for ...?". It freezes at once: its Services keep
+  running, but nothing new starts. It is deleted after 30 days unless its owner pays for it, and
+  its owner is emailed. Any Bought Server it has is deleted at once, with its data and backups.
+  Press **Stop paying**.
+
+### When another Organization pays for yours
+
+If your Organization is on someone else's plan, **Current plan** shows **Paid by ...**, the
+Servers and Cloud Environments in this Organization, and how many are left on the plan (shared
+with the other Organizations on it). Only that Organization's owners and admins change the plan.
+**Pay for it yourself** takes your Organization off their plan: you pick a plan and pay, with no
+free trial, and it stays on their plan until your first payment goes through.
 
 ## Invoices
 
-**Invoices** lists every invoice from Stripe, newest first, as a PDF. **Email me about invoices**
-sends them to the Organization owner's address.
+- **Invoice emails**: the **Email me about invoices** switch sends invoice emails to the
+  Organization owner's address (the one Stripe bills), not to whoever turns it on.
+- **Invoices**: every invoice from Stripe, newest first, with **Invoice** number, **Issued**,
+  **Amount**, **Status** and a **PDF** link. "No invoices" until something has been billed.
 
 ## If a payment fails
 
-Stripe retries a failed payment. If it stops retrying, the plan lapses and the Organization is
-frozen: everything keeps running, but nothing new starts, and it is deleted 30 days later unless
-you pay. See [Organizations](/docs/guide/organizations#when-an-organization-is-frozen).
+A banner on every page says **A payment failed.** Stripe will retry it; nothing has stopped yet.
+Update the card with **Manage billing at Stripe**. If Stripe stops retrying, the plan lapses and
+the Organization is frozen: everything keeps running, but nothing new starts, and it is deleted 30
+days later unless you pay. See [Organizations](/docs/guide/organizations#when-an-organization-is-frozen).
 
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
-- Billing is for owners and admins of an Organization that pays for itself.
+- Billing is for owners and admins; for anyone else the page says it cannot be read.
 - Plans are monthly; there is no yearly price.
 - A person can own one Organization that pays for itself.
-- An Attached Organization never gets a free trial.
+- An Organization paid for by another one never gets a free trial.
+- On Enterprise there is no plan to choose: Octabyte raises the counts.
 </Callout>
 
 ## Related pages
@@ -140,4 +230,5 @@ you pay. See [Organizations](/docs/guide/organizations#when-an-organization-is-f
 - [Bought Servers](/docs/guide/bought-servers): buy, resize and delete a server from Cloudgate.
 - [Servers](/docs/guide/servers): connect a machine you already have.
 - [Cloud accounts](/docs/guide/cloud-accounts): what makes an Environment a Cloud Environment.
+- [SSO and SCIM](/docs/guide/sso-and-scim): what the Business plan adds.
 - [Plans and prices](/pricing).

@@ -3,71 +3,71 @@
     "name": "home",
     "title": "Organization home",
     "route": "/",
-    "description": "The organization home for Northwind Labs, listing the Servers fra-1, nyc-edge and build-1 (all reachable) and the Projects storefront, analytics and ai-lab.",
+    "description": "Organization home with Servers, Projects, Recents and Starred",
     "width": 2000,
-    "height": 1250
+    "height": 847
   },
   {
     "name": "get-started-where",
-    "title": "Get started: choose a server",
+    "title": "Choose a server",
     "route": "/get-started?template=ghost",
-    "description": "Step 1 of the Get started wizard for the Ghost template, offering the existing Servers fra-1 and nyc-edge or a new one.",
+    "description": "Where should Ghost run?",
     "width": 2000,
-    "height": 1250
+    "height": 1091
   },
   {
     "name": "get-started-details",
-    "title": "Get started: set up the app",
-    "route": "/get-started?template=ghost&path=own&server=[serverId]&step=deploy",
-    "description": "Step 2 of the Get started wizard: Ghost’s settings filled in (sender hello@northwind.example, SMTP smtp.postmarkapp.com) to run on fra-1.",
+    "title": "Set up the app",
+    "route": "/get-started?template=ghost",
+    "description": "Ghost's values, web address and where it goes",
     "width": 2000,
-    "height": 1389
+    "height": 1941
   },
   {
     "name": "projects-list",
     "title": "Projects",
     "route": "/projects",
-    "description": "The Projects list with storefront (2 Environments), analytics and ai-lab.",
+    "description": "The Projects list",
     "width": 2000,
-    "height": 1250
+    "height": 842
   },
   {
     "name": "project-overview",
-    "title": "A Project",
+    "title": "Project overview",
     "route": "/projects/[projectId]",
-    "description": "The storefront Project with its production and staging Environments and Project variables.",
+    "description": "Environments tab",
     "width": 2000,
-    "height": 1250
+    "height": 765
   },
   {
     "name": "project-config",
     "title": "Project config",
     "route": "/projects/[projectId]/config",
-    "description": "The storefront Project config (cloudgate.yaml) with web, the emails worker, the nightly-report cron, pg-main, cache, uploads and a linked DATABASE_URL: pg-main.url.",
+    "description": "The Config tab",
     "width": 2000,
-    "height": 1528
+    "height": 1881
   },
   {
     "name": "plan-card",
-    "title": "Plan review",
+    "title": "Plan card",
     "route": "/projects/[projectId]/config",
-    "description": "The open Plan for storefront’s production Environment: create the Redis queue (redis:7) and change emails’ description and add QUEUE_URL ← queue.url, with Dismiss and Apply.",
+    "description": "An open Plan for storefront production",
     "width": 2000,
-    "height": 1389
+    "height": 505
   },
   {
     "name": "environment-services",
     "title": "Environment services",
     "route": "/environments/[environmentId]",
-    "description": "The production Environment of storefront listing its Services: web, emails (worker), nightly-report (cron), pg-main (PostgreSQL), cache (Redis) and the uploads bucket.",
+    "description": "The Services tab",
     "width": 2000,
-    "height": 1250
+    "height": 1138
   },
   {
     "name": "application-overview",
     "title": "Application overview",
     "route": "/applications/[applicationId]",
-    "description": "The web Application’s overview: a build of “Add gift card checkout” streaming, its GitHub source northwind-labs/storefront on main, and fra-1 as the Server.",
+    "description": "The web Application overview: build output, its GitHub source northwind-labs/storefront on main, the Build card, and the Application and Where it runs cards.",
     "width": 2000,
     "height": 1250
   },
@@ -77,7 +77,7 @@
     "route": "/applications/[applicationId]/deployments",
     "description": "The web Application’s Deployments: one running, earlier ones done, one failed (Bump next to 15.5) and one cancelled.",
     "width": 2000,
-    "height": 1528
+    "height": 1599
   },
   {
     "name": "deployments-list",
@@ -85,37 +85,29 @@
     "route": "/deployments",
     "description": "Every Deployment in Northwind Labs over 7 days across web, emails, nightly-report and plausible, with running, done, error and cancelled states.",
     "width": 2000,
-    "height": 1250
+    "height": 1599
   },
   {
     "name": "deployment-log",
     "title": "Deployment log",
     "route": "/applications/[applicationId]/deployments",
     "description": "A finished Deployment of web (“Cache product listing for 60s”, commit 4f2a91c by leo): times, the log file and the Nixpacks build log ending in Docker Deployed.",
-    "width": 2000,
-    "height": 1250
+    "width": 1752,
+    "height": 1536
   },
   {
     "name": "deployment-log-failed",
     "title": "Failed deployment log",
     "route": "/applications/[applicationId]/deployments",
     "description": "A failed Deployment of web (“Bump next to 15.5”): the build log ending in a TypeScript error and “Nixpacks build failed”.",
-    "width": 2000,
-    "height": 1250
+    "width": 1752,
+    "height": 1536
   },
   {
     "name": "application-domains",
     "title": "Application domains",
     "route": "/applications/[applicationId]/domains",
-    "description": "The web Application’s Domains shop.northwind.example, www.northwind.example and api.northwind.example, HTTPS with Let’s Encrypt.",
-    "width": 2000,
-    "height": 1250
-  },
-  {
-    "name": "application-add-domain",
-    "title": "Add a domain",
-    "route": "/applications/[applicationId]/domains",
-    "description": "The Add a domain dialog on the web Application.",
+    "description": "The web Application Domains tab listing its hosts with HTTPS and their certificates.",
     "width": 2000,
     "height": 1250
   },
@@ -123,15 +115,15 @@
     "name": "application-variables",
     "title": "Application variables",
     "route": "/applications/[applicationId]/variables",
-    "description": "The web Application’s variables with STRIPE_SECRET_KEY and SESSION_SECRET masked, and wired variables DATABASE_URL ← pg-main.url and REDIS_URL ← cache.url.",
+    "description": "Variables tab of an Application",
     "width": 2000,
-    "height": 1528
+    "height": 1025
   },
   {
     "name": "application-advanced",
     "title": "Application settings",
     "route": "/applications/[applicationId]/advanced",
-    "description": "The web Application’s Advanced tab: resources, runtime, routing and Swarm settings.",
+    "description": "The web Application Advanced tab with its section bar: Resources, Runtime, Routing, Docker Swarm and Danger zone.",
     "width": 2000,
     "height": 1250
   },
@@ -141,29 +133,29 @@
     "route": "/applications/[applicationId]/rollbacks",
     "description": "The web Application’s rollback points: five image snapshots (ghcr.io/northwind/storefront-web) from successful Deployments.",
     "width": 2000,
-    "height": 1528
+    "height": 1599
   },
   {
     "name": "application-previews",
     "title": "Previews",
     "route": "/applications/[applicationId]/previews",
     "description": "The web Application’s previews: a requested preview of feature/gift-cards and pull request #142 “Wishlist on product pages”, under *.preview.northwind.example.",
-    "width": 2000,
-    "height": 1528
+    "width": 1962,
+    "height": 666
   },
   {
     "name": "service-health",
-    "title": "Service health",
+    "title": "Health tab",
     "route": "/applications/[applicationId]/health",
-    "description": "The web Application’s Health tab: an HTTPS uptime check of shop.northwind.example that is up, with a 6-minute incident (status 502) closed earlier today.",
+    "description": "Uptime checks, Error rate and Incident history of a Service",
     "width": 2000,
-    "height": 1528
+    "height": 2486
   },
   {
     "name": "database-overview",
     "title": "Database overview",
     "route": "/databases/postgres/[databaseId]",
-    "description": "The pg-main PostgreSQL 16 database in storefront / production.",
+    "description": "The orders-db PostgreSQL database in storefront / production.",
     "width": 2000,
     "height": 1250
   },
@@ -171,7 +163,7 @@
     "name": "database-credentials",
     "title": "Database credentials",
     "route": "/databases/postgres/[databaseId]/credentials",
-    "description": "pg-main’s connection details: host postgres-57z7si, port 5432, database and user storefront, with the password hidden.",
+    "description": "The Credentials tab of orders-db: host, port, database and user inside the Environment, with the password and connection string hidden.",
     "width": 2000,
     "height": 1250
   },
@@ -179,31 +171,31 @@
     "name": "database-backups",
     "title": "Database backups",
     "route": "/databases/postgres/[databaseId]/backups",
-    "description": "pg-main’s backups: a daily 03:00 schedule to Backups (R2) keeping 14 and a weekly one to Offsite (Wasabi).",
+    "description": "The Backups tab of orders-db with a daily 03:00 dump to northwind-backups keeping 14.",
     "width": 2000,
-    "height": 1528
+    "height": 1250
   },
   {
     "name": "database-create",
     "title": "Add a database",
     "route": "/environments/[environmentId]",
-    "description": "The Add a database dialog in the production Environment of storefront.",
-    "width": 2000,
-    "height": 1250
+    "description": "The Add a database dialog on its first step, choosing an engine, in storefront / production.",
+    "width": 1720,
+    "height": 924
   },
   {
     "name": "compose-overview",
-    "title": "Compose stack",
+    "title": "Compose stack Overview",
     "route": "/compose/[composeId]",
-    "description": "The plausible Compose stack (Plausible Analytics Community Edition) in analytics / production, with its compose file.",
+    "description": "The Overview tab of the plausible Compose stack",
     "width": 2000,
-    "height": 1528
+    "height": 1250
   },
   {
     "name": "bucket-screen",
     "title": "Bucket",
     "route": "/buckets/[bucketId]",
-    "description": "The uploads bucket on fra-1 in storefront / production, with its key and domains.",
+    "description": "The media bucket on fra-1 in storefront / production, with its real name, region, key and domains.",
     "width": 2000,
     "height": 1250
   },
@@ -211,39 +203,39 @@
     "name": "ai-model-model-tab",
     "title": "AI model",
     "route": "/applications/[applicationId]/model",
-    "description": "The llama AI model’s Model tab: Ollama serving llama3.1:8b, the image tag and how a client calls it.",
+    "description": "The Model tab of the llm AI model.",
     "width": 2000,
-    "height": 1528
+    "height": 2174
   },
   {
     "name": "servers-list",
     "title": "Servers",
     "route": "/servers",
-    "description": "The Servers list: fra-1 (203.0.113.10), nyc-edge (198.51.100.24) and the build server build-1, all reachable.",
+    "description": "The Servers list of the Organization",
     "width": 2000,
-    "height": 1250
+    "height": 708
   },
   {
     "name": "server-overview",
-    "title": "Server overview",
+    "title": "Server Overview",
     "route": "/servers/[serverId]",
-    "description": "fra-1’s overview: ready to deploy with Docker 27.3.1 and Swarm, its Swarm services and the latest CPU, memory and disk sample.",
+    "description": "Readiness, Running here and Utilisation of a Server",
     "width": 2000,
     "height": 1250
   },
   {
     "name": "server-telemetry",
-    "title": "Server telemetry",
+    "title": "Server Telemetry tab",
     "route": "/servers/[serverId]/telemetry",
-    "description": "fra-1’s Telemetry: CPU, memory, disk and network charts from the stored samples.",
+    "description": "A Server's stored CPU and utilisation history",
     "width": 2000,
-    "height": 1528
+    "height": 1250
   },
   {
     "name": "server-infrastructure",
-    "title": "Server infrastructure",
+    "title": "Server Infrastructure tab",
     "route": "/servers/[serverId]/infrastructure",
-    "description": "fra-1’s Infrastructure tab: reachable as root on 203.0.113.10:22, with Docker 27.3.1, an active Swarm and cloudgate-network.",
+    "description": "Reach, installed software and setup of a Server",
     "width": 2000,
     "height": 1250
   },
@@ -251,33 +243,25 @@
     "name": "servers-add",
     "title": "Add a Server",
     "route": "/servers",
-    "description": "The Add a Server dialog: name, address, SSH port, user and key.",
-    "width": 2000,
-    "height": 1250
-  },
-  {
-    "name": "servers-buy",
-    "title": "Buy a Server",
-    "route": "/servers/buy",
-    "description": "The Buy a Server page: Locations on a map and the sizes with monthly prices.",
-    "width": 2000,
-    "height": 1528
+    "description": "The Add a Server dialog",
+    "width": 1264,
+    "height": 1200
   },
   {
     "name": "cloud-accounts",
     "title": "Cloud accounts",
     "route": "/settings/cloud-accounts",
-    "description": "Cloud accounts: the AWS account northwind-aws-prod (123456789012), its last check passed.",
-    "width": 2000,
-    "height": 1250
+    "description": "The Cloud accounts settings, before any account is connected",
+    "width": 1802,
+    "height": 828
   },
   {
     "name": "monitoring",
     "title": "Monitoring",
     "route": "/monitoring",
-    "description": "Monitoring: the instance’s own PostgreSQL and Traefik healthy, and CPU, memory, disk and network for fra-1, nyc-edge and build-1.",
+    "description": "The Monitoring screen with the time range and a Server's charts",
     "width": 2000,
-    "height": 1528
+    "height": 1069
   },
   {
     "name": "templates-list",
@@ -285,13 +269,13 @@
     "route": "/templates",
     "description": "The Template catalogue: Activepieces, Automatisch, Baserow, Cal.com, Ghost and more, each with Set up.",
     "width": 2000,
-    "height": 1250
+    "height": 1599
   },
   {
     "name": "members",
     "title": "Members",
     "route": "/settings/members",
-    "description": "Members of Northwind Labs: Maya Chen (owner), Leo Park (admin), Priya Raman (release-manager) and a pending invitation for sam@example.com.",
+    "description": "Members of Northwind Labs: Ada Okafor (owner), Ben Larsen (admin), Chen Wei (member), Dana Ruiz (Release manager), and a pending invitation for eli@northwind.example.",
     "width": 2000,
     "height": 1250
   },
@@ -299,39 +283,39 @@
     "name": "members-invite",
     "title": "Invite someone",
     "route": "/settings/members",
-    "description": "The Invite someone dialog on Members.",
-    "width": 2000,
-    "height": 1250
+    "description": "The Invite someone dialog on Members, with sam@northwind.example and the Member role.",
+    "width": 1232,
+    "height": 776
   },
   {
     "name": "roles",
     "title": "Roles",
     "route": "/settings/roles",
-    "description": "Roles: the custom roles release-manager and on-call with their permissions.",
-    "width": 2000,
-    "height": 1528
+    "description": "Roles: the custom role Release manager with its grants and the one member holding it.",
+    "width": 1802,
+    "height": 464
   },
   {
     "name": "settings-agents",
-    "title": "Agents",
+    "title": "Settings, Agents",
     "route": "/settings/agents",
-    "description": "Agents: deploy-bot with the Operator role, reaching the storefront Project.",
-    "width": 2000,
-    "height": 1250
+    "description": "The Agents settings with each Agent, its role, access and keys",
+    "width": 1802,
+    "height": 1540
   },
   {
     "name": "agent-connect",
     "title": "Connect an Agent",
     "route": "/settings/agents",
-    "description": "The Connect panel for the Agent deploy-bot: the MCP endpoint and the config to paste into a coding agent.",
-    "width": 2000,
-    "height": 1250
+    "description": "The Connect panel with client tabs and a configuration snippet",
+    "width": 1784,
+    "height": 1406
   },
   {
     "name": "audit-log",
     "title": "Audit log",
     "route": "/settings/audit-log",
-    "description": "The Audit log: creates, deploys and a rollback by Maya Chen and Leo Park, and deploy-bot’s Agent calls, one of them refused.",
+    "description": "The Audit log of Northwind Labs, newest first.",
     "width": 2000,
     "height": 1250
   },
@@ -339,56 +323,624 @@
     "name": "notifications",
     "title": "Notifications",
     "route": "/settings/notifications",
-    "description": "Notification channels: the Slack channel #ops-alerts subscribed to deploys, build errors, backups, server thresholds and incidents.",
-    "width": 2000,
-    "height": 1250
+    "description": "Notification channels: #deploys on Slack and Ops email over SMTP.",
+    "width": 1802,
+    "height": 484
   },
   {
     "name": "git-providers",
     "title": "Git providers",
     "route": "/settings/git-providers",
-    "description": "Git providers: the GitHub App northwind-cloudgate and the GitLab group northwind.",
-    "width": 2000,
-    "height": 1528
+    "description": "Git providers on Northwind Labs.",
+    "width": 1802,
+    "height": 331
   },
   {
     "name": "settings-destinations",
     "title": "Backup destinations",
     "route": "/settings/destinations",
-    "description": "Backup destinations: Backups (R2) on Cloudflare R2 and Offsite (Wasabi) in eu-central-2.",
+    "description": "Settings, Destinations, listing the northwind-backups destination.",
     "width": 2000,
     "height": 1250
-  },
-  {
-    "name": "billing",
-    "title": "Billing",
-    "route": "/settings/billing",
-    "description": "Billing on the Hosted instance: the Business plan with its Server allowance and usage, and recent invoices.",
-    "width": 2000,
-    "height": 1528
   },
   {
     "name": "sso",
     "title": "Single sign-on",
     "route": "/settings/sso",
-    "description": "Single sign-on: registering an OIDC provider such as Okta for northwind.example, and SCIM.",
+    "description": "Single sign-on on a self-hosted instance, before any provider is added.",
     "width": 2000,
-    "height": 1528
+    "height": 1250
   },
   {
     "name": "organizations",
     "title": "Organizations",
     "route": "/settings/organizations",
-    "description": "Organizations: Northwind Labs, the one Maya Chen lands in.",
-    "width": 2000,
-    "height": 1250
+    "description": "Settings, Organizations for Ada Okafor: Northwind Labs (You are here, Default) and Northwind Sandbox, with the Danger zone.",
+    "width": 1780,
+    "height": 1190
   },
   {
     "name": "personal-keys",
     "title": "Personal keys",
     "route": "/settings/account",
     "description": "The personal keys on Maya Chen’s account: laptop-cli and github-actions.",
+    "width": 1466,
+    "height": 464
+  },
+  {
+    "name": "account-sessions",
+    "title": "Sessions",
+    "route": "/settings/account",
+    "description": "Your sessions with Revoke",
+    "width": 1802,
+    "height": 450
+  },
+  {
+    "name": "account-two-factor",
+    "title": "Turn on two-factor",
+    "route": "/settings/account",
+    "description": "QR code, setup key and backup codes",
+    "width": 1248,
+    "height": 1478
+  },
+  {
+    "name": "agent-create",
+    "title": "Create an Agent",
+    "route": "/settings/agents",
+    "description": "The Create an Agent dialog filled in",
+    "width": 1784,
+    "height": 2248
+  },
+  {
+    "name": "agent-key-reveal",
+    "title": "An Agent's first key",
+    "route": "/settings/agents",
+    "description": "The first key of a new Agent, shown once, with client tabs",
+    "width": 1784,
+    "height": 1738
+  },
+  {
+    "name": "ai-model-create",
+    "title": "Add an AI model",
+    "route": "/environments/[environmentId]",
+    "description": "The Add an AI model dialog.",
+    "width": 1720,
+    "height": 1713
+  },
+  {
+    "name": "application-add-domain-dialog",
+    "title": "Application: add a domain",
+    "route": "/applications/[applicationId]/domains",
+    "description": "The Add a domain dialog on the web Application with the A record to create, the DNS check and HTTPS with Let's Encrypt.",
+    "width": 1200,
+    "height": 2034
+  },
+  {
+    "name": "application-build-card",
+    "title": "Application: build card",
+    "route": "/applications/[applicationId]",
+    "description": "The Build card of the web Application in edit mode with the Dockerfile builder chosen.",
+    "width": 1574,
+    "height": 1635
+  },
+  {
+    "name": "application-delete-dialog",
+    "title": "Application: delete dialog",
+    "route": "/applications/[applicationId]/advanced",
+    "description": "The Delete web dialog listing what it removes, the Delete its volumes too checkbox and the name field.",
+    "width": 1200,
+    "height": 1127
+  },
+  {
+    "name": "application-logs",
+    "title": "Application: runtime log",
+    "route": "/applications/[applicationId]/logs",
+    "description": "The Logs tab of the web Application following the runtime log of its running copies.",
     "width": 2000,
-    "height": 1528
+    "height": 887
+  },
+  {
+    "name": "application-routing",
+    "title": "Application: routing",
+    "route": "/applications/[applicationId]/advanced",
+    "description": "The Routing section of the web Application's Advanced tab: container port, published ports, redirects and basic authentication.",
+    "width": 2000,
+    "height": 2124
+  },
+  {
+    "name": "application-shell",
+    "title": "Application: shell container picker",
+    "route": "/applications/[applicationId]/shell",
+    "description": "The Shell tab of the web Application with the Container picker open on its two running copies.",
+    "width": 2000,
+    "height": 474
+  },
+  {
+    "name": "application-source-picker",
+    "title": "Application: change source",
+    "route": "/applications/[applicationId]",
+    "description": "The Source card of the web Application in edit mode with the seven source cards and the GitHub form.",
+    "width": 1574,
+    "height": 1072
+  },
+  {
+    "name": "audit-log-detail",
+    "title": "Audit log entry",
+    "route": "/settings/audit-log",
+    "description": "Details of the update of the domain shop.northwind.example.",
+    "width": 1232,
+    "height": 1232
+  },
+  {
+    "name": "branding",
+    "title": "Branding",
+    "route": "/settings/branding",
+    "description": "Branding filled in with the name Northwind Deploy, a logo and favicon path, a primary colour and the error-page fields (not saved).",
+    "width": 2000,
+    "height": 3443
+  },
+  {
+    "name": "bucket-browser-uploads",
+    "title": "Bucket browser uploads",
+    "route": "/buckets/[bucketId]",
+    "description": "The Browser uploads card of the media bucket.",
+    "width": 2000,
+    "height": 654
+  },
+  {
+    "name": "certificates-add-dialog",
+    "title": "Add a certificate",
+    "route": "/settings/certificates",
+    "description": "The Add a certificate dialog with the name northwind wildcard 2027 and a PEM certificate and key pasted in.",
+    "width": 1232,
+    "height": 1880
+  },
+  {
+    "name": "certificates-list",
+    "title": "Certificates",
+    "route": "/settings/certificates",
+    "description": "Certificates: northwind wildcard 2027 and intranet CA 2026, both custom, with the folder each is written to.",
+    "width": 1802,
+    "height": 450
+  },
+  {
+    "name": "cloud-accounts-connect-aws",
+    "title": "Connect an AWS account",
+    "route": "/settings/cloud-accounts",
+    "description": "The second step of connecting an AWS account",
+    "width": 1264,
+    "height": 1512
+  },
+  {
+    "name": "compose-add-domain",
+    "title": "Add a domain to a stack",
+    "route": "/compose/[composeId]/domains",
+    "description": "The Add a domain dialog for a Compose stack",
+    "width": 1264,
+    "height": 1576
+  },
+  {
+    "name": "compose-containers",
+    "title": "Compose stack containers",
+    "route": "/compose/[composeId]/containers",
+    "description": "Containers tab with a row Actions menu open",
+    "width": 1574,
+    "height": 858
+  },
+  {
+    "name": "compose-converted",
+    "title": "Converted tab",
+    "route": "/compose/[composeId]/converted",
+    "description": "What deploying the stack will change",
+    "width": 1574,
+    "height": 1030
+  },
+  {
+    "name": "compose-create",
+    "title": "Add a Compose stack",
+    "route": "/environments/[environmentId]",
+    "description": "The Add a Compose stack dialog on an Environment that deploys to Servers",
+    "width": 1784,
+    "height": 1422
+  },
+  {
+    "name": "compose-delete",
+    "title": "Delete a Compose stack",
+    "route": "/compose/[composeId]/advanced",
+    "description": "The Delete dialog of a Compose stack",
+    "width": 1264,
+    "height": 1154
+  },
+  {
+    "name": "compose-source-change",
+    "title": "Change a stack's source",
+    "route": "/compose/[composeId]",
+    "description": "The Source card in edit mode",
+    "width": 1574,
+    "height": 1876
+  },
+  {
+    "name": "console-avatar-menu",
+    "title": "Avatar menu",
+    "route": "/",
+    "description": "Profile, Appearance and Sign out",
+    "width": 1070,
+    "height": 526
+  },
+  {
+    "name": "console-command-palette",
+    "title": "Quick search",
+    "route": "/",
+    "description": "Quick search with the env: prefix",
+    "width": 1272,
+    "height": 556
+  },
+  {
+    "name": "console-rail",
+    "title": "Console rail",
+    "route": "/",
+    "description": "The rail at the Organization level",
+    "width": 518,
+    "height": 1070
+  },
+  {
+    "name": "cron-timetable",
+    "title": "Cron service: timetable",
+    "route": "/applications/[applicationId]",
+    "description": "The Timetable card of the nightly-report Cron service with its schedule, time zone, time limit and next runs.",
+    "width": 1574,
+    "height": 996
+  },
+  {
+    "name": "database-advanced",
+    "title": "Database advanced",
+    "route": "/databases/postgres/[databaseId]/advanced",
+    "description": "The Advanced tab of orders-db with its run command, resources and delete cards.",
+    "width": 2000,
+    "height": 2696
+  },
+  {
+    "name": "database-create-details",
+    "title": "Add a database: details",
+    "route": "/environments/[environmentId]",
+    "description": "The second step of Add a database for PostgreSQL with name, description, database name, user, password, image and Server.",
+    "width": 1720,
+    "height": 1946
+  },
+  {
+    "name": "database-published-ports",
+    "title": "Database published ports",
+    "route": "/databases/postgres/[databaseId]/credentials",
+    "description": "The Published ports card of orders-db with 15432 typed as the Database port.",
+    "width": 1574,
+    "height": 864
+  },
+  {
+    "name": "destinations-add",
+    "title": "Add a destination",
+    "route": "/settings/destinations",
+    "description": "The Add a destination dialog filled in for a Cloudflare R2 bucket named Offsite backups.",
+    "width": 1232,
+    "height": 1762
+  },
+  {
+    "name": "device-approval",
+    "title": "Device approval",
+    "route": "/device?user_code=VFMS8XBT",
+    "description": "Approve a cloudgate login code",
+    "width": 960,
+    "height": 834
+  },
+  {
+    "name": "environment-delete-dialog",
+    "title": "Delete an Environment",
+    "route": "/environments/[environmentId]/settings",
+    "description": "The Delete staging dialog",
+    "width": 1248,
+    "height": 966
+  },
+  {
+    "name": "environment-deploy-target",
+    "title": "Deploy target",
+    "route": "/environments/[environmentId]/settings",
+    "description": "Deploy target card",
+    "width": 1574,
+    "height": 538
+  },
+  {
+    "name": "environment-new-dialog",
+    "title": "New Environment",
+    "route": "/projects/[projectId]",
+    "description": "The New Environment dialog",
+    "width": 1248,
+    "height": 1048
+  },
+  {
+    "name": "environment-pending-setups",
+    "title": "Pending setups",
+    "route": "/environments/[environmentId]",
+    "description": "A Pending setup waiting for Apply",
+    "width": 1574,
+    "height": 342
+  },
+  {
+    "name": "environment-variables-tab",
+    "title": "Environment variables",
+    "route": "/environments/[environmentId]/variables",
+    "description": "Variables tab of an Environment",
+    "width": 2000,
+    "height": 1556
+  },
+  {
+    "name": "git-providers-create-github-app",
+    "title": "Create the GitHub App for me",
+    "route": "/settings/git-providers",
+    "description": "The Create the GitHub App for me card filled in with Northwind on GitHub and the GitHub organization northwind-labs.",
+    "width": 1802,
+    "height": 534
+  },
+  {
+    "name": "git-providers-gitlab-dialog",
+    "title": "Connect GitLab",
+    "route": "/settings/git-providers",
+    "description": "The Connect GitLab dialog filled in for Northwind on GitLab, scrolled to the top.",
+    "width": 1232,
+    "height": 1544
+  },
+  {
+    "name": "instance-console-domain",
+    "title": "Console domain",
+    "route": "/settings/instance",
+    "description": "Console domain filled in with console.northwind.example, HTTPS and Let's Encrypt (not saved), above Console routing.",
+    "width": 1802,
+    "height": 1065
+  },
+  {
+    "name": "license-self-hosted",
+    "title": "License",
+    "route": "/settings/license",
+    "description": "License on a self-hosted instance: Licensed, all eight features unlocked.",
+    "width": 2000,
+    "height": 2268
+  },
+  {
+    "name": "maintenance-reclaim-disk",
+    "title": "Reclaim disk",
+    "route": "/settings/maintenance",
+    "description": "The Reclaim disk card on Settings, Maintenance.",
+    "width": 1802,
+    "height": 1190
+  },
+  {
+    "name": "members-change-role",
+    "title": "Change role",
+    "route": "/settings/members",
+    "description": "Change Dana Ruiz's role with Member picked and the permission grid of the member role.",
+    "width": 1752,
+    "height": 1544
+  },
+  {
+    "name": "members-invite-link",
+    "title": "Send them this link",
+    "route": "/settings/members",
+    "description": "The invitation link for sam@northwind.example after Create invitation.",
+    "width": 1232,
+    "height": 690
+  },
+  {
+    "name": "members-manage-access",
+    "title": "Manage access",
+    "route": "/settings/members",
+    "description": "Manage Chen Wei's access with storefront, its staging Environment and the staging web Application ticked.",
+    "width": 1752,
+    "height": 1772
+  },
+  {
+    "name": "monitoring-setup",
+    "title": "Monitor a Server",
+    "route": "/monitoring",
+    "description": "The dialog that sets how a Server is sampled",
+    "width": 1784,
+    "height": 2248
+  },
+  {
+    "name": "notifications-add-channel",
+    "title": "Add a channel",
+    "route": "/settings/notifications",
+    "description": "The Add a channel dialog with the channel kinds.",
+    "width": 1752,
+    "height": 1224
+  },
+  {
+    "name": "project-config-move",
+    "title": "Move the config",
+    "route": "/projects/[projectId]/config",
+    "description": "Move the config into a repository",
+    "width": 1768,
+    "height": 1106
+  },
+  {
+    "name": "project-variables",
+    "title": "Project variables",
+    "route": "/projects/[projectId]/settings",
+    "description": "Project variables card",
+    "width": 1574,
+    "height": 714
+  },
+  {
+    "name": "projects-manage-tags",
+    "title": "Manage tags",
+    "route": "/projects",
+    "description": "Create, rename and delete tags",
+    "width": 1248,
+    "height": 798
+  },
+  {
+    "name": "projects-tag-filter",
+    "title": "Tag filter",
+    "route": "/projects",
+    "description": "Projects filtered by tag",
+    "width": 2000,
+    "height": 664
+  },
+  {
+    "name": "registries-connect-dialog",
+    "title": "Connect a registry",
+    "route": "/settings/registries",
+    "description": "The Connect a registry dialog filled in for ghcr.io, before Test connection.",
+    "width": 1232,
+    "height": 1420
+  },
+  {
+    "name": "requests",
+    "title": "Requests",
+    "route": "/requests?server=[serverId]&range=6h",
+    "description": "Requests chart and log for fra-1",
+    "width": 2000,
+    "height": 2022
+  },
+  {
+    "name": "roles-builder",
+    "title": "Create a role",
+    "route": "/settings/roles",
+    "description": "The Create a role dialog with the name deployer and Deployment read, create and cancel ticked.",
+    "width": 1752,
+    "height": 1436
+  },
+  {
+    "name": "server-access",
+    "title": "Server Access tab",
+    "route": "/servers/[serverId]/access",
+    "description": "The SSH and Host key cards of a Server",
+    "width": 1574,
+    "height": 1332
+  },
+  {
+    "name": "server-docker",
+    "title": "Docker & Swarm tab",
+    "route": "/servers/[serverId]/docker",
+    "description": "The Containers list with a row Actions menu open",
+    "width": 1570,
+    "height": 1040
+  },
+  {
+    "name": "server-setup-confirm",
+    "title": "Run setup confirmation",
+    "route": "/servers/[serverId]/infrastructure",
+    "description": "The confirmation before setup runs on a Server",
+    "width": 1264,
+    "height": 754
+  },
+  {
+    "name": "settings-ai",
+    "title": "AI settings",
+    "route": "/settings/ai",
+    "description": "Settings, AI: the AI providers list.",
+    "width": 1802,
+    "height": 1459
+  },
+  {
+    "name": "settings-index",
+    "title": "Settings index",
+    "route": "/settings",
+    "description": "Every settings section as a card",
+    "width": 2000,
+    "height": 2561
+  },
+  {
+    "name": "settings-instance",
+    "title": "Instance",
+    "route": "/settings/instance",
+    "description": "This instance on Settings, Instance: version, Self-hosted mode, version tag and the and Newest published reading Not checked yet.",
+    "width": 1802,
+    "height": 658
+  },
+  {
+    "name": "sign-in",
+    "title": "Sign in",
+    "route": "/sign-in",
+    "description": "The sign-in card",
+    "width": 960,
+    "height": 1266
+  },
+  {
+    "name": "ssh-keys-dialog",
+    "title": "SSH keys",
+    "route": "/servers",
+    "description": "The SSH keys dialog with a key's public line shown",
+    "width": 1264,
+    "height": 1520
+  },
+  {
+    "name": "sso-scim-token",
+    "title": "SCIM token",
+    "route": "/settings/sso",
+    "description": "The okta-scim is connected dialog with a bearer token, the SCIM base URL and the provider id.",
+    "width": 1232,
+    "height": 962
+  },
+  {
+    "name": "traefik-dns-challenge",
+    "title": "DNS-01 certificates",
+    "route": "/settings/traefik",
+    "description": "The DNS-01 certificates card filled in with cloudflare and the credential CF_DNS_API_TOKEN, before saving.",
+    "width": 1802,
+    "height": 1170
+  },
+  {
+    "name": "uptime-check-add",
+    "title": "Add an Uptime check",
+    "route": "/applications/[applicationId]/health",
+    "description": "The Add an Uptime check form",
+    "width": 1264,
+    "height": 2248
+  },
+  {
+    "name": "volume-backups",
+    "title": "Volume backups",
+    "route": "/applications/[applicationId]/volume-backups",
+    "description": "The Volume backups tab of the web Application.",
+    "width": 2000,
+    "height": 1679
+  },
+  {
+    "name": "billing",
+    "title": "Billing: Current plan",
+    "route": "/settings/billing",
+    "description": "Starter on a free trial with one Add-on: trial end, first charge, allowance and usage meters.",
+    "width": 1802,
+    "height": 1110
+  },
+  {
+    "name": "billing-plans",
+    "title": "Billing: Plans",
+    "route": "/settings/billing",
+    "description": "Starter and Business with prices, what each includes, the Add-ons stepper and the switch button.",
+    "width": 1802,
+    "height": 1040
+  },
+  {
+    "name": "servers-buy",
+    "title": "Buy a Server",
+    "route": "/servers/buy",
+    "description": "Suggestions, the location map with city cards, and the sizes sold in the chosen city.",
+    "width": 1574,
+    "height": 2272
+  },
+  {
+    "name": "servers-buy-summary",
+    "title": "Buy a Server: Summary",
+    "route": "/servers/buy",
+    "description": "The Summary for a 4 vCPU Performance Server in Ashburn with backups, with the total per month and today's charge.",
+    "width": 736,
+    "height": 1204
+  },
+  {
+    "name": "bought-server-card",
+    "title": "Bought Server card",
+    "route": "/servers/[serverId]/settings",
+    "description": "A ready Bought Server on its Settings tab: monthly price, backups switch, extra storage and size.",
+    "width": 2000,
+    "height": 597
   }
 ]

@@ -182,7 +182,7 @@ const faq = [
   },
   {
     q: 'Which git providers does Cloudgate support?',
-    a: 'GitHub, GitLab, Bitbucket, Gitea, or any git URL, with push-to-deploy through webhooks. A Service can also run a Docker image or uploaded files.',
+    a: 'GitHub, GitLab, Bitbucket, Gitea, or any git URL. A GitHub source deploys on every push; the others deploy when you press Deploy. A Service can also run a Docker image or uploaded files.',
   },
   {
     q: 'Does Cloudgate back up my databases?',
@@ -318,7 +318,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
           <dt>Git, images and uploads</dt>
           <dd>
             Build from GitHub, GitLab, Bitbucket, Gitea or any git URL, with push-to-deploy
-            through webhooks. Or run a Docker image, or uploaded files.
+            from GitHub. Or run a Docker image, or uploaded files.
           </dd>
         </div>
         <div data-spotlight class="tile s4 t-plan">

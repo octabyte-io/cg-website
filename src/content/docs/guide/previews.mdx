@@ -1,79 +1,100 @@
 ---
 title: Preview deployments
-seoTitle: Preview deployments for pull requests
-description: Get a live copy of an Application for each pull request, or a requested preview of any branch that expires on its own. Set it up, extend it and tear it down.
-lede: A preview deployment is a copy of one git-sourced Application built from another branch, on its own address. Use it to see a change running before it reaches production, for every pull request or on request.
+seoTitle: Preview deployments for pull requests and branches
+description: Get a running copy of an Application for each GitHub pull request, or a requested preview of a branch that expires on its own. Set up, extend, tear down.
+lede: A preview deployment is a running copy of one git-sourced Application, built from another branch and served on its own host under a wildcard. Use it to see a change running before it reaches production, for every pull request or on request.
 section: guide
+updated: '2026-11-27'
 group: Deploy
-order: 5
+order: 7
 navTitle: Previews
 badges: ['Git-sourced Applications', 'Members can manage previews']
 howto:
   name: Turn on pull-request previews
   steps:
     - { name: 'Point DNS', text: 'Create a wildcard DNS record, such as *.preview.northwind.example, pointing at the Application''s Server.' }
-    - { name: 'Open Preview settings', text: 'Open the Application, then Previews, then Preview settings.' }
-    - { name: 'Set the wildcard host', text: 'Enter the wildcard host and the container port. Optionally set preview variables.' }
-    - { name: 'Turn previews on', text: 'Turn on Build a preview for every pull request and save.' }
-    - { name: 'Open a pull request', text: 'Each pull request against the tracked branch now gets its own preview, removed when the pull request closes.' }
+    - { name: 'Open Preview settings', text: 'Open the Application and its Previews tab.' }
+    - { name: 'Set the wildcard host', text: 'In Preview settings, enter the Wildcard host and the Container port. Set Preview variables so previews do not use production''s database.' }
+    - { name: 'Turn previews on', text: 'Turn on Build a preview for every pull request, set Most previews at once, and press Save changes.' }
+    - { name: 'Open a pull request', text: 'Each pull request against the tracked branch now gets its own preview, torn down when the pull request closes.' }
 faq:
-  - { q: 'Do previews use my production database?', a: 'They share the parent Application''s storage and Environment, so yes, unless you set Preview variables that point them somewhere else.' }
-  - { q: 'Can I create a requested preview from the console?', a: 'No. The console lists, extends, redeploys and expires requested previews, but you create one through the API or an Agent''s create_preview tool.' }
-  - { q: 'How long does a requested preview live?', a: '60 minutes unless the request asks for longer, up to the instance maximum, 24 hours by default. Extend sets a new window starting now.' }
-  - { q: 'Which git providers support pull-request previews?', a: 'GitHub only. Requested previews work for any git source.' }
+  - { q: 'Do previews use my production database?', a: 'Yes, unless you set Preview variables. A preview runs against the Application''s own volumes and, with Preview variables empty, its own variables, so it reads and writes what production does.' }
+  - { q: 'Can I create a requested preview from the console?', a: 'No. The console lists, extends, redeploys and expires requested previews; you create one through the API or an Agent''s create_preview tool.' }
+  - { q: 'How long does a requested preview live?', a: '60 minutes unless the request asks for longer, up to the instance maximum, 24 hours by default. Extend sets a new window starting now; it does not add to the old one.' }
+  - { q: 'Which git providers support pull-request previews?', a: 'GitHub only, because pull-request events arrive through the GitHub App. Requested previews work for any git source.' }
+  - { q: 'What happens when every preview slot is taken?', a: 'A new pull request or request is refused, not queued. Closing a pull request, or expiring a requested preview, frees its slot.' }
 ---
 
 A preview is not a Service and not an Environment. It is a copy of one Application, built from a
-branch, that shares the parent's storage and Environment and answers on its own host under a
-wildcard Domain.
+branch, that runs against the parent's volumes and Environment and answers on its own host under a
+wildcard Domain. Each preview build is a Deployment, listed on the Application's **Deployments**
+tab.
 
 There are two kinds:
 
 - **Pull-request preview**: opened by a pull request against the tracked branch, one per pull
-  request, removed when it closes. GitHub-sourced Applications only.
+  request, torn down when it closes. GitHub-sourced Applications only.
 - **Requested preview**: asked for by a person or an [Agent](/docs/guide/agents) for any branch,
   and torn down when it expires.
 
-## What you can do
+## What can you do with previews?
 
 - Build a preview for every pull request, up to a limit you set.
 - Allow requested previews, for example so an AI agent can show you its fix running.
 - Give previews their own variables and build arguments.
-- Extend, redeploy or expire a requested preview; redeploy or tear down a pull-request preview.
+- Redeploy or tear down a pull-request preview; extend, redeploy or expire a requested one.
 
 ## Set up previews
 
 <Steps>
 <Step title="Point a wildcard at the Server">
-Create a DNS record for a wildcard host, for example `*.preview.northwind.example`, pointing at
-the Application's Server. It must resolve before previews can be reached.
+Create a DNS record for a wildcard host, for example `*.preview.northwind.example`, pointing at the
+Application's Server. Nothing in Cloudgate creates it, and it must resolve before previews can be
+reached.
 </Step>
-<Step title="Open Preview settings">
-Open the Application, then **Previews** > **Preview settings**.
-<Screenshot name="application-previews" alt="The Previews tab of the web Application with the preview settings and a list of open previews" caption="Settings at the top, open previews below." />
+<Step title="Open the Previews tab">
+Open the Application and its **Previews** tab. **Preview settings** sits at the top, then
+**Pull-request previews** and **Requested previews**.
+<Screenshot name="application-previews" alt="The Pull-request previews card of the web Application: pull requests 234 and 231, their branches, hosts under preview.northwind.example, status done, and Redeploy and Tear down" caption="Each open pull request runs as its own preview on its own host." />
 </Step>
-<Step title="Fill in the settings">
-- **Wildcard host**: the host you pointed above. You can also issue the wildcard certificate
-  through DNS-01 with Let's Encrypt.
-- **Container port**: the port the app listens on.
-- **Preview variables**: replace the Application's variables in previews. Left empty, previews use
-  production's.
-- **Preview build arguments**: build arguments for preview builds.
-- **Build a preview for every pull request** and **Most previews at once**.
-- **Allow requested previews** and **Most requested previews at once** (3 by default, counted apart
-  from pull-request previews).
+<Step title="Fill in Preview settings">
+| Field | What it does | Default |
+|---|---|---|
+| **Build a preview for every pull request** | Pull requests against the tracked branch get a preview. | Off. |
+| **Wildcard host** | Each preview gets its own host under it. | Required to turn previews on. |
+| **Issue the wildcard certificate through DNS-01 (Let's Encrypt)** | Gets one wildcard certificate for every preview host. | Off. Needs a wildcard and a DNS-01 setup on the Server (its Settings tab, or the platform host's Traefik settings). |
+| **Most previews at once** | Pull-request previews only. A pull request opened when this many run is refused, not queued. Zero turns them off. | 3. |
+| **Container port** | Where the preview's container listens. | 3000. |
+| **Preview variables** | One `KEY=value` per line; replaces the Application's own variables for previews. | Empty: previews use production's. |
+| **Preview build arguments** | The same, for `--build-arg` on the preview build. | Empty: production's. |
+| **Allow requested previews** | Lets a person or Agent who may deploy ask for a preview of a branch. | Off. |
+| **Most requested previews at once** | Counted apart from pull-request previews; an expired one counts until its teardown finishes. At least 1. | 3. |
+
+Press **Save changes**. None of it reaches a preview already running until it is redeployed.
 </Step>
-<Step title="Save">
-Open a pull request against the tracked branch. Its preview appears in the list with its address
-once built.
+<Step title="Open a pull request">
+Open a pull request against the tracked branch. Its preview appears under **Pull-request
+previews** with its host once built.
 </Step>
 </Steps>
 
 <Callout type="warn" title="Previews use production's data">
-A preview shares the Application's storage and, unless you set **Preview variables**, its
+A preview mounts the Application's own volumes and, unless you set **Preview variables**, uses its
 variables too. A preview that writes to the database writes to production's database. Point
 previews at a separate database before you turn them on for code that writes data.
 </Callout>
+
+## Manage pull-request previews
+
+The **Pull-request previews** card lists **Pull request**, **Branch**, **Host**, **Status** and
+**Opened** for each one.
+
+- **Redeploy** builds the head of its branch again.
+- **Tear down** removes the preview now.
+
+The card warns when **Every pull request is refused** (**Most previews at once** is 0) or
+**Every slot is taken**. With none open it says "No pull request is open", or "Previews are off for
+this Application".
 
 ## Ask for a requested preview
 
@@ -84,37 +105,38 @@ A requested preview is created through the API or MCP, not from a console button
 - A script calls `POST /applications/{applicationId}/preview-deployments`. See the
   [API reference](/docs/api).
 
-Whoever may deploy the Application can ask, but only while **Allow requested previews** is on.
-Each call makes a new preview, even for the same branch.
+Whoever may deploy the Application can ask, but only while **Allow requested previews** is on. Each
+call makes a new preview, even for the same branch.
 
 ## Extend, redeploy or expire a requested preview
 
-The **Requested previews** list shows each preview's branch, who asked for it, when it expires and
-its latest build.
+The **Requested previews** card lists **Branch**, **Host**, **Status**, **Requested by**,
+**Expires**, **Latest build** and **Created**.
 
-- **Extend** sets a new expiry a number of minutes from now. It replaces the window; it does not
-  add to it.
-- **Redeploy** builds the branch again. It never moves the expiry.
-- **Expire now** tears it down at once.
+- **Extend** opens **Extend the preview of** the branch. Enter **Minutes from now**: the new window
+  replaces what was left of the old one. The instance's maximum is shown in the hint.
+- **Redeploy** builds the branch again. Its expiry stays where it is.
+- **Expire now** tears it down; its copy goes within the minute.
 
 A requested preview lives 60 minutes by default. The longest a request may ask for is the
 instance's **Requested preview lifetime**, 24 hours unless the operator changed it (self-hosted,
-Settings > Instance).
+Settings > Instance). With requested previews off, **Extend** and **Redeploy** are greyed out;
+**Expire now** stays.
 
 ## What you cannot do
 
 <Callout type="limit" title="Which Applications can have previews">
-Only Applications built from git. A Docker image source, uploaded files, a `worker`, a
-`web-private` and an AI model have no previews.
+Only Applications built from git. A Docker image source and uploaded files have no Previews tab,
+and a `worker`, a `web-private`, a Cron service and an AI model take no previews.
 </Callout>
 
 - Pull-request previews need a GitHub source.
 - Create a requested preview from the console; use the API or MCP.
 - Extend a preview that has already expired; ask for a new one.
+- Queue a preview when the limit is reached: it is refused.
 - Turning **Allow requested previews** off refuses new ones; previews already running stay until
   they expire.
-- Turning on requested previews needs permission to update the Application, which no Agent role
-  has.
+- Changing Preview settings needs the update action on Services, which no Agent role has.
 
 ## Related pages
 

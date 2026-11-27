@@ -1,46 +1,116 @@
 ---
 title: Audit log
 seoTitle: Read the audit log of your Organization
-description: See who created, changed, deleted or deployed what in your Cloudgate Organization, every sign-in and every Agent call, filtered by actor, action and outcome.
-lede: The audit log is the record of who did what in your Organization. Open it to find out who changed a setting, what an Agent did, or why a request was refused.
+description: See who created, changed, deleted or deployed what in your Cloudgate Organization, every sign-in and Agent call, filtered by person, action and date.
+lede: The audit log is the record of who did what in your Organization. Open it to find out who changed a setting, what an Agent did, or why an Agent's call was refused.
 section: guide
 group: Team and access
 order: 4
 badges: ['Owner or Admin', 'Every plan']
+updated: '2026-11-27'
+howto:
+  name: Find who changed something in the audit log
+  steps:
+    - { name: Open the audit log, text: 'Open Settings, then Audit log.' }
+    - { name: Search, text: 'Type part of an email in Email contains, or part of a name in Name contains.' }
+    - { name: Narrow it down, text: 'Choose an Action, a Kind and an Outcome, or set From and To.' }
+    - { name: Open the entry, text: 'Press Details on a row to see who did it, their role at the time, where from and anything else it recorded.' }
 faq:
-  - { q: Is the audit log a paid feature?, a: 'No. Every Organization has one, on every plan and on a self-hosted instance without a license.' }
-  - { q: Can an entry be edited or deleted?, a: 'No. The log is append-only, and nothing in the console edits or removes an entry.' }
-  - { q: Are reads recorded?, a: 'Not for people. A person''s reads, connection tests and refused requests are not recorded. Every Agent call is, including reads and refusals.' }
+  - { q: 'Is the audit log a paid feature?', a: 'No. Every Organization has one, on every plan and on a self-hosted instance without a license.' }
+  - { q: 'Can an entry be edited or deleted?', a: 'No. The log is append-only, and nothing in the console edits or removes an entry.' }
+  - { q: 'Are reads recorded?', a: 'Not for people. A person''s reads, connection tests and refused requests are not recorded. Every Agent call is, including reads and refusals.' }
+  - { q: 'What happens to the log when an Organization is deleted?', a: 'Its entries are kept but no longer say which Organization they came from. Only an owner or admin of the instance''s own Organization can read them.' }
 ---
 
-Owners and admins can read the audit log under **Settings** > **Audit log**. It lists, newest
-first, every create, change, delete and deploy a signed-in member made through the console or the
-API, every sign-in and sign-out, and every call an Agent made, whether it succeeded, was refused or
-failed.
+Owners and admins read the audit log under **Settings** > **Audit log** (`/settings/audit-log`).
+It lists, newest first, every create, change, delete and deploy a signed-in member made through the
+console or the API, every sign-in and sign-out, and every call an Agent made, whether it
+succeeded, was refused or failed.
 
 ## What you can do
 
-- Filter by who did it, what kind of thing it was done to, the action, the outcome and a date range.
-- Open an entry to see the role the actor held at the time and what changed.
+- Search by who did it and by the name of what it was done to.
+- Filter by actor, action, kind, outcome and a date range.
+- Open an entry to see the role the actor held at the time, where the request came from and what
+  else it recorded.
 - See everything one Agent did, from a link on its row in Settings > **Agents**.
+
+## The audit log screen
+
+<Screenshot name="audit-log" alt="Settings, Audit log for Northwind Labs with its filters and the newest entries: schedules and users created and domains updated by ada@northwind.example" caption="Newest first; each row has Details." />
+
+A line above the table counts the entries, for example "1,204 entries recorded. A person's reads,
+connection tests and refused requests are not recorded." With a filter on, it says how many match.
+
+| Column | What it shows |
+|---|---|
+| **When** | When it happened. |
+| **Who** | The person's name or email, an Agent (marked **Agent**), or **Cloudgate** (marked **Platform**) for actions Cloudgate took itself. Under it, their role at the time. |
+| **Action** | What was done, such as `create`, `deploy` or `rollback`. |
+| **Outcome** | **Succeeded**, **Refused** or **Failed**. |
+| **What** | The name of what it was done to, and its kind, such as `domain` or `application`. |
+| **Details** | Opens the entry. |
+
+The table shows 25 entries at a time, with previous and next buttons below it.
+
+## Filter the audit log
+
+| Filter | What it matches | Notes |
+|---|---|---|
+| **Email contains...** | Any part of the actor's email address. | Search box. |
+| **Name contains...** | Any part of the name of what it was done to. | Search box. |
+| **Actor** | **Anyone**, or **The platform** for Cloudgate's own actions. | |
+| **Action** | One action exactly: `create`, `update`, `delete`, `deploy`, `cancel`, `redeploy`, `rollback`, `login`, `logout`, `restore`, `run`, `start`, `stop`, `restart`, `kill`, `reload`, `rebuild` or `read`. | **Any action** clears it. |
+| **Kind** | One kind of thing exactly, such as `application`, `database`, `domain`, `server`, `customRole`, `sso`, `scim`, `billing` or `session`. | **Any kind** clears it. |
+| **Outcome** | **Succeeded**, **Refused** or **Failed**. | Kept in the page address (`?outcome=refused`), so you can share the link. |
+| **From**, **To** | A date and time range. | |
+
+**Clear filters** resets them all. On a narrow screen the filters fold behind a **Filters** button
+that counts how many are set. If nothing matches, the table says **Nothing matches those filters**:
+try a wider date range or clear a filter.
 
 ## Find who changed something
 
 <Steps>
 <Step title="Open the audit log">
 Open **Settings** > **Audit log**.
-<Screenshot name="audit-log" alt="Settings, Audit log for Northwind Labs, listing deploys, a domain change and Agent calls by deploy-bot with their outcomes" caption="Newest first; refused Agent calls appear with the reason." />
 </Step>
 <Step title="Narrow it down">
-Use the filters: **Actor** (**Anyone**, an email, an Agent, or **The platform**), **Kind**,
-**Action**, **Outcome** (succeeded, refused or failed), and **From** and **To**. Email and name match
-any part of the value; action and kind match exactly.
+Type part of the thing's name in **Name contains...**, such as `shop.northwind.example`, and
+choose its **Kind**, such as `domain`. Add an **Action** or a date range if the list is long.
 </Step>
 <Step title="Open the entry">
-Open a row to see **Who**, **Their role at the time**, **Outcome**, **When**, **Action**,
-**Kind**, the name and id of what it was done to, and what changed.
+Press **Details** on the row.
 </Step>
 </Steps>
+
+## What an entry shows
+
+The dialog is titled with the action and kind, such as "update · domain", and the name of what it
+acted on.
+
+<Screenshot name="audit-log-detail" alt="The details of an audit log entry: update of the domain shop.northwind.example by ada@northwind.example, owner, with the request's route under Recorded with it" caption="Every entry shows who, their role at the time, the outcome and what it acted on." />
+
+| Row | What it shows |
+|---|---|
+| **Who** | The actor. |
+| **Their role at the time** | The role they held when it happened, even if it has changed since. |
+| **Outcome** | Succeeded, refused or failed. |
+| **When** | The exact time. |
+| **Action**, **Kind** | What was done, to what kind of thing. |
+| **Name**, **Id** | The name and id of what it was done to. |
+| **From** | The IP address the request came from, **Not recorded**, or **No request** for something Cloudgate did itself. |
+
+Below that, when the entry recorded more: a before-and-after view where it stored both values (a
+member's role change does), a list of the values under **Recorded with it**, or the raw text under
+**Recorded with it, as stored**. Most changes record who, what and when, without the old and new
+values.
+
+## See everything one Agent did
+
+On an Agent's row in **Settings** > **Agents**, **Every call it made, in the audit log** opens the log filtered to that
+Agent (the address carries `?userId=`). A line says "Showing only the entries of ..." with **Show
+everyone** to go back. See [Agents](/docs/guide/agents).
 
 ## What is recorded
 
@@ -49,15 +119,31 @@ Open a row to see **Who**, **Their role at the time**, **Outcome**, **When**, **
 | Creates, changes, deletes and deploys by members, through the console or the API | A person's reads |
 | Sign-ins and sign-outs | Connection tests |
 | Every Agent call, allowed, refused (with the reason) or failed | A person's refused requests |
-| Actions Cloudgate takes itself, such as applying a template's Plan for you | Calls through the Gateway (see Token spend on the AI model instead) |
+| Actions Cloudgate takes itself, such as applying a Template's Plan for you | Calls through the Gateway (see Token spend on the AI model instead) |
+
+## Entries from deleted Organizations
+
+When an Organization is deleted, its entries are kept but no longer say which Organization they
+came from. Only an owner or admin of the instance's own Organization can read them. For them, a
+line says how many there are, with **Show them**; the list then shows only those entries, with
+**Back to this Organization**. Everyone else sees a line that such entries are kept.
+
+## Who can read the audit log?
+
+Owners and admins, or a custom role given the audit log permission.
+
+<Callout type="limit" title="Owners and admins">
+Reading the log needs the audit log permission, which owners and admins hold and members do not. A
+custom role can be given it (custom roles need the Business plan or an Enterprise license). The
+log itself needs no plan or license. Without the permission, the screen says it cannot be read.
+</Callout>
 
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
-- Only owners and admins, or a custom role that allows it, can read the log. Members cannot.
-- Entries cannot be edited or removed.
-- Entries from a deleted Organization are kept, but they no longer say which Organization they came
-  from, and only an owner or admin of the instance organization can read them.
+- Entries cannot be edited or removed, and there is no export button.
+- Action and Kind match exactly, one value at a time.
+- A person's reads and refused requests are not recorded.
 </Callout>
 
 ## Related pages
@@ -65,5 +151,6 @@ Open a row to see **Who**, **Their role at the time**, **Outcome**, **When**, **
 - [Agents](/docs/guide/agents): what an Agent may do, and its row's link to its trail.
 - [Guard rails](/docs/mcp/guard-rails): why an Agent call is refused.
 - [Members and roles](/docs/guide/members-and-roles): roles and custom roles.
+- [SSO and SCIM](/docs/guide/sso-and-scim): sign-ins through your identity provider.
 - [AI models](/docs/guide/ai-models): Token spend for Gateway calls.
 - [Security at Cloudgate](/security).

@@ -162,17 +162,16 @@ Remote Servers have the same switches for their own Traefik on their **Settings*
 ## Connect a registry
 
 **Settings** > **Registries** > **Connect a registry** stores a login for pulling and pushing images:
-a name, whether it is **Hosted by someone else** (such as Docker Hub) or **One you run**, the
-hostname, an image prefix, a username and a password or access token. Press **Test connection**
+a name, the hostname (leave it empty for Docker Hub), an image prefix, a username and a password or access token. Press **Test connection**
 before you save. An Application's build can then push its image there instead of keeping it on the
 build Server. Cloud Services never use a registry.
 
 ## Manage SSH keys
 
-SSH keys belong to the Organization and are managed from **Servers** > **Manage SSH keys**: press
+SSH keys belong to the Organization and are managed from **Servers** > **SSH keys**: press
 **Generate one** or **Paste one I have**. Each key shows the line that goes in a machine's
 `~/.ssh/authorized_keys`. A Server's **Access** tab changes which key it uses, and shows its host key
-fingerprint. See [Servers](/docs/guide/servers).
+fingerprint. See [SSH keys](/docs/guide/ssh-keys) and [Registries](/docs/guide/registries).
 
 ## The machine Cloudgate runs on
 

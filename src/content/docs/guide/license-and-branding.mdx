@@ -1,0 +1,198 @@
+---
+title: License and branding
+seoTitle: Activate an Enterprise license and branding
+description: Activate, check or release a Cloudgate Enterprise license key, see what it unlocks and what stops when it lapses, and put your own brand on the console.
+lede: An Enterprise license unlocks the paid features on a self-hosted instance. Branding, one of them, puts your own name, logo, favicon, colours and error-page wording on the whole console.
+section: guide
+group: Account
+order: 3
+badges: ['Self-hosted', 'Owner for the license key', 'Enterprise license']
+updated: '2026-11-27'
+howto:
+  name: Activate an Enterprise license key
+  steps:
+    - { name: Open License, text: 'Open Settings, then License, as the Organization''s owner.' }
+    - { name: Turn on enterprise features, text: 'Turn on Use enterprise features in this Organization. Activation is refused while it is off.' }
+    - { name: Paste the key, text: 'Paste the key you were sent into License key and press Activate. Cloudgate checks it with the license server before storing it.' }
+    - { name: Check the status, text: 'The This Organization card reads Licensed and lists the features that are now open, with the date the license runs until.' }
+faq:
+  - { q: 'Do I need a license to use Cloudgate?', a: 'No. A self-hosted instance is free to use under the Elastic License 2.0 without one. A license unlocks custom roles, single sign-on, SCIM, forward auth, more than one Organization, branding, and concurrent builds and Cloud runs.' }
+  - { q: 'What happens when the license expires?', a: 'Nothing configured is deleted. The licensed features stop: SSO sign-in, SCIM adds, forward-auth changes, custom roles, branding edits, parallel builds and Cloud runs, and creating more Organizations. They start again once the key is valid.' }
+  - { q: 'How do I move a license to another instance?', a: 'Press Release the key in the danger zone of Settings, License. It is released with the license server too, so it can be activated on the other instance.' }
+  - { q: 'Can I brand the Hosted instance?', a: 'No. On the Hosted instance the branding is Octabyte''s, and the Branding page is not offered to customers.' }
+---
+
+**Settings** > **License** (`/settings/license`) and **Settings** > **Branding**
+(`/settings/branding`) sit in the **Enterprise** group of Settings, with Audit log, Roles, Single
+sign-on and Forward auth.
+
+## What you can do
+
+- See whether this Organization is licensed, and which features that opens.
+- Turn on enterprise features, then activate, check, replace or release a license key.
+- Get warned before the license ends, and check a renewal at once.
+- Set the console's name, logo, favicon, colours, custom CSS and error-page wording.
+
+## What does an Enterprise license unlock?
+
+An Enterprise license unlocks eight features: custom roles, single sign-on, SCIM, forward auth, more
+than one Organization, branding, concurrent builds and concurrent Cloud runs.
+
+| Feature | What it gives | Applies to |
+|---|---|---|
+| **Custom roles** | Roles you define from the same permission table Cloudgate checks. | This Organization |
+| **Single sign-on** | OIDC providers your members sign in through, and the option to require it. | This Organization |
+| **SCIM** | Your identity provider creates and deactivates members. | This Organization |
+| **Forward auth** | An authentication proxy in front of an Application's own Domain. | This Organization |
+| **More than one Organization** | A second Organization and more on this instance. | The whole instance |
+| **Branding** | Your name, logo, favicon and colours, and your words on error pages. | The whole instance |
+| **Concurrent builds** | Building more than one Deployment at a time on this host. | The whole instance |
+| **Concurrent Cloud runs** | Running more than one Cloud run at a time on this host. | The whole instance |
+
+The audit log is not licensed: every Organization has one.
+
+## The License screen on a self-hosted instance
+
+### This Organization
+
+Says whether the licensed features are unlocked here right now, with **Licensed** or **Not
+licensed**, and lists the features above with a tick on each one that is open. With a license it
+also says "This license runs until ...": owners and admins see a bar across the console from 14
+days before that date, and Cloudgate re-checks the key each day from then, so a renewal arrives
+without pasting the key again. A license with no expiry date never lapses on its own. Any member can
+read this card.
+
+<Screenshot name="license-self-hosted" alt="Settings, License on a self-hosted instance for Northwind Labs: Licensed, the eight licensed features ticked, the enterprise features switch on and a masked license key" caption="The status, the opt-in switch and the key, top to bottom." />
+
+### Enterprise features
+
+One switch, **Use enterprise features in this Organization**. It does not unlock anything by
+itself: it is the switch a license key is checked against, and activating a key is refused while it
+is off. Turning it off makes any active license stop applying. Removing a key leaves it on.
+
+### License key
+
+<Steps>
+<Step title="Turn on enterprise features">
+Turn on **Use enterprise features in this Organization**.
+</Step>
+<Step title="Paste the key">
+In **License key**, paste the key you were sent (it looks like `CG-XXXX-XXXX-XXXX`) and press
+**Activate**. Cloudgate checks it with the license server before storing it.
+</Step>
+<Step title="Check the status">
+**This Organization** reads **Licensed**, and the features are open at once.
+</Step>
+</Steps>
+
+Once a key is stored, the card shows it masked, with **Show**, **Hide** and a copy button.
+
+- **Check with the license server** asks "Check this key with the license server?" and records the
+  answer. If the server says no, the Organization is unlicensed at once and everyone on a custom role
+  is refused every action. If the check does not complete, nothing is recorded and the license stays
+  as it was. Press **Check the key**.
+- **Replace it with another key** and **Activate this key instead** swap the key. This does not
+  release the old one with the license server, so release it first if you want to use it elsewhere.
+
+### Release the license key
+
+The danger zone's **Release this license key** frees the key with the license server, so it can be
+activated on another instance, and clears it here. If the license server cannot be reached, the key
+is still cleared here. The licensed features stop for this Organization at once. Nothing configured
+is deleted: SSO providers, SCIM tokens, custom roles, branding and limits stay on record and work
+again when a license does. Press **Release the key**.
+
+<Callout type="warn" title="Move people off custom roles first">
+Without a license, a member holding a custom role is denied every action, including the ones their
+role grants. Move them to Admin or Member first. See
+[Members and roles](/docs/guide/members-and-roles#what-does-locked-out-by-a-custom-role-mean).
+</Callout>
+
+<Callout type="limit" title="Owner only">
+The license key and the **Enterprise features** switch are for the Organization's owner only, which
+is stricter than the features they unlock: an admin can manage SSO or custom roles but not the key.
+For anyone else, the cards below **This Organization** say they cannot be read.
+</Callout>
+
+## What happens when a license is about to end?
+
+From 14 days before the license ends, owners and admins see a bar at the top of every page: "Your
+Enterprise license ends on ... (in N days)". The owner sees "Renew it with Octabyte", **I've
+renewed, check now** and **Open License**; an admin sees "Ask an owner to renew it." Until 3 days
+are left, the bar can be hidden with **Hide until 3 days are left**.
+
+Once the date has passed, the bar says "Your Enterprise license ended on ..." and lists what has
+stopped until it is renewed:
+
+- SSO sign-in
+- Adding members through SCIM
+- Changes to forward auth
+- Custom roles
+- Editing white-labelling (the saved branding stays)
+- Parallel builds and Cloud runs (back to one at a time)
+- Creating more Organizations
+
+Nothing is deleted. To be told by message as well, turn on **An enterprise license is about to
+expire** and **An enterprise license lapsed** on a [notification channel](/docs/guide/notifications).
+
+## The License screen on the Hosted instance
+
+On the Hosted instance there is no license key. **Settings** > **License** has one card,
+**Enterprise**, billed by agreement with Octabyte rather than through a Hosted plan. On Enterprise it
+says custom roles, single sign-on, SCIM and forward auth are on. Otherwise it says these come with
+the Business plan, with the upgrade button for an owner or admin, and that you can ask about an
+Enterprise agreement at support@octabyte.io. See [Billing and plans](/docs/guide/billing).
+
+## Brand the console
+
+<Callout type="limit" title="Self-hosted, instance administrators, Enterprise license">
+Branding changes what **every** Organization on the instance sees, and everyone who reaches its
+sign-in screen. Only owners and admins of the instance's own Organization (the first one) see the
+page, and it is that Organization's license that counts. Anyone else sees "This page is for the
+owners and admins of the Instance organization." It is not offered on the Hosted instance.
+</Callout>
+
+Open **Settings** > **Branding**. It has four cards; each has its own **Save changes**. Empty a
+field and save to put Cloudgate's own back. Only the fields you changed are sent.
+
+<Screenshot name="branding" alt="Settings, Branding filled in with the name Northwind Deploy, a logo and favicon URL, a primary colour and the error-page fields" caption="Each card saves on its own." />
+
+| Card | Field | What it does | Rules |
+|---|---|---|---|
+| **Name and marks** | **Name** | Replaces Cloudgate in the browser tab, beside the mark and in the sign-in heading. | At most 120 characters. |
+| | **Logo URL** | Takes the mark's place beside the name, at the same size; a square mark works best. | An http(s) URL, or a path on this host starting with `/`. |
+| | **Favicon URL** | The icon in the browser tab. | As above. |
+| **Colors** | **Primary** | Primary buttons, the focus ring and the first chart series. Their label is white, so choose a colour dark enough to read it on. | A hex colour: `#` and three or six digits. |
+| | **Accent** | Links, the mark and highlighted text. | Optional; left empty, it follows Primary. |
+| **Custom CSS** | **CSS** | A stylesheet of your own, loaded on every signed-in page. | At most 50,000 characters, and it cannot contain `</`. |
+| **Error pages** | **Page not found** | Shown under "That page is not here." in place of the stock sentence. | At most 500 characters. |
+| | **Page failed** | Shown under "This screen could not be shown." when a page fails to draw. | At most 500 characters. |
+| | **Support URL** | Adds a "contact support" link to both screens. | An http(s) URL, or a path on this host starting with `/`. |
+
+- One colour serves the light and the dark theme alike, so check it against both: the console does
+  not adjust a colour you choose.
+- Custom CSS is not loaded on the sign-in, sign-up, two-step or password-reset screens, because they
+  hold a password field. Those screens take the name, marks and colours only.
+
+Without a license, the page explains branding and links to **License**. If the license lapsed, it
+shows **Branding is read-only**: the branding stays as last saved and can be edited again once a
+license is active.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- A license key belongs to one Organization; the instance-wide features follow the instance's own
+  Organization's license.
+- Only the owner can see, activate, check or release the key.
+- Branding cannot be set per Organization, and cannot be changed on the Hosted instance.
+- Custom CSS never reaches the sign-in and password screens.
+</Callout>
+
+## Related pages
+
+- [Instance settings](/docs/self-host/instance-settings): Traefik, upkeep, build limits and the rest of a self-hosted instance.
+- [Members and roles](/docs/guide/members-and-roles): custom roles a license unlocks.
+- [SSO and SCIM](/docs/guide/sso-and-scim): single sign-on and directory provisioning.
+- [Organizations](/docs/guide/organizations): more than one Organization on an instance.
+- [Notifications](/docs/guide/notifications): license expiry and lapse alerts.
+- [Self-hosted Cloudgate](/self-hosted) and [plans and prices](/pricing).

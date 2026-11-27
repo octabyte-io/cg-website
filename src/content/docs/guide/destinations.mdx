@@ -1,0 +1,143 @@
+---
+title: Backup destinations
+seoTitle: Add an S3-compatible backup destination
+description: Add an S3-compatible bucket such as AWS S3, Cloudflare R2, Wasabi or MinIO as a Cloudgate backup Destination, test the connection, edit its keys and remove it.
+lede: A Destination is an S3-compatible bucket Cloudgate writes database dumps and volume archives to. Add it once for the whole Organization, then pick it in any backup schedule.
+section: guide
+group: Data
+order: 3
+navTitle: Destinations
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+updated: '2026-11-27'
+howto:
+  name: Add a backup destination
+  steps:
+    - { name: Open Destinations, text: 'Open Settings, then Destinations, and press Add a destination.' }
+    - { name: Describe the bucket, text: 'Fill in Name, Endpoint, Region if your provider has regions, Bucket, Provider if it needs one, Access key and Secret access key.' }
+    - { name: Test the connection, text: 'On the Hosted instance choose a Server under Test from. Press Test connection and wait for Cloudgate to list the bucket.' }
+    - { name: Save it, text: 'Press Add a destination to save it. It can now be picked in database and volume backup schedules.' }
+faq:
+  - { q: 'Which storage providers work?', a: 'Anything S3-compatible: AWS S3, Cloudflare R2, Wasabi, MinIO and others. Cloudgate reaches the bucket with rclone, so a provider rclone supports as S3 works.' }
+  - { q: 'Does removing a Destination delete my backups?', a: 'No. Nothing in the bucket is deleted; only Cloudgate''s credentials for it go. A Destination still used by a backup schedule or volume backup cannot be removed until you point those elsewhere or delete them.' }
+  - { q: 'Why does the test need a Server on Hosted?', a: 'On the Hosted instance, Cloudgate does not run checks from its own host, so a test runs from one of your Servers with the credentials in the dialog. Add a Server first if you have none.' }
+  - { q: 'Can I see the secret access key again?', a: 'No. It is stored encrypted and never shown again. Leave it empty when editing to keep the saved one.' }
+---
+
+Destinations live at **Settings** > **Destinations** (`/settings/destinations`) and belong to the
+whole Organization: every Project's backups can use them. Cloudgate reaches a bucket with rclone,
+so anything S3-compatible works.
+
+## What you can do
+
+- Add an S3-compatible bucket as a Destination.
+- Test that Cloudgate can reach it, before saving or at any time later.
+- Edit its endpoint, bucket and keys.
+- Remove it once nothing uses it.
+
+A Destination is then picked in a database's **Backups** tab (scheduled dumps) and in a volume
+backup. See [Backups](/docs/guide/backups) for schedules and restores.
+
+## The Destinations screen
+
+<Screenshot name="settings-destinations" alt="The Destinations card listing the bucket northwind-backups with its endpoint and region eu-central-1" caption="Destinations are shared by every Project in the Organization." />
+
+| Column | What it shows |
+|---|---|
+| **Name** | The name you gave it. |
+| **Bucket** | The bucket's name. |
+| **Endpoint** | The API endpoint, with the region under it, or **No region**. |
+| Actions | **Edit** and **Remove**. |
+
+The table says which buckets are configured, not whether anything has been written to them. To see
+what is actually in a bucket, use the dumps list on a database's **Backups** tab or the volume
+restore flow. With none yet, the screen says **No destinations yet** with **Add a destination**.
+
+## Add a destination
+
+<Steps>
+<Step title="Open the dialog">
+Open **Settings** > **Destinations** and press **Add a destination**.
+</Step>
+<Step title="Describe the bucket">
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What this bucket is called in Cloudgate, such as `northwind-backups`. | Required. Only shown in Cloudgate. |
+| **Endpoint** | The API endpoint, with its scheme, such as `https://s3.eu-west-1.amazonaws.com`. | Required. MinIO, R2 and others have their own. |
+| **Region** | The bucket's region, such as `eu-west-1`. | Optional. Leave it empty if your provider has no regions. |
+| **Bucket** | The bucket's name, such as `cloudgate-backups`. | Required. |
+| **Provider** | rclone's own provider name when the bucket needs one: AWS, Minio, Wasabi, Cloudflare. | Optional. Left empty, rclone works it out. |
+| **Access key** | The key id. | Required. |
+| **Secret access key** | The secret. | Required when adding. Stored encrypted and never shown again. |
+| **Test from** | The Server the test runs from. | Hosted only. Servers not ready yet are greyed out. |
+
+<Screenshot name="destinations-add" alt="The Add a destination dialog filled in for a Cloudflare R2 bucket named Offsite backups, with its endpoint, bucket, provider and keys" caption="Test the connection before you save it." />
+</Step>
+<Step title="Test the connection">
+Press **Test connection**. "Cloudgate listed ... with the key you typed." means it can reach the
+bucket. A failure shows rclone's message, with your keys hidden.
+</Step>
+<Step title="Save it">
+Press **Add a destination** to save it.
+</Step>
+</Steps>
+
+<Callout type="tip" title="Keep backups off the machine">
+A Destination on another provider or region survives losing the Server the data is on. That is the
+only kind of backup that survives losing that machine.
+</Callout>
+
+## How does Test connection work?
+
+- Adding: it needs the **Secret access key** filled in, since nothing is saved yet; it probes
+  the bucket with what is typed.
+- Editing, with the secret typed in: it probes the values in the dialog.
+- Editing, with the secret left empty: it probes the Destination as it is saved. "Cloudgate
+  reached this destination as it is saved" means the stored one works; anything changed in the
+  dialog was not part of that test.
+- On the Hosted instance: choose a Server under **Test from** first. The test runs from that
+  Server, because this Cloudgate does not run checks from its own host. With no Servers, the field
+  says to add one first.
+
+## Edit a destination
+
+Press **Edit** on its row. The dialog, "Edit ...", holds the saved values except the secret. Leave
+**Secret access key** empty to keep the saved one, or type a new one to replace it. Press **Save
+changes**.
+
+## Remove a destination
+
+Press **Remove** on its row. "Remove ...?" explains that nothing in the bucket is deleted: only
+Cloudgate's credentials for it go. Press **Remove destination**, or **Keep it**.
+
+<Callout type="limit" title="Not while backups use it">
+A Destination still used by a database backup schedule or a volume backup cannot be removed. The
+refusal names each one and the Service it is on: point them at another Destination, or delete them,
+first.
+</Callout>
+
+## Who can manage destinations?
+
+Owners and admins, or a custom role that allows it.
+
+<Callout type="limit" title="Owners and admins">
+Adding, editing, testing and removing Destinations takes an owner or an admin, or a custom role that
+allows it. Members cannot. Without the right, the buttons are greyed out with the reason.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- Only S3-compatible storage; no SFTP, FTP or local folders.
+- The secret access key is never shown again.
+- Removing a Destination never deletes what is in the bucket, and is refused while a backup uses it.
+- Destinations are per Organization, not per Project.
+</Callout>
+
+## Related pages
+
+- [Backups](/docs/guide/backups): schedule database dumps and volume backups, and restore them.
+- [Databases](/docs/guide/databases): the Backups tab of a database.
+- [Buckets](/docs/guide/buckets): S3-compatible storage you deploy as a Service.
+- [Notifications](/docs/guide/notifications): hear when a backup ran or failed.
+- [Everything Cloudgate does](/features).

@@ -1,121 +1,337 @@
 ---
 title: Members and roles
-seoTitle: Invite members and set roles and access
-description: Invite people to your Cloudgate Organization, give them the owner, admin or member role, limit them to certain Projects and Services, and build custom roles.
-lede: Members are the people in an Organization. Their role decides what they can do; their access decides which Projects, Environments and Services they can see at all.
+seoTitle: Invite members, set roles and custom roles
+description: Invite people to a Cloudgate Organization, choose owner, admin, member or a custom role, grant Projects and Services, group people in Teams, and remove them.
+lede: Members are the people in an Organization. Their role decides what they can do; their access grants decide which Projects, Environments and Services they can reach at all.
 section: guide
 group: Team and access
 order: 1
 navTitle: Members and roles
 badges: ['Owner or Admin', 'Custom roles: Business plan or Enterprise license']
+updated: '2026-11-27'
 howto:
   name: Invite someone to an Organization
   steps:
-    - { name: Open Members, text: 'Open Settings and then Members, and press Invite someone.' }
-    - { name: Enter their details, text: 'Enter the email address they will sign in with, choose a Role and, optionally, a Team.' }
-    - { name: Create the invitation, text: 'Press Create invitation.' }
-    - { name: Send the link, text: 'Copy the invitation link and send it to them. They accept it to join.' }
-    - { name: Grant access, text: 'For the member role, press Manage access on their row and tick the Projects, Environments and Services they may reach.' }
+    - { name: Open Members, text: 'Open Settings, then Members, and press Invite someone.' }
+    - { name: Enter their details, text: 'Type the Email they will sign in with, choose a Role and, if the Organization has Teams, a Team.' }
+    - { name: Create the invitation, text: 'Press Create invitation. The dialog changes to Send them this link.' }
+    - { name: Send the link, text: 'Copy the invitation link and send it to them. They open it, sign in or create an account with that address, and press Accept invitation.' }
+    - { name: Grant access, text: 'For the Member role or a custom role, press Manage access on their row, tick the Projects, Environments and Services they may reach, and press Save access.' }
 faq:
-  - { q: Does Cloudgate email the invitation?, a: 'Only when the instance has a mail sender configured. The console always shows the invitation link, so you can send it yourself. An invitation expires after 48 hours.' }
-  - { q: Can I transfer ownership of an Organization?, a: 'No. The owner role is nontransferable: it cannot be given to someone else or taken from the owner.' }
-  - { q: What happens to a removed member's work?, a: 'It stays where it is. Their account remains, their membership goes, and nothing they created is reassigned or deleted.' }
-  - { q: How many custom roles can I make?, a: 'Up to ten per Organization, on the Business plan on the Hosted instance or with an Enterprise license when self-hosted.' }
+  - { q: 'Does Cloudgate email the invitation?', a: 'Only when the instance has an email sender set up. The console always shows the invitation link after Create invitation and keeps it in the Invitations list, so you can send it yourself. An invitation expires after 48 hours.' }
+  - { q: 'Can I transfer ownership of an Organization?', a: 'No. The owner role cannot be given to anyone else or taken from the owner, and no screen or route transfers it. Make the other person an admin: an admin can do everything except delete the Organization.' }
+  - { q: 'Why can a new member not see anything?', a: 'A member or custom role reaches only what is granted to them. Press Manage access on their row and tick the Projects, Environments and Services they need. Owners and admins reach everything without grants.' }
+  - { q: 'What happens to a removed member''s work?', a: 'It stays where it is. Their account remains, their membership of this Organization goes, and nothing they created is reassigned or deleted.' }
+  - { q: 'How many custom roles can I make?', a: 'Up to ten per Organization, on the Business plan on the Hosted instance or with an Enterprise license on a self-hosted instance. A role cannot be deleted while anyone holds it.' }
 ---
 
 Every Organization has exactly one owner. Everyone else is an admin, a member, or holds a custom
-role. Members see only what you grant them; owners and admins see everything.
+role. A role says what someone may **do**; their access grants say what they may **reach**. Owners
+and admins reach everything, so grants matter only for members and custom roles.
+
+Members are managed at **Settings** > **Members** (`/settings/members`) and custom roles at
+**Settings** > **Roles** (`/settings/roles`). Agents are members too, but they are managed under
+[Agents](/docs/guide/agents), not here.
 
 ## What you can do
 
-- Invite people by email and resend or revoke an invitation.
-- Change a member's role, or remove them.
-- Limit a member to certain Projects, Environments and Services.
+- Invite people by email, copy their invitation link, and revoke an invitation.
+- Change a member's role, or remove them from the Organization.
+- Grant a member access to certain Projects, Environments and Services.
+- Read exactly what each role allows, from the permission table Cloudgate checks.
 - Group people in Teams.
-- Build custom roles from the same permission table the backend checks (paid).
+- Build up to ten custom roles (Business plan or Enterprise license).
 
-## The built-in roles
+## What can each built-in role do?
+
+The three built-in roles are defined by Cloudgate itself, so nobody can change what they mean.
 
 | Role | What it can do |
 |---|---|
-| **Owner** | Everything, including deleting the Organization. One per Organization; cannot be transferred. |
-| **Admin** | Everything except deleting the Organization. Reaches every Project. |
-| **Member** | Reads and updates the Services and Environments they are granted; deploys, cancels, backs up and restores them; adds Domains. Cannot create or delete a Project, an Environment or a Service, add Servers, or manage members. |
+| **Owner** | Everything, including deleting the Organization. One per Organization; it cannot be given away or taken. |
+| **Admin** | Everything except deleting the Organization. Reaches every Project, Environment and Service. |
+| **Member** | On the Services and Environments granted to them: read and update them, deploy, cancel a Deployment, back up and restore databases and volumes, manage backup schedules and volumes, add and delete Domains, read monitoring and tags. Cannot create or delete a Project, Environment or Service, add Servers, registries, Cloud accounts, certificates, Destinations or notification channels, connect Git providers, read the audit log, or manage members. |
 
-Settings > **Members** has a **What each role can do** grid with the full list.
+The **What each role can do** card on the Members screen shows the full list for every role.
+
+## The Members screen
+
+<Screenshot name="members" alt="Settings, Members for Northwind Labs, listing four people with their role and member-since date, and a pending invitation for eli@northwind.example" caption="Each row has Change role, Manage access and Remove; the owner's row and your own say why they have none." />
+
+The screen has four cards, top to bottom: **Members**, **Invitations**, **What each role can do**
+and **Teams**. A banner can appear above them (see [Locked out by a custom
+role](#what-does-locked-out-by-a-custom-role-mean)).
+
+### Members
+
+Lists the people in this Organization, with a count such as "4 people in this Organization."
+
+| Column | What it shows |
+|---|---|
+| **Person** | Name and email address. **You** marks your own row. A **deactivated** mark and a line under the address appear when the person cannot sign in (see [SCIM](#what-does-deactivated-mean)). |
+| **Role** | `owner`, `admin`, `member` or a custom role's name. |
+| **Member since** | When they joined this Organization (not when their account was made). |
+| Actions | **Change role**, **Manage access** and **Remove**. The owner's row says **The owner cannot be changed**; your own row says **You cannot change your own role**. |
+
+Agents are not listed. When the Organization has any, the card's footer says how many and links to
+**Agents**.
+
+If your role cannot use a button, it is greyed out and its tooltip says so, for example "Your role
+in this Organization cannot invite someone. Ask an owner or an admin to do it, or to change your
+role."
 
 ## Invite someone
 
 <Steps>
-<Step title="Open Members">
-Open **Settings** > **Members** and press **Invite someone**.
-<Screenshot name="members" alt="Settings, Members for Northwind Labs, listing people with their role and member-since date, and pending invitations" caption="Each row has Change role, Manage access and Remove." />
+<Step title="Open the dialog">
+On **Settings** > **Members**, press **Invite someone**. Inviting takes an owner or an admin.
 </Step>
-<Step title="Enter their details">
-Enter the **Email** they will sign in with, choose a **Role** (Member, Admin, or a custom role),
-and optionally a **Team**. Press **Create invitation**.
+<Step title="Fill in the invitation">
+<Screenshot name="members-invite" alt="The Invite someone dialog with sam@northwind.example in Email and the Role left on Member" caption="The hint under Role describes the role you picked." />
 
-<Screenshot name="members-invite" alt="The Invite someone dialog on the Members screen of Northwind Labs" caption="An invitation names the person's email address and the role they join with." />
+| Field | What it does | Notes |
+|---|---|---|
+| **Email** | The address they will sign in with. | Required. An invitation works only for this address. |
+| **Role** | What they join as: **Member**, **Admin**, or one of the Organization's custom roles (each shows how many people hold it). | Defaults to Member. Owner is never offered. |
+| **Team** | Adds them to a Team when they accept. | Optional. Shown only when the Organization has Teams. Defaults to **No team**. |
 
+Press **Create invitation**.
 </Step>
 <Step title="Send them the link">
-The dialog shows **Send them this link**. Copy the invitation link and pass it on. If the instance
-has no mail sender, nothing was emailed and sending it is your job. The link stays in
-**Invitations** if you close the dialog.
+The dialog changes to **Send them this link** and shows the invitation link, of the form
+`https://<console>/accept-invitation/<id>`, with a copy button. Copy it and send it to them, then
+press **Done**. The link also stays in **Invitations** while it is waiting.
+
+<Screenshot name="members-invite-link" alt="The Send them this link dialog showing the invitation link for sam@northwind.example with a copy button" caption="The link is the invitation. Copy it now or later from the Invitations list." />
 </Step>
 </Steps>
 
-They sign in, or create an account, and accept. An invitation expires after 48 hours; **Resend** it
-or revoke it from **Invitations**.
+<Callout type="note" title="Who sends the email?">
+The dialog and the Invitations card say the instance sends no email, and you should plan on sending
+the link yourself. If the instance's administrator has set up an email sender, the person is also
+emailed the same link.
+</Callout>
+
+An invitation expires 48 hours after it is made. There is no resend: to send a fresh one,
+revoke the old one and invite them again, which makes a new link.
+
+### Custom roles in an invitation
+
+You can invite someone straight onto a custom role. Without a valid Business plan or Enterprise
+license, custom roles are left out of the picker and a notice says why: "Custom roles need a
+license before they can be assigned." Admin and Member always work.
+
+## What does the invited person see?
+
+Opening the link shows **You have been invited**, with **Sign in to accept** and **Create an
+account**. The invitation is for one email address: signing up with another one is refused with
+"That invitation was sent to a different email address."
+
+Once signed in with the right address, **Join this Organization** shows the **Organization**,
+**Your role** and **Invited address**. **Accept invitation** adds them, and they see **You are
+in**. If they are signed in as someone else, **Sign out** at the foot of the panel lets them switch.
+
+## Invitations
+
+Lists everyone who has been asked and has not joined yet.
+
+| Column | What it shows |
+|---|---|
+| **Email** | The invited address. |
+| **Role** | The role they will join with. |
+| **State** | **waiting**, **expired**, **accepted** or **closed**. |
+| **Expires** | When the link stops working. |
+
+A **waiting** row has a copy button for its link and **Revoke**. Any other row has **Delete**.
+
+- **Revoke** asks "Revoke the invitation for ...?" The invitation is deleted, so the link you passed
+  on stops working, and it cannot be reissued. Press **Revoke it**, or **Keep it** to back out.
+- **Delete** removes a used or expired row from the list. Nobody's access changes, and someone who
+  accepted stays a member. Press **Delete it**.
+
+Revoking and deleting invitations take an owner or an admin.
+
+## Change someone's role
+
+<Steps>
+<Step title="Open Change role">
+On their row in **Members**, press **Change role**. The dialog is titled "Change ...'s role".
+</Step>
+<Step title="Pick the role and read what it allows">
+Choose the **Role**. Under it, **What ... is allowed to do** lists every subject and action the role
+holds, ticked or crossed.
+
+<Screenshot name="members-change-role" alt="The Change role dialog for Dana Ruiz with the Role picker set to Member and the permission grid below it" caption="The grid under the picker is what the new role allows, read from the permission table Cloudgate checks." />
+</Step>
+<Step title="Save">
+Press **Change role**. It takes effect on their next request; they do not have to sign in again.
+</Step>
+</Steps>
+
+Cloudgate refuses four changes: your own role, the owner's role, making anyone the owner, and an
+admin changing another admin's role. The first two are greyed out on the row; the other two are
+refused with a message in the dialog.
 
 ## Grant access to Projects, Environments and Services
 
-A member reaches nothing until you grant it. On their row, press **Manage access** and tick what
-they may reach. A member reaches a Service through its Project and its Environment, so granting a
-Service grants the two above it. For example, grant `storefront` / `staging` / `web` to let someone
-work on staging without seeing production.
+A member reaches nothing until you grant it, apart from what they create themselves: whoever
+creates a Project, Environment or Service is granted it automatically.
 
-Admins and the owner reach everything, so grants are not checked while someone holds those roles.
+<Steps>
+<Step title="Open Manage access">
+On their row, press **Manage access**. The dialog is titled "Manage ...'s access".
+</Step>
+<Step title="Tick what they may reach">
+The dialog has three lists:
 
-## Change a role or remove a member
+- **Projects**: every Project in this Organization.
+- **Environments**: the Environments of the Projects you ticked.
+- **Services**: what is deployed in the Environments you ticked (Applications, databases and
+  Compose stacks).
 
-- **Change role**: takes effect on their next request; they do not have to sign in again. You cannot
-  change your own role or the owner's.
-- **Remove**: their account stays, their membership of this Organization goes. A session they have
-  open stops being allowed to do anything on its next request.
+Ticking travels up and unticking travels down: tick a Service and its Environment and Project are
+ticked too; untick a Project and everything under it goes.
+
+<Screenshot name="members-manage-access" alt="The Manage access dialog for Chen Wei with the storefront Project, its staging Environment and the staging web Application ticked" caption="Grant storefront, staging and web to let someone work on staging without seeing production." />
+</Step>
+<Step title="Save">
+Press **Save access**. It saves the whole set at once.
+</Step>
+</Steps>
+
+- On an **admin**, a notice says none of the grants is checked while they hold that role. The grants
+  apply if they are moved to member or to a custom role.
+- If a saved grant names something that has been deleted, or sits under something you are unticking,
+  the dialog lists it and saving removes it.
+
+<Callout type="note" title="Updating a Project or Environment reaches further">
+Updating a Project or an Environment also rewrites its variables, which every Service under it can
+reference, including Services the member is not granted. The grid says so on the **Project** and
+**Environments** rows.
+</Callout>
+
+## Remove a member
+
+Press **Remove** on their row. The dialog "Remove ...?" explains: their account stays, their
+membership of this Organization goes, and they lose access to every Project, Environment and
+Server in it. Anything they created stays exactly where it is.
+
+A session they already have open is not signed out. It stops being allowed to do anything here on
+its next request. Press **Remove member**, or **Keep them** to back out.
+
+## What each role can do
+
+This card answers "what can this role do?" for every role, straight from the permission table the
+backend checks. Pick a role (**Member**, **Admin**, **Owner** or a custom role) and the grid shows
+each subject, such as **Services**, **Deployment** or **Backup**, with its actions ticked or
+crossed.
+
+Notes on some rows:
+
+- **Not checked for the built-in roles.** Owner and admin are allowed this row whatever it shows.
+- **Managed by Cloudgate — a custom role cannot be given this.** Membership, invitations, Teams and
+  the Organization itself. Only the built-in roles carry these.
+
+The footer repeats that the owner role cannot be given away or taken.
+
+## Teams
+
+Teams group people. They do not change what anyone can do or reach: permissions come from a
+person's role and their access grants.
+
+- **Create a team**: give it a **Name** and press **Create team**. You add people afterwards.
+- Open a team's row to see who is in it. Choose someone in **Add a member** and press **Add**, or
+  press **Remove** beside a person to take them off the team. Neither changes their membership of
+  the Organization.
+- **Rename**: changes the name; everyone in it stays in it.
+- **Delete**: deletes the team and its roster together. Nobody is removed from the Organization.
+  Making it again means adding each person back by hand. Press **Delete the team**.
+
+Creating, renaming and deleting Teams, and adding people to them or taking them off, take an owner
+or an admin.
 
 ## Create a custom role
 
 <Callout type="limit" title="Business plan or Enterprise license">
 Custom roles need the Business plan on the Hosted instance, or an Enterprise license on a
-self-hosted instance. Without one, a custom role allows nothing, and people holding it can sign in
-but do nothing until you give them a built-in role.
+self-hosted instance. Creating, editing and deleting them also needs an owner or an admin.
+Anyone in the Organization can read the list.
 </Callout>
 
 <Steps>
 <Step title="Open Roles">
 Open **Settings** > **Roles** and press **Create a role**.
 
-<Screenshot name="roles" alt="The Roles screen with the custom roles release-manager and on-call and the permissions each allows" caption="Custom roles sit beside the built-in ones." />
+<Screenshot name="roles" alt="The Custom roles card with the role Release manager, its 30 grants across 15 subjects and the one member holding it" caption="Each row says how many grants it has and how many people hold it." />
+</Step>
+<Step title="Name it">
+Type a **Name**, such as `deployer`: lower case, no spaces, at most 50 characters, no commas.
+`owner`, `admin`, `member` and the Agent role names are reserved.
+</Step>
+<Step title="Tick what it allows">
+Under **What it allows**, tick each action on each subject. The counter shows how many grants are
+ticked. A role with no grants is allowed nothing: people holding it keep their membership and can
+read nothing that is checked.
 
+<Screenshot name="roles-builder" alt="The Create a role dialog with the name deployer and Deployment read, create and cancel ticked" caption="Every subject and action comes from the same permission table the backend checks." />
 </Step>
-<Step title="Name it and tick what it allows">
-Give it a lower-case name, such as `deployer`, and tick the subjects and actions it allows. Every
-choice comes from the same permission table the backend's guards check.
-</Step>
-<Step title="Assign it">
-Save, then pick it in **Change role** on a member's row, or when you invite someone.
+<Step title="Create it and assign it">
+Press **Create the role**. Then pick it in **Change role** on a member's row, or when you invite
+someone. Remember to grant them access with **Manage access**.
 </Step>
 </Steps>
+
+### The Roles screen
+
+| Column | What it shows |
+|---|---|
+| **Role** | The name, and "N grants across M subjects". |
+| **Members** | How many people hold it. Press the number to open **Who holds ...**, the list of their addresses. |
+| **Created** | When it was made. |
+| Actions | **Edit** and **Delete**. |
+
+- **Edit** opens the same dialog as **Create a role**, ending in **Save changes**. Renaming a role
+  moves everyone holding it to the new name.
+- **Delete** works only while nobody holds the role. "Delete ...?" removes it and its grants; press
+  **Delete the role**.
+- The footer says how many more you can create. At ten, **Create a role** is off until you delete
+  one.
+
+## What does "locked out by a custom role" mean?
+
+Without a valid license or Business plan, Cloudgate cannot resolve a custom role, so a person holding
+one is refused **every** permission-checked action, including the ones their role grants. They can
+sign in but do nothing.
+
+When that happens:
+
+- A banner on **Members** says "N members are locked out by a custom role", with **See the roles**.
+  The same banner on **Roles** has **Go to Members**.
+- **Roles** shows "Custom roles allow nothing right now." Each role is marked **Allows nothing**,
+  **Edit** is off, and **Change their role** opens next to the people holding it. The roles and
+  their grants are kept.
+- On the Hosted instance, after **Move to Starter** a strip says "Custom roles stop allowing
+  anything on" the move date, with **Keep Business**.
+
+Fix it by moving those people to **Admin** or **Member** in **Change role**, or by upgrading to
+Business or activating a license, which makes the roles work again unchanged.
+
+## What does "deactivated" mean?
+
+A person whose identity provider deactivated them over SCIM is marked **deactivated** with "Only
+the directory can reactivate them." They cannot sign in, and nothing on this screen reverses it. Their
+row keeps its buttons, so you can still **Remove** them. See [SSO and SCIM](/docs/guide/sso-and-scim).
 
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
-- The owner role cannot be transferred.
-- At most ten custom roles per Organization.
+- The owner role cannot be transferred, and there is only ever one owner.
+- At most ten custom roles per Organization, and none without the Business plan or an Enterprise
+  license.
+- A custom role cannot be given membership, invitation, Team or Organization rights.
 - Teams group people only; they do not change what anyone can do.
+- Invitations cannot be resent; revoke and invite again instead.
 - On a self-hosted instance, only the first sign-up arrives without an invitation.
-- A member deactivated over SCIM cannot sign in; only the directory can reactivate them.
 - Agents are managed under Settings > **Agents**, not here.
 </Callout>
 
@@ -123,6 +339,8 @@ Save, then pick it in **Change role** on a member's row, or when you invite some
 
 - [Agents](/docs/guide/agents): members that are not people, with their own roles and grants.
 - [SSO and SCIM](/docs/guide/sso-and-scim): let your identity provider sign people in and create members.
-- [Audit log](/docs/guide/audit-log): see who changed what.
+- [Audit log](/docs/guide/audit-log): see who changed a role or removed a member.
+- [Organizations](/docs/guide/organizations): create and switch Organizations.
+- [Billing and plans](/docs/guide/billing): the Business plan that unlocks custom roles.
 - [Personal keys](/docs/guide/personal-keys): a member's own credential for scripts.
 - [Security at Cloudgate](/security) and [plans and prices](/pricing).

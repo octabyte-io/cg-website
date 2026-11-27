@@ -68,7 +68,7 @@ account. A Deployment is one attempt to build and release a Service.
   - **`template try <folder>`**: runs a template's compose part on local Docker (Compose
     2.1.1+), checks each Domain answers, removes everything; values from the folder's
     `test-values.yaml`. No Instance or login needed.
-- **Git**: GitHub, GitLab, Bitbucket, Gitea, or any git URL; push-to-deploy via webhooks.
+- **Git**: GitHub, GitLab, Bitbucket, Gitea, or any git URL; push-to-deploy via webhook for GitHub only; GitLab, Bitbucket, Gitea and a git URL deploy when you press Deploy.
   Also a Docker image, or uploaded files.
 - **Project config** `cloudgate.yaml`: one file describing a Project's services, kept in the
   repository or in Cloudgate. Changes show as a **Plan** (create, change, destroy) you review and

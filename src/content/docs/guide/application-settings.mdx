@@ -1,0 +1,231 @@
+---
+title: Application settings
+seoTitle: 'Application settings: resources, ports, redirects'
+description: Set an Application's replicas, CPU and memory, run command, volumes, ports, redirects, basic auth and Docker Swarm options, or delete it, from its Advanced tab.
+lede: 'An Application''s Advanced tab holds everything about how it runs rather than what it runs: what it may use, what it can reach, how Swarm runs it, and how to delete it. Most changes take effect on the next Deployment.'
+section: guide
+updated: '2026-11-27'
+group: Deploy
+order: 5
+navTitle: Application settings
+badges: ['Members can change settings', 'Owner or Admin to delete']
+faq:
+  - { q: 'Do I have to redeploy after changing a setting?', a: 'Usually yes. Resources, the run command, the build server, mounts, published ports and Swarm settings reach the container on the next Deployment. Redirects and basic-auth users do not: Traefik reloads them within a second. The Google Cloud copy range is set at once.' }
+  - { q: 'How do I run more than one copy?', a: 'Set Replicas on Advanced, Resources. The count is kept per Environment in the console, never in cloudgate.yaml. Zero stops the Application without deleting anything.' }
+  - { q: 'Where do I set the container health check?', a: 'On Advanced, Docker Swarm, in the Health check card: the test command, interval, timeout, start period and retries. An Uptime check, which calls a Domain from outside, is separate and lives on the Health tab.' }
+  - { q: 'Does deleting an Application delete its data?', a: 'Not its volumes, unless you tick Delete its volumes too. Its Swarm service, its directory on the Server and its row in Cloudgate, with its variables, Domains and history, go.' }
+---
+
+Open an Application and its **Advanced** tab. Five sections sit in a bar along the top:
+**Resources**, **Runtime**, **Routing**, **Docker Swarm** and **Danger zone**. A strip at the top
+of each says how its changes are saved and when they take effect. Edits typed in one section stay
+while you look at another.
+
+<Screenshot name="application-advanced" alt="The Advanced tab of the web Application with its section bar: Resources, Runtime, Routing, Docker Swarm and Danger zone" caption="Each section saves on its own; the strip at the top says when a change reaches the container." />
+
+<Callout type="limit" title="Who can change these settings">
+Changing how an Application is built, run, previewed or rolled back needs the update action on
+Services, which the member role has for the Services it is granted. Deleting it needs the delete
+action on Services: owner, admin, or a custom role that has it. A refused control is greyed out
+and says why.
+</Callout>
+
+## Resources: replicas, CPU, memory and GPUs
+
+The **Resources** card says what the Application may use and what is held for it. Each card saves
+on its own with **Save changes**, and none of it reaches the running container until the next
+Deployment.
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Replicas** | How many copies Swarm runs. | Zero stops it without deleting anything. Kept per Environment in the console, never in the Project config. |
+| **CPU limit** | A ceiling in cores; `0.5` is half of one. | Empty means no ceiling. |
+| **CPU reservation** | Cores Swarm holds free before it schedules the Application anywhere. | |
+| **Memory limit** | In MB, or with GB. | The container is killed if it goes past it. |
+| **Memory reservation** | Memory Swarm holds free before it schedules it. | |
+| **GPUs** | Whole GPUs per running copy. | Shows how many the Server has and how many are free. |
+
+When the Project config sets a `size`, the CPU and memory limits are the config's and the card says
+so; replicas and reservations stay Cloudgate's. Sizes run from `xsmall` (0.25 CPU, 512 MB) doubling
+to `2xlarge` (8 CPU, 16 GB); on a Server a size is a cap only and reserves nothing.
+
+### Copies on Google Cloud Run
+
+A `web` on Google Cloud has a **Copies** card instead of a fixed count: **Fewest copies** (0 scales
+to zero when idle, so the first request after a quiet spell waits for a start) and **Most copies**
+(Cloud Run adds copies up to this as requests come in). It is set on Cloud Run as soon as you save,
+without a Deployment, and it is never part of the Project config.
+
+## Runtime: run command, volumes and the build server
+
+### Set the run command
+
+The **Run command** card replaces what the image says to run. Both fields take effect on the next
+Deployment.
+
+| Field | What it does |
+|---|---|
+| **Command** | Replaces the image's entrypoint. Split on spaces and run directly: there is no shell, so a pipe or `&&` is passed as an argument. |
+| **Arguments** | One per line. They replace the image's default arguments and are not split further. |
+
+### Add a volume or mount
+
+**Volumes and mounts** lists what the Application can read and write outside its own filesystem.
+Without a mount, whatever it writes is lost on every Deployment, when the container is replaced.
+Press **Add a mount**:
+
+| Field | What it does |
+|---|---|
+| **Kind** | **Volume** (a named Docker volume that survives the container), **Bind** (a path on the Server, which ties the Application to that Server) or **File** (content you type, written at deploy time). |
+| **Mount path** | Where it appears inside the container. For a file, the file's full path, such as `/etc/app/config.yml`. |
+| **Volume name** | The Docker volume, created on first use. This is the name a volume backup copies. |
+| **Host path** | The path on the Server. The Application only runs where that path exists. |
+| **File name** and **Content** | The copy kept on the Server, and its content. Encrypted at rest and written where only root can read it, so a config file with a credential belongs here. |
+
+Each row saves on its own, with **Edit** and **Remove**. Removing a volume mount does not delete
+the Docker volume: its data stays on the Server. Removing a bind touches nothing on the Server.
+Removing a file mount deletes the content held for it.
+
+### Build on another Server
+
+The **Build server** card shows **Runs on** and **Builds on**. Pick a **Build server** to keep image
+builds off the Server serving traffic, or **Build where it runs** (the default). The next
+Deployment builds there, and its log is written on that Server.
+
+A build on another Server needs a registry under **Push the image to** on the Build card: the
+Server that runs the Application cannot read an image left on another one. Without one the card
+says "This Application cannot deploy as it is configured."
+
+## Routing: port, published ports, redirects and basic auth
+
+Each row saves on its own. A published port waits for the next Deployment; redirects and basic
+authentication reach Traefik within a second.
+
+<Screenshot name="application-routing" alt="The Routing section of the web Application's Advanced tab: Container port 3000, one published port 9464/tcp in host mode, two redirects to shop.northwind.example, and no basic-auth users yet" caption="Port, published ports, redirects and basic-auth users each save on their own." />
+
+### Change the container port
+
+The **Container port** card (for `web` and `web-private` Applications) is the port the Application
+listens on inside its container. On a Server, saving a new port moves the Domains on the old port
+with it and routes them there at once; the container listens on the new port from the next
+Deployment. In a Cloud account the Domains follow at the next Deployment.
+
+### Publish a port on the Server
+
+**Ports** are reachable on the Server itself, without Traefik: use them for something that is not
+HTTP. For HTTP, add a Domain instead. Press **Publish a port**:
+
+| Field | What it does |
+|---|---|
+| **Port on the Server** | What clients connect to. It must be free on every node that could run the Application. |
+| **Port in the container** | What the process inside listens on. |
+| **Protocol** | **TCP** or **UDP**. |
+| **How it is published** | **Ingress** publishes it on every node and load-balances across tasks. **Host** binds it only on the node running the task, so the client's real address reaches it. |
+
+A private web service and a Cron service publish no port.
+
+### Add a redirect
+
+**Redirects** send matching requests somewhere else in Traefik, before the Application sees them:
+a moved path, or a bare domain sent to its `www` one. Press **Add a redirect**:
+
+- **Match this**: a Go regular expression matched against the whole URL, such as
+  `^https://northwind\.example/(.*)`. Constructs Go does not support are refused, because saved
+  they would stop every Domain of this Application being routed.
+- **Send it here**: where the browser goes; `${1}` keeps what the pattern captured, as in
+  `https://shop.northwind.example/${1}`.
+- **Permanent (301)**: off sends a 302.
+
+<Callout type="warn" title="A 301 is hard to take back">
+Browsers cache a permanent redirect indefinitely, and removing it in Cloudgate cannot clear that
+cache. Leave **Permanent (301)** off until the redirect is known to be right.
+</Callout>
+
+### Ask for a password with basic authentication
+
+**Basic authentication** makes Traefik ask for a username and password before a request reaches
+the Application. With no user, the card reads "Anyone can reach this Application". Press **Add a
+user** and enter a **Username** and **Password**. It protects every Domain of the Application, and
+nothing reaching a published port. A saved password is never shown again: editing a user replaces
+it.
+
+### Read the Traefik configuration
+
+**Traefik configuration** shows the routing this Application is served by, as Traefik reads it.
+If Traefik refused a router, the Domains tab names the host that stopped being served and what
+Traefik said, and the redirects or users that may be the cause are marked here.
+
+## Docker Swarm: health check, placement and updates
+
+**Docker Swarm** holds overrides passed to the Docker Engine when the Application is deployed.
+Everything is optional; a card left empty is not sent. All eleven cards are one form with one
+**Save Swarm settings** at the bottom, and the console asks before you leave with unsaved edits.
+They reach the service on the next Deployment.
+
+| Card | What it sets |
+|---|---|
+| **Service mode** | **Replicated** (a fixed number, from Replicas by default), **Global** (one task on every node), **Replicated job** or **Global job** (runs and finishes). |
+| **Placement** | **Constraints** (one per line; a task no node satisfies stays pending with nothing in the log), **Maximum replicas per node**, **Spread preferences**, **Platforms**. |
+| **Labels** | Docker labels on the service. Traefik's labels are Cloudgate's and do not belong here. |
+| **Networks** | Overlay networks beyond `cloudgate-network`, with **Aliases**. The network must already exist. |
+| **Restart policy** | **Condition** (`any`, `on-failure`, `none`), **Delay**, **Maximum attempts**, **Window**. |
+| **Update config** | **Parallelism**, **Order** (`start-first` or `stop-first`), **Delay**, **On failure** (`pause`, `continue`, `rollback`), **Monitor**, **Maximum failure ratio**. Saved only once Parallelism and Order are both set. |
+| **Rollback config** | The same, for when Swarm puts the previous version back. This is Docker's rollback, not the Rollbacks tab. |
+| **Health check** | **Test** (one argument per line, such as `CMD-SHELL` then `curl -f http://localhost:3000/health \|\| exit 1`; `NONE` disables the image's check), **Interval**, **Timeout**, **Start period**, **Retries**. |
+| **Endpoint spec** | **Mode** (`vip` or `dnsrr`) and Docker's own **Published ports** list. |
+| **Stop grace period** | Time between SIGTERM and SIGKILL. Too short drops in-flight requests on every Deployment. |
+| **Ulimits** | Kernel limits inside the container, such as `nofile` with **Soft** and **Hard**. |
+
+Durations are in seconds. Google Cloud Run never runs an image's `HEALTHCHECK`. When the Project
+config sets some of these under its native Docker settings, those cards say so; placement,
+networks, ports and the mode stay editable.
+
+## Delete an Application
+
+Open **Danger zone** > **Delete this Application** and press **Delete web** (the button carries the
+Application's name). The dialog lists what goes: on a Server, its Swarm service (its Domains stop
+being routed), its directory on the Server and its row, with its variables, Domains, Deployment
+history and everything else recorded against it. Type its name and press **Delete Application**.
+
+<Steps>
+<Step title="Decide about its volumes">
+Docker volumes its mounts name stay on the Server unless you tick **Delete its volumes too**. That
+removes them once the service is gone, and their data with them. A volume another Service uses,
+or one a backup or restore is running on, is kept and listed. Bind-mounted host paths are never
+touched.
+</Step>
+<Step title="Confirm">
+Type the name, then press **Delete Application**. Cloudgate returns you to the Environment.
+
+<Screenshot name="application-delete-dialog" alt="The Delete web dialog listing the Swarm service storefront-web and the directory applications/storefront-web it will remove, the Delete its volumes too switch, and the name field" caption="Read what will go, decide about the volumes, then type the name." />
+</Step>
+<Step title="If the Server cannot be reached">
+The Application is kept and the dialog says why. It then offers to remove it from Cloudgate anyway:
+that deletes the row and history at once without confirming anything on the Server, so whatever is
+still there keeps running and serving its Domains. Cloudgate lists what it could not confirm, for
+you to remove by hand.
+</Step>
+</Steps>
+
+<Callout type="warn" title="Deleting cannot be undone">
+The row, its variables and its history cannot be brought back. With **Delete its volumes too**,
+neither can the data. Take a [volume backup](/docs/guide/backups) first if you may need it.
+</Callout>
+
+In a Cloud account, Delete starts a Cloud run that destroys everything Cloudgate made for the
+Service and then checks nothing is left. The Overview shows **Deleting** until it ends. If anything
+remains, the Service stays as **Delete incomplete** with a list of what is left, and **Retry** or
+**Forget** it there. Forget drops it from Cloudgate; what is left may still bill you in the cloud
+until you remove it there.
+
+When the Environment's Project config is kept in a repository, the Application is the config's and
+Delete is greyed out: remove it from `cloudgate.yaml` instead.
+
+## Related pages
+
+- [Applications](/docs/guide/applications): sources, builders and the Overview.
+- [Deployments](/docs/guide/deployments): when a saved setting reaches the container.
+- [Domains](/docs/guide/domains): hosts, certificates and the DNS record.
+- [Backups](/docs/guide/backups) of volumes before you delete.
+- [Members and roles](/docs/guide/members-and-roles) for who may change what.
+- [Project config](/docs/guide/project-config) for `size`, `kind` and native Docker settings.
