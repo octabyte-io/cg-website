@@ -1,0 +1,178 @@
+---
+title: Configure Traefik on the platform host
+seoTitle: Edit Traefik config and DNS-01 in Cloudgate
+description: Edit traefik.yml and its dynamic files, change Traefik's environment and ports, and set up DNS-01 wildcard certificates on the machine Cloudgate runs on.
+lede: Traefik is the ingress every request to the machine Cloudgate runs on arrives through, the console's own and every Domain's. The Traefik screen edits its files, its container's environment and ports, and turns on wildcard certificates and request metrics.
+section: guide
+updated: '2026-11-27'
+group: Operate
+order: 6
+navTitle: Traefik
+badges: ['Self-hosted', 'Owner or Admin of the Instance organization']
+faq:
+  - { q: Why did my edit to traefik.yml do nothing?, a: 'traefik.yml is the static configuration, which Traefik reads once at start. Save it, then press Restart Traefik in the Danger zone. Files under dynamic/ are watched and take effect within seconds.' }
+  - { q: Why can I not save an empty Traefik file?, a: 'Saving an empty file is refused so a stray select-all and delete cannot remove a configuration. Delete the file on the machine itself if you really mean to.' }
+  - { q: Is it safe to publish the Traefik dashboard?, a: 'Not on a public machine. Traefik''s dashboard has no password, and publishing it on port 8080 shows every host, Service and middleware to anyone who can reach the machine.' }
+  - { q: "How do I get a wildcard certificate from Let's Encrypt?", a: 'Set up DNS-01 certificates with your DNS provider''s code and API credentials, then choose Custom resolver on the Domain and name letsencrypt-dns. Wildcards need DNS-01.' }
+  - { q: Does a remote Server have the same settings?, a: 'Yes, for that Server''s own Traefik: DNS-01 certificates, request metrics and request logging are on the Server''s Settings tab, for owners and admins with access to it.' }
+---
+
+**Settings** > **Traefik** is the Traefik container on the **platform host**, the machine
+Cloudgate itself is installed on. It serves the console's address and every Domain of every
+Service deployed to that machine. A remote Server has its own Traefik, set up on its
+[Settings tab](/docs/guide/servers). For installing the platform host,
+see [Install Cloudgate](/docs/self-host/install).
+
+## Who sees the Traefik screen
+
+<Callout type="limit" title="Instance organization only">
+- **Self-hosted**: the page is listed under **Platform** for everyone, but every save, switch and
+  restart needs an owner or admin of the **Instance organization** (the first Organization made on
+  the instance). Anyone else sees the controls off with **Only an owner or admin of the Instance
+  organization can do this.** No Agent can change it.
+- **Hosted instance**: the platform host is Octabyte's. The page is not listed for customers;
+  opened by its address it says **This page is for the owners and admins of the Instance
+  organization.**
+</Callout>
+
+The screen, top to bottom: three file cards, **Files**, **Traefik's container**, **DNS-01
+certificates**, **Request metrics** and a **Danger zone** with **Restart Traefik**.
+
+## Edit Traefik's three main files
+
+Each card shows one file in an editor, with **Save** (named after the file, such as **Save main
+configuration**), **Discard changes** once you have edited, and an expand button that opens the
+file filling the window. A save is refused when the YAML would not load, with the line and column,
+and the draft stays for you to fix. A file cannot be saved empty.
+
+| Card | File | When a save takes effect |
+|---|---|---|
+| **Main configuration** | `traefik.yml`: entry points, providers, certificate resolvers and the access log. | Only after **Restart Traefik**. It is the static configuration, read once at start. |
+| **This console's router** | `dynamic/cloudgate.yml`: how the console's own address is routed. | Within seconds. It is rewritten by the **Console domain** card on the Instance screen and deleted when that host is cleared, so a hand edit lasts until the next save there. |
+| **Shared middlewares** | `dynamic/middlewares.yml`: middlewares any router can name. | Within seconds. |
+
+<Callout type="warn" title="Keep redirect-to-https">
+Cloudgate defines one middleware in **Shared middlewares** and depends on it: `redirect-to-https`,
+named by the plain-HTTP router of every HTTPS Domain (Applications, Compose stacks and the
+console). Remove or rename it and Traefik drops those routers: HTTP stops redirecting and answers
+404. An Application's own path, redirect and basic-auth middlewares are kept in that Service's own
+file, not here.
+</Callout>
+
+<Callout type="note" title="A broken traefik.yml fails at the next restart">
+Nothing about `traefik.yml` fails when you save it, because Traefik reads it only at start. The
+YAML check catches syntax; a wrong setting still shows only when Traefik restarts. Keep a copy of
+the old file before a large change.
+</Callout>
+
+## Browse every Traefik file
+
+**Files** lists everything under Traefik's directory on the platform host in a tree. Choose a file
+to read or edit it, then **Save file** or **Discard changes**.
+
+- Files Cloudgate writes for a Service carry a warning: **Cloudgate writes this file.** It is
+  regenerated from that Service's Domains, redirects and security rules on every change, and
+  deleted when its last Domain goes, so a hand edit lasts only until then.
+- Files holding private keys (a certificate's `privkey.key`, and `acme.json`) are listed with
+  **not shown** and cannot be opened.
+- Basic-auth password hashes read as `<redacted>`; saving keeps the stored ones.
+- Files under `dynamic/` take effect within seconds. `traefik.yml` needs a restart.
+
+An empty tree reads **Traefik's directory is empty, or it is not on this host.**
+
+## Change Traefik's container: dashboard, environment and ports
+
+**Traefik's container** shows what the container was started with. Every change here saves by
+**recreating the container in the background**, so every connection on ports 80 and 443 drops
+when it happens. The card says **Recreating…** until it can read the new container. If after a
+minute it still reads as before, it says so; the reason is in Cloudgate's own log.
+
+| Setting | What it does |
+|---|---|
+| **Publish the dashboard on 8080** | Publishes Traefik's own dashboard on port 8080. It has no password, so the whole routing table is open to anyone who can reach the machine. Leave it off on a public server. |
+| **Environment variables** | One `KEY=value` per line, as the container was started with. A `${{…}}` reference is resolved on the way in. Press **Save environment**. |
+| **Ports** | Extra ports Traefik binds, beyond 80 and 443. Each row has **On the host**, **In the container** and its protocol; **Add a port** adds `8080` to `8080` over TCP, **Remove** takes a row out, then **Save ports**. With none, it reads **Traefik publishes only 80 and 443 on this host.** |
+
+If Traefik is not running, the card shows the error instead: these three are read from the
+running container. The files above are on disk and stay readable.
+
+## Get wildcard certificates with DNS-01
+
+**DNS-01 certificates** has Let's Encrypt prove a domain through your DNS provider instead of over
+port 80. It is the one way to get a wildcard certificate, and it works for hosts that are not
+reachable from the internet.
+
+<Steps>
+<Step title="Name the DNS provider">
+In **DNS provider**, type the provider's code from Traefik's provider list (it uses lego codes),
+for example `cloudflare`. Codes are lowercase letters, digits and dashes.
+</Step>
+<Step title="Add its credentials">
+
+<Screenshot name="traefik-dns-challenge" alt="The DNS-01 certificates card with cloudflare as the DNS provider and CF_DNS_API_TOKEN as Key 1 with its value masked, before saving" caption="Values are stored encrypted and never shown again." />
+
+Add each environment variable the provider reads, as **Key 1** and **Value 1**, such as
+`CF_DNS_API_TOKEN` and its token. **Add a credential** adds a row. A key is capitals, digits and
+underscores, starting with a letter; a value is one line. They are stored encrypted and never
+shown again.
+</Step>
+<Step title="Save">
+Press **Save DNS-01 setup**. Cloudgate adds a `letsencrypt-dns` resolver beside `letsencrypt` in
+this machine's `traefik.yml` and restarts Traefik with the credentials in its environment, in the
+background. Domains using `letsencrypt` keep working as they are.
+</Step>
+<Step title="Use it on a Domain">
+On the Domain, choose **Custom resolver** and type `letsencrypt-dns` in **Traefik resolver**.
+Forward auth's authentication domain can use it too, as **A custom resolver**.
+</Step>
+</Steps>
+
+Once saved, the card lists the stored keys (never their values). Saving again keeps them; press
+**Replace credentials** to type a new set, which replaces every stored credential, or **Keep the
+stored credentials** to go back.
+
+**Remove DNS-01 setup** asks **Remove the DNS-01 setup?**: the provider and its credentials are
+deleted, the resolver is taken out of `traefik.yml` and Traefik restarts. A certificate it issued
+is no longer renewed. It is refused while an Application's previews, a Domain or forward auth on
+this machine still names `letsencrypt-dns`; the refusal names each, so turn those off first.
+
+## Turn on request metrics
+
+**Request metrics** decides whether Traefik counts requests per Service, which is what each
+Service's **Error rate** on [Monitoring](/docs/guide/monitoring) is read from. While it is off,
+every Service on the platform host reads "request metrics not enabled on this Server" instead of an
+Error rate.
+
+Press **Enable request metrics**. The dialog **Enable request metrics and restart Traefik?** says
+that every connection Traefik is serving drops, and requests fail until it is back, a second or two
+when idle, longer under load. Press **Enable and restart Traefik**. Once on, the row shows **On**;
+the counters are kept inside Traefik's own container, where no other container can read them.
+
+## Restart Traefik
+
+The **Danger zone** has **Restart Traefik**, needed after editing `traefik.yml`. Its confirmation
+says it drops every connection Traefik is serving, including the console's if the console is
+served through Traefik. Cloudgate asks Docker to restart the container and answers at once, so it
+cannot report whether Traefik came back: check the Health card on
+[Instance settings](/docs/guide/instance-settings#check-the-instances-version-and-health).
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- Remote Servers' Traefik files are not on this screen; a Server's DNS-01, request metrics and
+  request logging are on its own Settings tab.
+- No undo or history for file edits.
+- Cloudgate cannot tell whether Traefik came back after a restart; it only asks Docker.
+- Files holding private keys are never shown or edited here.
+</Callout>
+
+## Related pages
+
+- [Instance settings](/docs/guide/instance-settings): the console's domain, health and
+  maintenance.
+- [Domains and TLS certificates](/docs/guide/domains): the routes Traefik serves.
+- [Upload your own TLS certificates](/docs/guide/certificates): material Traefik serves before it
+  asks Let's Encrypt.
+- [Servers](/docs/guide/servers): a remote Server's own Traefik.
+- [Monitoring](/docs/guide/monitoring): the Error rate request metrics feed.
+- [Self-host Cloudgate](/self-hosted).

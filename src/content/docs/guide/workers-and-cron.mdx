@@ -1,9 +1,10 @@
 ---
 title: Workers, cron services and private web services
-seoTitle: Workers, cron jobs and private web services
+seoTitle: Run workers, cron jobs and private web services
 description: Run a queue consumer as a worker, an internal API as a private web service, and nightly jobs as a cron service, on a Server, AWS or Google Cloud.
-lede: Not every Service serves the public web. A worker runs all the time with no address, a private web service answers only your other Services, and a cron service runs a command on a timetable.
+lede: Workers, private web services and cron services are Applications that do not serve the public web. A worker runs all the time with no address, a private web service answers only your other Services, and a cron service runs a command on a timetable.
 section: guide
+updated: '2026-11-27'
 group: Services
 order: 4
 navTitle: Workers, cron, private
@@ -126,30 +127,47 @@ services:
       github: northwind/storefront
       path: /report
     command: node dist/report.js
-    schedule: "0 3 * * *"
+    schedule: "0 2 * * *"
     timezone: Europe/Berlin
-    timeout: 30m
+    timeout: 15m
 ```
 
 Each firing is a **run**: a fresh container from the cron service's last successful build, which
 exits when the command does. Nothing fires before its first build succeeds.
 
-Its **Overview** has a **Timetable** card with the schedule, time zone, **Time limit** and
-**Next runs**. The timetable is "Set in the Project config; a plan changes it."
+Its **Overview** has a **Timetable** card, "Set in the Project config; a plan changes it.", with
+the **Schedule**, **Time zone**, **Time limit** and **Next runs**: the next five fire times, written
+in the cron service's own time zone whatever zone your browser is in. Until a build succeeds, the card
+shows **Waiting for first build**: "Nothing fires until a build succeeds." A cron service has no
+**Restart** button, and its **Deploy** builds the image the next runs start from.
+
+<Screenshot name="cron-timetable" alt="The Timetable card of the nightly-report Cron service, waiting for its first build: schedule 0 2 * * *, time zone Europe/Berlin, time limit 15m and its next five runs, with Run now" caption="The timetable comes from the Project config; nothing fires until a build succeeds." />
 
 <Steps>
 <Step title="Run it now">
-Press **Run now** to start one run. It works even while the timetable is paused.
+Press **Run now** on the Timetable card to start one run. "Run started. Its output and exit code
+are in its log on the Deployments tab." It works even while the timetable is paused. Until the first
+build succeeds the button is off, and its tooltip reads "Waiting for first build: a run starts from
+the image of the last build that succeeded." It needs the same permission as **Deploy**.
 </Step>
 <Step title="Pause the timetable">
-Press **Stop** to pause the timetable in this Environment and stop runs in flight. **Start**
-resumes it.
+Press **Stop** in the header to pause the timetable in this Environment and stop a run in flight:
+"its timetable starts no run until you start it again". **Start** resumes it from its next fire
+time.
 </Step>
 <Step title="Read a run's output">
 On a Server a cron service has no **Logs** tab: each run's output is its Deployment log, on the
-**Deployments** tab.
+**Deployments** tab, where a run reads **succeeded**, **failed** or **stopped**. In a Cloud account
+the **Logs** tab keeps the cloud's log, which holds its runs' output.
+</Step>
+<Step title="Cancel one run">
+**Cancel** on a running run stops that run only: "The run was cancelled. Its timetable keeps going."
 </Step>
 </Steps>
+
+When a build of a cron service fails, the Overview's banner says whether it is "waiting for its
+first build" (its timetable fires nothing) or that "Its runs still start from the last build that
+succeeded".
 
 How the timetable behaves:
 
@@ -167,9 +185,23 @@ timetable fires them in both, so nothing bills between runs but stored images an
 
 ## Run a command inside an Application on a cron
 
-Not every scheduled job needs its own Service. An Application's **Schedules** tab runs a command
-inside that Application's running container on a cron: press **Add a schedule** and set a
-**Name**, the **Command**, **Shell**, **Cron expression** and **Time zone**. The container must be running.
+Not every command on a timetable needs its own Service. An Application's **Schedules** tab runs a command
+inside that Application's running container on a cron: a nightly clean-up, a digest, a cache warm.
+Press **Add a schedule**:
+
+| Field | What it does |
+|---|---|
+| **Name** | What the schedule is for, and how its runs are named. |
+| **Description** | Optional. |
+| **Cron expression** | Five fields: minute, hour, day, month, weekday, such as `0 3 * * *`. |
+| **Time zone** | An IANA name such as `Europe/London`. Empty runs in the Server's own time zone, usually UTC. |
+| **Shell** | `bash` or `sh`. The image must have it: a minimal Alpine image has `sh` and not `bash`. |
+| **Command** | Run with `docker exec` inside the running container, so it sees that container's files and variables. |
+| **Enabled** | Off keeps the schedule and stops it firing. |
+
+**Run now** on a row hands the command to the container at once. The **Run history** card below
+lists every run of the schedule you pick, with what came out of it. If the Application is not
+running when the cron fires, there is nothing to exec into.
 
 ## What you cannot do
 
@@ -182,7 +214,9 @@ inside that Application's running container on a cron: press **Add a schedule** 
 
 ## Related pages
 
-- [Applications](/docs/guide/applications): sources, builders, sizes and replicas.
+- [Applications](/docs/guide/applications): sources, builders and the Overview.
+- [Application settings](/docs/guide/application-settings): replicas, resources, ports and mounts.
+- [Deployments](/docs/guide/deployments): where each cron run's output is.
 - [The Project config and Plans](/docs/guide/project-config).
 - [Environment variables](/docs/guide/environment-variables).
 - [Monitoring and logs](/docs/guide/monitoring).

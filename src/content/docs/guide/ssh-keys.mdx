@@ -1,0 +1,97 @@
+---
+title: SSH keys
+seoTitle: 'Manage the SSH keys Cloudgate uses for Servers'
+description: Generate or paste an SSH key in Cloudgate, put its public line on your Server, change the key a Server uses, and rename or delete keys safely.
+lede: An SSH key is how Cloudgate signs in to a Server. Keys belong to the Organization, any Server in it can use one, and Cloudgate keeps the private half encrypted and never shows it.
+section: guide
+group: Where it runs
+order: 2
+navTitle: SSH keys
+updated: '2026-11-27'
+badges: ['Owner or Admin', 'Hosted and self-hosted']
+howto:
+  name: Add an SSH key for a Server
+  steps:
+    - { name: 'Open SSH keys', text: 'In Servers, press SSH keys.' }
+    - { name: 'Name the key', text: 'Enter a Name and, optionally, a Description.' }
+    - { name: 'Generate or paste', text: 'Choose Generate one and a type (ed25519 or RSA 4096), or Paste one I have with both halves, then press Add key.' }
+    - { name: 'Install the public half', text: 'Press Public key, copy the line and add it to the SSH user''s ~/.ssh/authorized_keys on the machine.' }
+faq:
+  - { q: 'Can I see the private key after adding it?', a: 'No. Cloudgate encrypts the private half in its own database and never shows it on any screen.' }
+  - { q: 'Which key type should I generate?', a: 'ed25519 is the default and works on any current OpenSSH. Choose RSA 4096 only for a machine whose sshd does not accept ed25519.' }
+  - { q: 'What happens to Servers when I delete their key?', a: 'The delete goes ahead and those Servers are left with no key, so Cloudgate cannot reach them until you choose another key on each one''s Access tab.' }
+  - { q: 'How do I rotate a Server''s key?', a: 'Add a new key, put its public line on the machine, choose it with Change the key on the Server''s Access tab, then delete the old key.' }
+---
+
+Cloudgate dials every Server with the private half of the key you chose for it, so the public half has
+to be in the SSH user's `authorized_keys` on the machine first. One key can serve many Servers. Keys
+are managed in one dialog, opened from the [Servers](/docs/guide/servers) screen.
+
+## Where do I manage SSH keys?
+
+Open **Servers** and press **SSH keys** in the header. A Server's **Access** tab opens the same dialog
+with **All keys**. When the Organization has no key yet, the **Add a Server** dialog shows **Manage SSH
+keys** instead of a picker; after you add a key and press **Done** you are back in Add a Server with
+what you typed kept and the new key chosen.
+
+<Screenshot name="ssh-keys-dialog" alt="The SSH keys dialog with the add form and a key named deploy-bot showing its public line" caption="Add a key at the top; each key below says which Servers use it." />
+
+## Add a key
+
+<Steps>
+<Step title="Name it">
+Enter a **Name**, such as `production-hosts`, and an optional **Description**.
+</Step>
+<Step title="Generate or paste">
+Under **Where the key comes from**:
+
+| Choice | What you enter | What happens |
+|---|---|---|
+| **Generate one** | A **Type**: **ed25519** (default) or **RSA 4096**. | Cloudgate makes the pair and keeps the private half. |
+| **Paste one I have** | **Public key**: one line starting `ssh-ed25519` or `ssh-rsa`. **Private key**: the matching private half. | Both halves are needed. The private key is encrypted at rest. |
+
+Press **Add key**.
+</Step>
+<Step title="Install the public half">
+The new key opens with its public line shown. Press the copy button and add the line to
+`~/.ssh/authorized_keys` of the SSH user on each machine that will use the key, for example
+`/root/.ssh/authorized_keys` for root.
+</Step>
+</Steps>
+
+## Use a key for a Server
+
+Choose the key in **Add a Server**, or later on the Server's **Access** tab: press **Change the key**,
+pick it under **Which key reaches fra-1**, and press **Save**. Cloudgate does not check the machine when
+you save; press **Check now** on the Infrastructure tab to try it.
+
+## Rename or delete a key
+
+Each row shows the key's name, description, when it was added and which Servers use it.
+
+- **Public key** shows and hides the public line with a copy button.
+- **Rename** edits the name in place; **Save**, or press Enter. Escape cancels.
+- **Delete** asks first and names every Server that uses the key.
+
+<Callout type="warn" title="Deleting a key strands its Servers">
+A delete is not refused while Servers use the key. Those Servers are left with no key: nothing can be
+deployed to them, read from them or opened in a shell until you choose another key on each one's
+**Access** tab.
+</Callout>
+
+## What you cannot do
+
+<Callout type="limit" title="Owners and admins">
+Adding, renaming and deleting SSH keys needs the owner or admin role, or a custom role that allows it.
+</Callout>
+
+- See or download a private key after it is added.
+- Replace a key's halves in place. To rotate, add a new key, install it, choose it, then delete the old one.
+- Use a password instead of a key for a Server.
+
+## Related pages
+
+- [Servers](/docs/guide/servers): add a Server, check that Cloudgate reaches it, and its host key.
+- [Buy a Server from Cloudgate](/docs/guide/bought-servers): no key to make; Cloudgate does it.
+- [Personal keys](/docs/guide/personal-keys) are a different thing: API keys for scripts and the CLI.
+- [Security](/security).

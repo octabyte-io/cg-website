@@ -1,0 +1,143 @@
+---
+title: Requests and the access log
+navTitle: Requests
+seoTitle: 'Requests screen: read a Server''s access log'
+description: See every HTTP request your Services received on a Server, read live from Traefik's access log, with requests per hour and filters for Service, status and method.
+lede: The Requests screen shows the HTTP requests your Services received on your own Servers, one row per request Traefik answered, with a requests-per-hour chart above. It reads the Server's access log live over SSH and keeps nothing.
+section: guide
+group: Operate
+order: 3
+updated: '2026-11-27'
+badges: ['Every member', 'Servers only, not Cloud accounts']
+faq:
+  - { q: 'Why does the Requests screen say request logging is off?', a: 'Traefik on that Server is not writing an access log. An owner or admin turns it on from the Request logging card in the Server''s settings, then restarts Traefik, because the setting is part of Traefik''s static configuration.' }
+  - { q: 'Does Cloudgate store my access logs?', a: 'No. Requests reads the Server''s Traefik access log over SSH each time you open or filter it, and keeps nothing it reads. If the Server cannot be reached there is nothing older to show.' }
+  - { q: 'Can I see requests for a Service in AWS or Google Cloud?', a: 'No. Requests covers your own Servers only. A Service in a Cloud account has its requests in that cloud''s own load balancer or CDN logs.' }
+  - { q: 'Why are some requests marked No Service?', a: 'They reached the Server''s Traefik but matched none of your Services'' Domains, for example a scan of the bare IP address. Only a member who can read the whole Server sees them.' }
+---
+
+Open **Requests** in the rail, under **Observe**, at `/requests`. A single Service's requests are
+also on its own **Requests** tab; this screen shows a whole Server at once. For error-rate alerts
+built on the same data, see [Monitoring, uptime and logs](/docs/guide/monitoring).
+
+## What you can do
+
+- Pick a Server and read the requests it served in the last 15 minutes, hour, 6 hours, 24 hours or
+  7 days.
+- See requests per hour, the busiest hour and quiet hours on a chart.
+- Filter by Service, status class, method and host, path or Service name.
+- Sort every column, and page through 50 rows at a time.
+- Share the view: the Server and every filter are in the page address.
+
+<Screenshot name="requests" alt="The Requests screen for the Server fra-1 over 6 hours, with a requests-per-hour chart, totals and a request log of GET and POST requests to api, shop and stats.northwind.example with their status, time taken, size and client" caption="The chart and the log read the same window and filters." />
+
+## Choose a Server
+
+The picker beside the heading lists the Servers you can read, and the **Platform host** when you
+have authority over the machine Cloudgate itself runs on. The screen opens on the Server you looked
+at last in this Organization, or else the first by name.
+
+If the address names a Server that does not exist or that you may not read, the screen says **Server
+not found or not permitted**: Cloudgate answers the same way for both. Pick one of yours.
+
+## The filters
+
+| Filter | What it does |
+|---|---|
+| **Service** | **All** (the whole Server) or **All yours** when you can read only some of it; tick Services to narrow, or **No Service** for requests that matched no Service |
+| Time range | **Last hour** (the default), **6 hours**, **24 hours**, **7 days**. A slow read offers **Last 15 minutes** |
+| **Status** | **Informational** (1xx), **Succeeded** (2xx), **Redirected** (3xx), **Client error** (4xx), **Server error** (5xx) |
+| **Method** | **Reads** (GET, HEAD, OPTIONS) and **Writes** (POST, PUT, PATCH, DELETE) |
+| **Search host, path or service** | Matches the host, and falls back to path and Service when no host matches |
+
+Filters apply to the whole window, not only to the page shown.
+
+## Requests per hour
+
+The chart counts requests in each UTC hour of the window, and names the **Busiest hour** and the
+**Quiet hours**.
+
+One read covers only the newest part of the Server's access log, at most about 20,000 requests, and
+never older rotated log files. When that stops short of the window's start, a warning above the
+chart says **Showing back to** a time **only**, the start of the chart is striped "Not read before"
+that time, and those unread hours are not counted as quiet. Pick a shorter range to see all of it.
+
+## The request log
+
+**Request log** lists requests newest first; every column sorts. The strip above says how many are
+shown out of how many match, in the window.
+
+| Column | What it shows |
+|---|---|
+| **Status** | The status code and its class; **no reply** when Traefik got no answer |
+| **Method** | GET, POST and so on |
+| **Host and path** | The host asked for, and the path |
+| **Took** | How long the request took |
+| **Size** | The size of the response |
+| **Service** | The Service that answered, or **No Service** |
+| **Client** | The client's address and its user agent |
+| **When** | The time, with the exact moment on hover |
+
+The footer says which Server it was read from and when. Cloudgate's own console traffic is left out
+of every figure.
+
+## When there is nothing to show
+
+| Message | Why | What to do |
+|---|---|---|
+| **No Servers yet** | The Organization has no Server. Services in a Cloud account have no Server here | **Add a Server**, if your role may |
+| **Request logging is off on** the Server | Traefik there writes no access log | An owner or admin presses **Open** with the Server's name and **settings**, and turns on **Request logging** |
+| **Waiting for Traefik to restart on** the Server | Logging is on but Traefik has not restarted with it | Restart Traefik from the same card |
+| **No requests yet on** the Server | Logging is on and nothing has arrived since Traefik started | Wait for traffic |
+| **Can't reach** the Server | Cloudgate could not open an SSH connection | **Try again**, or open **Server status** |
+| **Reading** the Server **took too long** | The read stopped after 10 seconds | **Try the last 15 minutes**, or **Try again** |
+| **No request matches those filters** | The filters leave nothing | Widen the window or clear filters |
+| **No requests in this window** | Nothing in this range | Choose a longer range |
+
+On the platform host a shared hostname can hide some lines: "Some requests to your Services can't be
+shown because another Organization uses the same hostname on the platform host."
+
+## Turn request logging on
+
+Request logging is a switch on each Server's **Settings** tab, the **Request logging** card. For the
+platform host, the same card appears at the top of this screen for whoever may change it.
+
+<Steps>
+<Step title="Turn it on">
+Press **Turn on request logging**. Cloudgate adds an `accessLog` block to `traefik.yml`.
+</Step>
+<Step title="Restart Traefik">
+That file is Traefik's static configuration, so nothing is recorded until Traefik restarts.
+Cloudgate does not restart it for you. When you are ready, press **Restart Traefik** and confirm
+in **Restart Traefik?**.
+</Step>
+</Steps>
+
+<Callout type="warn" title="Restarting Traefik drops connections">
+A restart drops every connection on ports 80 and 443 for a moment. Choose a quiet time. The same is
+true after **Turn off**: Traefik keeps recording until it restarts.
+</Callout>
+
+If the card says **There is no Traefik configuration on this host**, the Server's setup has not
+installed Traefik, so there is nothing to read; run the Server's setup. See
+[Servers](/docs/guide/servers).
+
+## Who can see what
+
+<Callout type="limit" title="Roles and limits">
+- Any member sees the requests of the Services they may read. Requests that match no Service, and
+  the **All** total, need permission to read the whole Server.
+- Turning request logging on or off takes an owner or admin of the Organization; for the platform
+  host, an owner or admin of the Instance organization.
+- Only your own Servers: not Services in a Cloud account, and not Agents.
+- Nothing is stored: every view reads the log again, so a wide window on a busy Server is slower,
+  and paging does not make it cheaper.
+</Callout>
+
+## Related pages
+
+- [Monitoring, uptime and logs](/docs/guide/monitoring): error rate, uptime checks and runtime logs.
+- [Servers](/docs/guide/servers): the Settings tab and the setup run that installs Traefik.
+- [Domains and TLS certificates](/docs/guide/domains): the hosts your requests arrive on.
+- [A tour of the console](/docs/guide/console-tour).
+- [Features](/features).

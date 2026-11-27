@@ -1,63 +1,69 @@
 ---
 title: Databases
-seoTitle: Run PostgreSQL, MySQL and Redis databases
-description: Add a PostgreSQL, MySQL, MariaDB, MongoDB, Redis or libSQL database, find its connection details, link it to a Service, or use one you already run in the cloud.
-lede: A database is a Service that runs one engine for the Applications in its Environment. On a Server Cloudgate runs it as a container; in a Cloud account the Project config makes it as RDS, ElastiCache, Cloud SQL or Memorystore.
+seoTitle: Run PostgreSQL, MySQL, MongoDB and Redis
+description: Add a PostgreSQL, MySQL, MariaDB, MongoDB, Redis or libSQL database, read its connection details, publish a port, link it to a Service and delete it safely.
+lede: A database is a Service that runs one engine for the Applications in its Environment. On a Server Cloudgate runs it as a container with its own data volume; in an AWS or Google Cloud account the Project config makes it as RDS, ElastiCache, Cloud SQL or Memorystore.
 section: guide
 group: Services
 order: 1
-updated: '2026-11-17'
-badges: ['Owner or Admin to create', 'Server, AWS and Google Cloud']
+updated: '2026-11-27'
+badges: ['Owner or Admin to create and delete', 'Members can change settings', 'Server, AWS and Google Cloud']
 howto:
   name: Add a database on a Server
   steps:
     - { name: Open the Environment, text: 'Open the Environment, such as production, and its Services tab.' }
     - { name: Choose an engine, text: 'Press Add a database and pick PostgreSQL, MySQL, MariaDB, MongoDB, Redis or LibSQL.' }
-    - { name: Name it and set its credentials, text: 'Give it a name such as pg-main, set its database name, user and password, and choose the Server it runs on.' }
+    - { name: Name it and set its credentials, text: 'Enter a name such as orders-db and the engine''s own fields. Leave Password empty to have one generated, choose the Server it runs on and press Create.' }
     - { name: Deploy it, text: 'The database opens on its Overview, not yet deployed. Press Deploy.' }
     - { name: Link it, text: 'On the Service that uses it, link a variable such as DATABASE_URL to the database Output url, then deploy that Service.' }
 faq:
   - { q: Which database engines can Cloudgate run?, a: 'PostgreSQL, MySQL, MariaDB, MongoDB, Redis and libSQL on a Server. In an AWS or Google Cloud account, PostgreSQL, MySQL and Redis, made by the Project config as RDS, ElastiCache, Cloud SQL or Memorystore.' }
-  - { q: Can I use a database I already have?, a: 'Yes, in a Cloud account: an RDS or Cloud SQL instance for PostgreSQL or MySQL, or an ElastiCache or Memorystore cache for Redis. Cloudgate reads it and hands out its Outputs, and never changes, stops or deletes it.' }
-  - { q: Does deleting a database on a Server delete its data?, a: 'No. Delete removes the database container and its record, and leaves its data volume on the Server. Rebuild is the action that deletes the data.' }
-  - { q: Why does my MongoDB 8 database never start?, a: 'MongoDB 8 exits at start on Linux kernels 6.19.0 to 7.0.13, including Ubuntu 26.04''s first 7.0 kernels. Cloudgate warns about it on the Server and in the database form. Update the kernel and reboot, or use <code>mongo:7</code> until you can.' }
-  - { q: Do I have to copy the password into my Application?, a: 'No. Link a variable to the database Output, such as DATABASE_URL to url. The value is filled in at each deploy and never saved on the Service.' }
+  - { q: Does deleting a database on a Server delete its data?, a: 'Only if you tick Also delete its data volume in the Delete dialog. Without the tick Cloudgate removes the container and its record and leaves the data volume on the Server, out of reach of the console.' }
+  - { q: Why did changing the password on the Credentials tab not change the login?, a: 'PostgreSQL, MySQL, MariaDB and MongoDB read their credentials only on first start, against an empty data directory. Change the password inside the engine as well, or rebuild the database, which deletes its data. Redis and libSQL read theirs at every deploy.' }
+  - { q: Can I link a MongoDB, MariaDB or libSQL database to a Service?, a: 'Not with a wired variable. Only PostgreSQL, MySQL and Redis hand out Outputs. For the others, copy the host and credentials from the Credentials tab into the Service''s variables.' }
+  - { q: Why does my MongoDB 8 database never start?, a: 'MongoDB 8 exits at start on Linux kernels 6.19.0 to 7.0.13, including Ubuntu 26.04''s first 7.0 kernels. Cloudgate warns about it on the Server and in the database form. Update the kernel and reboot, or use mongo:7 until you can.' }
 ---
 
-A database is one of the three kinds of Service, beside Applications and Compose stacks. The
+A database is one of the kinds of Service, beside Applications, Compose stacks and buckets. The
 examples below use the `storefront` Project, its `production` Environment, a PostgreSQL database
-named `pg-main` on the Server `fra-1`, and the `web` Application that reads it.
+named `orders-db` on the Server `fra-1`, and the `web` Application that reads it.
 
-## What you can do
+## What can you do with a database?
 
 - Run PostgreSQL, MySQL, MariaDB, MongoDB, Redis or libSQL on a Server.
 - In AWS or Google Cloud, run PostgreSQL, MySQL and Redis as the cloud's managed service.
-- Read its connection details inside the Environment and, if you publish a port, from outside.
-- Link its Outputs (`url`, `host`, `password` and more) to another Service's variables.
+- Read its connection details inside the Environment and, once you publish a port, from outside.
+- Link a PostgreSQL, MySQL or Redis Output (`url`, `host`, `password` and more) to another
+  Service's variables.
 - Use a database you already run in the cloud, as given.
-- Schedule dumps to a Destination and restore one: see [Backups](/docs/guide/backups).
+- Schedule dumps to a Destination and restore one: see [Backups and restore](/docs/guide/backups).
 
-## Which engines you can run
+## Which engines can you run?
 
-| Engine | Default image | Port | On a Server | In AWS | In Google Cloud |
+Six engines run on a Server: PostgreSQL, MySQL, MariaDB, MongoDB, Redis and libSQL. In AWS or
+Google Cloud, PostgreSQL, MySQL and Redis run as the cloud's managed service.
+
+| Engine | Image it starts with | Port | On a Server | In AWS | In Google Cloud |
 |---|---|---|---|---|---|
 | PostgreSQL | `postgres:18` | 5432 | Yes | RDS for PostgreSQL | Cloud SQL for PostgreSQL |
 | MySQL | `mysql:8.4` | 3306 | Yes | RDS for MySQL | Cloud SQL for MySQL |
 | MariaDB | `mariadb:11` | 3306 | Yes | <Badge tone="plain">No</Badge> | <Badge tone="plain">No</Badge> |
 | MongoDB | `mongo:8` | 27017 | Yes, optionally as a replica set | <Badge tone="plain">No</Badge> | <Badge tone="plain">No</Badge> |
 | Redis | `redis:8` | 6379 | Yes, password only | ElastiCache | Memorystore |
-| LibSQL | sqld | 8080 (HTTP) | Yes, as a primary or a replica | <Badge tone="plain">No</Badge> | <Badge tone="plain">No</Badge> |
+| LibSQL | `ghcr.io/tursodatabase/libsql-server:v0.24.32` | 8080 (HTTP), 5001 (gRPC), 5000 (admin) | Yes, as a primary or a replica | <Badge tone="plain">No</Badge> | <Badge tone="plain">No</Badge> |
 
-You can change the image when you create it, for example to pin a minor version.
+The **Image** is a free text field: any tag the engine publishes, or a mirror of your own, such as
+`postgres:16` or `mysql:5.7`. The engine itself cannot be changed after the database is created.
 
 ### MongoDB 8 and the host kernel
 
 MongoDB 8 (`mongo:8`, `mongo:8.0.x` or `mongo:latest`) exits as soon as it starts on a Linux kernel
 from 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0 kernels. Cloudgate reads each host's
 real kernel version and warns before anything is deployed: in the **Add a database** form when a
-MongoDB 8 image is picked, on the MongoDB's **Overview**, in a Template's setup when the template
-runs MongoDB 8, and in the **Kernel** row of the Server's **What is installed** list. Nothing is
-refused. To fix it, update the kernel and reboot the host:
+MongoDB 8 image is picked, on the MongoDB's **Overview** ("This MongoDB will not start on its
+host"), in a Template's setup when the template runs MongoDB 8, and in the **Kernel** row of the
+Server's **What is installed** list. Nothing is refused. To fix it, update the kernel and reboot
+the host:
 
 ```bash
 sudo apt update && sudo apt full-upgrade
@@ -66,7 +72,10 @@ sudo reboot
 
 Until then, the `mongo:7` image starts on that kernel.
 
-## Add a database on a Server
+## How do I add a database on a Server?
+
+Press **Add a database** in the Environment, pick an engine, name it and choose its Server, then
+deploy it:
 
 <Steps>
 <Step title="Open the Environment">
@@ -74,52 +83,130 @@ Open the Project `storefront`, then the Environment `production`. Its **Services
 it runs.
 </Step>
 <Step title="Choose an engine">
-Press **Add a database**. The dialog's first step, **Choose an engine**, shows the six engines.
-Pick one, for example **PostgreSQL**.
-<Screenshot name="database-create" alt="The Add a database dialog on its first step, Choose an engine, with PostgreSQL, MySQL, MariaDB, MongoDB, Redis and LibSQL" caption="The second step asks only for what the chosen engine needs." />
+Press **Add a database**. The dialog's first step, **Choose an engine**, shows the six engines with
+the image each starts with. Pick one, for example **PostgreSQL**.
+<Screenshot name="database-create" alt="The Add a database dialog on its first step, Choose an engine, with PostgreSQL, MySQL, MariaDB, MongoDB, Redis and LibSQL and the image each one runs" caption="The engine decides the image, the credentials and the port, and cannot be changed later." />
 </Step>
 <Step title="Name it and set its credentials">
-On **Name it and set its credentials**, enter a **Name** such as `pg-main`, an optional
-**Description**, and the engine's own fields: **Database name**, **User** and **Password** for
-PostgreSQL, a **Root password** for MySQL, only a **Password** for Redis, **Run as a replica set**
-for MongoDB, or **Node type** (**Primary** or **Replica**) for LibSQL. Choose the **Server** it runs
-on, such as `fra-1`.
+On **Name it and set its credentials**, fill in the fields in the table below and choose the
+**Server** it runs on, such as `fra-1`. Press **Back** to pick another engine.
+<Screenshot name="database-create-details" alt="The second step of Add a database for PostgreSQL, with Name pg-main, Description, Database name, User, an empty Password, Image postgres:18 and Server" caption="Leave Password empty and Cloudgate generates one." />
+</Step>
+<Step title="Create it">
+Press **Create PostgreSQL** (the button names the engine). The database opens on its own
+**Overview**, not yet deployed.
 </Step>
 <Step title="Deploy it">
-The database opens on its own **Overview**: "It is not deployed yet". Press **Deploy**. Its tabs
-are **Overview**, **Credentials**, **Variables**, **Shell**, **Backups**, **Health** and
-**Advanced**.
+Press **Deploy**. The first deploy pulls the image and creates the data volume.
 </Step>
 </Steps>
 
-Put the database on the same Server as the Services that use it. On another Server every query
-crosses the network.
+| Field | What it does | Engines |
+|---|---|---|
+| **Name** | What the database is called in Cloudgate. Its Swarm service gets a generated name of its own that never changes. | All |
+| **Description** | Optional: what it holds. | All |
+| **Database name** | The database created inside the engine on first start. | PostgreSQL, MySQL, MariaDB |
+| **User** | The account applications connect as. | PostgreSQL, MySQL, MariaDB, MongoDB, LibSQL |
+| **Password** | Empty generates a 16-character one. `$ ! ' " \ /` and spaces are refused, because the password goes into the container's start command. | All |
+| **Root password** | The root account, separate from the user. Backups and restores run as root. | MySQL, MariaDB |
+| **Run as a replica set** | Starts a single-node replica set, which transactions and change streams need. Turning it on later does not suit a data directory made without it. | MongoDB |
+| **Node type** | **Primary** (accepts writes) or **Replica** (follows a primary). | LibSQL |
+| **Primary URL** | For a replica only, and required: the primary's gRPC address, such as `http://libsql-a1b2c3:5001`. | LibSQL |
+| **Enable namespaces** | Lets one server hold many logical databases addressed by hostname. | LibSQL |
+| **Image** | The image and tag to run. A new major version usually will not start on an older version's data. | All |
+| **Server** | Where it runs. The picker turns off Servers that are not ready. | All |
+
+For PostgreSQL, MySQL and MariaDB the database name and user take letters, digits and underscores
+and start with a letter or an underscore, up to the engine's own length (PostgreSQL 63 for both;
+MySQL 64 and 32; MariaDB 64 and 80). A PostgreSQL user cannot start with `pg_`.
+
+Put the database on the same Server as the Services that use it: on another Server every query
+crosses the network. On a Self-hosted install the picker also offers **This Cloudgate host**, the
+machine Cloudgate itself runs on; the form then warns that losing that machine loses the database
+and all of Cloudgate's records together.
 
 <Callout type="limit" title="Who can add one">
 Adding any Service needs the `service: create` permission. Owners and admins have it; the built-in
-member role does not, and sees the button turned off with the reason.
+member role does not, and sees **Add a database** turned off with the reason. In an Environment
+that deploys to a Cloud account, the button makes a database on a Server or this Cloudgate host;
+a cloud database comes from the [Project config](/docs/guide/project-config).
 </Callout>
 
-## Find the connection details
+## What is on a database's Overview?
 
-Open the database's **Credentials** tab. The **Connection** card has two parts:
+The header shows the engine and the Swarm service name, and holds the actions: **Open a shell**,
+**Deploy**, **Start**, **Stop** and **Rebuild**. **Start** and **Stop** stay off until the first
+deploy: "Deploy creates it." **Stop** scales the service to zero and leaves the data volume alone.
 
-- **Inside the Environment**: **Host**, **Port**, **Connection string** and, for MySQL, the
-  **Root password**. Other Services on the Server reach the database at this host.
-- **From outside the Server**: only once you publish a port.
+<Screenshot name="database-overview" alt="The Overview of orders-db, with the Deploy, Start, Stop and Rebuild buttons, the Identity card, the Container output and the Database card" caption="The Database card beside every tab says where it runs and how many copies are configured." />
 
-Secrets are hidden until you press **Show secrets**.
+- **Identity**: **Name**, **Description** and **Image**. A new image reaches the container on the
+  next deploy, not on save.
+- **Container output**: what the engine is writing, live from its service.
+- "The last deploy did not finish" appears when the service did not converge, for example when
+  the image did not pull or the memory reservation is larger than the Server has free. The
+  container output says why, if the engine got far enough to write it.
+- The **Database** card: **Status**, **Engine**, **Image** ("not confirmed running" after a failed
+  deploy), **Service name**, **Config name**, **Environment**, **Project**, **Server**, **Replicas**
+  and **Created**.
 
-<Screenshot name="database-credentials" alt="The Credentials tab of pg-main, with the host, port and a masked connection string inside the Environment" caption="Values stay masked until you choose Show secrets." />
+When the Project config is kept in a repository and describes this database, the fields it sets
+(the description and image, the database name and user, the CPU and memory limits) are locked in
+the console and say which file to change.
 
-To reach the database from your laptop or another network, add a port on the **Published ports**
-card. Saving redeploys the database straight away, so connections are refused for a few seconds.
+## How do I find a database's connection details?
 
-## Link a database to a Service
+Open the **Credentials** tab. The **Connection** card has two parts, and every value has a copy
+button. Secrets stay masked until you press **Show secrets**.
+
+- **Inside the Environment**: **Host** (the Swarm service name), **Port**, **Database**, **User**,
+  **Password**, the **Root password** for MySQL and MariaDB, and a **Connection string**. Every
+  Service on the Server reaches the database at this host without a published port.
+- **From outside the Server**: empty until you publish a port, then the Server's address, the
+  published port and an external connection string.
+
+<Screenshot name="database-credentials" alt="The Credentials tab of orders-db, with its host storefront-orders-db, port 5432, database and user inside the Environment, and the password and connection string masked" caption="Values stay masked until you choose Show secrets." />
+
+The connection strings take the engine's usual form: `postgresql://` for PostgreSQL, `mysql://` for
+MySQL and MariaDB, `mongodb://...?authSource=admin` for MongoDB, `redis://default:<password>@...`
+for Redis, and an `http://` URL with the user and password for LibSQL.
+
+### Publish a port to connect from outside
+
+To reach the database from your laptop or another network, enter a port on the **Published ports**
+card and press **Save ports**. LibSQL has three listeners, each published on its own: **HTTP port**,
+**gRPC port** (not on a replica, which has none of its own) and **Admin port**. Leave a field
+empty to keep that listener private.
+
+<Screenshot name="database-published-ports" alt="The Published ports card of orders-db with the Database port field set to 15432 and the warning about the open port" caption="Saving redeploys the database straight away." />
+
+<Callout type="warn" title="A published port is open to anything that can reach the Server">
+Cloudgate writes no firewall rule and keeps no allowlist: the password is the only protection.
+Saving redeploys the database at once (connections are refused for a few seconds); on a stopped
+database the port takes effect at its next start. Publishing needs the `service: create` and
+`service: update` permissions, so the built-in member role cannot.
+</Callout>
+
+### Change the stored credentials
+
+The **Credentials** card holds the engine's own fields. Password fields start empty and read
+**Unchanged**: leave one empty to keep the current password.
+
+<Callout type="warn" title="Most engines read credentials only once">
+PostgreSQL, MySQL, MariaDB and MongoDB read the user and password only on first start, against an
+empty data directory. On a database that already holds data, saving a new value changes what
+Cloudgate shows and hands to the next deploy, not the login inside the engine. Change it in the
+engine as well, or **Rebuild** to start over from these values, which deletes the data. Redis and
+LibSQL read theirs at every start, so a change applies at the next deploy and the old value stops
+working then.
+</Callout>
+
+## How do I link a database to a Service?
 
 Linking is better than copying a password. A **wired variable** takes one of the database's
 **Outputs** and fills it into a Service's variable at every deploy; the value is never saved on the
-Service.
+Service. PostgreSQL, MySQL and Redis hand out Outputs; MariaDB, MongoDB and LibSQL do not, so copy
+their details from the **Credentials** tab into the Service's variables instead.
 
 <Steps>
 <Step title="Open the Service that connects">
@@ -127,7 +214,7 @@ Open the Application `web` and its **Variables** tab.
 </Step>
 <Step title="Link a variable">
 On the **Wired variables** card press **Link a variable**. Enter the variable name, for example
-`DATABASE_URL`, choose the Service `pg-main` and the Output `url`, then press **Save link**.
+`DATABASE_URL`, choose the Service `orders-db` and the Output `url`, then press **Save link**.
 </Step>
 <Step title="Deploy the Service">
 Deploy `web`. The container now gets `DATABASE_URL` with the current connection string.
@@ -138,13 +225,13 @@ In the Project config the same link is one line under the Service:
 
 ```yaml
 services:
-  pg-main:
+  orders-db:
     kind: postgres
   web:
     kind: web
     env:
-      - DATABASE_URL: pg-main.url
-      - DATABASE_CA: pg-main.ca
+      - DATABASE_URL: orders-db.url
+      - DATABASE_CA: orders-db.ca
 ```
 
 | Engine | Outputs |
@@ -153,13 +240,52 @@ services:
 | Redis | `url`, `host`, `port`, `password`, `ca` |
 
 Every Output is a secret. A Server hands out no `ca`; linking one there is refused by the plan.
-More on links in [Environment variables](/docs/guide/environment-variables).
+More on links in [Environment variables and secrets](/docs/guide/environment-variables).
+
+## What is on the Variables, Shell and Health tabs?
+
+- **Variables**: a block of `KEY=value` lines for anything else the image reads. The engine's own
+  credentials are added at deploy from the Credentials tab; a line here with the same name
+  **replaces** one. Project and Environment variables are not inherited: reference one by name,
+  such as `CACHE_URL=${{project.REDIS_URL}}`. A PostgreSQL, MySQL or Redis can also link other
+  Services' Outputs on its **Wired variables** card. Saved variables reach the container at the
+  next deploy.
+- **Shell**: a shell (`sh`) in the engine's running container, where the engine's own command-line
+  client usually is. It needs the `service: update` permission and is absent for a database in a Cloud
+  account.
+- **Health**: the database's health, as on every Service. See
+  [Monitoring, uptime and logs](/docs/guide/monitoring).
+
+## What is on the Advanced tab?
+
+On a Server, **Advanced** has two settings cards and the delete card. Both cards take effect on the
+next deploy.
+
+- **Run command**: **Command** replaces the image's entrypoint (split on spaces, no shell), and
+  **Arguments** replace its default arguments, one per line.
+- **Resources**: **Replicas**, **CPU limit**, **CPU reservation**, **Memory limit** and
+  **Memory reservation**. Replicas `0` stops the database without deleting anything.
+
+<Callout type="warn" title="Read the engine's note before setting a Run command">
+For PostgreSQL, MySQL, MariaDB and a standalone MongoDB, leave **Command** empty and put engine flags
+in **Arguments**: a Command replaces the part of the image that initialises the data directory, and
+the engine does not start. On a MongoDB replica set, Arguments are ignored. On LibSQL a Command
+replaces the whole `sqld` start line and must keep `--http-listen-addr 0.0.0.0:8080`, or the
+database becomes unreachable. On Redis, setting either field **turns the password off**: the
+password is enforced by the start command Cloudgate generates.
+</Callout>
+
+More than one replica is almost always wrong for a database: these engines write to one volume,
+and two copies on it corrupt it. A memory reservation larger than any Server has free leaves the
+service pending with nothing in the log to say why.
+
+<Screenshot name="database-advanced" alt="The Advanced tab of orders-db with the Run command card (Command empty, Arguments -c and max_connections=200), the Resources card with a 1 GB memory limit and 512 MB reservation, and the Delete this database card" caption="Command empty and flags in Arguments is the shape that starts." />
 
 ## Databases in AWS and Google Cloud
 
 In an Environment whose Deploy target is a Cloud account, only the
-[Project config](/docs/guide/project-config) creates Services. Write the database in the config,
-then review and **Apply** the Plan:
+[Project config](/docs/guide/project-config) creates cloud databases. Write the database in the
+config, then review and **Apply** the Plan:
 
 | Engine in the config | AWS | Google Cloud |
 |---|---|---|
@@ -167,72 +293,112 @@ then review and **Apply** the Plan:
 | `mysql` | RDS for MySQL | Cloud SQL for MySQL |
 | `redis` | ElastiCache | Memorystore |
 
-What changes in a cloud:
+What is different in a cloud:
 
-- **TLS.** A PostgreSQL or Redis takes only TLS connections; its `url` asks for TLS and `ca` is the
-  certificate to trust. A MySQL offers TLS without requiring it. Pass `ca` to your client to check
-  the certificate.
-- **Memorystore has no password.** Its `url` carries none, and a variable linked to `password` is
-  left unset. Only the Environment's own private network reaches it, so any Service in that
-  Environment can connect.
-- **Credentials tab.** Shows whether TLS is required or offered, and the engine's settings card
-  (**RDS settings**, **ElastiCache settings**, **Cloud SQL settings** or **Memorystore settings**).
-- **Stop.** An RDS instance starts itself again after seven days. ElastiCache and Memorystore
-  cannot be stopped.
-- **Backups.** The cloud keeps them; you set **Backup retention** or **Snapshot retention** in
-  days. See [Backups](/docs/guide/backups).
+- **Connection.** The **Credentials** tab shows the endpoint once the Cloud run has made it
+  ("Not made yet" before), and whether TLS is **Required** (PostgreSQL, Redis) or
+  **Offered, not required** (MySQL). Pass the `ca` Output to your client to check the certificate.
+  There are no published ports.
+- **Memorystore has no password.** Only the Environment's own private network reaches it, over
+  TLS. A variable linked to `password` is left unset. ElastiCache shows whether an **AUTH token**
+  is set.
+- **Settings on Advanced.** **RDS settings**: **Machine type** (only when the config gives no
+  size), **Storage (GB)** from 20 and only growing, **Grows to (GB)**, **Multi-AZ** and
+  **Backup retention (days)**. **ElastiCache settings**: **Machine type**, **Replica** and
+  **Snapshot retention (days)**. **Memorystore settings**: **High availability**. A Cloud SQL
+  database's machine comes from its size in the config. Nothing changes in the cloud until a Plan
+  with the change is applied.
+- **Stop.** Stopping an RDS instance asks first: AWS starts it again after seven days, and storage
+  and backups still bill. A stopped Cloud SQL instance stays stopped until you start it, and its
+  storage, backups and private address still cost money. ElastiCache and Memorystore cannot be
+  stopped: delete them to stop paying.
+- **No Rebuild and no Shell.** For a fresh database, delete the Service and apply again.
+- **Backups.** The cloud keeps them; you set the retention on the Backups tab. See
+  [Backups and restore](/docs/guide/backups#backups-of-databases-in-aws-and-google-cloud).
 
 <Callout type="limit" title="Server-only engines">
 MariaDB, MongoDB and libSQL run only on a Server. The Project config lists them by name and kind,
 and a Plan never changes or destroys them.
 </Callout>
 
-## Use a database you already have
+## Can I use a database I already have?
 
-In a Cloud account you can point a database Service at an instance made outside Cloudgate. When a
-Plan would create the database, choose **Use an existing database** on that line and give:
+Yes, in a Cloud account. When a Plan would create the database, choose **Use an existing database**
+on that line (or **Use an existing cache** for a Redis) and give:
 
 - the **RDS identifier** on AWS, or the Cloud SQL **Connection name** (`project:region:instance`) on
   Google Cloud;
-- the **Login**, **Password** and **Database** your Services use;
-- on AWS, a tick on **I made it reachable from this Environment**.
+- the **Login**, **Password** and **Database** your Services use: Cloudgate makes no user and no
+  database;
+- **I made it reachable from this Environment** when it is outside the Environment network's VPC.
 
-For a Redis, the same choice takes an ElastiCache cache (node-based, cluster mode off) or, on Google
-Cloud, a Memorystore for Valkey instance.
+For a Redis, the same choice takes a node-based ElastiCache replication group with cluster mode
+off, or a Memorystore for Valkey instance with cluster mode and authorization off, with its
+**AUTH token** and **TLS** settings.
 
 Cloudgate looks the instance up at every Plan and hands out the usual Outputs. **It is used as
-given**: Cloudgate creates no database or user in it, never opens its network, and never changes,
-stops or deletes it. Deleting the Service removes only Cloudgate's records.
+given**: Cloudgate never changes, stops or deletes it, so **Start**, **Stop** and **Rebuild** are
+off. Its Overview shows an **Existing database** card (identifier, region, where it was found,
+whether a password is set) and a **Login and identifier** card to change what Cloudgate reads. If
+it cannot be found, Plans are refused until you fix the identifier and **Check for changes**.
 
-## Stop, rebuild or delete a database
+### Switch between a database Cloudgate makes and one you have
 
-The actions in the database's header are **Deploy**, **Start**, **Stop** and **Rebuild**. A
-database has no Remove containers.
+A cloud PostgreSQL, MySQL or Redis has a **Switch database** card (**Switch cache** for Redis) on
+its Overview. **Use an existing database instead** opens the same form; **Switch to a database
+Cloudgate makes** goes the other way. The next Plan removes one Service and adds the other. **No
+data is copied.** **Cancel the switch** undoes it before the Plan runs.
+
+## How do I stop, rebuild or delete a database?
+
+**Rebuild** removes the data volume and deploys the image again from empty. It keeps the
+database's record, credentials, variables and published port. It is offered only on a Server.
 
 <Callout type="warn" title="Rebuild deletes every row">
-**Rebuild** removes the data volume and deploys the image again from empty. It keeps the database's
-record, credentials, variables and published port. It cannot be undone; you confirm by typing the
-name. It is not offered in a Cloud account.
+Rebuild cannot be undone. The dialog names the volume it deletes, which is the Swarm service name plus `-data`, such as `postgres-k3x9q2-data`;
+type the database's name and press **Rebuild and delete the data**. Take a dump first if there is
+any chance you need the data: see [Backups and restore](/docs/guide/backups).
 </Callout>
 
-**Delete database** (confirm by typing its name) stops and removes the database and its record.
-On a Server its data volume is left behind on the Server, and the toast names it. In a cloud,
-Delete takes a final snapshot unless you tick **Also delete its data**.
+To delete it, open **Advanced** and press **Delete orders-db** on the **Delete this database** card,
+then type the name and press **Delete database**.
+
+- **On a Server** the service, record, credentials, variables and published port go. The data
+  volume stays on the Server unless you tick **Also delete its data volume**. A kept volume is out
+  of reach of the console afterwards; remove it on the Server with `docker volume rm <volume>`.
+- If Docker still reports the service, or the Server cannot be reached, the database is kept and
+  the dialog offers **Delete again** or **Remove from Cloudgate anyway**. The second deletes the
+  record without confirming anything on the Server and lists what it could not remove. That list
+  is shown once.
+- **In a cloud** a Cloud run lifts deletion protection and destroys the instance, keeping a final
+  snapshot (or backup) unless you tick **Also delete its data**. A **Deleting** card follows the
+  run; if it stops part way, a **Delete incomplete** card lists what is left (it may still bill)
+  with **Retry** and **Forget**.
+- **An existing database** offers **Delete from Cloudgate**: only Cloudgate's records go, and the
+  instance is left as it was. If the Project config still lists it, the next Plan creates it as a
+  new database.
+
+<Callout type="limit" title="Who can delete">
+Deleting needs the `service: delete` permission (owners and admins). The button is also off while a
+Project config kept in a repository describes the database: remove it from the config instead.
+</Callout>
 
 ## What you cannot do
 
 - Run MariaDB, MongoDB or libSQL in a Cloud account.
-- Create a cloud database from the console's **Add a database** button: in a Cloud Environment the
-  Project config creates it.
-- Back up Redis with a dump: it has no dump or restore command.
-- Move a database to another Server or cloud. Its place is fixed when it is created.
-- Give a Memorystore cache a password or token: only its Environment's private network reaches it.
+- Change a database's engine, or move it to another Server or cloud.
+- Link a MariaDB, MongoDB or libSQL with a wired variable.
+- Back up Redis with a dump: it has no dump or restore command in Cloudgate.
+- Restrict a published port to some addresses: there is no allowlist.
+- Give a Memorystore cache a password or token.
 
 ## Related pages
 
 - [Backups and restore](/docs/guide/backups): scheduled dumps, cloud retention, Destinations.
-- [Environment variables and wired variables](/docs/guide/environment-variables).
+- [Environment variables and secrets](/docs/guide/environment-variables), including wired
+  variables.
 - [The Project config and Plans](/docs/guide/project-config), which create cloud databases.
 - [Connect an AWS or Google Cloud account](/docs/guide/cloud-accounts).
+- [Servers](/docs/guide/servers), where a database runs.
 - [Buckets](/docs/guide/buckets), linked the same way as a database.
 - The [features overview](/features).

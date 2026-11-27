@@ -1,0 +1,167 @@
+---
+title: Upload your own TLS certificates
+seoTitle: Upload a custom TLS certificate to Cloudgate
+description: Store a TLS certificate and private key for a host Let's Encrypt cannot issue for, such as a bought wildcard or an internal CA, and serve it from Traefik.
+lede: A stored certificate is TLS material you bring yourself, a PEM certificate chain and its private key, which Traefik serves for every host it covers. Use one when Let's Encrypt cannot issue for a host, such as an internal domain, a wildcard you bought or a certificate signed by your own CA.
+section: guide
+updated: '2026-11-27'
+group: Operate
+order: 5
+navTitle: Certificates
+badges: ['Owner or Admin', 'Platform host', 'Self-hosted']
+howto:
+  name: Serve your own certificate on a Domain
+  steps:
+    - { name: Open Certificates, text: 'In the console, open Settings, then Certificates, and press Add a certificate.' }
+    - { name: Paste the material, text: 'Give it a Name, paste the full PEM chain (leaf first) into Certificate and the key into Private key.' }
+    - { name: Save, text: 'Press Add a certificate. Cloudgate writes the pair into Traefik''s certificate directory.' }
+    - { name: Choose it on the Domain, text: 'On the Application''s Domains tab, edit the Domain, keep Serve over HTTPS on and choose Stored certificate.' }
+faq:
+  - { q: Does Cloudgate renew a stored certificate?, a: 'No. A stored certificate is material you pasted in. To renew it, edit it and paste the new certificate; leave Private key empty if the new certificate uses the same key. For automatic renewal, use Let''s Encrypt on the Domain.' }
+  - { q: Does a wildcard certificate cover every subdomain?, a: 'It covers exactly one label: *.northwind.example covers shop.northwind.example but not northwind.example itself or a.b.northwind.example. When both an exact certificate and a wildcard cover a host, the exact one is served.' }
+  - { q: Can I see the private key again?, a: 'No. It is stored encrypted and never returned by the console or the API. The certificate half is public and stays readable in the edit dialog.' }
+  - { q: Why does a Domain set to Let's Encrypt serve my certificate instead?, a: 'Traefik serves a stored certificate for every host whose names it covers, before it asks Let''s Encrypt. That is the same for a Domain set to a custom resolver. Remove or narrow the stored certificate if you want Let''s Encrypt to issue.' }
+  - { q: Why was Add a certificate refused?, a: 'Adding a certificate, or replacing its certificate or key, writes to the Traefik on the machine Cloudgate runs on, which serves every Organization. Only an owner or admin of the Instance organization may do that. Other owners and admins can still rename and remove their own certificates.' }
+---
+
+**Settings** > **Certificates** lists the certificates your Organization has stored. When you add
+one, Cloudgate writes the pair into the certificate directory of the Traefik on the **platform
+host** (the machine Cloudgate itself runs on), and Traefik serves it for any host the
+certificate's names cover. A Domain then uses it by choosing **Stored certificate**. For the usual
+case, a public host pointed at a Server, you do not need this: Let's Encrypt issues and renews a
+certificate on its own. See [Domains and TLS certificates](/docs/guide/domains).
+
+## What you can do
+
+- Add a certificate chain and private key you got elsewhere: a bought wildcard, an internal CA,
+  a certificate for a host Let's Encrypt cannot reach.
+- Serve it on an Application's Domain with **Stored certificate**, or on the console's own
+  address with **One of your own certificates**.
+- Renew it by pasting the next certificate, keeping or replacing the key.
+- Rename it, or remove it from Traefik.
+
+<Callout type="limit" title="Who may use this screen">
+- See, rename and remove: owners and admins of the Organization, or a custom role that allows
+  certificates. Members cannot open the list.
+- Add a certificate, or replace its certificate or key: also needs instance authority, because
+  the platform host's Traefik serves every Organization. That is an owner or admin of the
+  **Instance organization** (the first Organization on a self-hosted instance). Anyone else is
+  refused with **Only an owner or admin of the Instance organization can do this.** On the Hosted instance customers cannot add certificates here.
+</Callout>
+
+## Add a certificate
+
+<Steps>
+<Step title="Open the dialog">
+Open **Settings** > **Certificates** and press **Add a certificate**. With none stored, the list
+reads **No certificates yet**, with the same button.
+</Step>
+<Step title="Paste the material">
+
+<Screenshot name="certificates-add-dialog" alt="The Add a certificate dialog with the name northwind wildcard 2027 and a PEM certificate and private key pasted in" caption="The private key is never shown again once saved." />
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What you will recognise it by, such as `northwind wildcard 2027`. | Required. It is not the hostname. |
+| **Certificate** | The full PEM chain, leaf first, including the `-----BEGIN CERTIFICATE-----` lines. | Required. |
+| **Private key** | The key that belongs to the leaf, including its BEGIN and END lines. | Required when adding. Never shown again once saved. |
+
+A field that does not start with a `-----BEGIN` line is refused with **That does not look like
+PEM**.
+</Step>
+<Step title="Save it">
+Press **Add a certificate**. The pair is written to Traefik's certificate directory, in a folder
+named in the **Written to** column, and Traefik picks it up.
+</Step>
+<Step title="Use it on a Domain">
+Open the Application's **Domains** tab and add or edit the Domain, for example
+`intranet.northwind.example`. Keep **Serve over HTTPS** on and choose **Stored certificate** under
+**Certificate**.
+</Step>
+</Steps>
+
+## How Traefik chooses which certificate to serve
+
+Traefik picks a certificate by the names inside it (its DNS names, and its subject common name),
+not by the certificate's name in Cloudgate:
+
+- A stored certificate that covers a host is served for it whatever the Domain's
+  certificate setting: also on a Domain set to **Let's Encrypt** or a **Custom resolver**.
+- A wildcard covers exactly one label: `*.northwind.example` covers `shop.northwind.example`, not
+  `northwind.example` and not `a.b.northwind.example`.
+- An exact name wins over a wildcard.
+
+The Domains tab's **Certificate** column names the stored certificate a host is served with,
+even when the Domain asks for Let's Encrypt, and warns when a **Stored certificate** Domain has
+none covering it.
+
+<Callout type="warn" title="Stored certificate needs a certificate that covers the host">
+Saving a Domain with **Stored certificate** is refused when no stored certificate covers its
+host, with "No certificate in Settings → Certificates covers" the host "on this platform host. Add
+one whose names include it, or choose another certificate". Add the certificate first.
+</Callout>
+
+## The certificates list
+
+<Screenshot name="certificates-list" alt="Settings, Certificates, listing northwind wildcard 2027 and intranet CA 2026, each of kind custom with the folder it is written to" caption="Written to is the folder under Traefik's certificate directory." />
+
+| Column | What it shows |
+|---|---|
+| **Name** | The name you gave it. |
+| **Kind** | `custom` for a certificate you stored. |
+| **Written to** | The folder under Traefik's certificate directory the pair is in. |
+
+Each row has **Edit** and **Remove**.
+
+## Renew or rename a certificate
+
+**Edit** opens the same three fields. The certificate is shown; the private key box starts empty.
+
+- Rename only: change **Name** and press **Save changes**. Nothing is written to Traefik.
+- Renew with the same key: paste the new chain into **Certificate** and leave **Private key**
+  empty. The stored key is kept.
+- Replace both: paste the new chain and the new key.
+
+Replacing the certificate or key takes the same instance authority as adding one. Cloudgate never
+renews a stored certificate by itself, so set a reminder before it expires.
+
+## Remove a certificate
+
+**Remove** asks **Remove northwind wildcard 2027?** and says what follows: its files are removed
+from Traefik's certificate directory, and any host served with it falls back to whatever Traefik
+has left, usually its own self-signed default certificate, which browsers refuse. Press **Remove
+certificate** or **Keep it**. Removing is never refused, but a Domain still set to **Stored
+certificate** is then shown as not covered, and its next edit asks you to choose another
+certificate.
+
+## Other ways to get a certificate
+
+- Let's Encrypt over HTTP (the default): choose **Let's Encrypt** on the Domain. Needs the
+  host's DNS pointing at the Server and port 80 open.
+- A wildcard from Let's Encrypt: set up **DNS-01 certificates** with your DNS provider on the
+  Traefik screen or a Server's Settings tab, then name `letsencrypt-dns` as the Domain's custom
+  resolver. See [Traefik on the platform host](/docs/guide/traefik#get-wildcard-certificates-with-dns-01).
+- The console's own address: **Settings** > **Instance** > **Console domain** can use **One of
+  your own certificates**, which picks a matching one from this screen. See
+  [Instance settings](/docs/guide/instance-settings#serve-the-console-on-your-own-domain).
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- The console stores certificates for the platform host only. A certificate for a remote
+  Server's own Traefik can be stored only through the API (`POST /certificates` with a
+  `serverId`); see the [API reference](/docs/api). Until then, a Domain on a remote Server cannot
+  use **Stored certificate**.
+- No automatic renewal, and no expiry reminder.
+- The private key is never shown or exported.
+- Cloud Services use the cloud's own certificates (ACM, Google-managed), never these.
+</Callout>
+
+## Related pages
+
+- [Domains and TLS certificates](/docs/guide/domains): choose a certificate per Domain and check
+  what a host serves.
+- [Traefik on the platform host](/docs/guide/traefik): the files and resolvers that serve these.
+- [Instance settings](/docs/guide/instance-settings): the console's own domain.
+- [Applications](/docs/guide/applications): the Services that take Domains.
+- [Security at Cloudgate](/security): how secrets are stored.

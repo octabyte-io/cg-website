@@ -1,0 +1,310 @@
+---
+title: Sign in, sign up and manage your account
+navTitle: Sign-in and account
+seoTitle: 'Sign in, sign up and two-factor in Cloudgate'
+description: Create a Cloudgate account or claim a new instance, sign in with two-factor or SSO, reset a password, accept an invitation, approve the CLI and manage sessions.
+lede: Your Cloudgate account is the email address and password, or single sign-on, that you sign in with, and it is managed under Settings, Account. Sign up or claim a self-hosted instance, sign in, turn on two-factor, reset a forgotten password, accept an invitation, log in the CLI, and see where your account is signed in.
+section: guide
+group: Account
+order: 0
+updated: '2026-11-27'
+badges: ['Every member', 'Hosted and self-hosted']
+howto:
+  name: Turn on two-factor sign-in
+  steps:
+    - { name: 'Open your account', text: 'Open your avatar menu and choose Profile, or open Settings and then Account.' }
+    - { name: 'Start', text: 'On the Two-factor card, press Turn on and enter your password, then press Continue.' }
+    - { name: 'Scan the code', text: 'Scan the QR code with an authenticator app, or type the setup key into it by hand.' }
+    - { name: 'Save the backup codes', text: 'Copy the ten backup codes somewhere safe. They are shown only this once.' }
+    - { name: 'Confirm', text: 'Type the six-digit code from the app and press Turn on two-factor.' }
+faq:
+  - { q: 'Who owns a new self-hosted Cloudgate instance?', a: 'The first person to sign up. The sign-up screen says Set up this instance and the button is Create owner account. After that the instance is closed to sign-ups, and everyone else joins by invitation.' }
+  - { q: 'I lost my authenticator app and my backup codes. How do I get back in?', a: 'You cannot turn two-factor off from the sign-in screen. Only whoever manages the machine Cloudgate runs on can turn it off for your account. On the Hosted instance, email support@octabyte.io.' }
+  - { q: 'Why does the password reset say it is not set up?', a: 'Password reset sends an email, and the instance has no email sender configured. Whoever runs the instance sets one up and restarts the backend; then request the link again.' }
+  - { q: 'How long does a sign-in last?', a: 'A session lasts three days and is renewed each day you use it. Settings, Account, Sessions lists every session with when it expires, and you can sign out any of them.' }
+  - { q: 'How do I log in the Cloudgate CLI?', a: 'Run cloudgate login. It prints your console''s address with /device and a code. Open that page, enter the code, check it matches your terminal and press Approve. The CLI gets a personal key in your name that lasts 90 days.' }
+  - { q: 'Can I change the email address I sign in with?', a: 'Yes, on the Profile card, with your current password. On the Hosted instance a link goes to the new address and you keep the old one until you open it. On a self-hosted instance the change is immediate.' }
+---
+
+These screens sit outside the console frame: a single card on a plain page, with the instance's name
+and logo above it. The console's own account screen is **Settings** > **Account**, which the avatar
+menu's **Profile** opens. On a self-hosted instance with its own branding, the name you see is the
+operator's, not Cloudgate's.
+
+## What you can do
+
+- Create an account on the Hosted instance, or claim a new self-hosted instance as its owner.
+- Sign in with a password, two-factor or single sign-on, and choose an Organization.
+- Reset a forgotten password by email.
+- Accept an invitation to an Organization, with a new account or an existing one.
+- Approve the Cloudgate CLI's login from the browser.
+- Change your name, email, avatar and password; turn two-factor on or off; sign out other
+  sessions; and create [personal keys](/docs/guide/personal-keys).
+
+## Create an account
+
+The sign-up screen, `/sign-up`, changes with the instance and how you arrived.
+
+| Where you are | Heading | Button | What happens |
+|---|---|---|---|
+| Hosted instance | **Create your account** | **Create account** | You confirm your email, then you are signed in with an Organization of your own |
+| Hosted, from a template's Deploy button | **Create your free account to deploy your app** | **Create account** | The same, and you land back in the [get-started wizard](/docs/guide/get-started) |
+| A new self-hosted instance | **Set up this instance** | **Create owner account** | You own the instance; see below |
+| From an invitation | **Create your account** | **Create account and join** | You join the inviting Organization |
+
+### Fields
+
+| Field | What it does | Notes |
+|---|---|---|
+| **First name**, **Last name** | Your name, shown wherever Cloudgate names you | Both required |
+| **Organization name** | Names the Organization made for you | Defaults to `My Organization`; rename it later in Settings. Not asked when you are invited |
+| **Email** | What you sign in with | Filled in from an invitation |
+| **Password** | Your password | At least 8 characters, at most 128 |
+| **Confirm password** | The same again | Must match |
+
+On the Hosted instance a short check may appear above the button to stop bots; complete it, then
+press **Create account**.
+
+### Confirm your email (Hosted)
+
+After **Create account**, **Check your inbox** says a link went to your address. Open it to confirm
+the address; you are then signed in. Until then the account cannot be used. **Send the link again**
+sends a fresh one (one per address every few minutes), and **Go to sign in** returns to sign-in.
+
+<Callout type="note" title="Unconfirmed accounts">
+On the Hosted instance an account whose email is never confirmed is removed after seven days, so the
+address can sign up again.
+</Callout>
+
+### Claim a new self-hosted instance
+
+The first person to sign up on a self-hosted instance owns it. Open `http://<host>:3000/sign-up`
+after the [install](/docs/self-host/install); the screen says **Set up this instance**, "The first
+account owns this instance. Later ones join by invitation." Press **Create owner account**. No email
+is sent and no confirmation is needed: you are signed in at once, in the Organization you named.
+
+On a self-hosted sign-in screen nobody has claimed yet, the footer reads **New instance? Set it up**.
+
+### When sign-up is refused
+
+| Screen | Why | What to do |
+|---|---|---|
+| **Already set up**: "This instance is closed to new sign-ups" | The self-hosted instance already has an owner | Ask an owner to [invite you](/docs/guide/members-and-roles), then use the invitation's link |
+| **Not open yet**: "Sign-up is not open yet" | The Hosted instance is not taking accounts yet | Come back later |
+| "An account already uses that email address" | You already have an account | Sign in instead, or use another address |
+
+## Sign in
+
+Open the console's address, or `/sign-in`. Enter your **Email** and **Password** and press **Sign in**.
+If you arrived from a template's Deploy button, the heading is **Sign in to deploy your app**.
+
+- **Forgot your password?** opens the reset; see below.
+- **No account yet? Create one** shows on the Hosted instance; a self-hosted instance that is
+  already claimed shows no sign-up link.
+- After too many attempts, **Sign in** stays off until the wait the message gives is over.
+
+What happens next depends on your account:
+
+1. With two-factor on, you are asked for a code (below).
+2. If you belong to one Organization, or Cloudgate already knows which one to open, you land on its
+   [Organization home](/docs/guide/console-tour#organization-home).
+3. If you belong to several and Cloudgate cannot tell which to open, **Choose an Organization**
+   lists them; pick one. You can switch later from the masthead.
+4. If you belong to none, **No organization yet** says so. Open the link in an invitation to join
+   one, then sign in again, or **Sign out**.
+
+<Screenshot name="sign-in" alt="The Cloudgate sign-in card with Email and Password fields, a Forgot your password link and the Sign in button, then or, a Work email field and Continue with SSO" caption="On an instance with single sign-on set up, the card adds a work email field." />
+
+### Sign in with SSO
+
+When your Organization signs in through an identity provider, the sign-in card has **or** and a
+**Work email** field under the password form. Type your work address and press **Continue with
+SSO**; Cloudgate reads the domain to find your identity provider. When SSO is enforced, the card
+has only the work email and **Continue with SSO**. Setting SSO up is on
+[SSO, SCIM and forward auth](/docs/guide/sso-and-scim).
+
+## Two-step verification at sign-in
+
+With two-factor on, sign-in continues to **Two-step verification** (`/2fa`). Choose the method at the
+top:
+
+| Method | What to type | Notes |
+|---|---|---|
+| **Authenticator app** | The 6-digit code from your app | The code changes every 30 seconds |
+| **Backup code** | One of the backup codes you saved | Each backup code works once |
+
+Press **Verify**. **Back to sign in** starts over.
+
+| What you see | Why | What to do |
+|---|---|---|
+| **This attempt has expired** | The code prompt does not stay open for long | **Back to sign in**, and sign in again |
+| **Too many wrong codes**, "This sign-in attempt is closed" | Too many wrong codes in one attempt | Sign in again to start a new attempt |
+| **Account locked**, "Too many wrong codes" | Repeated wrong codes | The account is locked for 15 minutes; wait, then sign in again |
+| **Nothing to verify** | You opened `/2fa` with no sign-in waiting on a code | **Go to sign in** |
+
+<Callout type="limit" title="Lost both the app and the backup codes">
+The sign-in screen cannot turn two-factor off. Only whoever manages the platform host, the machine
+Cloudgate runs on, can turn it off for your account. On the Hosted instance, email
+`support@octabyte.io`.
+</Callout>
+
+## Reset a forgotten password
+
+<Steps>
+<Step title="Ask for a link">
+On sign-in, press **Forgot your password?**. On **Reset your password**, enter your **Email** and press
+**Email me a link**. **Check your email** says the link is on its way if there is an account for that
+address; it does not say whether there is one.
+</Step>
+<Step title="Open the link">
+The link is good for one hour and works once. It opens **Choose a new password**.
+</Step>
+<Step title="Set the new password">
+Enter a **New password** (at least 8 characters) and **Confirm new password**, then press **Set new
+password**. **Password changed** confirms it; press **Sign in**.
+</Step>
+</Steps>
+
+| What you see | Why | What to do |
+|---|---|---|
+| **Link is no longer valid** | The link was used, or more than an hour passed | **Request a new link**, and use the newest email |
+| **Link is incomplete** | Part of the address is missing | Copy the whole link, or request a new one |
+| **Reset is not set up**: "This instance cannot send email yet" | The instance has no email sender | Ask whoever runs the instance to configure one; see [I forgot my password and no email arrives](/docs/help/troubleshooting#self-hosted-i-forgot-my-password-and-no-email-arrives) |
+
+## Accept an invitation
+
+An invitation email links to `/accept-invitation/<id>`. An invitation is for one email address.
+
+<Steps>
+<Step title="Open the link">
+Signed out, **You have been invited** says who was invited to which Organization. Press **Sign in to
+accept** if you have an account with that address, or **Create an account** to make one; the sign-up
+form fills in the invited address and skips the Organization name.
+</Step>
+<Step title="Accept">
+Signed in, **Join this Organization** shows the **Organization**, **Your role** and the **Invited
+address**. Press **Accept invitation**. **You are in** confirms it; press **Open the console**.
+</Step>
+</Steps>
+
+| Screen | What it means |
+|---|---|
+| **Wrong account** | You are signed in with another address. Press **Sign out**, then sign in as the invited person |
+| **Invitation expired** | It was not accepted in time; ask for a new one |
+| **Invitation declined** | You declined it; a declined invitation cannot be accepted, so ask for a new one |
+| **Invitation withdrawn** | Whoever sent it called it back |
+| **Already accepted** | You used it already; **Open the console** lets you in, unless you were removed since |
+| **Invitation not found** or **Invitation not valid** | It was withdrawn, used, removed, or the link is incomplete |
+
+Sending invitations is covered on [Members and roles](/docs/guide/members-and-roles).
+
+## Log in the Cloudgate CLI
+
+`cloudgate login` prints a code and tells you to open your console's address with `/device` added,
+for example `https://cloudgate.octabyte.app/device`. If you are signed out there, you sign in first
+and come back to the same page.
+
+<Steps>
+<Step title="Enter the code">
+**Log in the Cloudgate CLI** asks for the **Code** your terminal shows. Spaces and dashes do not
+matter. Press **Continue**.
+</Step>
+<Step title="Check and approve">
+The code is shown large, like `WXYZ-2345`. Approve only if it is the code your own terminal is
+showing. **Approve** gives that terminal a personal key in your name, ending in 90 days. **Deny**
+gives it nothing.
+</Step>
+<Step title="Go back to the terminal">
+**Your terminal is logged in**: the command carries on by itself. The key is listed under
+[Personal keys](/docs/guide/personal-keys), where you can revoke it.
+</Step>
+</Steps>
+
+<Screenshot name="device-approval" alt="The Log in the Cloudgate CLI card showing the code VFMS-8XBT with Approve and Deny buttons" caption="Approve only a code your own terminal is showing." />
+
+A code lasts 30 minutes. An unknown or expired code says "That code is not one this Instance knows,
+or it has expired"; run `cloudgate login` again. See [`cloudgate login`](/docs/cli/commands#cloudgate-login).
+
+## Manage your account
+
+**Settings** > **Account** (`/settings/account`, which `/account` also opens) holds five cards.
+
+### Profile
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | Your first name | Required |
+| **Last name** | Shown after your name wherever Cloudgate names you | Optional |
+| **Email** | What you sign in with | Saved in lower case |
+| **Current password** | Appears when you change the email | Required to change the email |
+| **Avatar** | The address of an image | Optional. Cloudgate has nowhere to upload one, so the image must already be online |
+
+Press **Save changes**. On the Hosted instance a new email gets a link, and you keep signing in with
+the old address until you open it. On a self-hosted instance the new address works at once, and
+nothing is sent to either address.
+
+### Password
+
+Enter your **Current password**, a **New password** (at least 8 characters) and **New password again**,
+then press **Change password**. **Sign out every other session** is on by default: everywhere else this
+account is signed in stops working, and this session keeps going.
+
+### Two-factor
+
+The card shows **On** or **Off**.
+
+- **Turn on** opens **Turn on two-factor** in two steps. First **Confirm it is you**: type your
+  password and press **Continue**. Then **Scan, save and confirm**: scan the QR code with an
+  authenticator app (or copy the setup key into it), save the ten backup codes with the copy button,
+  type **The six-digit code from the app** and press **Turn on two-factor**. Two-factor is not on
+  until that code is accepted.
+- **Turn off** opens **Turn off two-factor**: type your password and press **Turn off two-factor**, or
+  **Keep it on**.
+
+<Screenshot name="account-two-factor" alt="The Turn on two-factor dialog with a QR code, the setup key, ten backup codes in a warning box and a field for the six-digit code" caption="The backup codes are shown only in this step." />
+
+<Callout type="warn" title="Backup codes are shown once">
+Closing the dialog does not bring them back. Turning two-factor off deletes the authenticator secret
+and every remaining backup code; turning it on again means a new scan and a new set of codes.
+</Callout>
+
+### Sessions
+
+The **Sessions** card lists every place your account is signed in, with its **Device**,
+**Address**, **Started** and **Expires**. **Device** is the browser's User-Agent string exactly as
+it was sent, such as `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0`;
+Cloudgate does not turn it into a browser name. Hover a cut-off string to read it whole. Your
+current one is marked **This session**.
+
+- **Sign out** on **This session** signs you out here. It is the only button on that row.
+- **Revoke** on any other row signs that session out at once: "That session is signed out."
+
+A session lasts three days and is renewed each day you use it. In the rare case the card says **This
+list needs a session less than a day old**, press **Sign out** and sign in again to read it. You do not need that
+to end other sessions: change your password with **Sign out every other session** on.
+
+### Personal keys
+
+Keys that let a script, CI job or the CLI act as you. See [Personal keys](/docs/guide/personal-keys).
+
+<Screenshot name="account-sessions" alt="The Sessions card listing two raw User-Agent strings: this session, marked This session with Sign out, and a Firefox session on Ubuntu with Revoke, each with its address, start and expiry" caption="Revoke signs another session out immediately." />
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- A self-hosted instance takes one owner sign-up; everyone after joins by invitation.
+- You cannot upload an avatar, only link one.
+- You cannot turn two-factor off from the sign-in screen, or reset someone else's password or
+  two-factor from the console.
+- Password reset and email confirmation need the instance to send email.
+- An invitation works only for the address it was sent to.
+</Callout>
+
+## Related pages
+
+- [A tour of the console](/docs/guide/console-tour): the rail, masthead and Settings index.
+- [Personal keys](/docs/guide/personal-keys) for scripts and CI.
+- [Organizations](/docs/guide/organizations): switch and set your default.
+- [Members and roles](/docs/guide/members-and-roles): invitations and what each role may do.
+- [SSO, SCIM and forward auth](/docs/guide/sso-and-scim).
+- [Security](/security) for how Cloudgate protects accounts and secrets.

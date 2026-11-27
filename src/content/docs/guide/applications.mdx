@@ -1,175 +1,362 @@
 ---
 title: Applications
-seoTitle: Add and configure an Application to deploy
-description: Create an Application from git, a Docker image or uploaded files, pick a builder, a kind and a size, and set its port, replicas and health check.
-lede: 'An Application is a Service Cloudgate builds from a source and runs as a container. This page covers adding one and the settings you are most likely to change: source, builder, kind, size, ports and health.'
+seoTitle: Deploy an Application from git, Docker or a zip
+description: Add an Application to an Environment, choose its source (GitHub, GitLab, Bitbucket, Gitea, a git URL, a Docker image or a zip) and builder, then deploy it.
+lede: 'An Application is a Service that Cloudgate builds from your code, or pulls as a ready-made image, and runs as a container. This page covers adding one, choosing where its code comes from and how it is built, its Overview and its tabs.'
 section: guide
-updated: '2026-11-13'
+updated: '2026-11-27'
 group: Deploy
-order: 3
-badges: ['Owner or Admin to create', 'Members can change settings']
+order: 4
+badges: ['Owner or Admin to create', 'Members can change and deploy']
 howto:
   name: Add an Application and deploy it
   steps:
-    - { name: 'Add the Application', text: 'In an Environment, open Services, press Add an Application, name it and pick its Server.' }
-    - { name: 'Set its source', text: 'On its Overview, open the Source card, press Change source and choose a git provider, a git URL, a Docker image or uploaded files.' }
-    - { name: 'Pick a builder', text: 'On the Build card, choose the Builder: Nixpacks by default, or Railpack, Dockerfile, Static files, Heroku or Paketo buildpacks.' }
-    - { name: 'Deploy', text: 'Press Deploy. Follow the Deployment log until it is done.' }
+    - { name: 'Add the Application', text: 'Open an Environment, press Add an Application, enter a Name, an optional Description and the Server, then press Create Application.' }
+    - { name: 'Choose its source', text: 'On the new Overview, press Change source on the Source card, pick GitHub, GitLab, Bitbucket, Gitea, Docker image, Any git URL or Uploaded files, fill in the form and press Save source (or Upload).' }
+    - { name: 'Choose a builder', text: 'On the Build card, press Edit, pick a Builder such as Nixpacks or Dockerfile, and press Save build settings.' }
+    - { name: 'Deploy', text: 'Press Deploy. The build output streams on the Overview until the Deployment is done.' }
 faq:
-  - { q: 'Which builder should I choose?', a: 'Start with Nixpacks, the default: it detects most languages without configuration. Use Dockerfile when your repository already has one, and Static files for a site that is only HTML, CSS and JavaScript.' }
-  - { q: 'Can I move an Application to another Server?', a: 'No. Its Server or Cloud account is fixed when it is created. Create a new Application on the other Server and delete the old one.' }
-  - { q: 'How do I run more than one copy?', a: 'Set Replicas on the Advanced tab, in the Resources card. The count is kept per Environment in the console, never in cloudgate.yaml. Zero stops it without deleting anything.' }
-  - { q: 'Is a health check the same as an uptime check?', a: 'No. The health check is the container''s own HEALTHCHECK, set under Advanced. An Uptime check is a request from outside, set on the Health tab.' }
+  - { q: 'Which builder should I choose?', a: 'Start with Nixpacks, the default: it detects the language and framework with no configuration. Choose Dockerfile when the repository already has one, and Static files for a site that is only built HTML, CSS and JavaScript.' }
+  - { q: 'Does a push to GitLab, Bitbucket or Gitea deploy automatically?', a: 'No. Only a GitHub source deploys on a push, through the GitHub App. With GitLab, Bitbucket, Gitea or any git URL the card reads "Nothing — deploys are manual": press Deploy, or deploy from CI with the CLI.' }
+  - { q: 'Can I move an Application to another Server?', a: 'No. The Server is chosen when the Application is created and cannot be changed. Create a new Application on the other Server, move its variables and Domains, then delete the old one.' }
+  - { q: 'Why does the Overview say the previous Deployment is still serving?', a: 'Because a failed Deployment does not take the Application down. Nothing was swapped in, so the last successful one keeps answering. Read the output, fix the cause and press Redeploy.' }
+  - { q: 'Why is there no Shell or Logs tab?', a: 'The Shell tab is absent in a Cloud account and for a role without the update action on Services. A Cron service on a Server has no Logs tab: each run''s output is its Deployment log.' }
 ---
 
-An Application is one kind of Service; the others are databases and Compose stacks. Each
-Application has a **kind** (`web`, `worker`, `web-private`, `cron` or `static`) that decides
-whether it gets an address, and a **Size** that caps its CPU and memory.
+An Application is one kind of Service; the others are databases, Compose stacks, buckets and AI
+models. Each Application has a source (where its code comes from), a builder (how the code becomes
+an image) and a Server or Cloud account it runs on. Its kind (`web`, `worker`, `web-private`,
+`cron` or `static`) is set in the [Project config](/docs/guide/project-config); one you add in the
+console is a `web`.
 
-## What you can do
+## What can you do with an Application?
 
-- Build from GitHub, GitLab, Bitbucket, Gitea, any git URL, a ready-made Docker image, or a `.zip`
-  of your files.
-- Choose how it is built: Nixpacks, Railpack, Dockerfile, Static files, Heroku buildpacks or
-  Paketo buildpacks.
-- Deploy on every push, or only when you press **Deploy**.
-- Set size, replicas, ports, mounts, run command, redirects and the container health check.
-- Deploy, restart, stop, start and delete it.
+- Build it from GitHub, GitLab, Bitbucket, Gitea, any git URL, or a `.zip` you upload, or run a
+  ready-made Docker image.
+- Choose the builder: Nixpacks, Railpack, Dockerfile, Static files, Heroku buildpacks or Paketo
+  buildpacks.
+- Deploy it on every push (GitHub) or when you press **Deploy**, and follow the build live.
+- Restart, stop and start it, open a shell in its container and read its runtime log.
+- Give it Domains, variables, previews, rollback points, schedules, volume backups and patches.
+- Tune its resources, run command, ports, redirects, basic auth and Docker Swarm settings on
+  [Application settings](/docs/guide/application-settings).
 
-## Add an Application
+## How do I add an Application?
+
+Press **Add an Application** in an Environment, give it a name and a Server, then choose its source
+and builder and press **Deploy**.
 
 <Steps>
-<Step title="Create it">
-Open the Environment, for example `storefront / production`, then **Services** > **Add an
-Application**. Enter a name such as `web`, an optional description, and the **Server** it runs on.
-It is not deployed yet: set where its code comes from, then deploy.
+<Step title="Open the Environment">
+Open the Environment, for example `storefront / production`, and press **Add an Application** at
+the top of its Services list.
 </Step>
-<Step title="Set its source">
-On the Application's **Overview**, the **Source** card has **Change source**. Choose one:
+<Step title="Name it and pick its Server">
+The **Add an Application** dialog asks three things:
 
-- **GitHub**, **GitLab**, **Bitbucket** or **Gitea**: pick the repository, the **Branch** and the
-  **Build path** (the folder to build). Turn **Deploy automatically** on to build on every push,
-  and choose **Deploy on** a push or a tag. These need a connected git provider.
-- **Any git URL**: a **Clone URL** over SSH or HTTPS, the **Branch**, an **SSH key** for a
-  private repository, and **Clone submodules**.
-- **Docker image**: the **Image** with its tag and, for a private one, the **Registry** and its
-  credentials (**Test connection** checks them). Nothing is built.
-- **Uploaded files**: a `.zip` **Archive** and its **Build path**. The [CLI](/docs/cli) uploads a
-  folder for you, sending only the files that changed since the last upload.
+| Field | What it does | Notes |
+|---|---|---|
+| **Name** | What the Application is called in Cloudgate, such as `Storefront web`. | Required. Its Swarm service gets its own generated name, shown later as **Internal name**, which cannot be changed. |
+| **Description** | What it runs, for whoever finds it next. | Optional. |
+| **Server** | Which Server it runs on. | Opens on the Environment's Deploy target. Bought Servers that are not ready yet are greyed out. |
 
-<Screenshot name="application-overview" alt="The Overview of the web Application in storefront production, with its Source card showing a GitHub repository and branch" caption="The Source and Build cards on the Overview decide what is built and how." />
-
-<Screenshot name="git-providers" alt="Settings, Git providers, with the GitHub App northwind-cloudgate and the GitLab group northwind connected" caption="A connected Git provider lets you pick a repository and branch instead of typing a URL." />
-
+Press **Create Application**. Cloudgate answers "It is not deployed yet: set where its code comes
+from, then deploy" and opens the new Application's Overview.
 </Step>
-<Step title="Pick a builder">
-On the **Build** card, choose the **Builder**:
-
-| Builder | Use it when |
-|---|---|
-| **Nixpacks** (default) | You want Cloudgate to detect the language and build it. |
-| **Railpack** | You prefer Railpack's detection; you can pin its version. |
-| **Dockerfile** | Your repository has a Dockerfile. Set the Dockerfile, context and target stage. |
-| **Static files** | It is a built site. Set the **Publish directory** and **Single-page app**. |
-| **Heroku buildpacks** | Your app already builds on Heroku. |
-| **Paketo buildpacks** | You use Cloud Native Buildpacks. |
-
-**Push the image to** sends the built image to a connected registry, or keeps it on the build
-Server.
-</Step>
-<Step title="Deploy">
-Press **Deploy**. A Deployment is queued and its log streams live. A `web` Application on a Server
-gets a generated `sslip.io` Domain you can open at once. See
-[Deployments](/docs/guide/deployments).
+<Step title="Choose its source and builder, then deploy">
+Follow [Choose where the code comes from](#choose-where-the-code-comes-from) and
+[Choose how it is built](#choose-how-it-is-built), then press **Deploy**.
 </Step>
 </Steps>
 
-## Choose the kind of Application
-
-The kind is set in the [Project config](/docs/guide/project-config) with `kind:`.
-
-| Kind | What it is | Address |
-|---|---|---|
-| `web` | A web app answering HTTP; default port 3000. | Domains, and a generated `sslip.io` one on a Server |
-| `worker` | Always running, no port: a queue consumer or bot. | None, and no previews |
-| `web-private` | Answers HTTP only to other Services; port required. | An internal address, such as `http://api:4000` on a Server |
-| `cron` | Runs a command on a timetable, in a fresh container each run. | None |
-| `static` | A built site of files. | Domains |
-
-Changing the kind of an existing Application deletes it and creates it again; the Plan asks you
-to confirm by typing its name. More in [Workers, private web services and cron](/docs/guide/workers-and-cron).
-
-## Set its size and replicas
-
-A **Size** caps how much CPU and memory each copy may use:
-
-| Size | CPU | Memory |
-|---|---|---|
-| `xsmall` | 0.25 | 512 MB |
-| `small` | 0.5 | 1 GB |
-| `medium` | 1 | 2 GB |
-| `large` | 2 | 4 GB |
-| `xlarge` | 4 | 8 GB |
-| `2xlarge` | 8 | 16 GB |
-
-You can also give a custom CPU and memory pair. On a Server a size is a cap only; it reserves
-nothing. Change it on the **Advanced** tab, **Resources** card (the config owns it when the config
-sets a size). **Replicas** sets how many copies run; zero stops it without deleting anything.
-Replicas are kept per Environment in the console, never in the config.
-
-## Set the port and published ports
-
-The **Container port** is the port your app listens on inside the container (**Advanced** >
-**Routing**). On a Server, saving a new port moves the Domains on the old port with it. To expose
-a port directly on the Server, outside the Domains, use **Published ports** >
-**Publish a port**.
-
-## Set a health check
-
-The container's own `HEALTHCHECK` lives under **Advanced** > **Docker Swarm**, with the other Swarm
-settings. Google Cloud Run never runs an image's
-`HEALTHCHECK`. An [Uptime check](/docs/guide/monitoring), which calls your Domain from outside and
-opens an Incident when it is down, is separate and set on the **Health** tab.
-
-## Other settings
-
-The **Advanced** tab also holds the **Runtime** run command (command and arguments), redirects and
-basic-auth users under **Routing**, volumes and mounts (**Add a mount**), and the **Danger zone**.
-Other tabs: **Variables**, **Domains**, **Logs**, **Shell**, **Schedules** (commands on a cron
-inside the running container), **Volume backups**, **Rollbacks**, **Previews** and **Patches**
-(replace, create or remove a file before the build).
-
-## Restart, stop or delete it
-
-The header holds **Deploy**, **Redeploy** (builds the source it already has), **Restart** on a
-Server or **Reload** in a cloud, and **Stop** / **Start**. Stopping in a cloud warns what still
-bills.
-
-<Callout type="warn" title="Deleting an Application">
-**Advanced** > **Danger zone** > **Delete this Application** asks you to type its name. Its volumes
-are kept unless you tick **Delete its volumes too**, which deletes their data for good.
+<Callout type="limit" title="Where a console-made Application can run">
+The console creates an Application on a Server only (or, on a self-hosted instance, on **This
+Cloudgate host**). In an Environment that deploys to a Cloud account, only its Project config
+creates Services, so the dialog asks you to choose a Server. On the Hosted instance the platform
+host is never offered. To run in AWS or Google Cloud, write the Service in the
+[Project config](/docs/guide/project-config).
 </Callout>
+
+On a self-hosted instance, choosing **This Cloudgate host** shows a warning: Cloudgate itself runs
+on that machine, so losing it loses this Service and all of Cloudgate's records. The same note
+stays on the Application's **Where it runs** card.
+
+<Callout type="limit" title="Who can add an Application">
+Adding a Service needs the create action on Services: the owner and admin roles, or a custom role
+that has it. For anyone else the button is greyed out and says why.
+</Callout>
+
+## Choose where the code comes from
+
+On the Overview, the **Source** card shows what the next Deployment builds. Press **Change
+source** and pick one of seven cards under **Where the code comes from**. The form for that source
+opens below it; **Cancel** closes it without saving.
+
+<Screenshot name="application-source-picker" alt="The Source card of the web Application in edit mode, with the seven source cards GitHub, GitLab, Bitbucket, Gitea, Docker image, Any git URL and Uploaded files, GitHub chosen and its GitHub connection northwind-labs below" caption="Change source shows every kind of source; the form for the chosen one opens underneath." />
+
+| Source | Use it when | What is built |
+|---|---|---|
+| **GitHub** | The repository is reachable by a connected GitHub account. | The branch you choose. A push can deploy it. |
+| **GitLab** | The project is on gitlab.com or your own GitLab. | The branch you choose. |
+| **Bitbucket** | The repository is in a Bitbucket workspace. | The branch you choose. |
+| **Gitea** | The repository is on a Gitea instance you run. | The branch you choose. |
+| **Docker image** | The image is already built. | Nothing: the image is pulled as it is. |
+| **Any git URL** | Any other git host, over SSH or HTTPS. | The branch you type. |
+| **Uploaded files** | You want to send a `.zip` from your computer. | The uploaded archive. Nothing is cloned. |
+
+### GitHub, GitLab, Bitbucket or Gitea
+
+Cloudgate clones through an account connected to the Organization. If none is connected, the form
+says "No GitHub account is connected to this Organization" (or GitLab, Bitbucket, Gitea) with a link
+to **Settings → Git providers**; connect one there ([Git providers](/docs/guide/git-providers)) and come back.
+
+| Field | What it does | Notes |
+|---|---|---|
+| **GitHub connection** (or GitLab, Bitbucket, Gitea) | Which connected account this Application clones through. | |
+| **Repository** (**Project** on GitLab) | The code that is built. Search by owner or name. | A refresh button reloads the list. |
+| **Branch** | The branch a push deploys from. | Lists the branches with their latest commit. Choose a repository first. |
+| **Build path** | Where in the repository the build starts. | `/` unless this is a monorepo. |
+| **Deploy on** | **Push** or **Tag**. | GitHub only. **Tag** deploys nothing on its own: a tag push names no branch, so every deploy is one someone starts. |
+| **Deploy automatically** | On, a push to the branch builds and deploys. Off, a push builds nothing. | GitHub only. On by default. |
+
+Press **Save source**. Cloudgate answers "Source saved. The next Deployment builds from it."
+
+<Callout type="limit" title="Push-to-deploy is GitHub only">
+The only push Cloudgate receives is the GitHub App's webhook. With GitLab, Bitbucket and Gitea the
+form shows "Deploys on: Nothing — deploys are manual" instead of the two switches: press
+**Deploy**, or deploy from CI with the [CLI](/docs/cli/ci).
+</Callout>
+
+<Screenshot name="git-providers" alt="Settings, Git providers: the GitHub card with the connection northwind-labs through the App cloudgate-northwind-labs" caption="A connected Git provider lets you pick a repository and branch instead of typing a URL." />
+
+### Any git URL
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Clone URL** | The repository, for example `git@git.example.com:acme/api.git`. | Over SSH with a key below, or over HTTPS for a public repository. |
+| **Branch** | The branch to build. | Typed, not chosen: Cloudgate cannot list this repository's branches. Starts on `main`. |
+| **Build path** | Where in the repository the build starts. | `/` by default. |
+| **SSH key** | The key that clones a private repository. | **Clone over HTTPS** for a public one. The keys are the SSH keys saved in Cloudgate, the same ones you add Servers with. |
+| **Clone submodules** | Fetch the repository's submodules too. | Off unless the build needs them. |
+
+A git URL never deploys on a push.
+
+### Docker image
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Image** | The reference to pull, tag included: `postgres:17.2`, `ghcr.io/northwind/storefront-web:sha-4f2a1c`. | Required. |
+| **Registry** | The private registry the image lives in, such as `ghcr.io`. | Empty means Docker Hub. |
+| **Registry username** | Only needed for a private image. | |
+| **Registry password or token** | The credential for that user. | Stored encrypted and never sent back to the screen. Leave it empty to keep a stored one. |
+
+Once a username is filled in, **Test connection** logs in to the registry and says whether it
+accepted the user. It tests the stored password only against the registry and username it was
+saved with; type the password to test new values.
+
+An image is never built, so the **Build** card says "Nothing is built — the image is pulled as it
+is", and the Application has no **Previews** or **Patches** tab.
+
+### Uploaded files
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Archive** | A `.zip` of the code. | It is unpacked on the Server that builds the Application. A new upload replaces the files it builds from. |
+| **Build path** | The folder inside the archive to build, such as `/frontend`. | Empty builds the archive's root. |
+
+Press **Upload**. Cloudgate answers "Files uploaded" and the next Deployment builds that archive.
+The [CLI](/docs/cli)'s `cloudgate deploy` does the same from a folder, sending only the files that
+changed. Uploaded files have no branch, so they have no **Previews** tab.
+
+<Callout type="note" title="When the Project config owns the source">
+If the Environment's Project config is kept in a repository, the provider, repository, path and
+image are the config's: the form says "Set by the Project config. Change it in cloudgate.yaml in
+…, then check for changes." The branch and the git connection stay editable here.
+</Callout>
+
+## Choose how it is built
+
+The **Build** card shows the **Builder**, what it does, its settings and **Pushes to**. Press
+**Edit**, pick a builder, fill in its settings and press **Save build settings**.
+
+<Screenshot name="application-build-card" alt="The Build card of the web Application in edit mode, with the six builders Nixpacks, Railpack, Dockerfile, Static files, Heroku buildpacks and Paketo buildpacks, Dockerfile chosen with Target stage runtime, and Push the image to set to GitHub Container Registry" caption="Pick a builder; only its own settings appear below it." />
+
+| Builder | What it does | Its settings |
+|---|---|---|
+| **Nixpacks** (default) | Detects the language and framework and builds an image with no configuration. | None. |
+| **Railpack** | Nixpacks' successor: newer detection, and a version you can pin. | **Railpack version**, such as `0.15.4`; empty uses the default. |
+| **Dockerfile** | Builds the repository's Dockerfile exactly as written. | **Dockerfile** (path from the build path), **Context** (empty means the build path), **Target stage** (empty builds the last one). |
+| **Static files** | Serves a folder of built files behind nginx. No runtime, no process. | **Publish directory** (`dist`, `build`, `public`), **Single-page app** (serve `index.html` for any path that is not a file). |
+| **Heroku buildpacks** | Builds with Heroku's buildpacks. | **Stack version**, such as `24`; empty uses the default. |
+| **Paketo buildpacks** | Builds with Cloud Native Buildpacks. | None. |
+
+**Push the image to** sends the built image to a registry connected under **Settings →
+Registries** (see [Registries](/docs/guide/registries)). **Keep it on the build Server** (the default) leaves it on the Server that built it.
+A registry is needed when the Application builds on a different Server than it runs on; see
+[Build server](/docs/guide/application-settings#build-on-another-server).
+
+When a repository-kept Project config sets the build, **Edit** is greyed out and says where to
+change it.
+
+## What is on the Overview?
+
+The Overview is the Application's first tab. Its header shows the name, the **Internal name** chip
+and the Project and Environment, with the actions on the right.
+
+<Screenshot name="application-overview" alt="The Overview of the web Application in storefront production, with a queued build in Build output, the Source card showing northwind-labs/storefront on main, the Build card, and the Application and Where it runs cards" caption="The build output leads; Source and Build decide what the next Deployment does." />
+
+### Header buttons
+
+| Button | What it does | When it shows |
+|---|---|---|
+| **Open a shell** | Opens the [Shell tab](#open-a-shell-in-the-container). | Wherever the Shell tab exists. |
+| **Deploy** | Queues a Deployment of the current source. "Deployment queued." | Always. Greyed out until a source is chosen. |
+| **Restart** (Server) / **Reload** (Cloud account) | Restarts on the image it already has; in a cloud, replaces every running copy with a fresh one of the same version. | After a first successful Deployment. Not while a build is in flight, and in a cloud not while stopped. Not on a Cron service. |
+| **Stop** | Scales it to zero. On a Server, "Its domains and volumes are untouched." In a cloud it asks first and says what still bills. On a Cron service, Stop pauses the timetable. | After a first successful Deployment, while it runs. |
+| **Start** | Starts it again on its last deployed image. | While it is stopped. |
+
+Deploying, restarting, stopping and starting need the create action on Deployments, which the
+member role has. If the request does not come back in time, Cloudgate warns that Swarm may still be
+converging: watch the status rather than pressing again.
+
+### Build output
+
+The main card shows **Build output** while a Deployment runs (**Deployment output** for a Docker
+image) and **Last build output** after. It streams the log with the Deployment's status beside its
+title; **Cancel** stops a queued or running build, and **Show the newest** returns to the latest
+one. Before the first Deployment it says "Nothing has been built yet" with a **Deploy** button, or
+"No source is chosen yet". See [reading a Deployment log](/docs/guide/deployments#read-a-deployment-log).
+
+### Banners
+
+- **The last Deployment failed.** Shown after a failed Deployment, with **Redeploy** (builds the
+  same source again, recorded as a rebuild). Its second line says which case it is: "The previous
+  Deployment is still serving traffic", "Nothing is serving traffic", "No Deployment of this
+  Application has succeeded yet", or "This Application has never run".
+- **This Application is not running. Waiting for a GPU**: Swarm holds it until enough GPUs are free
+  on its Server.
+- A note when a linked value from another Service changed outside a Plan, pointing to the
+  Deployments tab.
+
+### Side cards
+
+| Card | What it shows |
+|---|---|
+| **Application** | **Status** (`idle`, `running`, `done`, `error`, `stopped`), its health, **Internal name**, **Internal address** for a private web service (with a copy button), **Config name** (its fixed key in the Project config), **Environment**, **Project**, **Replicas** ("2 configured", or "0 of 2 running" when stopped), **Created** and **Description**. |
+| **Where it runs** | The **Server** (linked), its **Address** and **Server status**, and **Builds on**. In a Cloud account: **Cloud account**, **Region** and **Builds on**: Cloudgate's own host. |
+| **Domain** / **Domains** | The first Domain as a link, with its certificate state, **Container port**, **Certificate** and **Others**. With none: "Add a domain to reach this Application from the internet." |
+
+`idle` is what an Application that was never deployed shows; `stopped` is one scaled to zero on
+purpose.
+
+## Which tabs does an Application have?
+
+An Application has up to fifteen tabs, from **Overview** to **Patches**; which ones show depends on
+its source, its kind and where it runs.
+
+| Tab | What it is for |
+|---|---|
+| **Overview** | Status, build output, source and build. |
+| **Deployments** | Every attempt to build and release it. See [Deployments](/docs/guide/deployments). |
+| **Logs** | Its runtime log: what its running copies write. |
+| **Shell** | A shell inside a running container. |
+| **Variables** | Its environment variables, wired variables, build arguments and build secrets. See [Environment variables](/docs/guide/environment-variables). |
+| **Domains** | The hosts it answers on. See [Domains](/docs/guide/domains). |
+| **Health** | Uptime checks, error rate, the Error-rate threshold and Incidents. See [Monitoring](/docs/guide/monitoring). |
+| **Traces** | Its trace store and search. |
+| **Requests** | Its Server's access log, fixed to this Application. |
+| **Advanced** | Resources, run command, mounts, ports, redirects, basic auth, Swarm, delete. See [Application settings](/docs/guide/application-settings). |
+| **Rollbacks** | Rollback points. See [Roll back](/docs/guide/deployments#roll-back-to-an-earlier-deployment). |
+| **Previews** | Pull-request and requested previews. See [Previews](/docs/guide/previews). |
+| **Schedules** | Commands run on a cron inside its container. See [Schedules](/docs/guide/workers-and-cron#run-a-command-inside-an-application-on-a-cron). |
+| **Volume backups** | Copies of its volumes on a cron, and restores. See [Backups](/docs/guide/backups). |
+| **Patches** | Files changed in the source before every build. |
+
+Some tabs are absent for some Applications, and opening their address says why: a Docker image
+has no **Previews** or **Patches**, uploaded files have no **Previews**, a Cron service on a Server
+has no **Logs**, and the **Shell** tab is absent in a Cloud account. An AI model has a **Model**
+tab instead of **Domains**, **Requests**, **Previews** and **Patches**; see
+[AI models](/docs/guide/ai-models).
+
+## Read the runtime log
+
+The **Logs** tab's **Runtime log** card shows what the Application's running copies write. On a
+Server it is followed live from its Swarm service, starting from the last 200 lines, with every copy
+merged by time: each line shows its time, then the copy that wrote it in brackets (the Swarm task,
+such as `[<internal name>.2]`), then the text. In AWS it is read from CloudWatch every few seconds
+and in Google Cloud from the project's log store; there each line names its copy by the start of
+its task or instance id.
+
+<Screenshot name="application-logs" alt="The Logs tab of the web Application on fra-1, following the runtime log of its Swarm service live" caption="Every running copy, followed live and merged by time." />
+
+- "Stopped" means the Swarm service has no running task, so nothing is being written: start it to
+  follow the output again.
+- An Application that was never deployed has nothing to read yet; deploy it.
+- Scrolling up stops following the tail; scroll back down to follow again.
+
+The Logs tab needs the read action on Services. A Cron service on a Server has none, because
+nothing of it runs between runs: each run's output is its Deployment log on the **Deployments**
+tab.
+
+## Open a shell in the container
+
+The **Shell** tab opens `sh` inside one of the Application's running containers. When it runs more
+than one copy, pick it under **Container**. Leaving the tab ends the shell unless you dock it
+first: the Dock keeps it running at the bottom of the console. The Dock's **+** also offers a
+shell into this Application from any of its tabs.
+
+<Screenshot name="application-shell" alt="The Shell tab of the web Application with the Container picker open on its two running copies, storefront-web.1 and storefront-web.2" caption="Pick the copy when more than one runs; dock the shell to keep it while you move on." />
+
+- "No container of web is running": the Application is stopped, was never deployed, or its last
+  Deployment failed. **Go to Overview** to start it, or **See Deployments**.
+- If its Server cannot be reached, the tab says so and opens nothing.
+
+<Callout type="limit" title="Who can open a shell">
+A shell writes inside the Service, so it needs the update action on Services (the member role has
+it for the Services it is granted). There is no Shell tab in a Cloud account: Cloudgate has no
+container there to open one in.
+</Callout>
+
+## Change a file before every build with Patches
+
+A patch changes a file in the clone before the build, without changing your repository: a lock
+file to pin, a Dockerfile line you cannot upstream yet, a config carrying a credential.
+
+1. Open the **Patches** tab and press **Add a patch**, or press **Clone the source** under
+   **Repository files** and pick a file from the tree (**Filter files** narrows it).
+2. Choose **What it does**: **Replace a file the repository has**, **Create a file the repository
+   does not have**, or **Remove a file before the build**.
+3. Enter the **File** (relative to the repository root, no leading slash) and its whole
+   **Content**. Content is encrypted at rest.
+4. Save. From a file picked in the tree, the editor has **Edit**, **Changes** and **Against the
+   repository** tabs, and **Save as a patch** or **Remove this file at build time**.
+
+One patch per file: a second one for the same path replaces the first. **Enabled** off keeps the
+patch and stops the build applying it. A Docker image source has no Patches tab, because it is never
+built; patches already written are kept and apply again if the source changes back to a repository.
+Uploaded files keep patches but have no repository to browse.
+
+## Delete an Application
+
+Open **Advanced** > **Danger zone** and press **Delete web**. Type the Application's name and
+press **Delete Application**. See [Delete an Application](/docs/guide/application-settings#delete-an-application)
+for what goes and what stays.
 
 ## What you cannot do
 
-<Callout type="limit" title="Roles">
-Creating an Application needs the owner or admin role, or a custom role that allows creating
-Services; the member role cannot. The **Shell** tab needs permission to update the Service.
-</Callout>
-
-- An Application cannot move to another Server or cloud.
-- A `worker` cannot have a Domain or previews; a `web-private` cannot have a public Domain.
-- A Docker image source is never built, so it has no previews or patches.
-- In a Cloud account there is no **Shell** tab.
-- Uploading files is refused while a build of that Application is running.
-- An Application on uploaded files is never built before files reach it: a Deployment is refused
-  with "no files have been uploaded" until the first upload.
+- Move an Application to another Server or Cloud account.
+- Create an Application in a Cloud account from the console: use the Project config.
+- Deploy on a push from GitLab, Bitbucket, Gitea or a git URL.
+- Build a Docker image source, or give it previews or patches.
+- Deploy uploaded files before the first upload.
+- Change its **Internal name**: it names the container, its volumes and its Traefik router.
+- Change its kind in the console: write `kind` in the [Project config](/docs/guide/project-config).
 
 ## Related pages
 
 - [Deployments and rollbacks](/docs/guide/deployments): the queue, the log and going back.
+- [Application settings](/docs/guide/application-settings): resources, ports, redirects, Swarm and delete.
 - [Domains and HTTPS](/docs/guide/domains): give the Application your own address.
-- [Environment variables](/docs/guide/environment-variables), including wired variables from a
-  database.
-- [Databases](/docs/guide/databases) to give the Application a PostgreSQL or Redis.
-- [Features](/features) for the full list of builders and Service kinds.
+- [Environment variables](/docs/guide/environment-variables), including wired variables from a database.
+- [Workers, cron and private web services](/docs/guide/workers-and-cron).
+- [Features](/features) for every builder and kind of Service.

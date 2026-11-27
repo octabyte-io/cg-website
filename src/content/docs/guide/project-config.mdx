@@ -5,9 +5,9 @@ seoTitle: Describe a Project in cloudgate.yaml with Plans
 description: Describe a Project's Services in one cloudgate.yaml, kept in Cloudgate or your repository, and review each Plan of creates, changes and destroys before Apply.
 lede: The Project config is one YAML file that says what a Project runs. You change the file; Cloudgate shows a Plan for each Environment, and nothing happens until you Apply it.
 section: guide
-updated: '2026-11-20'
+updated: '2026-11-27'
 group: Deploy
-order: 6
+order: 8
 badges: ['Members can read and plan', 'Applying needs permission on each Service']
 howto:
   name: Change a Project's config and apply the Plan
@@ -145,31 +145,83 @@ flags mistakes as you type. On a self-hosted instance, use your console's addres
 
 <Steps>
 <Step title="Open the Config tab">
-Open the Project, for example `storefront`, and its **Config** tab.
-<Screenshot name="project-config" alt="The Config tab of the storefront Project with the cloudgate.yaml text and each Environment's plan card below" caption="The text above, one plan card per Environment below." />
+Open the Project, for example `storefront`, and its **Config** tab: "What this Project runs, as one
+YAML file, and what applying it would change in each Environment." The **Project config** card says
+"Kept in Cloudgate", with one Plan card per Environment below it.
+<Screenshot name="project-config" alt="The Config tab of the storefront Project with the cloudgate.yaml text and the production and staging plan cards below, each saying Nothing to change" caption="The text above, one plan card per Environment below." />
 </Step>
 <Step title="Edit and plan">
-Change the text and press **Save and plan**. Cloudgate plans each Environment below; nothing is
-applied, and the text is stored only when a Plan of it is applied. **Discard edits** throws the
-change away. For a long config, **Expand** opens it filling the browser window, with **Save and
-plan** in its top bar and a status line saying whether the YAML is valid; **Back to page** or Esc
-returns with your edit kept.
+Change the text and press **Save and plan**. Cloudgate plans each Environment below and says
+"Planned in each Environment below. Nothing is applied, and the text is stored when you apply a plan
+of it." When no Environment has anything to change, it says "Saved" and stores the text as it is.
+A refused config shows the reason above the editor, naming the field.
 </Step>
 <Step title="Review the Plan">
-Each Environment's Plan lists **Creates**, **Changes** and **Destroys**, plus drift, notes, held
-builds and major version upgrades. In a cloud, each line can show the real resources it makes,
-with CPU, memory and cost.
-<Screenshot name="plan-card" alt="An open Plan for storefront production listing one Service to create and one change to a size" caption="Review what each line does before you apply." />
+Each Environment's card lists what applying would do, in sections such as **Creates**,
+**Changes**, **Major upgrades** and **Destroys** (see [Read a Plan](#read-a-plan)).
+<Screenshot name="plan-card" alt="The plan card for storefront production saying Nothing to change, with a note that the media bucket is missing from the config and the lines to paste" caption="Each card says what applying would change, or that nothing would." />
 </Step>
 <Step title="Apply">
-Press **Apply**. Creates run first, then changes, then destroys, each as its own step. Or press
-**Dismiss** to drop the Plan.
+Press **Apply** on the card of the Environment you want to change. Or press **Dismiss** to drop the
+Plan.
 </Step>
 </Steps>
 
+The card's other buttons:
+
+| Button | What it does |
+|---|---|
+| **Copy** | Copies the text, for example to commit it beside your code |
+| **Expand** | Opens the editor filling the window, with **Discard edits** and **Save and plan** in its top bar and a status line saying whether the YAML is valid. **Back to page** or Esc returns with your edit kept |
+| **Move to a repository** | Keeps the config in a repository instead (see below). Off while you have unsaved edits: save or discard them first |
+| **Discard edits** | Throws your unsaved change away. Shown only while you have one |
+
+A Project made before Project configs existed shows **No Project config yet**: Cloudgate generates
+one for it when the instance is upgraded, and until then there is nothing to plan.
+
+## Read a Plan
+
+Each Environment's card is titled with its name. Its subtitle says where it stands: "Never
+checked", "Open plan, checked" with a time (and, for a repository-kept config, the commit it read),
+"Checked" for a Plan with nothing to do, or "Last plan applied" or "partly applied". With no open
+Plan it says "No open plan. Check for changes to see what applying the config would do here."
+
+- **Check for changes** makes a new Plan for that Environment from the config as it stands now.
+- **Dismiss** drops the open Plan. It needs Environment update, which a read-only role lacks.
+
+A Plan is made of these sections, each shown only when it has something in it:
+
+| Section | What it lists |
+|---|---|
+| **Creates** | Services, and in a cloud the Environment network, that applying makes |
+| **Existing databases** / **Existing buckets** | Databases and buckets made outside Cloudgate that the config uses as given, and what Cloudgate read about them |
+| **Changes** | Settings that change on a Service, and Services rebuilt or redeployed with new settings |
+| **Major upgrades** | A database moving to a new major version, such as `pg-main: 17 → 18`. A PostgreSQL is offline while it upgrades and a Redis may drop connections briefly; an upgrade cannot be undone. You type the Service's name to confirm |
+| **Destroys** | Services the config no longer lists. You type each name to confirm |
+| Drift | In a cloud, settings "Changed by hand in the AWS console" that Apply puts back |
+| **Held builds** | Builds of Applications whose code and own config entry the same push changed: Apply builds them with the Plan's settings, Dismiss with the saved ones |
+| **Results** | After an Apply, what each step did; the Plan as it was reviewed stays under **Show the Plan as it was reviewed** |
+| **Notes** | What Cloudgate wants you to know about the Plan, such as a Template's parts held back in an Environment where that Template was never set up ([Templates](/docs/guide/templates#what-happens-in-the-projects-other-environments)) |
+
+When the config already matches what runs, the card says so and there is nothing to apply. In a
+cloud, each line can show the real resources it makes, with CPU, memory and a monthly total. A
+deploy that stopped on drift opens the Plan with a line naming that Deployment.
+
+### What does Apply do?
+
+Apply runs each step in the Plan's order: the Environment network first, a Service a link reads
+from before the Service that links to it, and a kind change's destroy right before its create.
+Each step succeeds or fails on its own, so a Plan can end **partly applied**, with the results
+saying which step failed. The button turns red when the Plan destroys or upgrades something, and
+stays off until every name is typed. Its tooltip names what your role needs: Service create for
+each create, Service update for each change, Service delete for each destroy, and Deployment
+create. A role without one is refused before anything is written.
+
 <Callout type="warn" title="Destroys cannot be undone">
-A destroy asks you to type the Service's name. For a database you can also choose to delete its
-data with no final snapshot, and for a bucket to delete its files. Those are gone for good.
+A destroy asks you to type the Service's name. For a database, **Also delete the data of** skips
+the final snapshot, and for a bucket, **Also delete the files of** empties it. Without the tick, a
+bucket that holds files is kept with its volume and named in the results. Data and files deleted
+this way are gone for good.
 </Callout>
 
 ## Native settings for Swarm, AWS and Google Cloud
@@ -245,15 +297,49 @@ in the repository, or use **Move into Cloudgate** first.
 
 ## Keep the config in your repository
 
-On the **Config** tab, **Move to a repository** asks for the git provider connection, the
-repository and the path. Each Environment reads the file from its **Config branch** (Environment >
-**Settings**; empty means the default branch), so `staging` can read `develop` while `production`
-reads `main`.
+<Steps>
+<Step title="Open the move dialog">
+On the **Config** tab, press **Move to a repository**.
+</Step>
+<Step title="Choose where the file lives">
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Provider** | GitHub, GitLab, Gitea or Bitbucket | A custom git URL cannot keep the config |
+| **GitHub connection** (or GitLab, ...) | The [git provider](/docs/guide/git-providers) connection to read through | Connections are set up under Settings, Git providers |
+| **Repository** | The repository, from that connection's list | |
+| **Path** | Where the file is | Empty means `cloudgate.yaml` or `cloudgate.yml` at the root |
+
+<Screenshot name="project-config-move" alt="The Move the config into a repository dialog with GitHub and the northwind-labs connection chosen, and the Repository and Path fields below" caption="Choose where the file lives, then Preview each Environment's Plan before anything moves." />
+</Step>
+<Step title="Preview, then move">
+Press **Preview**: the dialog shows what each Environment's Plan would be after the move, read from
+its Config branch at a commit, with **Open the file**. Press **Move config**. Nothing is applied;
+review each Plan, then apply it.
+</Step>
+</Steps>
+
+Each Environment reads the file from its **Config branch** (Environment > **Settings**; empty means
+the default branch), so `staging` can read `develop` while `production` reads `main`.
 
 From then on, a push to the Config branch makes a Plan for that Environment, and **Check for
-changes** makes one on demand. The console shows the file read-only and never writes to your
-repository; each Environment's copy expands to fill the window, read-only. **Move into Cloudgate** brings it back, keeping the copy from the default branch or
-from an Environment's branch. A move applies nothing; it shows each Environment's Plan first.
+changes** makes one on demand. The **Project config** card says where the file is kept and which
+connection reads it; builds and Preview deployments never read it. Each Environment's card shows its
+copy read-only, with the branch and commit, **Open the file** and **Expand**. The console never
+writes to your repository. If a copy cannot be read, that Environment's card says why.
+
+<Callout type="note" title="If the connection is deleted">
+When the git connection the config is read through is deleted, the card says no Environment can
+read it. Press **Move to another repository** and choose a connection that reaches the repository.
+</Callout>
+
+### Move the config back into Cloudgate
+
+Press **Move into Cloudgate**. **Keep the copy from** picks which copy becomes the config Cloudgate
+keeps: **The default branch**, or an Environment, whose own Config branch is read. **Preview**
+shows that copy and each Environment's Plan; **Move config** moves it. The repository is no longer
+read, every Environment's Config branch is cleared, and the Config tab notes where it was moved out
+of and when. Nothing is applied by the move.
 
 <Callout type="limit" title="Repository-kept configs">
 A config in a repository needs a connected git provider; a custom git URL cannot keep one. While
@@ -281,6 +367,20 @@ open Plan. To keep a hand change, write it into the config. See
 | unchanged | The config matched what runs; nothing to do. |
 
 A Plan whose commit or settings moved on since it was made is refused; make a new one.
+
+A [Template](/docs/guide/templates) set up into an Environment adds its entries to that
+Environment's Plan and waits as a **Pending setup** on the Environment's Services tab until you
+apply it; its **Review the plan** button opens the Plan card here.
+
+## Who can do what
+
+| Action | Who |
+|---|---|
+| Read the config and **Check for changes** | Anyone who can read the Environment |
+| **Save and plan** | Anyone who can read the Environments |
+| **Dismiss** a Plan | Members with Environment update |
+| **Apply** a Plan | Members who hold Service create, update or delete for each step, and Deployment create |
+| Move the config to or from a repository | Owner, admin, or a custom role with Project update |
 
 ## What you cannot do
 

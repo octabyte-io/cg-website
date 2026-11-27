@@ -1,66 +1,78 @@
 ---
 title: Environment variables and secrets
 seoTitle: Environment variables, wired variables, secrets
-description: Set variables on a Project, Environment or Service, reference shared values by name, link database and bucket Outputs, and keep secrets masked.
-lede: Variables are kept at three levels, and a Service gets only its own. Shared values are reached by naming them, and a database's or bucket's credentials arrive as wired variables that are never saved.
+description: Set variables on a Project, Environment or Service, reference shared values by name, link database and bucket Outputs as wired variables, and mask secrets.
+lede: Cloudgate keeps environment variables at three levels, the Project, the Environment and the Service, and a Service gets only its own. Shared values are reached by naming them, and a database's or bucket's credentials arrive as wired variables that are never saved.
 section: guide
 group: Data
 order: 1
+updated: '2026-11-27'
 navTitle: Environment variables
-badges: ['Members can edit Service variables', 'Owner or Admin for Project variables']
+badges: ['Members can edit Service and Environment variables', 'Owner or Admin for Project variables']
 howto:
   name: Set a Service's variables
   steps:
-    - { name: Open the Variables tab, text: 'Open the Service, such as web, and its Variables tab.' }
-    - { name: Edit the block, text: 'Press Edit, or Add variables when there are none, and write one KEY=value per line.' }
-    - { name: Save, text: 'Press Save variables.' }
-    - { name: Deploy, text: 'Deploy the Service. A change needs a Deployment to take effect.' }
+    - { name: 'Open the Variables tab', text: 'Open the Service, such as web, and its Variables tab.' }
+    - { name: 'Edit the block', text: 'Press Edit, or Add variables when there are none, and write one KEY=value per line.' }
+    - { name: 'Save', text: 'Press Save variables. Fix any line the editor marks first.' }
+    - { name: 'Deploy', text: 'Deploy the Service. A change needs a Deployment to take effect.' }
 faq:
-  - { q: Do Services inherit Project or Environment variables?, a: 'No. A Service gets only its own keys. It reaches a Project or Environment value by naming it, such as ${{project.REDIS_URL}}. A key nobody names reaches no container.' }
-  - { q: Does saving a variable restart my Service?, a: 'No. Saving changes nothing that runs. Deploy the Service for the container to get the new value.' }
-  - { q: What happens if a referenced variable is removed?, a: 'The next Deployment of every Service that names it fails, instead of running with an empty value.' }
-  - { q: Are my variables encrypted?, a: 'Yes. Values are encrypted at rest, and the Project config holds only variable names, never values.' }
+  - { q: 'Do Services inherit Project or Environment variables?', a: 'No. A Service gets only its own keys. It reaches a Project or Environment value by naming it, such as ${{project.REDIS_URL}}. A key nobody names reaches no container.' }
+  - { q: 'Does saving a variable restart my Service?', a: 'No. Saving changes nothing that runs. Deploy the Service for the container to get the new value.' }
+  - { q: 'What happens if a referenced variable is removed?', a: 'The next Deployment of every Service that names it fails, and its log says which variable refers to which missing key, instead of running with an empty value.' }
+  - { q: 'Does an Environment variable override a Project variable with the same name?', a: 'No. They are separate: ${{environment.KEY}} reads the Environment and ${{project.KEY}} reads the Project, so the same key on both never collides.' }
+  - { q: 'Are my variables encrypted?', a: 'Yes. Values are encrypted at rest, and the Project config holds only variable names, never values.' }
 ---
 
 The examples use the `web` Application in the `production` Environment of `storefront`, its
 database `pg-main`, and a Redis URL kept once for the whole Project.
 
-## What you can do
+## Where do variables live?
 
-- Keep variables on a Project, an Environment and each Service.
-- Share one value across Services by referencing it by name.
-- Link another Service's **Output**, such as a database's `url`, as a **wired variable**.
-- Hide values whose names look secret, and reveal them when you need to.
-- Set build arguments and build secrets for the build only.
-- Set a Service's variables from the [CLI](/docs/cli/commands) with `cloudgate vars set`.
+Variables are kept at three levels, and **the levels are never merged**. A Service is deployed with its
+own keys only; a Project or Environment value reaches it only where the Service names it.
 
-## Where variables live
-
-| Level | Where in the console | Who sees it |
+| Level | Where in the console | Who uses it |
 |---|---|---|
 | Project | Project > **Settings** > **Project variables** | Any Service in any of its Environments, by reference |
 | Environment | Environment > **Variables** | Any Service in that Environment, by reference |
-| Service | Service > **Variables** | That Service's containers |
+| Service | The Service's **Variables** tab | That Service's containers |
 
-**Variables are not inherited.** A Service is deployed with its own keys only. The Service's
-**Variables** tab lists what is **Available from the Environment** and **Available from the
-Project**, "by reference, not by inheritance".
+Applications, databases and Compose stacks each have their own **Variables** tab. A Compose stack's
+variables are written beside its compose file for the file to substitute into; a database's are
+handed to its container, after the ones derived from its Credentials tab.
 
 ## Set a Service's variables
 
 <Steps>
 <Step title="Open the Variables tab">
-Open the Service, such as `web`, and its **Variables** tab.
-<Screenshot name="application-variables" alt="The Variables tab of the web Application, with its variables masked and the Wired variables card below" caption="Values whose names look secret stay hidden until you choose Show values." />
+Open the Service, such as `web`, and its **Variables** tab. The **Variables** card is "Handed to
+the container as its environment."
+<Screenshot name="application-variables" alt="The Variables tab of the web Application, with its variables masked except NEXT_TELEMETRY_DISABLED, and the Where these come from card beside them" caption="Values whose names look secret stay hidden until you choose Show values." />
 </Step>
 <Step title="Edit the block">
 Press **Edit**, or **Add variables** when there are none. Write one `KEY=value` per line. Lines
-starting with `#` are comments and are kept.
+starting with `#` are comments and are kept. **Expand** opens the editor filling the window, with
+**Cancel** and **Save variables** in its top bar and each problem in its status line.
 </Step>
 <Step title="Save and deploy">
-Press **Save variables**, then deploy the Service. A change here needs a Deployment to take effect.
+Press **Save variables**, then deploy the Service. While the Application is running, a banner says
+"A change here needs a Deployment to take effect", with **Go to Deployments**.
 </Step>
 </Steps>
+
+### What the editor checks
+
+The editor marks each problem with its line number before you save:
+
+| Message | What to do | Blocks Save? |
+|---|---|---|
+| "This is not KEY=value, so it would be dropped." | Add `=` and a value, or make the line a `#` comment | Yes |
+| "API_KEY is set again on line 7, and only that later value is kept." | Remove one of the two lines | Yes |
+| "1PASSWORD is not a name a process can read: a name starts with a letter or _." | Rename the key | Yes |
+| "`${{project.REDIS_URL}}`: REDIS_URL is not set on the Project, so a deploy fails here until it is." | Set the key where it points, or fix the reference | No, a warning |
+
+The last check runs on a Service's own variables, where the Project and Environment values are known.
 
 ## Share a value across Services
 
@@ -69,37 +81,68 @@ Put the value once on the Project or the Environment, then name it in each Servi
 ```text
 CACHE_URL=${{project.REDIS_URL}}
 API_BASE=${{environment.API_BASE}}
+PUBLIC_URL=https://${{SITE_HOST}}/shop
 ```
 
-The reference is resolved at each deploy. A key on the Project or Environment that no Service names
-reaches no container.
+| Reference | Reads |
+|---|---|
+| `${{project.KEY}}` | `KEY` from the Project variables |
+| `${{environment.KEY}}` | `KEY` from the Environment's variables |
+| `${{KEY}}` | `KEY` from the same Service's own variables or its wired variables |
+
+A reference can sit inside a longer value. It is resolved at each deploy, for the container's
+variables and for an Application's build arguments and build secrets alike. A key on the Project or
+Environment that no Service names reaches no container.
+
+The Service's **Variables** tab also lists **Available from the Environment** and **Available from
+the Project**, read-only, and a **Where these come from** card that counts each level. The
+Environment's **Variables** tab lists **Available from the Project** in the same way.
+
+<Screenshot name="environment-variables-tab" alt="The Variables tab of storefront production with its six variables masked, such as DATABASE_URL and STRIPE_SECRET_KEY, and Available from the Project below listing LOG_LEVEL, NODE_ENV, SENTRY_DSN and STRIPE_PUBLISHABLE_KEY" caption="Environment variables, and the Project's beside them, read-only." />
 
 <Callout type="warn" title="Removing a shared key fails deploys">
 If you remove a key that a Service names, that Service's next Deployment fails rather than running
-with an empty value. Check who references it first.
+with an empty value. The log says, for example, "CACHE_URL refers to `${{project.REDIS_URL}}`, but
+REDIS_URL is not set on the Project." Check who references a key before you remove it.
 </Callout>
+
+## Set Environment and Project variables
+
+- **Environment**: open the Environment's **Variables** tab. The card is "Available to every
+  service in production"; press **Add variables** or **Edit**, then **Save variables**.
+- **Project**: open the Project's **Settings** tab, **Project variables**: "Set once here, for
+  anything below to reference." Same editor.
+
+Saving changes nothing that runs. Each Service that names a changed key gets the new value at its
+next Deployment.
 
 ## Link a database or bucket with a wired variable
 
-A **wired variable** is filled in from another Service's Output at each deploy. Nothing stores it
-or shows it, so a password rotated at the source reaches the next deploy without anyone copying it.
+A **wired variable** is filled in from another Service's **Output** at each deploy. Nothing stores
+it or shows it, so a password rotated at the source reaches the next deploy without anyone copying
+it.
 
 <Steps>
 <Step title="Link a variable">
-On the Service's **Variables** tab, find **Wired variables** and press **Link a variable**.
+On the Service's **Variables** tab, find **Wired variables** ("Filled in from another Service's
+Output at each deploy") and press **Link a variable**.
 </Step>
 <Step title="Pick the Output">
 Enter the variable name, such as `DATABASE_URL`, choose the Service `pg-main` and the Output `url`,
-and press **Save link**. If the variable already had a typed value, the button reads
-**Replace typed value with link**.
+and press **Save link**. If the variable already has a typed value, the form says so and the button
+reads **Replace typed value with link**.
 </Step>
 <Step title="Deploy">
-Deploy the Service. When an Output changes later, the console says "A wired variable has a new
-value." Deploy again to hand it over.
+Deploy the Service. When an Output changes later, the tab shows "A wired variable has a new
+value. Deploy to pick up the new value."
 </Step>
 </Steps>
 
-In the [Project config](/docs/guide/project-config) the same link is written under the Service:
+**Unlink** removes a link; the running container keeps the value until the next Deployment. If no
+Service in the Environment hands out an Output this one can reach, **Link a variable** is off with
+that reason.
+
+A link is part of the [Project config](/docs/guide/project-config), written under the Service:
 
 ```yaml
 services:
@@ -110,20 +153,26 @@ services:
       - S3_BUCKET: uploads.name
 ```
 
+When the config is kept in a repository, the card says the links are set by the Project config,
+names the file and the commit last applied, and has no **Link a variable**: change them in the file.
+
 | Linked Service | Outputs |
 |---|---|
 | PostgreSQL, MySQL | `url`, `host`, `port`, `user`, `password`, `database`, `ca` |
 | Redis | `url`, `host`, `port`, `password`, `ca` |
 | Bucket | `name`, `region`, `endpoint`, `access_key_id`, `secret_access_key`, `path_style` |
 
-Every Output is a secret. A Server hands out no `ca`. Remove a link with **Unlink**.
+Every Output is a secret. `ca` is handed out only where the connection uses TLS; a Server hands out
+none. A wired variable reaches the running container only, never a build, so a build never depends
+on a private database. Another variable can use it as `${{DATABASE_URL}}`.
 
 ## How secrets are kept
 
 - **Encrypted at rest.** Every variable value is stored encrypted.
-- **Masked in the console.** Values whose names look secret (containing `PASS`, `SECRET`, `TOKEN`,
-  `KEY`, `AUTH`, `_URL` and similar) are hidden until you press **Show values**. The match is on
-  the name.
+- **Masked in the console.** Values whose names contain `PASS`, `SECRET`, `TOKEN`, `KEY`,
+  `CREDENTIAL`, `PRIVATE`, `AUTH`, `SALT`, `SIGNATURE`, `CERT`, `DSN`, `_URL` or `_URI` are hidden
+  until you press **Show values** (and **Hide values** again). The match is on the name, in any
+  letter case.
 - **Never returned.** Stored secrets such as a database password or a registry token come back from
   the API only as "set" or "not set".
 - **Masked for Agents.** Every tool result an Agent gets, logs included, replaces stored secrets
@@ -132,35 +181,48 @@ Every Output is a secret. A Server hands out no `ca`. Remove a link with **Unlin
 
 ## Build arguments and build secrets
 
-An Application's **Variables** tab also has **Build arguments** (passed as `--build-arg`) and
-**Build secrets**, which are mounted during the build only and end up in no image layer. Use build
-secrets for a private package registry token.
+An Application's **Variables** tab also has a switch between **Build arguments** and **Build
+secrets**:
+
+- **Build arguments** are passed to the build as `--build-arg`. They are recorded in the image's
+  history, readable by anyone who can pull it. A Dockerfile must declare `ARG` for each; Nixpacks
+  and Railpack pass them to the build environment directly.
+- **Build secrets** are mounted during the build only and end up in no image layer. Put credentials,
+  such as a private package registry token, here.
+
+An Application that runs a prebuilt image has nothing to build: the card says so.
 
 ## Who can change variables
 
 | Variables | Who |
 |---|---|
-| A Service's | Members granted the Service (the member role holds `service: update`) |
-| An Environment's | Members granted the Environment |
-| A Project's | Owner, admin, or a custom role with `project: update` |
+| A Service's own, its links, build arguments and build secrets | Members granted the Service (the member role holds Service update) |
+| An Environment's | Members granted the Environment (the member role holds Environment update) |
+| A Project's | Owner, admin, or a custom role with Project update |
 
 A Project write reaches every Environment under it, which is why the member role does not have it.
+Without the right, **Edit** and **Add variables** are off and their tooltip names the reason.
 
 ## What you cannot do
 
 - Make a Service inherit variables: it must name them.
+- Override a Project variable by setting the same key on the Environment: the two are read by
+  different references.
 - Change a running container's variables without a Deployment.
 - Read a wired variable's value in the console: it exists only in the container.
 - Add a new variable name in the console when the Project config is kept in a repository. Values
-  stay editable; the name is the file's to add.
+  stay editable; the editor says "New variable names are set by the Project config" and names the
+  file to add it to.
 - Set Project or Environment variables, build arguments or build secrets from the CLI: only a
-  Service's own.
+  Service's own, with `cloudgate vars set`.
 
 ## Related pages
 
 - [Databases](/docs/guide/databases) and [buckets](/docs/guide/buckets) hand out the Outputs you
   link.
-- [Projects and Environments](/docs/guide/projects-and-environments).
+- [Projects and Environments](/docs/guide/projects-and-environments): where Project and Environment
+  variables are set.
+- [Project config and Plans](/docs/guide/project-config): wired variables in `cloudgate.yaml`.
 - [Deployments](/docs/guide/deployments): a variable change needs one.
 - [CLI commands](/docs/cli/commands) for `cloudgate vars`.
 - How Cloudgate protects secrets on the [security page](/security).

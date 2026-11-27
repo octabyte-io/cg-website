@@ -1,131 +1,168 @@
 ---
 title: Buy a Server from Cloudgate
 navTitle: Bought Servers
-seoTitle: 'Buy a ready-to-use Server from Cloudgate in the console'
-description: Buy a Server in the Cloudgate console by location, size and operating system, with optional backups and extra storage, billed monthly on your Hosted invoice.
-lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you. No SSH keys or setup commands needed.
+seoTitle: 'Buy a ready-to-use Server in the console'
+description: Buy a Server in the Cloudgate console by location, size and image, add backups or extra storage, see today's charge, then resize or delete it later.
+lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you, with no SSH key or setup command to handle.
 section: guide
 group: Where it runs
-order: 2
-updated: '2026-11-20'
+order: 3
+updated: '2026-11-27'
 badges: ['Hosted only', 'Owner or Admin']
 howto:
   name: Buy a Server
   steps:
     - { name: 'Open Buy a Server', text: 'In Servers, press Buy a Server.' }
-    - { name: 'Pick a location', text: 'Choose a location on the map. Show where I am highlights the nearest ones.' }
-    - { name: 'Pick a size and operating system', text: 'Choose a size sold in that location and its operating system, and optionally backups and extra storage.' }
-    - { name: 'Buy', text: 'Check the summary of the monthly price and today''s charge, accept the terms and press Buy.' }
-    - { name: 'Wait until ready', text: 'The Server is created and set up by itself. It can take Services once it is Ready.' }
+    - { name: 'Pick a location', text: 'Choose a suggestion, a pin on the map or a city card.' }
+    - { name: 'Pick a size and image', text: 'Choose a family and a size sold in that location, and the Server image. Ubuntu 24.04 is chosen unless you pick another.' }
+    - { name: 'Add extras', text: 'Optionally turn on Backups and enter Extra storage in GB.' }
+    - { name: 'Buy', text: 'Check the Summary and Today''s charge, tick the terms and press Buy.' }
+    - { name: 'Wait until ready', text: 'Cloudgate creates the machine and runs its setup. It takes Services once setup finishes.' }
 faq:
-  - { q: 'Is a bought Server included in the free trial?', a: 'No. A bought Server is charged at once, even during the free trial.' }
-  - { q: 'How is a bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The summary shows the monthly price and today''s charge before you buy.' }
-  - { q: 'Can I make a bought Server bigger later?', a: 'Yes. Change size moves it up or down among the sizes sold in its location. The machine is powered off for a few minutes, and its disk is not grown.' }
-  - { q: 'Which operating system does a bought Server run?', a: 'Ubuntu 24.04 unless you pick another. The Operating system select lists the images the chosen size''s architecture can run, and the summary names the one you picked.' }
-  - { q: 'Why is my bought Server refused as a deploy target?', a: 'An operator powered it off. Its notice says Powered off by an operator, with the reason and a link to support. Deploys, rollbacks, starts, uploads and previews are refused until it is powered on again, and a Template setup waits for it.' }
-  - { q: 'What happens if a payment fails?', a: 'The Server is due for deletion 7 days after the failed invoice. A red bar shows the date. Pay before then to keep it.' }
+  - { q: 'Is a bought Server included in the free trial?', a: 'No. The trial covers your plan, not the Server. During the trial the Server is charged on its own invoice up to the trial''s end, then joins your plan''s monthly invoice.' }
+  - { q: 'How is a bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The Summary shows the monthly total and Today''s charge before you buy.' }
+  - { q: 'Can I make a bought Server bigger later?', a: 'Yes. Change size on its Settings tab moves it up or down among the sizes sold in its location. The machine is powered off for a few minutes, and its disk is not grown.' }
+  - { q: 'Why is my bought Server refused as a deploy target?', a: 'An operator powered it off. Its notice says Powered off by an operator, with the reason. Deploys, rollbacks, starts, uploads and previews are refused until it is powered on again.' }
+  - { q: 'What happens if a payment fails?', a: 'Your bought Servers are due for deletion 7 days after the failed payment. A red bar shows the date. Pay the open invoice before then to keep them.' }
 ---
 
-A Bought Server is a Server Octabyte owns and runs for you. Once it is ready it works like any
-other [Server](/docs/guide/servers): you deploy Applications, databases and Compose stacks onto it.
-You do not need to make an SSH key or run the setup: Cloudgate does both.
+A bought Server is a Server Octabyte runs for you. Once it is ready it works like any other
+[Server](/docs/guide/servers): you deploy Applications, databases and Compose stacks onto it, open its
+shell and read its telemetry. Cloudgate makes its key and runs its setup by itself.
 
-## What you can do
+## What can you do with a bought Server?
 
-- Buy a Server by location, size and operating system, from a world map.
-- Add backups of the Server, and extra storage from 10 GB to 10 TB.
-- Change its size up or down, turn backups on or off, and grow its storage later.
+- Buy one by location, size and image, from a world map, with a price before you pay.
+- Add daily backups of the Server's disk, and extra storage from 10 GB to 10 TB.
+- Change its size up or down, turn backups on or off, and grow its extra storage later.
 - Delete it, with the unused part of the month credited.
 
-## Buy a Server
+<Callout type="limit" title="Hosted only, owners and admins">
+**Buy a Server** shows only on the Hosted instance, at cloudgate.octabyte.app. On a self-hosted
+instance, [add your own Server over SSH](/docs/guide/servers). Buying and changing a bought Server
+needs the owner or admin role, or a custom role that allows it; the button is greyed out for others.
+</Callout>
+
+## How do I buy a Server?
+
+Press **Buy a Server**, pick a location, a size and an image, add any extras, and pay. Cloudgate then
+creates the machine and runs its setup for you:
 
 <Steps>
-<Step title="Open the shop">
-In **Servers**, press **Buy a Server**. You can also get here from the
-[get-started wizard](/docs/guide/get-started) by choosing **Get a server from Cloudgate**.
+<Step title="Open Buy a Server">
+In **Servers**, press **Buy a Server**. The [get-started wizard](/docs/guide/get-started) offers the
+same choices in its first step.
 </Step>
 <Step title="Pick a location">
-The screen opens on two suggestions, **Closest** and **Cheapest**. Or choose a location on the
-world map: **Show where I am** highlights the ones near you, using your browser's time zone; it is
-never sent anywhere.
-<Screenshot name="servers-buy" alt="The Buy a Server page with a world map of locations, a list of sizes and a price summary" caption="Pick a location, then a size; sizes not sold there are greyed out." />
+**Suggested** offers **Closest** and **Cheapest**: the least a Server with at least 4 GB of memory costs
+near you, and anywhere. Or pick under **1. Location**: a pin on the map or a city card, nearest first,
+each with its distance. Your position is first guessed from your browser's time zone; **Show where I
+am** asks your browser for its location, and it stays on the page.
+<Screenshot name="servers-buy" alt="The Buy a Server page with suggestions, a world map of locations, a size table and the Summary" caption="Pick a place and a size; the Summary follows you down the page." />
 </Step>
-<Step title="Pick a size, operating system and extras">
-Choose a size sold in that location; sizes not sold there are greyed out. Sizes come in four
-families: **Standard**, **Performance**, **Arm** and **Dedicated**. The **Operating system**
-select lists only the images the size's architecture can run and opens on Ubuntu 24.04; Buy refuses
-an image the size cannot run. Optionally turn on backups and add extra storage, from 10 GB to
-10 TB.
+<Step title="Pick a size">
+Under **2. Size in** the chosen city, choose a family, then a size. Each row gives vCPUs, memory, disk
+and the price per month. A size not sold there right now is greyed out.
+
+| Family | What it is |
+|---|---|
+| **Standard** | Shared Intel or AMD cores, the cheapest, enough for most apps. |
+| **Performance** | Shared AMD cores, faster than Standard, in more locations. |
+| **Arm** | Shared Arm cores, the cheapest per core. Your images must run on Arm. |
+| **Dedicated** | Cores reserved for this Server alone, for steady heavy load. |
 </Step>
-<Step title="Check the summary and buy">
-The summary stays in view as you scroll and shows the operating system, the monthly price, today's
-charge and the dates. Tick that you accept Octabyte's
-terms and acceptable-use policy, then press **Buy**. The first time, your bank may ask you to
-confirm the payment (3D Secure).
+<Step title="Pick the image">
+**3. Server image** lists only the images the size's architecture can run, and starts on Ubuntu 24.04.
+</Step>
+<Step title="Add extras">
+Under **4. Extras**:
+
+| Extra | What it is | Notes |
+|---|---|---|
+| **Backups** | A copy of the Server's own disk every day; the last 7 are kept. | Priced once you pick a size. Extra storage is not included. |
+| **Extra storage** | A separate disk, in GB, mounted at `/mnt/storage`. | 10 GB to 10 TB. Can grow later, never shrink. Leave empty for none. |
+</Step>
+<Step title="Check the Summary and buy">
+The **Summary** lists the Server, backups and extra storage with their monthly prices, your plan, and
+the **Total per month**. **Today** is what is charged now, for the part of the month up to your plan's
+renewal. Tick that you accept Octabyte's terms and acceptable-use policy, then press **Buy**. If the
+Organization has no plan yet, the button reads **Buy and start Free trial** and starts the trial with
+the purchase. The line under the button says what is still missing.
+
 </Step>
 <Step title="Wait until it is ready">
-The Server moves through **Waiting for payment**, **Creating**, **Setting up** and **Ready**. Its
-first setup run starts by itself, after waiting up to ten minutes for the new machine to accept
-SSH. Nothing deploys onto it until it is ready.
+When a payment page is needed you are sent there and back; your bank may ask you to confirm. The
+Server is then created and set up by itself. Its **Setup** card reads **Setting up**, and nothing can
+deploy to it until setup finishes. The first setup waits up to ten minutes for the new machine to accept
+SSH.
 </Step>
 </Steps>
 
-If a purchase is left unpaid, **Finish paying** returns you to the payment, or you can cancel it.
-If creating the machine fails, you are refunded.
+<Callout type="note" title="When your Server count is full">
+If the Organization already has all the Servers its plan allows, the Summary adds an Add-on line ("room
+for 1 more Server") and the Add-on is bought with the Server. See [Billing](/docs/guide/billing).
+</Callout>
+
+### Finish or cancel an unpaid purchase
+
+A purchase left at the payment step shows in **Servers being bought** on the Servers screen as
+**Waiting for payment**. **Finish paying** returns you to the payment; **Cancel** drops it and nothing is
+charged. Rows also show **Creating** and, while one is removed, **Deleting**. If creating the machine
+fails, what you paid is given back in full.
 
 ## Change size, backups or storage
 
-Open the Server's **Settings** tab, **Bought Server** card.
+Open the Server's **Settings** tab and its **Bought Server** card, which shows its monthly price. Changes
+are possible once the Server is ready; a **Changing** chip shows while one runs.
 
-- **Change size**: move up or down among the sizes sold in its location (**Pay and change size**).
-  The machine is powered off for a few minutes. The disk is not grown.
-- **Extra storage**: grow it (**Pay and grow**). The filesystem is grown for you. Extra storage is
-  not in the backups.
-- **Backups**: **Pay and turn on backups**, or turn them off.
+- **Backups**: the switch asks first. Turning on (**Pay and turn on backups**) charges the rest of this month now. Turning off (**Turn off and delete backups**) deletes every backup at once and credits the unused part of the month.
+- **Extra storage**: shown when the Server was bought with some. **Grow**, enter a larger size, and press **Pay and grow**. The filesystem is grown for you.
+- **Size**: **Change size** lists the other sizes sold where the Server is, with their price. Sizes with a smaller disk than the current one are marked **Disk too small**. A dearer size is **Pay and change size**, charged now for the rest of the month; a cheaper one is credited on the next invoice.
 
-A costlier change is charged now; a cheaper one is credited on the next invoice.
-
-<Callout type="warn" title="Turning off backups deletes them">
-**Turn off and delete backups** deletes every backup of the Server at once. Extra storage can only
-grow, never shrink.
+<Callout type="warn" title="What a change costs you">
+A size change powers the Server off for a few minutes, and everything on it stops until it is back.
+Its disk is not grown with the size; for more disk, grow extra storage. Turning off backups deletes them
+for good, and extra storage is never in the backups: back it up with
+[volume backups](/docs/guide/backups) to a Destination outside the Server.
 </Callout>
 
 ## Delete a bought Server
 
-Removing it from the Server's **Settings** deletes the machine, its data and its backups. The
-unused part of the month is credited.
+On **Settings**, under **Remove this Server**, press **Delete**, type the Server's name and press
+**Delete this Server**. The machine is deleted with its disk, every backup and its extra storage, and
+its address is released. The unused part of the month is credited on your next invoice. Removal is
+refused while Services are still recorded on the Server; move or delete them first.
 
 <Callout type="warn" title="This cannot be undone">
-Unlike a Server you added over SSH, deleting a bought Server destroys the machine and everything on
-it. Back up the databases and volumes you need first; see [Backups](/docs/guide/backups).
+Unlike a Server you added over SSH, deleting a bought Server destroys the machine and everything on it.
+Copy out what you need first.
 </Callout>
 
-## If an operator powers it off
+## Notices on a bought Server
 
-An operator of the Hosted instance can power off a bought Server. Its notice then says
-**Powered off by an operator**, gives the reason and links support. While it is off, a deploy, a
-rollback, a Start or restart, a Run now, an upload and a preview are refused with a message naming
-the Server, a Template setup waits for it to be powered on instead of applying, and the build-server
-pickers leave it out.
+| Notice | What it means | What to do |
+|---|---|---|
+| **Due for deletion on** a date | A payment failed. The Server keeps working until then. | **Pay the open invoice** in Settings, Billing. |
+| **Powered off by an operator** | An operator of the Hosted instance powered it off, with the reason shown. | Reply to the email about it, or write to support@octabyte.io. |
+| **Deleted.** | Its machine was deleted; its Services are still listed. | Move or delete the Services, then delete the Server. |
+
+While a Server is powered off by an operator, a deploy, a rollback, a Start or restart, a Run now, an
+upload and a preview are refused with a message naming the Server, a Template setup waits, and pickers
+leave it out.
 
 ## If a payment fails
 
-- A failed invoice sets a deletion date 7 days later; so does a suspension. A red "Due for
-  deletion on" bar shows the date. Costlier changes are refused until it is paid.
-- When the plan lapses, bought Servers are deleted at once.
-- A Server deleted for non-payment credits nothing. Its record stays, marked Deleted.
+A failed payment sets a deletion date 7 days later for the Organization's bought Servers, and the red
+bar shows it on each. A suspension of the Organization, or a cancel that is coming, sets one too. While
+a deletion date is set, buying and anything that costs more (backups on, more storage, a bigger size)
+are refused; deleting, turning backups off and moving to a smaller size stay allowed.
 
 ## What you cannot do
 
-<Callout type="limit" title="Hosted only">
-Buying a Server is offered only on the Hosted instance, at cloudgate.octabyte.app. On a
-self-hosted instance, [add your own Server over SSH](/docs/guide/servers).
-</Callout>
-
 - Buy without being charged: there is no trial for a bought Server.
-- Pay with a prepaid card.
-- Shrink extra storage, or include it in the backups.
-- Change the size to one not sold in the Server's location.
+- Pay with a prepaid card: the purchase is refused and nothing is charged.
+- Shrink extra storage, include it in the backups, or add it later to a Server bought without it.
+- Change to a size not sold in the Server's location.
 
 ## Related pages
 

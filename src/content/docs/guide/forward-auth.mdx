@@ -1,0 +1,190 @@
+---
+title: Put an Application behind a sign-in with forward auth
+seoTitle: 'Forward auth: protect an Application with OIDC'
+description: Run an oauth2-proxy on a Server's Traefik so visitors to an Application's Domain must sign in at your OIDC identity provider before they reach it.
+lede: Forward auth puts an authentication proxy in front of an Application's own Domain. Traefik sends every request to the proxy first, and only requests with a valid session from your identity provider reach the Application, so an internal tool gets a sign-in screen without anybody adding one to it.
+section: guide
+updated: '2026-11-27'
+group: Team and access
+order: 6
+navTitle: Forward auth
+badges: ['Owner or Admin', 'Business plan or Enterprise license', 'Servers only']
+howto:
+  name: Put an Application's Domain behind forward auth
+  steps:
+    - { name: Add an OIDC provider, text: 'Under Settings, Single sign-on, add an OIDC identity provider. SAML providers cannot be used.' }
+    - { name: Set an authentication domain, text: 'Open Settings, Forward auth. On the Server''s card press Set an authentication domain, enter a host such as auth.northwind.example, keep Serve it over HTTPS on and press Save the domain.' }
+    - { name: Register the redirect URI, text: 'Copy the Redirect URI the card shows and add it to the allowed redirect URIs at your identity provider.' }
+    - { name: Deploy the proxy, text: 'Press Deploy the proxy, choose the provider in Authenticate against and press Deploy it.' }
+    - { name: Gate the Domain, text: 'Open the Application''s Domains tab and turn on the Sign-in switch beside the host.' }
+faq:
+  - { q: Who can sign in through forward auth?, a: 'Anyone your identity provider signs in. The proxy accepts every account the provider vouches for, so limit who may sign in to the application at the provider itself.' }
+  - { q: Can I use a SAML identity provider?, a: 'No. The proxy, oauth2-proxy, speaks OIDC only, so only OIDC providers are offered in Authenticate against.' }
+  - { q: Can a Compose stack be put behind forward auth?, a: 'No. A Compose stack''s routes carry no middleware, and Cloudgate refuses its Domains. Only Application Domains get the Sign-in switch.' }
+  - { q: What happens to protected Domains if the plan or license lapses?, a: 'They stay protected. The page shows the proxy as Still protected; you cannot set up or change forward auth, but you can still remove it.' }
+  - { q: Why does a gated Domain fail every request?, a: 'The proxy behind it is not answering: it was removed, its authentication domain was cleared, or it is not starting. Redeploy the proxy, or turn the Domain''s Sign-in switch off.' }
+---
+
+Forward auth has two halves. **Settings** > **Forward auth** sets up one proxy per Traefik: the
+machine Cloudgate runs on, and each of your Servers. The switch that puts a Domain behind that
+proxy is on the Application's **Domains** tab, beside the host. The proxy is
+[oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/), authenticating against an OIDC
+provider you add under [Single sign-on](/docs/guide/sso-and-scim).
+
+## What you can do
+
+- Give each Server's Traefik an authentication domain, such as `auth.northwind.example`, served
+  over HTTPS.
+- Deploy an oauth2-proxy there, signed in against one of your OIDC providers.
+- Turn **Sign-in** on for any Application Domain on that Server, and off again.
+- Remove the proxy, or clear its authentication domain.
+
+<Callout type="limit" title="Plan, license and role">
+- Setting up and changing forward auth needs the **Business** plan on the Hosted instance, or an
+  active Enterprise license on a self-hosted one. Without it the page explains the feature with a
+  lock: **Go to License** on a self-hosted instance, the Business plan on the Hosted one. See
+  [Billing and plans](/docs/guide/billing).
+- Only owners and admins of the Organization can use **Settings** > **Forward auth**. Anyone else
+  sees **Managing forward auth needs an owner or admin role in this Organization on top of the
+  license.**
+- The **Cloudgate Server (local)** card is the platform host, which every Organization shares:
+  setting it up or removing it also needs an owner or admin of the Instance organization.
+- The **Sign-in** switch on a Domain follows Domain rights instead: anyone who may change that
+  Application's Domains can turn it on (while licensed) or off.
+</Callout>
+
+## The Forward auth screen
+
+From top to bottom:
+
+- **No identity provider yet**, only when the Organization has no OIDC provider: **Add an OIDC
+  provider under Single sign-on before deploying a proxy.** with **Go to Single sign-on**.
+- One card per place a proxy can run: **Cloudgate Server (local)** first ("The Traefik this
+  instance of Cloudgate runs behind."), then each of your Servers that has an SSH key, with its
+  address. With none at all the page reads **Nowhere to deploy a proxy**.
+- **Putting a domain behind a proxy**: where the per-Domain switch is, and that Compose stacks
+  cannot be gated.
+
+Each card's heading carries the proxy's state:
+
+| State | What it means |
+|---|---|
+| **No proxy** | Nothing is deployed on this Traefik. |
+| **Deployed** | A copy of the proxy is running. It is not proof that sign-ins work: check `docker service logs cloudgate-forward-auth` on that machine before you gate a Domain. |
+| **Not starting** | The proxy is deployed but no copy is running, with the error beside it. A wrong client secret or an unreachable issuer looks like this. |
+| **Could not check** | The machine did not answer within four seconds. It says nothing about whether a proxy is deployed. |
+
+Once a domain is set, the card lists **Auth domain**, **Scheme** (HTTPS or HTTP), **Certificate**
+and **Redirect URI**, with a copy button.
+
+## Set up forward auth on a Server
+
+<Steps>
+<Step title="Add an OIDC provider">
+Under **Settings** > **Single sign-on**, add your identity provider as OIDC, with its client ID
+and secret. See [SSO, SCIM and forward auth](/docs/guide/sso-and-scim).
+</Step>
+<Step title="Set an authentication domain">
+On the Server's card, press **Set an authentication domain**. The dialog,
+**Authentication domain for edge-1**, asks for:
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Host** | The host the proxy answers on, such as `auth.northwind.example`. | A hostname, not a URL. Stored lower case. Needs DNS pointing at this Server. |
+| **Serve it over HTTPS** | Serves the host over HTTPS. | On by default. Identity providers refuse a plain-HTTP redirect URI except in local tests. |
+| **Certificate** | **Let's Encrypt**, **A custom resolver** or **None**. | Shown with HTTPS on. Turning HTTPS on picks Let's Encrypt. |
+| **Resolver name** | The certificate resolver in Traefik's static configuration. | Only for **A custom resolver**, such as `letsencrypt-dns`. |
+
+The host's parent domain becomes the cookie domain: `auth.northwind.example` signs people in for
+everything under `northwind.example`. So the authentication domain must share a parent with the
+Applications it protects. Press **Save the domain**. The page confirms **The proxy on edge-1 will
+answer at** its redirect URI.
+</Step>
+<Step title="Register the redirect URI">
+Copy **Redirect URI** (for example `https://auth.northwind.example/oauth2/callback`) and add it to
+the allowed redirect URIs of the application at your identity provider. Without it, sign-in is
+refused at the last step.
+</Step>
+<Step title="Deploy the proxy">
+Press **Deploy the proxy**. In **Deploy the proxy on edge-1**, choose the provider in
+**Authenticate against** (each is listed with its issuer) and press **Deploy it**. The proxy is
+started on that Server, connected to Traefik, and given the provider's client ID and secret and a
+cookie secret made for this Server. The page confirms **The proxy is up on edge-1.**
+
+**Deploy the proxy** stays off until a domain is set (**Deploying is off until a domain is set**)
+and while no OIDC provider exists.
+</Step>
+<Step title="Turn on Sign-in for a Domain">
+Open the Application, for example `admin` in `backoffice` / `production`, and its **Domains** tab.
+Turn on the **Sign-in** switch beside `admin.northwind.example`. Cloudgate confirms that the host
+is now routed through the authentication proxy, and warns that if the proxy is not actually up,
+the host stops answering. Open the host in a private window to check you are sent to sign in.
+</Step>
+</Steps>
+
+## Why was the Sign-in switch refused?
+
+The switch stays where it was and says why:
+
+- **Deploy the authentication proxy for this server in SSO settings first.** No proxy has been set
+  up on the Server this Application runs on.
+- **The authentication proxy is not deployed on this server.** It was set up and is gone. Deploy
+  it again on **Settings** > **Forward auth**.
+- **The authentication proxy on this server is deployed but no replica is running**, with the
+  proxy's own error. Fix the provider's client secret or issuer, then redeploy.
+- A plan or license refusal: turning a gate on is setting forward auth up. Turning it off is
+  always allowed.
+- **SSO forward-auth is currently only supported on application domains**: Compose stack Domains
+  cannot be gated.
+
+## Change, clear or remove forward auth
+
+- **Change the domain** reopens the domain dialog. A new host needs its redirect URI registered at
+  the identity provider again.
+- **Remove the proxy** asks **Remove the proxy on edge-1?**: the proxy is stopped and its router
+  on the authentication domain is removed. Every Domain whose **Sign-in** is on can no longer
+  send visitors through sign-in, so it **fails every request** until the proxy is deployed again
+  or its switch is turned off. The authentication domain and redirect URI are kept, so deploying
+  again puts it back as it was.
+- **Clear the domain** asks **Clear the authentication domain for edge-1?**: its `/oauth2` router
+  and settings are removed. A proxy still deployed is no longer reached, so every gated Domain
+  fails its sign-in.
+
+<Callout type="warn" title="Turn Sign-in off before you remove the proxy">
+Removing the proxy or clearing its domain does not open gated Domains: it breaks them. Turn
+**Sign-in** off on each Domain first if the Applications should stay reachable.
+</Callout>
+
+If Cloudgate removes the proxy but cannot delete its router file on the machine, it shows **The
+proxy on edge-1 was removed, but its router was not**, with the file's path. Until that file is
+deleted, `https://auth.northwind.example/oauth2/*` answers 502. Copy the path before closing the
+dialog (it is not stored), then delete the file on that machine, or save the authentication
+domain again to retry.
+
+## When the plan or license lapses
+
+What is already set up keeps working: gated Domains stay behind the sign-in and a running proxy
+shows **Still protected**. A strip at the top says the settings are kept, with what is off: **You
+can't add or change forward auth.** Setting a domain, deploying and turning on a gate are refused;
+removing stays allowed. While a downgrade is only scheduled, the strip says the date adding and
+changing forward auth stops.
+
+## What you cannot do
+
+<Callout type="limit" title="Limits">
+- No SAML providers, and no per-person or per-group rule in Cloudgate: whoever your OIDC provider
+  signs in gets through.
+- Compose stacks and Cloud Services cannot be gated.
+- One proxy and one authentication domain per Traefik.
+- Cloudgate does not create the authentication domain's DNS record.
+- Cloudgate cannot see whether the proxy really answers sign-ins; **Deployed** means a copy is
+  running.
+</Callout>
+
+## Related pages
+
+- [SSO, SCIM and forward auth](/docs/guide/sso-and-scim): add the OIDC provider the proxy uses.
+- [Domains and TLS certificates](/docs/guide/domains): the Domains tab and its **Sign-in** column.
+- [Servers](/docs/guide/servers): the Traefik on each Server.
+- [Billing and plans](/docs/guide/billing): the Business plan.
+- [Security at Cloudgate](/security).

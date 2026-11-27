@@ -2,35 +2,35 @@
 title: Templates
 seoTitle: Set up apps from the template catalogue
 description: Set up a ready-made app such as Ghost, n8n or Plausible from the template catalogue in a Project, review its Plan and Apply it. What templates can't do.
-lede: A Template is a ready-made Project config for a known app. Setting one up adds its Services to an Environment you choose, through a Plan you review first.
+lede: A Template is a ready-made Project config for a known app. Setting one up adds its Services to an Environment you choose, through a Plan you review before anything runs.
 section: guide
-updated: '2026-11-20'
+updated: '2026-11-27'
 group: Deploy
-order: 7
+order: 9
 badges: ['People only, not Agents']
 howto:
   name: Set up a Template in a Project
   steps:
-    - { name: 'Open Templates', text: 'In the rail, open Templates and find the app.' }
-    - { name: 'Set up', text: 'Press Set up. The setup page opens on the Template; pick New Project or one of your Projects from the cards, then an Environment.' }
+    - { name: 'Open Templates', text: 'In the rail, open Templates under Build and find the app.' }
+    - { name: 'Set up', text: 'Press Set up. The setup page opens on the Template; pick New Project or one of your Projects, then an Environment.' }
     - { name: 'Fill in the values', text: 'Enter a setup name, the values the template asks for, and the Domain hosts.' }
-    - { name: 'Review the Plan', text: 'Press Set up and review the Plan.' }
-    - { name: 'Apply', text: 'Read the Environment''s Plan and press Apply.' }
+    - { name: 'Review the Plan', text: 'Press Set up and review the Plan. The Environment''s Plan lists what the template creates.' }
+    - { name: 'Apply', text: 'Press Apply. Cloudgate creates the Compose stack and starts its first Deployment.' }
 faq:
   - { q: 'Where can I see every template?', a: 'On the template catalogue website at cgt.octabyte.io, which has a page for each app with a Deploy button. The console''s Templates page lists the same catalogue.' }
   - { q: 'Does my app get updates when the template changes?', a: 'No. Setting a template up copies its config into your Project. It keeps no link to the template and gets no updates from it.' }
   - { q: 'Can an AI agent set up a template?', a: 'No. Only a person can set a template up.' }
   - { q: 'Can I change a config file a template shipped?', a: 'Yes. The stack''s Config files tab lists the files the template shipped. Edit one, press Save, then Restart to apply.' }
-  - { q: 'How does a template say how to sign in to the app?', a: 'With an optional signIn block in its template.yaml: the inputs that hold an account made at setup, or the page where the app makes its first account on the first visit. The get-started wizard''s done card shows it. It needs Cloudgate 0.3.11 and CLI 0.1.1.' }
   - { q: 'Can I use my own domain when I set up a template?', a: 'Yes. Type it in place of the generated sslip.io host. The setup shows the A record to create, with its name and address, and a Check DNS button. A failed check does not stop the setup, so you can fix the record after you apply.' }
+  - { q: 'What happens if I never apply a template setup?', a: 'It waits on the Environment as a Pending setup, which you can cancel with Cancel setup. A pending setup that is not applied is dropped after 30 days.' }
 ---
 
 The official catalogue is published at [cgt.octabyte.io](https://cgt.octabyte.io/), with a page
 for each app and a **Deploy** button that opens the [get-started wizard](/docs/guide/get-started),
-which works with no Server and no account yet: it signs you up on the way.
-Inside the console, the **Templates** page lists the same catalogue so you can add an app to a
-Project you already have. Apps include Ghost, n8n, Plausible Analytics, Nextcloud, Vaultwarden,
-WordPress and more, and the catalogue keeps growing.
+which works with no Server and no account yet: it signs you up on the way. Inside the console, the
+**Templates** page, at `/templates`, lists the same catalogue so you can add an app to a Project you
+already have. Apps include Ghost, n8n, Plausible Analytics, Nextcloud, Vaultwarden, WordPress and
+more, and the catalogue keeps growing.
 
 ## What you can do
 
@@ -40,72 +40,152 @@ WordPress and more, and the catalogue keeps growing.
 - Change the config files it shipped later, on the stack's **Config files** tab.
 - Cancel a setup you have not applied yet.
 
+## Browse the catalogue
+
+Open **Templates** in the rail, under **Build**. The page says how many templates the catalogue has
+and shows them as cards, 24 to a page, with **Previous** and **Next** below.
+
+<Screenshot name="templates-list" alt="The Templates page with cards for apps from the catalogue, a search box and a tag filter" caption="Each card says where the app can run when it cannot run everywhere." />
+
+Each card has:
+
+| Part | What it shows |
+|---|---|
+| Logo and name | The app; for an official template they open its page on [cgt.octabyte.io](https://cgt.octabyte.io/) in a new tab, for a mirror or private catalogue the app's website |
+| Version | The app version the template installs, when it names one |
+| Where it runs | Shown only when it cannot run everywhere: **Runs on a Server**, **Runs on a Server or on AWS**, **Runs on a Server or on Google Cloud** |
+| **Website**, **Docs**, **Source** | The app's own links, in a new tab |
+| **Set up** | Opens the setup page |
+| Description and tags | What the app is, and its tags |
+
+### Search and filter
+
+- **Search templates** matches the name, the id, the description and the tags. Templates whose name
+  starts with or holds the search come first.
+- **Tags** opens a list of tags with how many templates carry each. Search it with **Search tags**;
+  it lists the 100 most used until you type. Tick tags to show templates carrying any of them.
+  **Clear filter** unticks them.
+- **Clear filters** clears both. "No template matches" offers the same.
+
+### When the catalogue does not load
+
+| Message | Why | What to do |
+|---|---|---|
+| **Templates are off** | A self-hosted operator turned the catalogue off | See [Instance settings](/docs/self-host/instance-settings#mirror-or-turn-off-the-template-catalogue) |
+| **The catalogue is empty** | It has no template this instance can read | **Try again** |
+| A note with "Showing the copy fetched" and a time | The newest catalogue could not be read, so the last good copy is shown | Nothing; it is retried |
+| An error with **Try again** | The catalogue could not be read | **Try again** |
+
 ## Set up a Template
 
 <Steps>
-<Step title="Find the app">
-Open **Templates** in the rail, under **Build**. Search by name, which puts the templates whose
-name matches first, or filter by **Tags**. Each card has the app's **Website**, **Docs** and
-**Source** under its name, its tags below, and says where it runs only when it cannot run
-everywhere. For a template from the official catalogue, the logo and name open its page in the
-[template directory](https://cgt.octabyte.io/) in a new tab; from a mirror or a private catalogue,
-they open the app's website. Logos load on their own, so the list appears at once even for a large
-catalogue.
-<Screenshot name="templates-list" alt="The Templates page with cards for apps from the catalogue, a search box and a tag filter" caption="Each card says where the app can run." />
+<Step title="Open the setup page">
+Press **Set up** on a card. The setup page opens on the Template: its logo, name, version,
+description, where it runs, links and tags, with **All templates** to go back. Beside the form,
+**From here to a running app** lists the three steps: **Set up** (this step), **Review the Plan**,
+**Apply**.
 </Step>
-<Step title="Choose where it goes">
-Press **Set up**. The setup page opens on the Template: its logo, name, version, description,
-links and tags, with a way back to all templates. Pick where it goes from the cards: **New
-Project**, or one of your Projects with its description (past five Projects, a picker). Then
-choose an Environment, for example `storefront / staging`; one that cannot take the app is greyed
-out. A Project with no Environment says so and offers **Add an Environment** or a new Project
-instead. With no Project yet, the page starts on **New Project**: give it a name and a Deploy
-target. If there is nowhere to deploy yet, no Server and no Cloud account, it opens the
-[get-started wizard](/docs/guide/get-started) instead, which gets you a server on the way.
+<Step title="Choose the Project">
+Pick where it goes from the cards: **New Project** ("Made with a production Environment"), or one of
+your Projects with its description. With more than five Projects, a **Project** picker replaces the
+cards. With no Project yet, the page starts on **New Project**. Starting from an Environment opens
+with that Project and Environment chosen.
+</Step>
+<Step title="Choose the Environment or the deploy target">
+For an existing Project, choose an **Environment**. One that cannot take the app is greyed out with
+the reason. A Project with no Environment says so and offers **Add an Environment to this Project**
+or **Use a New Project instead**.
+
+For a **New Project**, give it a **Project name** and pick the **Deploy target of its production
+Environment**: one of your Servers, the platform host on a self-hosted instance, or, on the Hosted
+instance, one of your Cloud accounts with its region. A target that cannot take the app shows why.
+If there is nowhere to deploy at all, the page opens the [get-started wizard](/docs/guide/get-started)
+instead, which gets you a server on the way.
 </Step>
 <Step title="Fill in the values">
-Give the setup a **Setup name** and fill in the values the template asks for; a yes-or-no value is
-a switch. Each web part gets a Domain host: **Generate one for me** makes a free sslip.io host,
-served over HTTPS when the server's address is public. To use your own domain, type it instead:
-the field shows the A record to create (its **Name**, `@` for a bare domain, and the address it
-points at) with **Check DNS** beside it. A failed check does not hold **Set up** back, so you can
-fix the record after the Plan is applied. In a Cloud Environment the stack's Domains tab checks the
-records once Apply has made the Stack VM.
-
-If the template runs MongoDB 8 and the Server's kernel cannot start it, the form says so. See
-[Databases](/docs/guide/databases#mongodb-8-and-the-host-kernel).
+See the fields below.
 </Step>
 <Step title="Review and apply">
-Press **Set up and review the Plan**. Read the Environment's [Plan](/docs/guide/project-config):
-it lists the Services the template creates. Press **Apply**.
+Press **Set up and review the Plan**. You land on the Environment's [Plan](/docs/guide/project-config):
+it lists what the template creates, each value and its Domain. Press **Apply**. Apply creates the
+Compose stack and starts its first Deployment.
 </Step>
 </Steps>
+
+### Setup fields
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Setup name** | Names the parts the template makes: each is named `<setup name>-<part>` | A clash adds `-2` to the whole name |
+| The template's values | What the app asks for, such as an admin email | A secret is a password field; a yes-or-no value is a switch; an optional one says so. Passwords and keys it can make are generated |
+| A Domain for each web part | The host people open it at, labelled with the Service and its port | See below |
+
+**Every value is made once and kept encrypted.**
+
+### Domains
+
+- **Generate one for me** fills in a free sslip.io host that works right away, over HTTPS when the
+  Server's address is public.
+- To use your own domain, type it. The field shows the A record to create (its **Name**, `@` for a
+  bare domain, and the address it points at) with **Check DNS**. A failed check does not hold **Set
+  up** back: "DNS changes can take a while to spread, and Set up does not wait for them." Fix the
+  record, then check again here or on the stack's Domains tab.
+- On the platform host the record points at the Cloudgate host; for its address and an sslip.io
+  host, set its public IP under **Settings** > **Instance**.
+- In a Cloud Environment there is no generated host: type your own. The setup lists the record to
+  make (a CNAME, an ALIAS for a bare domain, or an A record), pointing at the Environment network's
+  load balancer. After Apply has made the Stack VM, the stack's Domains tab lists the certificate's
+  validation record and checks both.
+
+### Warnings in the form
+
+- If the template runs MongoDB 8 and the Server's kernel cannot start it, the form says so. See
+  [Databases](/docs/guide/databases#mongodb-8-and-the-host-kernel). Nothing is refused.
+- On a self-hosted instance, a target that is the machine Cloudgate itself runs on warns that if the
+  machine is lost, the app and all of Cloudgate's records go with it.
+- For a New Project: "Set up makes the Project and its production Environment at once. Dismissing
+  the Plan leaves them empty; delete the Project if you no longer want it."
+
+## Pending setups
+
+Until you apply it, the setup waits as a **Pending setup** on the Environment's **Services** tab,
+where **Cancel setup** drops it. A pending setup that is not applied is dropped after 30 days.
 
 Once applied, the template's config files are on the stack's **Config files** tab: edit one there
 and press **Restart to apply**. See
 [Compose stacks](/docs/guide/compose-stacks#edit-the-config-files-a-template-shipped).
 
-Until you apply it, the setup waits as a **Pending setup** on the Environment's **Services** tab,
-where **Cancel setup** drops it. A pending setup that is not applied is dropped after 30 days.
+## What happens in the Project's other Environments?
+
+Nothing is created in them. A Template's entries go into the Project config, which every Environment
+plans, but where the Template was never set up its parts are held back: the next Plan in another
+Environment creates nothing for them and shows a note under **Notes**, such as "ghost-app is held
+back here: it was set up from the ghost template in another Environment, and is created here when
+the template is set up in this Environment". To run the app there too, set the Template up in that
+Environment. An entry of your own that links to a held-back part is refused in that Environment's
+Plan until you do.
 
 ## Set up a Template in a repository-kept config
 
 When the Project's config is kept in your repository, Cloudgate does not write to your repository.
-The setup shows the YAML to paste into your `cloudgate.yaml` instead. Commit it to the Config
-branch, and the next push's Plan creates the template's parts.
+After **Set up and review the Plan**, the page shows **Paste** the app **into** the config file, with
+the entries to add under `services:`, a copy button, and the repository, file and branch to add them
+to. The next push of the file makes the Plan that creates them, matching each entry by its Config
+name and kind; an entry renamed or given another kind gets none of the setup's values. The setup
+waits up to 30 days for that push. **Open the Config tab** opens the Environment's Plan.
 
 ## What you cannot do
 
 <Callout type="limit" title="People only">
 An Agent cannot set a template up. Setting one up needs permission to create Services in the
-Environment.
+Environment, and to create a Project or an Environment when it makes one.
 </Callout>
 
 - A template is a copy: it keeps no link to the catalogue and receives no updates.
 - A template's Compose part is console-managed: you change it in the console, not in the config.
 - In a cloud, a template's Compose part runs on its own Stack VM, and you type its Domain host.
 - On a self-hosted instance the operator can mirror the catalogue or turn it off; the page then
-  says "Templates are off". See [Instance settings](/docs/self-host/instance-settings#mirror-or-turn-off-the-template-catalogue).
+  says **Templates are off**.
 
 ## Where does the catalogue come from?
 
@@ -114,7 +194,7 @@ Each release publishes one `catalogue.zip`, a folder per template: its `cloudgat
 `template.yaml` with what only a template has (the values it asks for or generates, its Domains and
 files), at most one compose file, the config files it ships and a logo. Cloudgate reads the newest
 release it can use, checks the zip whole, and hides a single template it cannot read while listing
-the rest.
+the rest. Logos load on their own, so the list appears at once even for a large catalogue.
 
 ## Write or test a template
 
@@ -140,5 +220,6 @@ CLI 0.1.1.
 - [Deploy your first app with the get-started wizard](/docs/guide/get-started).
 - [Project config and Plans](/docs/guide/project-config): what Apply does.
 - [Compose stacks](/docs/guide/compose-stacks): how a template's Compose part runs.
-- [Domains and HTTPS](/docs/guide/domains) for the template's hosts.
+- [Domains and TLS certificates](/docs/guide/domains) for the template's hosts.
+- [A tour of the console](/docs/guide/console-tour).
 - [Features](/features) for everything else Cloudgate runs.

@@ -1,167 +1,325 @@
 ---
 title: Servers
-seoTitle: 'Add your own Server to Cloudgate over SSH, step by step'
-description: Connect your own machine to Cloudgate over SSH, run its setup to install Docker Swarm and Traefik, and manage its host key, shell, telemetry and removal.
-lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto. Add any machine you control, run its setup once, and it is ready for Applications, databases and Compose stacks.
+seoTitle: 'Add a Server to Cloudgate over SSH and set it up'
+description: Add your own machine to Cloudgate over SSH, run its setup to install Docker Swarm and Traefik, then manage its shell, containers, maintenance and removal.
+lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto. Add any Ubuntu machine you control, run its setup once, and it is ready for Applications, databases and Compose stacks.
 section: guide
 group: Where it runs
 order: 1
-updated: '2026-11-20'
+updated: '2026-11-27'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Add a Server over SSH
   steps:
-    - { name: 'Make an SSH key', text: 'In Servers, press Manage SSH keys and generate a key, or paste one you have. Add its public line to the server''s ~/.ssh/authorized_keys.' }
-    - { name: 'Add the Server', text: 'Press Add a Server and enter its name, address, SSH port, SSH user and key, then press Add Server.' }
-    - { name: 'Check the connection', text: 'On the Infrastructure tab, press Check now under Reaching this Server.' }
+    - { name: 'Make an SSH key', text: 'In Servers, press SSH keys, generate a key or paste one you have, and add its public line to the machine''s ~/.ssh/authorized_keys.' }
+    - { name: 'Add the Server', text: 'Press Add a Server, enter its name, address, SSH port, SSH user, key and role, then press Add Server.' }
+    - { name: 'Check the connection', text: 'On the Server''s Infrastructure tab, press Check now under Reaching this Server.' }
     - { name: 'Run setup', text: 'On the Setup card, press Run setup and confirm. Cloudgate installs Docker, a Swarm and Traefik.' }
 faq:
-  - { q: 'Which operating system does a Server need?', a: 'The setup installs its packages with apt-get, so use Ubuntu or Debian. On other systems that step is skipped and you install unzip, curl, wget, git, jq and openssl yourself.' }
-  - { q: 'Does Cloudgate need root?', a: 'It needs root, or a user with passwordless sudo, over SSH.' }
-  - { q: 'What happens to my machine if I remove the Server?', a: 'Nothing. Cloudgate forgets the machine and does nothing to it. Removal is refused while Services are still recorded on it.' }
+  - { q: 'Which operating system does a Server need?', a: 'Ubuntu or Debian work best: the setup installs its packages with apt-get. On other systems that step is skipped, and you install unzip, curl, wget, git, jq and openssl yourself.' }
+  - { q: 'Does Cloudgate need root on my Server?', a: 'It needs root, or a user with passwordless sudo, over SSH. The setup''s first check stops the run otherwise.' }
+  - { q: 'Does Cloudgate install an agent on the machine?', a: 'No. Every command, reading, deployment and shell goes over one SSH connection as the SSH user you gave it.' }
+  - { q: 'What happens to my machine if I remove the Server?', a: 'Nothing. Cloudgate forgets the machine and leaves everything on it running. Removal is refused while Services are still recorded on the Server.' }
   - { q: 'Is it safe to run the setup again?', a: 'Yes. Every step checks before it acts, so Run setup again changes only what is missing.' }
 ---
 
-A Server can be a VPS, a dedicated machine or a box under your desk, as long as Cloudgate can reach
-it over SSH. On the Hosted instance you can also [buy one from Cloudgate](/docs/guide/bought-servers).
-On a self-hosted instance, the machine Cloudgate runs on is available as **This Cloudgate host**
-without adding it.
+A Server can be a VPS, a dedicated machine or a box under your desk, as long as Cloudgate can reach it
+over SSH. There is no agent to install: every reading, command and shell goes over one SSH connection,
+as the user you name. On the Hosted instance you can also
+[buy a ready Server from Cloudgate](/docs/guide/bought-servers); to deploy to AWS or Google Cloud
+instead, connect a [Cloud account](/docs/guide/cloud-accounts).
 
-## What you can do
+## What can you do with a Server?
 
-- Add a machine over SSH, as a deploy Server or a build Server.
+- Add a machine over SSH as a **Deploy** Server (runs Services) or a **Build** Server (only builds images for other Servers).
 - Run its setup, which installs Docker, a Swarm and Traefik.
-- Check that Cloudgate can reach it, and see what is installed and what runs there.
-- Open a shell on it from the console, and see its CPU, memory, disk and network.
-- Turn on request logging and request metrics for its Traefik.
+- Check that Cloudgate can reach it, and read what is installed and what runs there.
+- Open a shell on it, and manage its containers and Swarm nodes.
+- See its CPU, memory, disk and network once [monitoring](/docs/guide/monitoring) is on.
+- Configure its Traefik: DNS-01 certificates, request metrics and request logging.
+- Put it in maintenance, so nothing new starts on it.
 - Remove it from Cloudgate.
 
-## Add a Server over SSH
+<Callout type="limit" title="Who can see and change Servers">
+Only owners and admins, or a custom role that allows it, can see the Servers list, add, change or
+remove a Server, open its shell or manage its containers. A member has no access to Servers at all and
+gets a role refusal on this screen. On the Hosted instance each Server counts against your plan: 3,
+plus one per Add-on.
+</Callout>
+
+## The Servers list
+
+Open **Servers** in the rail. The table lists every Server in the Organization with its
+`user@address:port`, its **Status**, its **Role** and when it was added. Search by name, address with
+port, or SSH user.
+
+| Status | What it means |
+|---|---|
+| **reachable** | The last attempt to reach it over SSH worked. |
+| **not reachable** | The last attempt failed. Its Infrastructure tab says why. |
+| **not checked** | Nothing has tried to reach it yet. |
+| **in maintenance** | Nothing new starts on it until maintenance ends. |
+
+The **This fleet** card counts Servers by role and by reach. **What setup installs** names the Docker
+and Traefik versions the setup pins, the `cloudgate-network` overlay and the `/etc/cloudgate`
+directory. On the Hosted instance a **Servers being bought** card lists purchases still waiting for
+payment or being created; see [Buy a Server](/docs/guide/bought-servers#finish-or-cancel-an-unpaid-purchase).
+
+<Screenshot name="servers-list" alt="The Servers list of Northwind Labs with build-1, fra-1 and nyc-edge, their status, role and when each was added, beside the This fleet card" caption="Every Server in the Organization, with its reach from the last attempt." />
+
+### The This host card (self-hosted)
+
+Below the list, an instance administrator sees **This host**: the machine Cloudgate itself runs on. It
+has no Server row. Enter the **SSH user** (default `root`) and **SSH port** (default `22`) and press
+**Open a shell**. Cloudgate signs in with a key it generates for itself, so the first attempt fails
+until that user's `authorized_keys` holds the key; the terminal prints the command to run. Stopping
+something there stops it for the platform. On the Hosted instance only Octabyte's operators see this card.
+
+## How do I add a Server over SSH?
+
+Make an SSH key, put its public line on the machine, add the Server with its address and key, check
+that Cloudgate can reach it, then run its setup once. It takes four steps:
 
 <Steps>
 <Step title="Make an SSH key">
-Open **Servers** in the rail. If your Organization has no SSH key yet, press **Manage SSH keys**,
-then **Generate one** or **Paste one I have**. Copy its public line into the machine's
-`~/.ssh/authorized_keys`.
-<Screenshot name="servers-list" alt="The Servers list of Northwind Labs with fra-1 and nyc-edge, their status and what runs on them" caption="Every Server in the Organization, with its readiness." />
+Press **SSH keys** in the Servers header, then **Generate one** or **Paste one I have**, and press
+**Add key**. Show its **Public key** and copy the line into the machine's `~/.ssh/authorized_keys`.
+[SSH keys](/docs/guide/ssh-keys) covers every option. If you skip this, the Add dialog offers
+**Manage SSH keys** and brings you back with what you typed kept and the new key chosen.
 </Step>
 <Step title="Add the Server">
-Press **Add a Server** and fill in:
+Press **Add a Server** and fill in the dialog:
 
-- **Name**, such as `fra-1`, and an optional description.
-- **Address**: an IP address or a hostname.
-- **SSH port** and **SSH user**: root, or a user with passwordless sudo.
-- **SSH key**: the key from the previous step.
-- **Role**: **Deploy**, or **Build** for a Server that only builds images for other Servers.
+| Field | What it does | Default and notes |
+|---|---|---|
+| **Name** | What the Server is called in Cloudgate, such as `fra-1`. | Required. |
+| **Description** | What the machine is for; shown under the name in the list. | Optional. |
+| **Address** | An IP address or a hostname Cloudgate dials. | Required. |
+| **SSH port** | The port sshd listens on. | `22` |
+| **SSH user** | Root, or a user with passwordless sudo. | `root` |
+| **SSH key** | The Organization key whose public half is already on the machine. | Required. |
+| **Role** | **Deploy** runs Services. **Build** only builds images for other Servers. | Deploy |
 
-Press **Add Server**. Adding it records the machine; it does not connect to it yet.
+Press **Add Server**. Adding it records the machine and does not connect to it yet; the console opens
+the new Server.
 
-<Screenshot name="servers-add" alt="The Add a Server dialog with fields for the name, address, SSH port, user and SSH key" caption="Name, address, SSH port, user and the key Cloudgate signs in with." />
-
+<Screenshot name="servers-add" alt="The Add a Server dialog with Name, Description, Address, SSH port, SSH user, SSH key and Role" caption="Adding a Server records it; nothing is done to the machine yet." />
 </Step>
 <Step title="Check that Cloudgate can reach it">
-On the Server's **Infrastructure** tab, under **Reaching this Server**, press **Check now**. The
-readiness findings say what is missing; **Read again** refreshes them.
+On the Server's **Infrastructure** tab, under **Reaching this Server**, press **Check now**. Cloudgate
+opens an SSH session and runs `echo ok`. If it fails, SSH's own message is shown; check the address
+and port on **Settings**, that the user exists, and that the key's public half is in that user's
+`authorized_keys`.
 </Step>
 <Step title="Run the setup">
-On the **Setup** card press **Run setup**, read the command that will run, and confirm. The setup:
-
-1. installs unzip, curl, wget, git, jq and openssl if any is missing (on Debian, Ubuntu or
-   Raspbian; elsewhere this step is skipped);
-2. installs Docker;
-3. starts a Docker Swarm;
-4. creates the `cloudgate-network` network;
-5. creates `/etc/cloudgate`;
-6. writes Traefik's configuration and starts Traefik on ports 80 and 443;
-7. creates the `cloudgate-ai` network for AI models;
-8. installs boot recovery, a systemd unit named `cloudgate-boot-recover` that starts Traefik and
-   Compose containers again after a reboot (skipped on a machine without systemd).
-
-<Screenshot name="server-infrastructure" alt="The Infrastructure tab of the fra-1 Server, with its readiness checks and the Setup card showing each step done" caption="Each setup step shows its result; the log can be opened in the Dock." />
+On the **Setup** card press **Run setup**, read what will run in **Run setup on fra-1?**, and confirm
+with **Run setup**. On a Server that has been set up before, both the button and the confirm read
+**Run setup again**. The output streams into the card; press **Dock** to keep it open while you move around the console.
+<Screenshot name="server-setup-confirm" alt="The Run setup on fra-1 confirmation dialog listing what the setup changes on the machine, with the Run setup again button" caption="The dialog says exactly what the setup does before anything runs." />
 </Step>
 </Steps>
 
-When the setup is done, the Server is ready. Pick it as an Environment's Deploy target or as the
-Server of a new Service; see [Projects and Environments](/docs/guide/projects-and-environments).
-
-<Callout type="note" title="The setup runs only when you press it">
-A setup run starts only from a confirmed **Run setup**. Opening or docking its log never starts
-one. Once started it cannot be stopped. **Run setup again** is safe: every step checks before it
-acts. You can replace the default script with your own on the **Settings** tab, under **Setup
-command**.
+<Callout type="limit" title="When Add Server is greyed out">
+On the Hosted instance the dialog warns when the Organization has no plan (**Choose a plan**) or
+already has all the Servers its plan allows (**Buy an Add-on**, or delete a Server first). Every
+Server you have keeps running. The button is also off while the Organization has no SSH key.
 </Callout>
 
-## Run the setup again after an upgrade
+## What does the setup install?
 
-A Server set up by an older Cloudgate keeps its old setup. When a release adds a setup step, press
-**Run setup again** on the Server's **Infrastructure** tab once: it adds what is missing and changes
-nothing already set up. Cloudgate 0.3.9 needs this for boot recovery. Without it, after the Server
-reboots, Traefik and Compose stacks can stay down until `docker start cloudgate-traefik` and the
-stack's **Start**. The release notes in the [changelog](/changelog) say when a release needs it.
+The setup is eight steps, each of which checks before it acts:
 
-## Check the kernel before running MongoDB 8
+1. **Install the packages it needs**: unzip, curl, wget, git, jq and openssl through apt-get, only if one is missing. Skipped on systems other than Debian, Ubuntu or Raspbian.
+2. **Install Docker**, only if it is missing, from get.docker.com. The run stops if Docker is still missing afterwards.
+3. **Initialise a Swarm** with `docker swarm init`, unless the machine is already in one.
+4. **Create the cloudgate-network overlay**, which every Service joins and Traefik routes through.
+5. **Create /etc/cloudgate**, owned by the SSH user, for build logs, cloned code and Traefik's per-Service files.
+6. **Write Traefik's config and start it** as `cloudgate-traefik`, publishing ports 80, 443 and 443/udp, with Let's Encrypt and request metrics on a loopback-only entry point.
+7. **Create the cloudgate-ai overlay** that [AI models](/docs/guide/ai-models) on this Server sit on.
+8. **Install boot recovery**: a systemd unit, `cloudgate-boot-recover`, that starts Traefik and Compose containers again after a reboot. Skipped without systemd.
 
-The Server's **What is installed** list has a **Kernel** row with the kernel's upstream version.
-MongoDB 8 exits at start on Linux 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0
-kernels, so the row warns on those, and so do the database form and a MongoDB's Overview. Update
-the kernel and reboot (`sudo apt update && sudo apt full-upgrade`, then `sudo reboot`), or use
+<Screenshot name="server-infrastructure" alt="The Infrastructure tab of fra-1 with Reaching this Server, What is installed and the Setup card" caption="Reach, what is installed, and the setup that installs it, in that order." />
+
+<Callout type="note" title="A setup run cannot be stopped">
+A run starts only from a confirmed **Run setup**. Once started it runs to its end on the machine, even
+if you close the page; **Watch again** picks the output back up. A failed run undoes nothing: fix what
+the last line names and run it again, and finished steps are skipped. A custom **Setup command** on the
+Settings tab replaces all eight steps.
+</Callout>
+
+### Run the setup again after an upgrade
+
+A Server set up by an older Cloudgate keeps its old setup. When a release adds a step, press **Run
+setup again** once: it adds what is missing and changes nothing already set up. Cloudgate 0.3.9 needs
+this for boot recovery. The release notes in the [changelog](/changelog) say when a release needs it.
+
+## The Overview tab
+
+**Overview** answers one question: can this Server take a deployment right now?
+
+- **Readiness**: ready when Docker runs, the Swarm is active and `cloudgate-network` exists. Otherwise each missing piece is a row with **Run setup**. A Server with no SSH key, or one Cloudgate cannot reach, says so here.
+- **Running here**: how many Swarm services Docker reports on the machine, and how many are at their full replica count. This is Docker's count; it cannot name which Project each belongs to.
+- **Utilisation**: CPU, memory and disk from the newest sample, once monitoring is on.
+- The **Server** card: status, role, address, the SSH target, key, when it was added and its ID, each with a copy button.
+
+<Screenshot name="server-overview" alt="The Overview tab of fra-1 with the Readiness, Running here and Utilisation cards" caption="Readiness first: it decides what you do next." />
+
+On a self-hosted instance, a Server that is the machine Cloudgate itself runs on carries a warning: if
+that machine is lost, Cloudgate's own records go with it. Add another Server, or use the Hosted
+instance, to keep them apart.
+
+## The Infrastructure tab
+
+- **Reaching this Server** with **Check now**, as above.
+- **What is installed**, read off the machine by a readiness script (**Read again** reruns it): Docker and its version, Swarm, Overlay network, Platform directory and **Kernel**. Every failing row says how to fix it.
+- **Setup**, with the steps and the last run's outcome.
+- **GPU support**: press **Check this Server** to ask NVIDIA's tooling whether the machine has a GPU, a driver, the container runtime and CUDA. **Run GPU setup** points Docker at the NVIDIA runtime and lists each card to the Swarm; it restarts Docker and asks first. The driver and runtime must already be installed.
+
+### Check the kernel before running MongoDB 8
+
+MongoDB 8 exits at start on Linux 6.19.0 to 7.0.13, which includes Ubuntu 26.04's first 7.0 kernels,
+so the **Kernel** row warns on those. Run `sudo apt update && sudo apt full-upgrade` and reboot, or use
 `mongo:7` until you can. See [Databases](/docs/guide/databases#mongodb-8-and-the-host-kernel).
 
-## Check the Server's host key
+## The Telemetry tab
 
-The first time Cloudgate connects, it records the Server's SSH host key. The **Access** tab's
-**Host key** card shows its SHA256 fingerprint; compare it with `ssh-keygen -lf` on the machine.
-If the machine later presents a different key, Cloudgate refuses to connect.
+**Telemetry** draws this Server's stored samples: a **CPU** chart, **Utilisation** meters, and **This
+machine** (uptime, cores, network in and out since boot, CPU model, distribution, kernel and
+architecture). Choose **Last 50**, **Last 200** or **Everything**: counts of samples, not time. The
+**Sampling** card shows the interval and retention. Nothing is collected until you set up monitoring
+for the Server on the [Monitoring](/docs/guide/monitoring#watch-a-servers-cpu-memory-and-disk) screen.
 
-<Callout type="warn" title="Forget host key">
-Press **Forget host key** only after you reinstalled the machine or replaced its host keys on
-purpose. A changed key you did not expect can mean someone is in between. Changing the address or
-port also forgets it.
+<Screenshot name="server-telemetry" alt="The Telemetry tab of fra-1 with its CPU chart, utilisation meters, the Sampling card and This machine figures" caption="A Server's own history, from the samples Cloudgate stores." />
+
+## The Docker & Swarm tab
+
+This tab shows what Docker does on the machine.
+
+- **Containers**: everything `docker ps` reports, except Cloudgate's own containers and containers of another Organization's Services. Each row's **Actions** menu has **Open a shell** (running containers), **Inspect it** (the raw `docker inspect`), **Start**, **Restart**, **Stop**, and under **Without waiting**, **Kill** and **Remove**.
+- **Swarm services**: what `docker service ls` reports, with replicas and image. `0/1` is a Service whose container will not stay up.
+- **Swarm nodes**: every node seen from this Server, with role, status, availability and Docker version. **Remove** drains a node and then force-removes it from the Swarm.
+- **Add another machine to this Swarm**: **Show the worker command** or **Show the manager command** gives the `docker swarm join` line to run on the new machine.
+
+<Screenshot name="server-docker" alt="The Containers card on the Docker and Swarm tab of fra-1 with a container's Actions menu open" caption="A container's Actions menu: shell, inspect, start, restart, stop, kill and remove." />
+
+<Callout type="warn" title="Remove is docker rm -f">
+**Remove**, confirmed with **Remove it**, stops the container and deletes it. If a Swarm service owns it, the Swarm starts a new
+one within seconds. If nothing owns it, it is gone, with anything written inside it that was not in a
+volume. Volumes are never touched. The join command's token lets anyone holding it add a machine to
+your Swarm; it is not stored, and Cloudgate never runs it for you.
 </Callout>
 
-## Work on the Server
+## The Access tab
 
-- **Overview**: readiness and what runs here.
-- **Telemetry**: CPU, memory, disk and network. Set up sampling on
-  [Monitoring](/docs/guide/monitoring).
-- **Docker & Swarm**: Swarm services, containers, the join command and nodes.
-- **Access**: the SSH key (**Change the key**) and the host key.
-- **Shell**: **Open a shell** over SSH, at `/servers/<id>/shell` (the old `/terminal` address
-  forwards there). Cloudgate records nothing you run there and undoes none of it.
-- **Settings**: name and connection (saving checks nothing; use **Check now**), **Setup command**,
-  **Prune Docker nightly**, **Request logging** and **Request metrics**. Turning either of the last
-  two on restarts Traefik on that Server.
+- **SSH**: the user, host, port and key Cloudgate signs in with, and the key's public line with the exact `authorized_keys` path for that user. **Change the key** picks another Organization key; **All keys** opens the [SSH keys](/docs/guide/ssh-keys) dialog.
+- **Host key**: the SHA256 fingerprint the Server presented the first time Cloudgate connected.
+- **What this user may do**: whether the user is root or has passwordless sudo, and whether it is in the `docker` group. Setup refuses to run with neither root nor sudo; outside the `docker` group, docker commands go through sudo.
 
-<Screenshot name="server-telemetry" alt="The Telemetry tab of the fra-1 Server with CPU, memory, disk and network charts from stored samples" caption="A Server's own charts, from the samples Cloudgate stores." />
+<Screenshot name="server-access" alt="The Access tab of fra-1 with the SSH card showing the key's public line and the Host key card with its fingerprint" caption="The key Cloudgate signs in with, and the host key it expects back." />
+
+### Check the Server's host key
+
+Compare the fingerprint with `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on the machine. If the
+machine later presents a different key, Cloudgate refuses to connect.
+
+<Callout type="warn" title="Forget host key">
+Press **Forget host key** only after you reinstalled the machine or replaced its host keys on purpose.
+Cloudgate then trusts whatever key it sees next. A change you did not expect can mean something is
+intercepting the connection. Changing the address or port also forgets it.
+</Callout>
+
+## The Shell tab
+
+**Shell**, at `/servers/<id>/shell` (the old `/terminal` address forwards there), is a real shell as the
+SSH user. Every other tab links to it with **Open a shell**. The terminal follows the window's size.
+Cloudgate records nothing you run and undoes none of it. Leaving the tab ends the session unless you
+move it to the Dock first; run long jobs under `tmux` or `nohup`. A Server with no key shows **Choose a
+key** instead.
+
+## The Settings tab
+
+Each card saves on its own.
+
+| Card | What it changes | Notes |
+|---|---|---|
+| **Server** | **Name**, **Description** and **Role**. | Touches nothing on the machine. |
+| **Connection** | **Address**, **SSH port**, **SSH user**. | Saving checks nothing; use **Check now**. |
+| **Setup command** | A shell command run instead of the default setup. | Empty it to go back to the default. |
+| **Housekeeping** | **Prune Docker nightly**: `docker system prune` on a schedule. | Saves at once. Never touches volumes. |
+| **Maintenance** | **Start maintenance** / **End maintenance**. | See below. |
+| **DNS-01 certificates** | A **DNS provider** code and **Credentials** for wildcard certificates. | Restarts Traefik. |
+| **Request metrics** | **Enable request metrics**: Traefik's request counters. | Restarts Traefik. Feeds Error rate. |
+| **Request logging** | The **Access log** switch. | Restarts Traefik. Feeds the Requests page. |
+| **Remove this Server** | **Delete**. | See [Remove a Server](#remove-a-server). |
+
+A [bought Server](/docs/guide/bought-servers#change-size-backups-or-storage) also has a **Bought Server**
+card for its size, backups and extra storage.
+
+### Put a Server in maintenance
+
+Press **Start maintenance** and confirm. Until you press **End maintenance**, deploys, redeploys,
+rebuilds, rollbacks, Starts, restarts and Run now on this Server are refused, and builds already queued
+for it are refused when picked up. What runs keeps running, and scheduled cron runs, backups, Uptime
+checks and setup carry on. Every tab shows **In maintenance since** with the time.
+
+### Turn on DNS-01 certificates
+
+Enter the provider's code, for example `cloudflare` (Traefik's provider list gives each code and the
+keys it reads), and one or more credentials such as `CF_DNS_API_TOKEN`. **Save DNS-01 setup** adds a
+`letsencrypt-dns` resolver beside `letsencrypt` on this Server. A Domain uses it by naming
+`letsencrypt-dns` as its custom resolver; see [Domains](/docs/guide/domains). Stored values are never
+shown again. **Remove DNS-01 setup** takes it out.
+
+### Request metrics and request logging
+
+**Enable request metrics** turns on Traefik's per-service request counters, which each Service's
+[Error rate](/docs/guide/monitoring#alert-on-a-high-error-rate) is read from. The console offers no
+control to turn them off again. The **Access log** switch records each request's visitor IP, path,
+status and User-Agent (other headers are dropped) for the **Requests** page; files rotate every 100
+MiB, three older files are kept, and they are deleted after 30 days.
+
+<Callout type="warn" title="These restart Traefik">
+Request metrics, request logging and DNS-01 each restart this Server's Traefik, which serves every
+domain on it. Open connections on ports 80 and 443 drop for a moment. Each asks before it does.
+</Callout>
 
 ## Remove a Server
 
-On **Settings**, **Remove this Server**. Cloudgate forgets the machine and does nothing to it: the
-containers and data on it stay. Removal is refused while Services are recorded on the Server;
-delete them first.
+On **Settings**, under **Remove this Server**, press **Delete**, type the Server's name and press
+**Delete this Server**. The dialog lists what Docker still runs there.
+
+- For a Server you added, Cloudgate forgets the machine and does nothing to it. Every container and Swarm service keeps running, unmanaged. Stop what should stop first, on Docker & Swarm.
+- Removal is refused while any Application, Compose stack or database names the Server, and while a stored certificate, a scheduled job or a forward-auth rule names it. Move or delete them first.
 
 <Callout type="warn" title="A bought Server is different">
-Removing a [Bought Server](/docs/guide/bought-servers) deletes the machine, its data and its
-backups.
+Deleting a [bought Server](/docs/guide/bought-servers#delete-a-bought-server) deletes the machine, its
+disk, its backups and its extra storage, and cannot be undone.
 </Callout>
+
+## What goes wrong, and what to do
+
+| You see | What to do |
+|---|---|
+| **Cloudgate could not reach this Server.** | Press **Check now** on Infrastructure for SSH's own words. Check the address and port on Settings and the key on Access. |
+| **This Server has no SSH key** | Its key was deleted. Choose one with **Change the key** on Access. |
+| **There is no Swarm on this machine** | Run setup. |
+| **Privilege: neither root nor sudo** | Point the Server at root, or give the user passwordless sudo on the machine. |
+| The setup run **failed** | Read its last line, fix that on the machine, run setup again. |
+| Host key mismatch refusal | Compare fingerprints. Forget the host key only if the machine was reinstalled. |
 
 ## What you cannot do
 
-<Callout type="limit" title="Who and where">
-Adding and removing Servers needs the owner or admin role, or a custom role that allows it. On the
-Hosted instance, each Server counts against your plan (3, plus one per Add-on), and the machine
-Cloudgate itself runs on is never available.
-</Callout>
-
 - Move a Service from one Server to another.
+- Create a Server in a cloud account from the console; connect a [Cloud account](/docs/guide/cloud-accounts) to deploy to AWS or Google Cloud instead.
 - Stop a setup run once it has started.
-- Build more than one Deployment at a time on a Server without an Enterprise license.
-- Remove a Server while Services are still recorded on it.
+- Rotate a key in place: add a new key, install it on the machine and choose it.
+- Build more than one Deployment at a time on a Server without an Enterprise license (self-hosted).
 
 ## Related pages
 
+- [SSH keys](/docs/guide/ssh-keys): generate, paste, rename and delete the keys Servers use.
 - [Buy a Server from Cloudgate](/docs/guide/bought-servers) (Hosted only).
 - [Cloud accounts](/docs/guide/cloud-accounts) to deploy to AWS or Google Cloud instead.
-- [Monitoring](/docs/guide/monitoring): Server metrics and thresholds.
-- [Install Cloudgate on your own server](/docs/self-host/install).
-- [Pricing](/pricing) for how Servers count on the Hosted plans, and [Security](/security).
+- [Monitoring](/docs/guide/monitoring): Server metrics, thresholds, Uptime checks and Error rate.
+- [Projects and Environments](/docs/guide/projects-and-environments): pick a Server as a Deploy target.
+- [Install Cloudgate on your own server](/docs/self-host/install), [Pricing](/pricing) and [Security](/security).

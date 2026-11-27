@@ -20,9 +20,9 @@ const only = <T extends { href: string }>(links: T[]) => links.filter((l) => !l.
 const lanes = only([
   {
     slice: 1,
-    href: '/docs/guide/get-started',
+    href: '/docs/guide/console-tour',
     title: 'User guide',
-    text: 'Every screen of the console, step by step: Servers, cloud accounts, Services, databases, domains, backups, monitoring and your team.',
+    text: 'Every screen, dialog and button of the console, step by step: Servers, cloud accounts, Services, databases, domains, backups, monitoring, settings and your team.',
     way: 'In the console',
   },
   {
@@ -54,6 +54,8 @@ const tasks = only([
   { href: '/docs/guide/backups', title: 'Back up and restore', text: 'To any S3-compatible destination.' },
   { href: '/docs/guide/deployments', title: 'Roll back a bad release', text: 'Return to an earlier Deployment.' },
   { href: '/docs/guide/members-and-roles', title: 'Invite your team', text: 'Roles, grants and invitations.' },
+  { href: '/docs/guide/git-providers', title: 'Connect GitHub or GitLab', text: 'A GitHub App, or GitLab, Bitbucket and Gitea tokens.' },
+  { href: '/docs/guide/console-tour', title: 'Find your way around the console', text: 'The rail, search, settings and help.' },
   { href: '/docs/mcp/connect', title: 'Connect an AI agent', text: 'Claude Code, Cursor, VS Code, Codex.' },
   { href: '/docs/cli/ci', title: 'Deploy from CI', text: 'GitHub Actions and GitLab CI.' },
 ]);
@@ -77,7 +79,7 @@ const help = only([
 const faq = [
   {
     q: 'Where do I start with Cloudgate?',
-    a: 'Start with the <a href="/docs/quickstart">quickstart</a>: sign up, get a Server (buy one or connect your own with one command), and press Deploy. The <a href="/docs/guide/get-started">user guide</a> then covers every screen of the console.',
+    a: 'Start with the <a href="/docs/quickstart">quickstart</a>: sign up, get a Server (buy one or connect your own with one command), and press Deploy. The <a href="/docs/guide/console-tour">user guide</a> then covers every screen, dialog and button of the console.',
   },
   {
     q: 'Can I use Cloudgate without the console?',

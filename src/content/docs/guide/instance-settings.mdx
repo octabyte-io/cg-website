@@ -1,0 +1,257 @@
+---
+title: Instance and maintenance settings
+seoTitle: Cloudgate instance settings and disk cleanup
+description: Check your Cloudgate instance's version and health, upgrade it, serve the console on a domain, set build limits and reclaim Docker disk on the platform host.
+lede: The Instance and Maintenance screens are the settings of the machine Cloudgate itself runs on. Use them to see what version and health the instance is in, serve the console on your own domain, set how many builds and Cloud runs run at once, and free disk Docker is holding.
+section: guide
+updated: '2026-11-27'
+group: Operate
+order: 7
+navTitle: Instance settings
+badges: ['Self-hosted', 'Owner or Admin of the Instance organization']
+howto:
+  name: Serve the Cloudgate console on your own domain
+  steps:
+    - { name: Point DNS at the machine, text: 'Create an A record for a host such as console.northwind.example that points at the machine Cloudgate runs on.' }
+    - { name: Fill in Console domain, text: 'Open Settings, Instance. In Console domain type the Host, keep Serve it over HTTPS on, choose Let''s Encrypt and give a Let''s Encrypt email.' }
+    - { name: Save, text: 'Press Save changes. Cloudgate writes the console''s router into Traefik, which picks it up within seconds.' }
+    - { name: Trust the origin, text: 'Add https://console.northwind.example under Settings, Single sign-on, Trusted origins, or to TRUSTED_ORIGINS in /etc/default/cloudgate-backend and restart cloudgate-backend.' }
+    - { name: Check Console routing, text: 'Read the Console routing card under it: it says whether the origin is trusted and whether Traefik refused the router.' }
+faq:
+  - { q: How do I upgrade a self-hosted Cloudgate?, a: 'Press Check for updates on Settings, Instance. When a newer version is published, the card shows the command to run on the machine as root: the same install script with CLOUDGATE_VERSION set. Update and restart only works when Cloudgate runs as a Docker service, which a native install does not.' }
+  - { q: Why can nobody sign in on the console's new domain?, a: 'Saving the Console domain does not trust its origin. Add the origin under Single sign-on, Trusted origins (licensed), or to TRUSTED_ORIGINS in the backend''s environment and restart the backend.' }
+  - { q: I raised Concurrent builds. Why does it still build one at a time?, a: 'Building more than one Deployment at a time needs an Enterprise license. The value is saved and takes effect as soon as a license is active.' }
+  - { q: Is it safe to run Remove unused volumes?, a: 'Only if you know every unused volume is disposable. It deletes every volume no container uses, including the data of a database you stopped, and cannot be undone. The nightly prune never touches volumes.' }
+  - { q: Can I see these settings on the Hosted instance?, a: 'No. The Hosted instance''s machine belongs to Octabyte, so Traefik, Instance, Maintenance and Branding are only shown to its operators.' }
+---
+
+**Settings** > **Instance** and **Settings** > **Maintenance** sit in the **Platform** group with
+[Traefik](/docs/guide/traefik). They are about the **platform host**: the machine Cloudgate is
+installed on, which every Organization on the instance shares. For the install itself, the
+Enterprise license and branding, see [Instance settings for self-hosted
+owners](/docs/self-host/instance-settings) and [Install Cloudgate](/docs/self-host/install).
+
+## Who can change instance settings?
+
+Only the owners and admins of the **Instance organization**. On the Hosted instance that means
+Octabyte's own staff, so customers do not see these pages.
+
+<Callout type="limit" title="Instance organization only">
+- **Self-hosted**: the Platform pages are listed for everyone. Every save, switch and button on
+  them needs an owner or admin of the **Instance organization** (the first Organization made on
+  the instance). Anyone else sees the controls off with **Only an owner or admin of the Instance
+  organization can do this.** A reading they may not take reads **Not
+  read**. No Agent can change these settings.
+- **Hosted instance**: the machine is Octabyte's. These pages are not listed for customers;
+  opened by address they say **This page is for the owners and admins of the Instance
+  organization.** **Settings** > **Operator** is for the Hosted instance's own staff only; anyone
+  else, on any instance, gets the not-found page.
+</Callout>
+
+## The Instance screen
+
+Top to bottom: **This instance**, **What this host is running**, **Health**, **Public address**,
+**Concurrent builds**, **Cloud runs**, **Requested preview lifetime**, **Console domain**,
+**Console routing**, **GPU support** and a **Danger zone**. If the instance's settings cannot be
+read, the screen shows only that refusal, since every card depends on it.
+
+<Screenshot name="settings-instance" alt="The This instance card on Settings, Instance, showing version 0.3.13, Self-hosted mode, version tag latest and Newest published reading Not checked yet" caption="Check for updates asks GitHub only when you press it." />
+
+### Check the instance's version and health
+
+**This instance** lists **Version**, **Mode** (**Self-hosted** or **Hosted**), **Version tag** and
+**Newest published**. Newest published reads **Not checked yet** until you press **Check for
+updates**, which asks GitHub Releases for the latest Cloudgate version. The answer is one of:
+
+- The newer version with **Newer than this one**, and under it the command to run on the platform
+  host as root, with a copy button:
+
+  ```bash
+  curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.12 sh
+  ```
+
+- `v0.3.12 — this instance is up to date`, or **Nothing newer was found**.
+- **The check did not complete** with the reason, or **GitHub did not answer**.
+
+On the Hosted instance there is no command: it upgrades itself to each version once published.
+
+**What this host is running** is read off the machine and the process answering:
+
+| Group | Rows |
+|---|---|
+| **This machine** | **Docker**, **Ingress** (the Traefik version), **Swarm**, **Overlay network** (`cloudgate-network`, or "not created"), **Operating system**, **Kernel**, **Up for** |
+| **The Cloudgate process** | **Node**, **Postgres**, **Up for** |
+
+Where the pinned Traefik version differs from the running one, both are named. The **Kernel** row
+warns when the kernel is one MongoDB 8 cannot start on; see
+[Servers](/docs/guide/servers).
+
+**Health** shows **Postgres** and **Traefik**, each **healthy** or **unhealthy** with the reason:
+the two things the instance cannot run without.
+
+### Set the public address
+
+**Public address** is this machine's public IP. The free sslip.io addresses for what runs on the
+platform host are made from it, and the install fills it in while it has never been set.
+
+| Field | What it does |
+|---|---|
+| **IP address** | An IP such as `203.0.113.10`, never a hostname (a hostname belongs in **Console domain**). |
+| **Save it anyway** | Appears when the machine does not see that address as its own. Turn it on when the address reaches the machine through NAT or a load balancer. |
+
+Press **Save changes**: **The public address is saved.** The install never replaces one you save.
+
+### Set build and Cloud run limits
+
+| Card | Field | Default and range |
+|---|---|---|
+| **Concurrent builds** | **At once**: how many Deployments this host builds at once. Each is a full image build using CPU, memory and disk. | 1. From 1 to 100. Applies to builds on this host only. |
+| **Cloud runs** | **At once**: how many Cloud runs (OpenTofu, about 0.8 GB each) run at once. | 1. From 1 to 20. One limit for deploy, network and delete runs, across every Organization. |
+| **Cloud runs** | **Time limit, in minutes**: plan plus apply, not time queued or building. A run past it is interrupted, stopped five minutes later, and ends as an error. | 60. From 5 to 1,440. |
+| **Requested preview lifetime** | **Longest a requested preview lives, in minutes**. A request or extend asking for longer is refused and told this maximum. | 1,440 (24 hours). Up to 10,080 (a week). Lowering it does not shorten running previews. |
+
+<Callout type="limit" title="More than one at a time needs a license">
+Without an active Enterprise license, both **At once** values are saved but the host still builds
+one Deployment and runs one Cloud run at a time; the rest wait. The value takes effect as soon as
+a license does.
+</Callout>
+
+### Serve the console on your own domain
+
+**Console domain** routes a hostname to the console through Traefik.
+
+<Screenshot name="instance-console-domain" alt="The Console domain card with host console.northwind.example, HTTPS on, Let's Encrypt and an email, and the Console routing card under it" caption="Console routing says whether Traefik is serving the console on its domain." />
+
+| Field | What it does | Notes |
+|---|---|---|
+| **Host** | The console's hostname, such as `console.northwind.example`. | Point a DNS record at this machine first. Empty removes the router. |
+| **Serve it over HTTPS** | Serves the host over HTTPS. | HTTPS needs a certificate other than **None**. |
+| **Certificate** | **None**, **Let's Encrypt**, or **One of your own certificates**. | The last picks a matching certificate from [Settings > Certificates](/docs/guide/certificates). |
+| **Let's Encrypt email** | Where expiry warnings go, stored in Traefik's ACME configuration. | Required with Let's Encrypt. |
+
+**Save changes** rewrites `dynamic/cloudgate.yml`, which Traefik picks up within seconds. Saving
+with **Host** empty deletes that file, and the console is no longer served on a name.
+
+<Callout type="warn" title="Sign-in is refused until the origin is trusted">
+Saving does not trust the new origin, so every sign-in there is refused. Trust it under
+**Settings** > **Single sign-on** > **Trusted origins** (needs an Enterprise license; takes effect
+at once), or add it to `TRUSTED_ORIGINS` in `/etc/default/cloudgate-backend` and restart
+`cloudgate-backend`. Live screens (Deployment and container logs, terminals, stats) also need the
+API on the same hostname: set `CLOUDGATE_API_URL` in `/etc/default/cloudgate-console` and restart
+the console. Until then those screens stay blank on the new domain.
+</Callout>
+
+**Console routing**, under it, says what Traefik made of the console's routers:
+
+- **Sign-in on this console's domain will be refused.** when the origin is not trusted, with the
+  same two remedies.
+- **Traefik logged nothing** about the console's routers. This is not a health check: Traefik says
+  nothing about a configuration it accepted.
+- **Traefik refused a router that serves this console.** with Traefik's own words, and whether the
+  router came from **Console domain** or the Traefik middlewares file. Requests to the console's
+  host then fall through to Traefik's catch-all; the console still answers on the machine's own
+  address and port.
+- **Could not ask Traefik**, with the reason.
+
+### Set up GPU support on the platform host
+
+**GPU support** says whether a Deployment on this machine can be given a GPU. Press **Check this
+host** to read **NVIDIA driver**, **GPU**, **Container runtime installed**, **Docker configured to
+use it**, **CUDA** and **Advertised to Swarm**. When the driver and runtime are there, **Set up GPU
+support** (or **Set up GPU support again**) points Docker at the NVIDIA runtime and lists each GPU
+to Swarm by its card ID. **Run GPU setup** restarts Docker, so every Service on the machine stops
+for a moment. A check that could not run reads like a machine with no GPU. See
+[AI models and the Gateway](/docs/guide/ai-models).
+
+### Instance Danger zone
+
+<Callout type="warn" title="These stop work in progress">
+- **Update and restart** (Update this instance): moves Cloudgate's Docker service onto the newest
+  version. The console stops mid-request and comes back on the new version with its database
+  migrations; there is no way back from here. Off until **Check for updates** finds a newer
+  version, and off on an install that is not a Docker service (every native install): run the
+  upgrade command instead.
+- **Restart Cloudgate** (Restart this instance): restarts the Cloudgate service on its current
+  version. Nothing saved is lost and waiting Deployments are queued again, but a build in progress
+  ends in error. On a native install it is refused: run `systemctl restart cloudgate-backend
+  cloudgate-console` on the machine. No setting on these screens needs it.
+- **Empty the queue** (Empty the build queue): drops every Deployment waiting to start, across every
+  Organization: each is marked **cancelled** with a last log line saying the queue was emptied,
+  and nothing re-queues them. A build already running is not touched.
+</Callout>
+
+## The Maintenance screen
+
+**Settings** > **Maintenance** shows what Docker holds on the platform host and the ways to reclaim
+it: **Disk usage**, **On a schedule**, **Reclaim disk** and a **Danger zone**.
+
+### See what Docker is holding
+
+**Disk usage** is a table with one row per kind (images, containers, volumes, build cache) and the
+columns **Kind**, **Total**, **In use**, **Size** and **Reclaimable**.
+
+### Schedule nightly clean-ups
+
+**On a schedule** has the two jobs Cloudgate runs on this host by itself:
+
+| Switch | What it does | Default |
+|---|---|---|
+| **Prune Docker every night at 23:50** | Runs the container, image, builder and system prunes. Never volumes. A night when Docker stays busy for 10 minutes is skipped and tried the next night. | On |
+| **Rotate Traefik's access log** | On the schedule, if the access log has passed 100 MiB it is renamed aside and Traefik reopens it. Three earlier files are kept. | On, at midnight (`0 0 * * *`) |
+
+With rotation on, **When it runs** takes a cron expression (`0 0 * * *` is midnight); change it
+and press **Save schedule**. The access log is what the Requests screen reads, so a shorter schedule on a busy
+instance means a shorter history there. An expression the scheduler cannot read is refused when
+it is saved.
+
+### Reclaim disk now
+
+<Screenshot name="maintenance-reclaim-disk" alt="The Reclaim disk card on Settings, Maintenance, with Remove images, Remove containers, Empty the cache, Remove volumes and Delete metrics" caption="One cleanup runs at a time; each waits for Docker to be idle first." />
+
+Each row in **Reclaim disk** runs one command, first waiting up to 10 minutes for any build, pull
+or other Docker command to finish. One runs at a time.
+
+| Button | What it removes |
+|---|---|
+| **Remove images** (Remove unused images) | Every image no container uses, tagged or not. |
+| **Remove containers** (Remove stopped containers) | Containers that have exited. Running ones are untouched. |
+| **Empty the cache** (Empty the build cache) | BuildKit's whole cache. The next build of anything starts from scratch. |
+| **Remove volumes** (Remove unused volumes) | Every volume with no container attached, including a stopped database's data. |
+| **Delete metrics** (Delete collected metrics) | Every metric sample stored for this host and its containers. Its Monitoring history starts again. Remote Servers' samples are kept. |
+
+<Callout type="warn" title="Remove volumes cannot be undone">
+A stopped database's volume has no container attached, so **Remove volumes** deletes its data.
+Back up first; see [Backups and restore](/docs/guide/backups).
+</Callout>
+
+### Maintenance Danger zone
+
+Both take images a rollback point may still need:
+
+- **Prune everything** (Prune everything unused): `docker system prune --all` then a builder
+  prune. Every image, network and container not backing something running now, and the whole
+  build cache. Volumes are kept. An earlier Deployment whose image is removed shows as unusable
+  on the Rollbacks tab, with no warning first.
+- **Run every cleanup** (Run every cleanup at once): containers, images, builders and a system
+  prune, started in the background. Volumes are excluded. Success means it started; failures are
+  only in the server's log.
+
+## What you cannot do
+
+<Callout type="limit" title="Not in the console">
+- Update a native install from the console: run the install command again.
+- Change `CLOUDGATE_PUBLIC_HOST`: edit `/etc/default/cloudgate-console` and
+  `/etc/default/cloudgate-backend` on the machine and restart both services.
+- Undo a prune, an emptied queue or a deleted volume.
+- Give these settings to another Organization's owners or to any Agent.
+</Callout>
+
+## Related pages
+
+- [Traefik on the platform host](/docs/guide/traefik): files, ports, DNS-01 and request metrics.
+- [Instance settings for self-hosted owners](/docs/self-host/instance-settings): license,
+  branding and the Template catalogue mirror.
+- [Deployments and rollbacks](/docs/guide/deployments): the build queue and rollback points.
+- [Preview deployments](/docs/guide/previews): requested previews and their lifetime.
+- [Bought Servers](/docs/guide/bought-servers): Servers bought on the Hosted instance.
+- [Self-host Cloudgate](/self-hosted).
