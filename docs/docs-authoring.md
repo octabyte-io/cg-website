@@ -66,6 +66,9 @@ faq:                               # 2-5 real questions, answer first; rendered 
   exists (`/features`, `/ai-agents`, `/cli`, `/pricing`, `/self-hosted`, `/security`).
 - No invented numbers, quotes or features. No "open source": Cloudgate is source-available
   (Elastic License 2.0).
-- Link files in the public cloudgate repository (https://github.com/octabyte-io/cloudgate) where it
-  helps the reader; use `repoFile(path)` from `src/data/site.ts`.
+- Never mention or link an ADR (architecture decision record), an internal doc (`CONTEXT.md`,
+  `docs/...`), or an issue or PR number. If a fact comes from one, state the fact directly.
+- Link a public repository file only when the reader needs it to act (the install script, the
+  license, the security policy, the contributing guide), with descriptive link text rather than the
+  file name; use `repoFile(path)` from `src/data/site.ts`.
 - No all-caps labels, no "→" glued to links, no emoji.

@@ -218,7 +218,7 @@ Each new version of Cloudgate that passes the full test run now reaches the Host
 
 ### The source is public on GitHub
 
-Cloudgate's source repository, [github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), is public. Self-hosting needs no access request (see [how to self-host Cloudgate](/self-hosted)). Bug reports, feature ideas and pull requests are welcome as GitHub issues, as `CONTRIBUTING.md` describes, and a security problem is reported privately on the repository's Security tab, under **Report a vulnerability**. The license is still the Elastic License 2.0.
+Cloudgate's source repository, [github.com/octabyte-io/cloudgate](https://github.com/octabyte-io/cloudgate), is public. Self-hosting needs no access request (see [how to self-host Cloudgate](/self-hosted)). Bug reports, feature ideas and pull requests are welcome as GitHub issues, as the [contributing guide](https://github.com/octabyte-io/cloudgate/blob/main/CONTRIBUTING.md) describes, and a security problem is reported privately on the repository's Security tab, under **Report a vulnerability**. The license is still the Elastic License 2.0.
 
 ### Self-hosting is one command
 
