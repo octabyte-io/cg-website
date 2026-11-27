@@ -36,8 +36,11 @@ plan: two pieces a week, plus a monthly refresh of what already exists.
 ## Rules
 
 - Use SearchFit (`content-brief`, then `on-page-seo`; `ai-visibility` for the lede and FAQ answers).
-- Every product claim traces to `docs/product-facts.md` or the cloudgate repository. Link the ADR or
-  doc it comes from.
+- Every product claim traces to `docs/product-facts.md` or the cloudgate repository, but the post
+  never cites where a fact came from. State the fact itself in plain words.
+- Never mention or link an ADR (architecture decision record), an internal doc (`CONTEXT.md`,
+  `docs/...`, `product-facts.md`), a repository file path, or an issue or PR number. Not "per
+  ADR-0084", not "the record weighs", not "see docs/adr". Write what was decided and why, directly.
 - Answer first: the lede answers the title, and each `##` heading is a question or a plain claim
   with the answer in its first sentence.
 - Link at least one product page, one docs page and one compare page or guide.

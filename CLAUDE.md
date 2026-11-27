@@ -21,6 +21,9 @@ Several design skills overlap. Pick by the job, not by habit:
 | Stress-test a component with worst-case content | `break-ui` |
 | General UI polish philosophy | `emil-design-eng` |
 
+Website copy (pages, blog, docs, changelog, llms.txt) never references ADRs, internal docs, repository
+paths, or issue/PR numbers, and never cites where a fact came from: state the fact directly.
+
 `docs/design.md` wins over any skill's defaults: tokens only in `src/styles/global.css`, both
 themes, motion that respects reduced motion, no invented facts. `impeccable`'s helper script
 downloads its engine binary from the internet on first run; ask before running it.
