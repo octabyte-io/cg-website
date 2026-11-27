@@ -21,8 +21,10 @@ Several design skills overlap. Pick by the job, not by habit:
 | Stress-test a component with worst-case content | `break-ui` |
 | General UI polish philosophy | `emil-design-eng` |
 
-Website copy (pages, blog, docs, changelog, llms.txt) never references ADRs, internal docs, repository
-paths, or issue/PR numbers, and never cites where a fact came from: state the fact directly.
+Website copy (pages, blog, docs, changelog, llms.txt) never references material from the Cloudgate
+GitHub repositories as a source: no ADRs, no internal docs (`CONTEXT.md`, `docs/...`), no repository
+file paths, no issue or PR numbers. State the fact directly instead. Citing and linking external
+websites and docs, or our own public websites (this site, cgt.octabyte.io), is fine.
 
 `docs/design.md` wins over any skill's defaults: tokens only in `src/styles/global.css`, both
 themes, motion that respects reduced motion, no invented facts. `impeccable`'s helper script

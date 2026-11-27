@@ -67,7 +67,9 @@ faq:                               # 2-5 real questions, answer first; rendered 
 - No invented numbers, quotes or features. No "open source": Cloudgate is source-available
   (Elastic License 2.0).
 - Never mention or link an ADR (architecture decision record), an internal doc (`CONTEXT.md`,
-  `docs/...`), or an issue or PR number. If a fact comes from one, state the fact directly.
+  `docs/...`), or an issue or PR number from the Cloudgate GitHub repositories. If a fact comes from
+  one, state the fact directly. External websites and docs, and our own public websites, can be
+  cited and linked.
 - Link a public repository file only when the reader needs it to act (the install script, the
   license, the security policy, the contributing guide), with descriptive link text rather than the
   file name; use `repoFile(path)` from `src/data/site.ts`.
