@@ -159,6 +159,8 @@ const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
 </script>
 
 <script>
+  import { centreIn } from '../scripts/reveal';
+
   // Desktop menus: a disclosure button per group. A fine pointer opens it on hover (with a short
   // grace period on leave, so a diagonal move to the panel doesn't drop it); a click, Enter or Space
   // toggles it; Escape or a click or focus elsewhere closes it. Without JavaScript, CSS opens a menu
@@ -200,6 +202,14 @@ const ext = { target: '_blank', rel: 'noopener noreferrer nofollow' };
   }
   document.addEventListener('pointerdown', (e) => {
     drops.forEach((d) => !d.contains(e.target as Node) && set(d, false));
+  });
+
+  // Small screens: when the menu is taller than the screen (a phone in landscape), opening it shows
+  // the current page's link in the middle of the panel.
+  const menu = document.querySelector<HTMLDetailsElement>('.site-header .menu');
+  const panel = menu?.querySelector<HTMLElement>('nav');
+  menu?.addEventListener('toggle', () => {
+    if (menu.open && panel) centreIn(panel, panel.querySelector('a[aria-current="page"]'));
   });
 </script>
 

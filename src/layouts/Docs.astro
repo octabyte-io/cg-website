@@ -113,7 +113,18 @@ const pageSchema = [
       </details>
       <script is:inline>
         // Small screens start with the menu shut, before first paint; wide screens keep it open.
-        if (matchMedia('(max-width: 1023px)').matches) document.currentScript.previousElementSibling.open = false;
+        // Wide screens: the sidebar scrolls on its own, so centre the current page in it now, before
+        // first paint (no motion, and the page itself never moves). docs.ts does the same for the
+        // small-screen menu each time it opens.
+        (() => {
+          const menu = document.currentScript.previousElementSibling;
+          if (matchMedia('(max-width: 1023px)').matches) return void (menu.open = false);
+          const side = menu.parentElement;
+          const a = side.querySelector('.docs-nav a[aria-current="page"]');
+          if (!a || side.scrollHeight <= side.clientHeight + 1) return;
+          const top = a.getBoundingClientRect().top - side.getBoundingClientRect().top + side.scrollTop;
+          side.scrollTop = top - (side.clientHeight - a.offsetHeight) / 2;
+        })();
       </script>
     </aside>
 

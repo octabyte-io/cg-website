@@ -74,10 +74,18 @@ const description =
     gap: var(--space-8);
     align-items: start;
   }
+  /* Taller than the screen once there are a dozen releases: it scrolls on its own, and motion.ts
+     keeps the release being read inside it. */
   .toc {
     position: sticky;
     top: 6rem;
+    max-height: calc(100svh - 6rem - var(--space-5));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
     display: grid;
+    grid-auto-rows: max-content;
     gap: var(--space-4);
     font-size: var(--text-sm);
   }
@@ -105,6 +113,16 @@ const description =
     text-decoration: none;
     font-weight: 500;
     line-height: 1.3;
+  }
+  /* A release title can run to four lines: the link grows with it, so the change count under it
+     never overlaps the last line. */
+  .toc li a {
+    padding-block: 0.4rem;
+  }
+  /* Links inside the closing sentence stay inline, so it reads as one sentence. */
+  .toc-more a {
+    display: inline;
+    min-height: 0;
   }
   .toc a:hover {
     color: var(--brand);
@@ -138,7 +156,7 @@ const description =
   .toc li span {
     color: var(--muted);
     font-size: var(--text-xs);
-    margin-top: -0.6rem;
+    margin-top: -0.3rem;
     margin-bottom: var(--space-2);
   }
   .toc-more {
@@ -238,6 +256,8 @@ const description =
     }
     .toc {
       position: static;
+      max-height: none;
+      overflow: visible;
     }
   }
   @media (max-width: 520px) {
