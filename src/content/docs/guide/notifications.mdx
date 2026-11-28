@@ -7,7 +7,7 @@ section: guide
 group: Operate
 order: 4
 badges: ['Owner or Admin']
-updated: '2026-11-27'
+updated: '2026-11-28'
 howto:
   name: Add a notification channel
   steps:
@@ -111,7 +111,7 @@ change anything and it replaces the whole set, so retype every value you mean to
 | **A Deployment failed** | A build errored, with the builder's message. |
 | **A database backup ran** | Both outcomes, written or not. |
 | **A volume backup ran** | Both outcomes, with the archive's size when there is one. |
-| **Docker cleanup ran** | The scheduled nightly Docker prune of unused images, containers and build cache. It never prunes volumes, although the switch's own hint mentions them. |
+| **Docker cleanup ran** | The nightly prune of stopped containers, unused images and build cache. It never removes volumes. |
 | **A Server crossed a threshold** | CPU or memory crossed the limit set on that Server's monitoring. |
 | **Cloudgate backed itself up** | Listed, but nothing fires it yet. |
 | **Cloudgate restarted** | The instance started, which is also how you learn it went down. |

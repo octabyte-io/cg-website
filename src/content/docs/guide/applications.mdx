@@ -4,7 +4,7 @@ seoTitle: Deploy an Application from git, Docker or a zip
 description: Add an Application to an Environment, choose its source (GitHub, GitLab, Bitbucket, Gitea, a git URL, a Docker image or a zip) and builder, then deploy it.
 lede: 'An Application is a Service that Cloudgate builds from your code, or pulls as a ready-made image, and runs as a container. This page covers adding one, choosing where its code comes from and how it is built, its Overview and its tabs.'
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Deploy
 order: 4
 badges: ['Owner or Admin to create', 'Members can change and deploy']
@@ -58,7 +58,7 @@ The **Add an Application** dialog asks three things:
 |---|---|---|
 | **Name** | What the Application is called in Cloudgate, such as `Storefront web`. | Required. Its Swarm service gets its own generated name, shown later as **Internal name**, which cannot be changed. |
 | **Description** | What it runs, for whoever finds it next. | Optional. |
-| **Server** | Which Server it runs on. | Opens on the Environment's Deploy target. Bought Servers that are not ready yet are greyed out. |
+| **Server** | Which Server it runs on. | Opens on the Environment's Deploy target when that is a Server. When the Deploy target is **This Cloudgate host**, it opens on your first Ready Server instead, if you have one. Bought Servers that are not ready yet are greyed out. |
 
 Press **Create Application**. Cloudgate answers "It is not deployed yet: set where its code comes
 from, then deploy" and opens the new Application's Overview.
@@ -77,9 +77,14 @@ host is never offered. To run in AWS or Google Cloud, write the Service in the
 [Project config](/docs/guide/project-config).
 </Callout>
 
-On a self-hosted instance, choosing **This Cloudgate host** shows a warning: Cloudgate itself runs
-on that machine, so losing it loses this Service and all of Cloudgate's records. The same note
-stays on the Application's **Where it runs** card.
+### What is the Same-machine warning?
+
+On a self-hosted instance, choosing **This Cloudgate host**, or a Server whose address is the machine
+Cloudgate itself runs on (loopback or one of that machine's own addresses), shows the Same-machine
+warning: losing that machine loses this Service and all of Cloudgate's records, its Projects,
+Servers, settings and Deployment history. It links to adding a Server and to the Hosted instance.
+It never refuses and cannot be hidden, and it stays on the Application's **Where it runs** card for
+as long as the Application runs there. The Hosted instance refuses those places outright.
 
 <Callout type="limit" title="Who can add an Application">
 Adding a Service needs the create action on Services: the owner and admin roles, or a custom role

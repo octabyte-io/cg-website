@@ -6,7 +6,7 @@ lede: A database is a Service that runs one engine for the Applications in its E
 section: guide
 group: Services
 order: 1
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Owner or Admin to create and delete', 'Members can change settings', 'Server, AWS and Google Cloud']
 howto:
   name: Add a database on a Server
@@ -114,16 +114,25 @@ Press **Deploy**. The first deploy pulls the image and creates the data volume.
 | **Primary URL** | For a replica only, and required: the primary's gRPC address, such as `http://libsql-a1b2c3:5001`. | LibSQL |
 | **Enable namespaces** | Lets one server hold many logical databases addressed by hostname. | LibSQL |
 | **Image** | The image and tag to run. A new major version usually will not start on an older version's data. | All |
-| **Server** | Where it runs. The picker turns off Servers that are not ready. | All |
+| **Server** | Where it runs. Opens on the first Ready Server; a Bought Server that is not Ready yet, or powered off, is greyed out with the reason. | All |
 
 For PostgreSQL, MySQL and MariaDB the database name and user take letters, digits and underscores
 and start with a letter or an underscore, up to the engine's own length (PostgreSQL 63 for both;
 MySQL 64 and 32; MariaDB 64 and 80). A PostgreSQL user cannot start with `pg_`.
 
 Put the database on the same Server as the Services that use it: on another Server every query
-crosses the network. On a Self-hosted install the picker also offers **This Cloudgate host**, the
-machine Cloudgate itself runs on; the form then warns that losing that machine loses the database
-and all of Cloudgate's records together.
+crosses the network. The **Server** picker opens on your first Ready Server. On a Self-hosted
+install it also offers **This Cloudgate host**, the machine Cloudgate itself runs on, and stays on
+it only when no Server is Ready.
+
+### What is the Same-machine warning?
+
+On a Self-hosted install, a database put on Cloudgate's own machine (**This Cloudgate host**, or a
+Server whose address is that machine) gets a warning in the form and on its **Database** card for
+as long as it runs there: "Cloudgate itself runs on this machine. If the machine is lost, this
+Service and all of Cloudgate's records go with it: Projects, Servers, settings and Deployment
+history." It links to adding a Server and to the Hosted instance. It warns and never refuses, and it
+cannot be hidden. The Hosted instance never offers its own machine as a place to run a database.
 
 <Callout type="limit" title="Who can add one">
 Adding any Service needs the `service: create` permission. Owners and admins have it; the built-in

@@ -4,7 +4,7 @@ seoTitle: 'Forward auth: protect an Application with OIDC'
 description: Run an oauth2-proxy on a Server's Traefik so visitors to an Application's Domain must sign in at your OIDC identity provider before they reach it.
 lede: Forward auth puts an authentication proxy in front of an Application's own Domain. Traefik sends every request to the proxy first, and only requests with a valid session from your identity provider reach the Application, so an internal tool gets a sign-in screen without anybody adding one to it.
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Team and access
 order: 6
 navTitle: Forward auth
@@ -21,7 +21,7 @@ faq:
   - { q: Who can sign in through forward auth?, a: 'Anyone your identity provider signs in. The proxy accepts every account the provider vouches for, so limit who may sign in to the application at the provider itself.' }
   - { q: Can I use a SAML identity provider?, a: 'No. The proxy, oauth2-proxy, speaks OIDC only, so only OIDC providers are offered in Authenticate against.' }
   - { q: Can a Compose stack be put behind forward auth?, a: 'No. A Compose stack''s routes carry no middleware, and Cloudgate refuses its Domains. Only Application Domains get the Sign-in switch.' }
-  - { q: What happens to protected Domains if the plan or license lapses?, a: 'They stay protected. The page shows the proxy as Still protected; you cannot set up or change forward auth, but you can still remove it.' }
+  - { q: What happens to protected Domains if the plan or license lapses?, a: 'They stay protected. The page shows the proxy as Still protected; you cannot set up or change forward auth, but you can still remove it. Removing the proxy then makes every request to those Domains fail, it does not open them.' }
   - { q: Why does a gated Domain fail every request?, a: 'The proxy behind it is not answering: it was removed, its authentication domain was cleared, or it is not starting. Redeploy the proxy, or turn the Domain''s Sign-in switch off.' }
 ---
 
@@ -169,6 +169,11 @@ can't add or change forward auth.** Setting a domain, deploying and turning on a
 removing stays allowed. While a downgrade is only scheduled, the strip says the date adding and
 changing forward auth stops.
 
+Under a running proxy the card says so: "Domains already behind this proxy stay behind the sign-in.
+Removing the proxy makes every request to them fail until it is deployed again or their gate is
+turned off." On a lapsed plan or license you cannot deploy the proxy again, so turn **Sign-in** off on
+each gated Domain before you remove it, if those Applications should stay reachable.
+
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
@@ -185,6 +190,7 @@ changing forward auth stops.
 
 - [SSO, SCIM and forward auth](/docs/guide/sso-and-scim): add the OIDC provider the proxy uses.
 - [Domains and TLS certificates](/docs/guide/domains): the Domains tab and its **Sign-in** column.
+- [Traefik on the platform host](/docs/guide/traefik): the Traefik the **Cloudgate Server (local)** proxy runs behind.
 - [Servers](/docs/guide/servers): the Traefik on each Server.
 - [Billing and plans](/docs/guide/billing): the Business plan.
 - [Security at Cloudgate](/security).

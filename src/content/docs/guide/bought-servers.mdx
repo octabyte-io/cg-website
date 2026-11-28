@@ -1,46 +1,52 @@
 ---
 title: Buy a Server from Cloudgate
 navTitle: Bought Servers
-seoTitle: 'Buy a ready-to-use Server in the console'
-description: Buy a Server in the Cloudgate console by location, size and image, add backups or extra storage, see today's charge, then resize or delete it later.
-lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you, with no SSH key or setup command to handle.
+seoTitle: 'Buy a Server, back it up and restore it'
+description: Buy a Server in the Cloudgate console, see every Bought Server and its price, take a Server backup now, restore one, and resize or delete the Server.
+lede: On the Hosted instance you can buy a Server straight from the console. Pick a location and a size, pay, and Cloudgate creates the machine and sets it up for you. Each Bought Server then has its own tab for its backups, size and price, and can be restored from any of its last 7 Server backups.
 section: guide
 group: Where it runs
 order: 3
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Hosted only', 'Owner or Admin']
 howto:
   name: Buy a Server
   steps:
-    - { name: 'Open Buy a Server', text: 'In Servers, press Buy a Server.' }
+    - { name: 'Open Buy a Server', text: 'In Servers or Bought Servers, press Buy a Server.' }
     - { name: 'Pick a location', text: 'Choose a suggestion, a pin on the map or a city card.' }
     - { name: 'Pick a size and image', text: 'Choose a family and a size sold in that location, and the Server image. Ubuntu 24.04 is chosen unless you pick another.' }
     - { name: 'Add extras', text: 'Optionally turn on Backups and enter Extra storage in GB.' }
     - { name: 'Buy', text: 'Check the Summary and Today''s charge, tick the terms and press Buy.' }
     - { name: 'Wait until ready', text: 'Cloudgate creates the machine and runs its setup. It takes Services once setup finishes.' }
 faq:
-  - { q: 'Is a bought Server included in the free trial?', a: 'No. The trial covers your plan, not the Server. During the trial the Server is charged on its own invoice up to the trial''s end, then joins your plan''s monthly invoice.' }
-  - { q: 'How is a bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The Summary shows the monthly total and Today''s charge before you buy.' }
-  - { q: 'Can I make a bought Server bigger later?', a: 'Yes. Change size on its Settings tab moves it up or down among the sizes sold in its location. The machine is powered off for a few minutes, and its disk is not grown.' }
-  - { q: 'Why is my bought Server refused as a deploy target?', a: 'An operator powered it off. Its notice says Powered off by an operator, with the reason. Deploys, rollbacks, starts, uploads and previews are refused until it is powered on again.' }
-  - { q: 'What happens if a payment fails?', a: 'Your bought Servers are due for deletion 7 days after the failed payment. A red bar shows the date. Pay the open invoice before then to keep them.' }
+  - { q: 'Is a Bought Server included in the free trial?', a: 'No. The trial covers your plan, not the Server. During the trial the Server is charged on its own invoice up to the trial''s end, then joins your plan''s monthly invoice.' }
+  - { q: 'How is a Bought Server billed?', a: 'Monthly, in advance, on the same invoice as your Hosted plan. The Summary shows the monthly total and Today''s charge before you buy, and the Bought Servers page totals what every Bought Server costs a month.' }
+  - { q: 'Does Back up now cost anything?', a: 'No. Back up now takes one more Server backup at no extra cost, in the same 7 slots as the daily ones. Once all 7 are full, the oldest is pushed out, and the confirmation names it.' }
+  - { q: 'What does restoring a Server backup lose?', a: 'Everything written to the Server''s disk since that backup. A safety copy of the disk as it is now is kept first, so you can undo the restore, unless the backup chosen is the oldest of 7. Extra storage is not in a backup and keeps what it holds.' }
+  - { q: 'Are my Services redeployed after a restore?', a: 'Yes. Every Service on the Server whose current Deployment finished after the backup is redeployed, so it runs its current version again on the restored data. The email about the restore names each one.' }
+  - { q: 'What happens if a payment fails?', a: 'Your Bought Servers are due for deletion 7 days after the failed payment. A red bar shows the date. Pay the open invoice before then to keep them.' }
 ---
 
-A bought Server is a Server Octabyte runs for you. Once it is ready it works like any other
+A Bought Server is a Server Octabyte runs for you. Once it is ready it works like any other
 [Server](/docs/guide/servers): you deploy Applications, databases and Compose stacks onto it, open its
 shell and read its telemetry. Cloudgate makes its key and runs its setup by itself.
 
-## What can you do with a bought Server?
+## What can you do with a Bought Server?
 
 - Buy one by location, size and image, from a world map, with a price before you pay.
-- Add daily backups of the Server's disk, and extra storage from 10 GB to 10 TB.
-- Change its size up or down, turn backups on or off, and grow its extra storage later.
+- See every Bought Server on one page, with its stage, size and what it costs a month.
+- Turn on daily backups of the Server's disk, take one more with **Back up now**, and restore the
+  Server from any backup kept.
+- Add extra storage from 10 GB to 10 TB, and grow it later.
+- Change its size up or down among the sizes sold where it is.
 - Delete it, with the unused part of the month credited.
 
 <Callout type="limit" title="Hosted only, owners and admins">
-**Buy a Server** shows only on the Hosted instance, at cloudgate.octabyte.app. On a self-hosted
-instance, [add your own Server over SSH](/docs/guide/servers). Buying and changing a bought Server
-needs the owner or admin role, or a custom role that allows it; the button is greyed out for others.
+**Buy a Server**, the **Bought Servers** page and the **Bought Server** tab show only on the Hosted
+instance, at cloudgate.octabyte.app, where buying a Server is offered. On a self-hosted instance,
+[add your own Server over SSH](/docs/guide/servers). Seeing them needs the role that may see Servers.
+Buying, changing, backing up and restoring a Bought Server needs the owner or admin role, or a custom
+role that allows adding Servers; the controls are greyed out for others and say why.
 </Callout>
 
 ## How do I buy a Server?
@@ -50,8 +56,8 @@ creates the machine and runs its setup for you:
 
 <Steps>
 <Step title="Open Buy a Server">
-In **Servers**, press **Buy a Server**. The [get-started wizard](/docs/guide/get-started) offers the
-same choices in its first step.
+In **Servers** or **Bought Servers**, press **Buy a Server**. The
+[get-started wizard](/docs/guide/get-started) offers the same choices in its first step.
 </Step>
 <Step title="Pick a location">
 **Suggested** offers **Closest** and **Cheapest**: the least a Server with at least 4 GB of memory costs
@@ -107,20 +113,68 @@ for 1 more Server") and the Add-on is bought with the Server. See [Billing](/doc
 
 ### Finish or cancel an unpaid purchase
 
-A purchase left at the payment step shows in **Servers being bought** on the Servers screen as
-**Waiting for payment**. **Finish paying** returns you to the payment; **Cancel** drops it and nothing is
-charged. Rows also show **Creating** and, while one is removed, **Deleting**. If creating the machine
-fails, what you paid is given back in full.
+A purchase left at the payment step shows in **Servers being bought** on the Servers screen, and on the
+Bought Servers page, as **Waiting for payment**. **Finish paying** returns you to the payment; on the
+Servers screen, **Cancel** drops it and nothing is charged. Rows also show **Creating** and, while one
+is removed, **Deleting**. If creating the machine fails, what you paid is given back in full.
+
+## Where do I see all my Bought Servers?
+
+Open **Bought Servers** in the Organization rail, under **Servers**. The page lists every Bought Server
+in the Organization with what it costs, under one sentence such as "2 Bought Servers, $47/month on
+your plan's invoice." A Server still waiting for payment is counted apart ("and 1 waiting for
+payment") and left out of the total; one being deleted is left out of the count and the total. The
+row shows from the moment buying is offered, before anything is bought, so **Buy a Server** is always
+one click away.
+
+<Screenshot name="bought-servers-list" alt="The Bought Servers page with its summary sentence and a table of Bought Servers, each with its Location under its name, its stage, size, backups, monthly price and a Manage button" caption="One sentence for the count and the monthly total, then one row per Bought Server." />
+
+| Column | What it shows |
+|---|---|
+| **Server** | Its name, with its Location (city and country) under it. |
+| **Stage** | Where it is: see the table below. |
+| **Size** | The family and size, such as Performance · 4 vCPU · 8 GB RAM · 160 GB disk. |
+| **Backups** | **On** or **Off**. |
+| **Monthly** | What it costs a month on your plan's invoice. A Deleting Server reads **Not charged**. |
+| | **Manage** opens its [Bought Server tab](#the-bought-server-tab); a Server waiting for payment offers **Finish paying** instead. |
+
+| Stage | What it means |
+|---|---|
+| **Waiting for payment** | Bought, but the payment is not finished yet. Not on the invoice. |
+| **Creating** | The machine is being made. It has no Server to open yet. |
+| **Setting up** | The machine exists and its setup is running. Nothing can deploy to it yet. |
+| **Ready** | It takes Services, and every change is possible. |
+| **Changing** | A size, backups, storage or Restore change is running. Deploys to it are refused until it is Ready again. |
+| **Deleting** | It is being removed, and is already off the invoice. |
+
+A Server whose machine is deleted, or whose purchase failed, is not listed. The page reads the list
+again by itself while a row is Creating, Setting up, Changing or Deleting.
+
+## The Bought Server tab
+
+Every Bought Server has a **Bought Server** tab among its Server tabs, between **Shell** and
+**Settings**: eight tabs in all. A Server you added over SSH has no such tab. Its **Settings** tab has
+one **Bought Server** line with **Open Bought Server**, and the emails about a change or a Restore link
+here.
+
+<Screenshot name="bought-server-tab" alt="The Bought Server tab with Back up now in the header, the Server backups card with Backups on and a list of Server backups with their dates, sizes and Restore buttons, the Size and storage card, and What you pay and About this Server beside them" caption="Server backups first, then size and storage; what it costs and where it is, beside them." />
+
+| Card | What it has |
+|---|---|
+| **Server backups** | The **Backups** switch, with its price, and while backups are on the list of Server backups with **Restore** on each. **Back up now** is in the tab's header. |
+| **Size and storage** | **Size** with **Change size**, and **Extra storage** with **Grow** when the Server was bought with some. |
+| **What you pay** | Each line it is charged for (**Server**, **Backups**, **Extra storage**) and the **Total**, on your plan's invoice, monthly in advance. |
+| **About this Server** | Its **Location**, **Server image** and **Size**. |
+
+Every change asks first and says what it costs. While one runs, the header shows **Changing** and the
+other controls wait with "This Server can be changed once it is Ready."
 
 ## Change size, backups or storage
 
-Open the Server's **Settings** tab and its **Bought Server** card, which shows its monthly price. Changes
-are possible once the Server is ready; a **Changing** chip shows while one runs.
+On the **Bought Server** tab, once the Server is Ready:
 
-<Screenshot name="bought-server-card" alt="The Bought Server card at $52/month on your plan's invoice, with Backups switched on at $8/month, 50 GB of extra storage at $5/month mounted at /mnt/storage with a Grow button, and the size 8 vCPU, 16 GB RAM, 240 GB disk with a Change size button" caption="Each line has its own price, which adds up to the monthly total under the title." />
-
-- **Backups**: the switch asks first. Turning on (**Pay and turn on backups**) charges the rest of this month now. Turning off (**Turn off and delete backups**) deletes every backup at once and credits the unused part of the month.
-- **Extra storage**: shown when the Server was bought with some. **Grow**, enter a larger size, and press **Pay and grow**. The filesystem is grown for you.
+- **Backups**: the switch asks first. Turning on (**Pay and turn on backups**) charges the rest of this month now. Turning off (**Turn off and delete backups**) deletes every backup at once and credits the unused part of the month. If the Server's size is no longer sold where it is, backups cannot be turned on again.
+- **Extra storage**: shown when the Server was bought with some. **Grow**, enter a larger size, and press **Pay and grow**. The rest of the month is charged now, and the filesystem is grown for you.
 - **Size**: **Change size** lists the other sizes sold where the Server is, with their price. Sizes with a smaller disk than the current one are marked **Disk too small**. A dearer size is **Pay and change size**, charged now for the rest of the month; a cheaper one is credited on the next invoice.
 
 <Callout type="warn" title="What a change costs you">
@@ -130,7 +184,94 @@ for good, and extra storage is never in the backups: back it up with
 [volume backups](/docs/guide/backups) to a Destination outside the Server.
 </Callout>
 
-## Delete a bought Server
+## What is a Server backup?
+
+A Server backup is a copy of a Bought Server's whole disk, made while its backups are on: one a day,
+with the last 7 kept, newest first. It is not a [Volume backup or a database Backup](/docs/guide/backups),
+which copy one volume or one database to a Destination of your own; a Server backup stays with the
+machine and puts the whole disk back.
+
+While backups are on, the **Server backups** card lists each one with when it was **Taken** (the day and
+the minute, in your own time zone) and its **Size**, or **Being made** while it is still being made.
+The strip above the list says how many are kept, at most 7, or "The first backup is taken within a
+day." right after backups are turned on. With backups off there is no list: turning them off deletes
+every backup.
+
+### How do I back up a Bought Server now?
+
+Press **Back up now** in the tab's header and confirm in **Back up fra-1 now?**. One more backup is made
+at once, at no extra cost, in the same 7 slots as the daily ones. Once all 7 are full, the confirmation
+names the one it pushes out, such as "All 7 slots are full, so Tuesday 03:00 will be pushed out." The
+new backup shows as **Being made** until it is whole.
+
+**Back up now** is shown only while backups are on. It is refused while the Server is not Ready and
+while the Organization is frozen. It works during maintenance and with a deletion date set, since it
+costs nothing.
+
+## How do I restore a Bought Server from a backup?
+
+Press **Restore** on the backup's row, read what the dialog says will be lost, type the Server's name
+and press **Restore this Server**. The disk goes back to that backup, and every Service deployed after
+it is redeployed:
+
+<Steps>
+<Step title="Pick the backup">
+On the **Bought Server** tab, under **Server backups**, press **Restore** on the row of the backup to go
+back to. A backup still **Being made** cannot be restored yet.
+</Step>
+<Step title="Read the dialog">
+**Restore fra-1 to** the backup's date and time says that everything written to the disk since then is
+lost, that the Server is offline while it is restored, usually for a few minutes, and that Server setup
+then runs on it again. With extra storage, it says that `/mnt/storage` is not in a backup, so it is not
+restored and keeps what it holds now.
+
+<Screenshot name="server-backup-restore" alt="The Restore a Server backup dialog naming the backup's date, saying everything written since then is lost, that the Server is offline for a few minutes and Server setup runs again, that a safety copy is kept first, and a field to type the Server's name" caption="Type the Server's name to restore; a safety copy of the disk as it is now is kept first." />
+</Step>
+<Step title="Confirm">
+Type the Server's name and press **Restore this Server**. The Server shows **Changing**, and the strip
+reads "Restoring the backup of" the date, until Server setup has run on it again.
+</Step>
+</Steps>
+
+A Restore then runs these steps by itself, and picks up where it was if Cloudgate restarts:
+
+| Step | What happens |
+|---|---|
+| **Safety copy** | A backup of the disk as it is now, kept as one more Server backup, so you can undo the Restore by restoring it. |
+| **Put the disk back** | The disk is rebuilt from the backup you chose. |
+| **Start** | The Server is powered on again. |
+| **Server setup** | Setup runs again on the restored disk, and mounts the extra storage again. |
+| **Redeploy** | The Server is Ready. Every Service on it whose current Deployment finished after the backup is redeployed, so it runs its current version on the restored data. |
+| **Email** | The owners and admins get one email naming the backup, how setup ended and each Service redeployed or not, with a link to the Bought Server tab. |
+
+"Current Deployment" is an Application's or a Compose stack's newest finished Deployment (not a
+preview's or a Cron service's run), and a database's or a Bucket's last deploy. When an Application's
+newest change after the backup was a rollback, it is rolled back to that version again instead. A
+Service that cannot be redeployed shows as failed on its own page, and the email says why.
+
+<Callout type="warn" title="A Restore cannot be undone without its safety copy">
+Everything written to the disk since the backup is lost. The safety copy is the only way back. When the
+backup you chose is the oldest of 7, a safety copy would push it out, so none can be taken: the dialog
+says so and asks you to tick **Restore without a safety copy** as well. Copy out anything you need
+first.
+</Callout>
+
+A Restore is never charged, and a deletion date does not stop it. If it cannot be done, the owners get
+an email saying whether the Server is as it was, and what to do next: try again from the Bought Server
+tab, or press **Run setup** on its Setup card when the disk was already put back.
+
+### When is Restore refused?
+
+| You see | Why |
+|---|---|
+| **This Server can be changed once it is Ready.** | Another change, or another Restore, is running, or the Server is not set up yet. |
+| **This Server can be restored once its maintenance is ended.** | The Server is [in maintenance](/docs/guide/servers#put-a-server-in-maintenance). |
+| **This backup can be restored once it is made.** | The backup is still **Being made**. |
+| **Your role in this Organization cannot back up or restore this Server.** | Restore and Back up now need the owner or admin role. |
+| **This Server was powered off by an operator, so it can't be changed** | An operator of the Hosted instance powered it off. |
+| A frozen Organization's refusal | The Organization is [frozen](/docs/guide/organizations#when-an-organization-is-frozen). |
+
+## Delete a Bought Server
 
 On **Settings**, under **Remove this Server**, press **Delete**, type the Server's name and press
 **Delete this Server**. The machine is deleted with its disk, every backup and its extra storage, and
@@ -138,11 +279,11 @@ its address is released. The unused part of the month is credited on your next i
 refused while Services are still recorded on the Server; move or delete them first.
 
 <Callout type="warn" title="This cannot be undone">
-Unlike a Server you added over SSH, deleting a bought Server destroys the machine and everything on it.
-Copy out what you need first.
+Unlike a Server you added over SSH, deleting a Bought Server destroys the machine and everything on it,
+its Server backups included. Copy out what you need first.
 </Callout>
 
-## Notices on a bought Server
+## Notices on a Bought Server
 
 | Notice | What it means | What to do |
 |---|---|---|
@@ -156,22 +297,25 @@ leave it out.
 
 ## If a payment fails
 
-A failed payment sets a deletion date 7 days later for the Organization's bought Servers, and the red
+A failed payment sets a deletion date 7 days later for the Organization's Bought Servers, and the red
 bar shows it on each. A suspension of the Organization, or a cancel that is coming, sets one too. While
 a deletion date is set, buying and anything that costs more (backups on, more storage, a bigger size)
-are refused; deleting, turning backups off and moving to a smaller size stay allowed.
+are refused; deleting, turning backups off, moving to a smaller size, **Back up now** and **Restore**
+stay allowed.
 
 ## What you cannot do
 
-- Buy without being charged: there is no trial for a bought Server.
+- Buy without being charged: there is no trial for a Bought Server.
 - Pay with a prepaid card: the purchase is refused and nothing is charged.
+- Keep more than 7 Server backups, or keep them after turning backups off.
+- Restore a Server backup onto another Server, or restore only some files from it.
 - Shrink extra storage, include it in the backups, or add it later to a Server bought without it.
 - Change to a size not sold in the Server's location.
 
 ## Related pages
 
 - [Servers](/docs/guide/servers): what you can do with any Server once it is ready.
+- [Backups](/docs/guide/backups): database dumps and volume backups to a Destination of your own.
 - [Billing and plans](/docs/guide/billing): invoices, cards and how Servers count.
 - [Deploy your first app with the get-started wizard](/docs/guide/get-started).
-- [Backups](/docs/guide/backups) of databases and volumes.
 - [Pricing](/pricing) for the Hosted plans.

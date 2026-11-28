@@ -6,7 +6,7 @@ lede: Cloudgate writes database dumps and volume tarballs off the Server to any 
 section: guide
 group: Data
 order: 2
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Owner or Admin for Destinations', 'Server, AWS and Google Cloud']
 howto:
   name: Schedule database dumps
@@ -19,7 +19,7 @@ faq:
   - { q: Where can Cloudgate store backups?, a: 'In any S3-compatible bucket: AWS S3, Cloudflare R2, Wasabi, MinIO or another provider. Cloudgate reaches it with rclone. Add it once in Settings, Destinations, for the whole Organization.' }
   - { q: Can I back up Redis?, a: 'Not with a dump: Redis has no dump or restore command in Cloudgate. In ElastiCache or Memorystore the cloud keeps its own snapshots or backups.' }
   - { q: How do I restore a database in AWS or Google Cloud?, a: 'In the cloud''s own console. The Backups tab shows the retention, the restorable window and the snapshots, with a link; a restore there makes a new instance, so Cloudgate has no Restore button for it.' }
-  - { q: Does a Deployment back up my volumes?, a: 'No. A Deployment replaces the container and leaves the volume where it is. Only a volume backup copies it off its Server.' }
+  - { q: Does a Deployment back up my volumes?, a: 'No. A Deployment replaces the container and leaves the volume where it is. Only a volume backup copies it off its Server. On the Hosted instance, a bought Server can also keep Server backups of its whole disk, which are a different thing from a volume backup.' }
   - { q: Why can I not choose a Destination in the schedule form?, a: 'Picking one needs to read the Organization''s Destinations, which the built-in member role cannot. Ask an owner or an admin to add the schedule, or for a role that can read Destinations.' }
 ---
 
@@ -43,6 +43,13 @@ buckets on a Server. A database in AWS or Google Cloud is backed up by the cloud
 
 Nothing else copies data off a Server: a Deployment leaves volumes where they are, and losing the
 Server loses them unless a backup has run.
+
+<Callout type="note" title="Server backups of a bought Server are something else">
+On the Hosted instance, a Server bought from Cloudgate can keep **Server backups**: copies of its
+whole disk, listed on its **Bought Server** tab with **Back up now** and **Restore**. A Server
+backup puts the whole machine back as it was; the dumps and volume backups on this page copy one
+database or one volume to your own Destination. See [Bought Servers](/docs/guide/bought-servers).
+</Callout>
 
 ## What is a Destination?
 
@@ -182,19 +189,43 @@ Press **Run now** on the row to check it. The outcome lands in the run history b
 | **Stop the service while the backup runs** | Stops it for the tar and starts it again afterwards. | Use it for a volume written to all the time: a tar taken mid-write may not restore. |
 | **Enabled** | Off keeps the backup without firing it. | |
 
+Each row shows **Name**, **Volume** (or **The whole stack**), **When** (the cron in words, and
+"stops the service first" or "stops the stack first" when it does), **Written to** (the Destination
+and the path in its bucket) and **Keeps**. **Run now** is a button on the row; **Restore**, **Edit**
+and **Remove** are in the row's menu. Removing a backup stops it firing and leaves its tarballs in
+the bucket, where a restore can still use them.
+
 ### Back up a whole Compose stack
 
 On a Compose stack, the form asks first what to **Back up**:
 
+<Screenshot name="compose-volume-backup-add" alt="The Add a backup dialog on a Compose stack with Back up set to The whole stack, a Destination, a prefix, a cron expression and Stop the stack while it runs switched on" caption="The whole stack is the default: one run copies every named volume from the same moment." />
+
 - **The whole stack** copies every named volume in one run, so the database's volume and the files
   come from the same moment. **Stop the stack while it runs** stops every service once for the copy
   and starts them again, even when a tar fails. It starts on when a service runs a `postgres`,
-  `mysql`, `mariadb` or `mongo` image.
+  `mysql`, `mariadb` or `mongo` image, and while the stack's services are not known yet.
 - **One volume** asks for the **Service** that mounts it and the **Volume** (its mounted named
   volumes, or **Other volume** and its full **Volume name**). Bind mounts are not listed.
 
+On **The whole stack**, **Keep the newest** counts whole moments: older moments under the prefix are
+deleted after each successful run, every volume of a moment together.
+
+<Screenshot name="compose-volume-backups" alt="The Volume backups tab of a Compose stack listing a whole-stack backup, with The whole stack in its Volume column, Run now on the row and the Run history card below" caption="A whole-stack backup's row menu holds Restore, which puts back a whole moment." />
+
 A backup cannot change what it backs up after it is created. A Compose stack in a Cloud account has
-no **Volume backups** tab: there is no Server to copy its volumes on.
+no **Volume backups** tab: there is no Server to copy its volumes on. On a swarm stack, only the copy
+of a volume on the stack's own Server is backed up, and the tab says so.
+
+### Why does the tab say the stack hasn't deployed yet?
+
+Cloudgate learns a stack's named volumes from its last successful deploy, so deploy the stack once
+before you back it up. Until a deploy has run, the tab says "This stack hasn't deployed successfully
+yet, and its volumes are read from its first deploy", **One volume** offers only **Other volume**,
+and a whole-stack run is refused with the same reason. A stack last deployed on a Cloudgate older
+than 0.3.13 says it "last deployed before Cloudgate recorded a stack's volumes": redeploy it once and
+its volumes appear. A stack whose services mount no named volume has nothing for **The whole
+stack** to copy.
 
 ## How do I restore a volume?
 
@@ -205,20 +236,25 @@ the Service again:
 <Step title="Stop what uses the volume">
 A volume cannot be restored while any container, running or exited, references it. **Stop** the
 Application; for a Compose stack, use **Remove containers**. A bucket is stopped and started again
-by the restore itself.
+by the restore itself. A whole-stack restore removes the containers for you: see
+[Restore a moment](#restore-a-moment-of-a-whole-stack-backup).
 </Step>
 <Step title="Start the restore">
-On the **Restore** card press **Restore a volume**, or choose **Restore** in a backup row's menu.
+On the **Restore** card press **Restore a volume**. On an Application or a one-volume backup of a
+stack, **Restore** in the backup row's menu opens the same dialog on that backup's path.
 </Step>
 <Step title="Choose the tarball">
 Choose the **Destination**, narrow the **Path in the bucket**, and pick the **Tarball** from the
-list, newest first, read straight from the bucket. Press **Next**.
+list, newest first, read straight from the bucket, with its size and age and **Newest** on the
+latest. Each tarball shows its file name, whose time says which backup it is; the full path is on
+hover. Press **Next**.
 </Step>
 <Step title="Confirm the volume">
 Check or type the **Volume** it is unpacked into, on the Server the Service runs on. Press **Next**.
 </Step>
 <Step title="Replace its contents">
-Type the volume's name and press **Replace** followed by the volume name.
+Check the **Volume**, the **Tarball** (its file name whole, under its folder) and **On**, type the
+volume's name and press **Replace** followed by the volume name.
 </Step>
 <Step title="Start it again">
 **Start** the Application, or the stack.
@@ -234,10 +270,11 @@ are offered: a backup that keeps the newest five has already deleted the rest.
 
 For a **The whole stack** backup, **Restore** in the row's menu opens **Restore a moment of**
 followed by the backup's name. Pick a moment (its time and the volumes it holds), type the stack's
-name and press **Restore this moment**. Cloudgate stops the stack (or removes its containers),
-puts back every volume of that moment together, then starts the stack; the dialog shows each step
-and the **Restore output** log. If a step fails, the stack is left stopped and the log names what
-was and was not restored.
+name and press **Restore this moment**. It runs as one restore, with each step shown as it goes:
+**Remove containers** (**Stop** on a swarm stack), **Restore** for each volume in name order, then
+**Start**, with the **Restore output** log below. Every volume of that moment is replaced together,
+with no copy of what was there. If a volume fails, the restore stops there, the stack stays stopped,
+and the steps after it read "not run". A backup that has not run yet has no moment to offer.
 
 ## Backups of databases in AWS and Google Cloud
 
@@ -282,7 +319,10 @@ the Organization's Destinations, so the Destination picker shows the refusal and
 stays empty. An owner or an admin can add the schedule for them.
 
 Two backups or restores of the same volume never run at once: the second is refused with a 409
-naming the busy volume, and a scheduled backup waits its turn.
+naming the busy volume, and a scheduled backup waits its turn. **Remove containers** on a Compose
+stack is refused the same way while a backup or restore holds one of its volumes: "Volume '...' is
+busy: a volume backup, a restore or Remove containers holds its lock — try again once that
+finishes."
 
 ## What you cannot do
 
@@ -297,6 +337,7 @@ naming the busy volume, and a scheduled backup waits its turn.
 - [Databases](/docs/guide/databases): engines, credentials, Rebuild and cloud differences.
 - [Buckets](/docs/guide/buckets), whose volume on a Server you can back up.
 - [Compose stacks](/docs/guide/compose-stacks) and Remove containers.
+- [Bought Servers](/docs/guide/bought-servers), whose Server backups copy the whole machine.
 - [Applications](/docs/guide/applications), where the mounts table lists volumes.
 - [Deployments and rollbacks](/docs/guide/deployments), where backup runs are listed.
 - [Members and roles](/docs/guide/members-and-roles).

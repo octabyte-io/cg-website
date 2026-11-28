@@ -7,7 +7,7 @@ lede: The get-started wizard is the shortest way from "I want this app" to a run
 section: guide
 group: Deploy
 order: 2
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Deploy an app with the get-started wizard
@@ -183,8 +183,10 @@ Where it goes, by default: a new Project named after the app (with a number if t
 with a `production` Environment on your Server. If you pick an existing Project, it uses that
 Project's Environment on the same Server, or makes a new one.
 
-On a self-hosted instance, choosing the machine Cloudgate itself runs on shows a warning: if the
-machine is lost, the app and all of Cloudgate's records go with it.
+On a self-hosted instance, the Same-machine warning shows when the app would go on the machine
+Cloudgate itself runs on (**This Cloudgate host**, or a Server whose address is that machine): if the
+machine is lost, the app and all of Cloudgate's records go with it. It warns and never refuses. The
+wizard opens on a Ready Server, so you see it only when the Server you use is that machine.
 
 ### While a bought server is made
 

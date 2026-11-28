@@ -4,7 +4,7 @@ seoTitle: Edit Traefik config and DNS-01 in Cloudgate
 description: Edit traefik.yml and its dynamic files, change Traefik's environment and ports, and set up DNS-01 wildcard certificates on the machine Cloudgate runs on.
 lede: Traefik is the ingress every request to the machine Cloudgate runs on arrives through, the console's own and every Domain's. The Traefik screen edits its files, its container's environment and ports, and turns on wildcard certificates and request metrics.
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Operate
 order: 6
 navTitle: Traefik
@@ -12,6 +12,7 @@ badges: ['Self-hosted', 'Owner or Admin of the Instance organization']
 faq:
   - { q: Why did my edit to traefik.yml do nothing?, a: 'traefik.yml is the static configuration, which Traefik reads once at start. Save it, then press Restart Traefik in the Danger zone. Files under dynamic/ are watched and take effect within seconds.' }
   - { q: Why can I not save an empty Traefik file?, a: 'Saving an empty file is refused so a stray select-all and delete cannot remove a configuration. Delete the file on the machine itself if you really mean to.' }
+  - { q: How do I wrap long lines in a Traefik file?, a: 'Turn on the Wrap lines switch under the editor. Editors scroll sideways by default so YAML indentation and column numbers read as written; the switch is remembered by this browser for every editor.' }
   - { q: Is it safe to publish the Traefik dashboard?, a: 'Not on a public machine. Traefik''s dashboard has no password, and publishing it on port 8080 shows every host, Service and middleware to anyone who can reach the machine.' }
   - { q: "How do I get a wildcard certificate from Let's Encrypt?", a: 'Set up DNS-01 certificates with your DNS provider''s code and API credentials, then choose Custom resolver on the Domain and name letsencrypt-dns. Wildcards need DNS-01.' }
   - { q: Does a remote Server have the same settings?, a: 'Yes, for that Server''s own Traefik: DNS-01 certificates, request metrics and request logging are on the Server''s Settings tab, for owners and admins with access to it.' }
@@ -44,6 +45,10 @@ Each card shows one file in an editor, with **Save** (named after the file, such
 configuration**), **Discard changes** once you have edited, and an expand button that opens the
 file filling the window. A save is refused when the YAML would not load, with the line and column,
 and the draft stays for you to fix. A file cannot be saved empty.
+
+Long lines do not wrap: the editor scrolls sideways inside its own box, so indentation and the
+column a refusal names read as written. Turn on the **Wrap lines** switch under the editor to wrap
+them; this browser remembers the choice for every file editor in the console.
 
 | Card | File | When a save takes effect |
 |---|---|---|
