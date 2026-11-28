@@ -1,10 +1,10 @@
 ---
 title: Self-hosting Cloudgate
-seoTitle: 'Self-hosted Cloudgate: free version vs Enterprise license'
+seoTitle: 'Self-host Cloudgate: free vs Enterprise license'
 description: 'Self-host Cloudgate from its public GitHub repository: what the Elastic License 2.0 allows, what the free version includes, and what Enterprise unlocks.'
 lede: A self-hosted instance is the same Cloudgate as the Hosted one, installed on an Ubuntu server you run. It is free under the Elastic License 2.0, and an Enterprise license unlocks the features larger teams ask for.
 section: self-host
-updated: '2026-11-15'
+updated: '2026-11-28'
 order: 1
 navTitle: Overview
 badges: ['Self-hosted only']
@@ -12,7 +12,8 @@ faq:
   - { q: Is Cloudgate open source?, a: 'No. It is source-available under the Elastic License 2.0. You may use, self-host and change it, but you may not offer it to others as a hosted service or get around its license checks.' }
   - { q: Where do I get the source?, a: 'From the public repository at <a href="https://github.com/octabyte-io/cloudgate">github.com/octabyte-io/cloudgate</a>. Each tested version is also published there as a prebuilt download, which the one-command install fetches for you; no account or access request is needed.' }
   - { q: What happens when an Enterprise license ends?, a: 'Your settings are kept and nothing is deleted, but the licensed features stop. Owners and admins see a warning bar from 14 days before the end date.' }
-  - { q: Can I buy a server from Cloudgate on a self-hosted instance?, a: 'No. Bought Servers and Hosted plans exist only on the Hosted instance. A self-hosted instance deploys to the machine it runs on, to Servers you add over SSH, and to your AWS and Google Cloud accounts.' }
+  - { q: Can I buy a server from Cloudgate on a self-hosted instance?, a: 'No. Bought Servers, their Server backups and Hosted plans exist only on the Hosted instance. A self-hosted instance deploys to the machine it runs on, to Servers you add over SSH, and to your AWS and Google Cloud accounts.' }
+  - { q: Can I deploy my apps onto the machine Cloudgate runs on?, a: 'Yes. A self-hosted instance may put Services on its own machine, and the console shows the Same-machine warning wherever one is put or runs there: if that machine is lost, the Service and Cloudgate''s own records go together. It warns and never refuses.' }
 ---
 
 Self-hosting means you run Cloudgate itself: its console, its API and its database live on a server
@@ -27,6 +28,22 @@ glance, see [Self-host Cloudgate](/self-hosted).
 - Deploy onto that same server, and onto as many other Servers and Cloud accounts as you like. None are counted.
 - Run the platform's own settings: the console's domain, Traefik, disk clean-up and build limits. See [Instance settings](/docs/self-host/instance-settings).
 - Activate an Enterprise license for SSO, SCIM, custom roles, forward auth, branding, parallel builds and more Organizations.
+
+## Should my apps run on the machine Cloudgate runs on?
+
+They can, and a small instance often starts that way, but anything that matters is safer on another
+Server. A Service on Cloudgate's own machine is lost together with Cloudgate's records (Projects,
+Servers, settings and Deployment history) if that machine is lost. The console says so with the
+**Same-machine warning**: a note wherever such a Service, Server or Deploy target is shown or
+picked, and in a Plan's notes when it would create a Service there. Cloudgate's own machine means
+the platform host (**This Cloudgate host**), or a Server whose address is loopback or one of the
+platform host's own addresses.
+
+The warning never refuses and cannot be hidden. Create forms and a new Environment open on the
+first Ready Server instead of the platform host, so you pick Cloudgate's own machine only on
+purpose. The Hosted instance never shows the warning, because it does not let a Service go there at
+all. See [Servers](/docs/guide/servers) and
+[Projects and Environments](/docs/guide/projects-and-environments).
 
 ## The licence
 
@@ -93,7 +110,7 @@ Some parts of Cloudgate exist on only one kind of instance.
 | Only on the Hosted instance | Only on a self-hosted instance |
 |---|---|
 | Hosted plans, the free trial and Billing | The Enterprise license key (**Settings** > **License**) |
-| Buying a Server from Cloudgate | Deploying onto the machine Cloudgate runs on |
+| Buying a Server from Cloudgate, with its Server backups | Deploying onto the machine Cloudgate runs on, with the Same-machine warning |
 | Cloud Services built in the cloud's own build service | Cloud Services built on the Cloudgate server |
 | | Platform settings: **Traefik**, **Instance**, **Maintenance** |
 | | **Branding** |
@@ -101,8 +118,8 @@ Some parts of Cloudgate exist on only one kind of instance.
 ## What self-hosting does not do
 
 <Callout type="limit" title="Your job, not Cloudgate's">
-  - Cloudgate does not update itself on a self-hosted install. You `git pull` the new version and
-    run the install script again.
+  - Cloudgate does not update itself on a self-hosted install. Run the install command again to
+    install the newest published version; nothing is cloned or built on the server.
   - Cloudgate backs up the databases and volumes you deploy, not itself. Back up its database and
     secrets files yourself.
   - The console and API answer on plain HTTP at ports 3000 and 4000 after install. Reach them over
@@ -116,5 +133,6 @@ Some parts of Cloudgate exist on only one kind of instance.
 - [Install Cloudgate on a server](/docs/self-host/install): requirements, the installer and the first sign-up.
 - [The source on GitHub](https://github.com/octabyte-io/cloudgate): the code, the license text and the issue tracker.
 - [Instance settings](/docs/self-host/instance-settings): the license, branding, Traefik and maintenance.
+- [Glossary](/docs/glossary#same-machine-warning): the Same-machine warning, release candidates and the other terms on this page.
 - [Single sign-on and SCIM](/docs/guide/sso-and-scim) and [custom roles](/docs/guide/members-and-roles): the licensed features in use.
 - [Security](/security): how secrets and access are handled.

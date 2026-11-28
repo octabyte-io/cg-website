@@ -1,10 +1,10 @@
 ---
 title: Frequently asked questions
-seoTitle: 'Cloudgate FAQ: answers about plans, data, agents and hosting'
-description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, security and access, and AI agents over MCP.
+seoTitle: 'Cloudgate FAQ: plans, backups, agents, hosting'
+description: Short answers to common Cloudgate questions about getting started, plans and pricing, self-hosting, deploying, backups, security and AI agents over MCP.
 lede: Short, direct answers to the questions people ask most, grouped by topic. Each one links to the page that covers it in full.
 section: help
-updated: '2026-11-21'
+updated: '2026-11-28'
 order: 3
 navTitle: FAQ
 badges: ['Hosted and self-hosted']
@@ -17,6 +17,7 @@ faq:
   - { q: Can I deploy without a Dockerfile?, a: 'Yes. Nixpacks, the default builder, works out how to build your code from its files. Railpack, buildpacks, static files and a ready-made Docker image are also options.' }
   - { q: Can an AI agent deploy for me?, a: 'Yes, as an Agent with the Operator role over MCP. It can deploy, start, stop, cancel and ask for previews and Plans within its grant, but never apply a Plan or change settings.' }
   - { q: Where do I find help inside the console?, a: 'Open Help & support at the foot of the Organization rail. It links the Quickstart, the user guide, the CLI, MCP and API docs, Troubleshooting, the FAQ, Limits and the changelog, and gives the support address, support@octabyte.io.' }
+  - { q: Can I back up a whole Compose stack at once?, a: 'Yes, for a stack on a Server. Add a backup on its Volume backups tab and keep The whole stack chosen: one schedule and one run copies every named volume from the same moment, stopping the stack first when it runs a database image.' }
   - { q: Are my secrets safe?, a: 'Secrets are encrypted at rest, API answers show only whether one is set, and every Agent result passes a mask that replaces stored secrets with dots.' }
 ---
 
@@ -93,6 +94,22 @@ request is needed. You do not have to clone it to install: the one-command insta
 published, prebuilt Cloudgate version. [Install Cloudgate](/docs/self-host/install) takes you from a
 bare server to a signed-in console.
 
+### Can I deploy onto the machine Cloudgate runs on?
+
+Yes, on a self-hosted instance. The console then shows the **Same-machine warning** wherever such a
+Service, Server or Deploy target is shown or picked: if that machine is lost, the Service and
+Cloudgate's own records go together. It warns and never refuses. The Hosted instance does not put
+Services on its own machine at all. See
+[Self-hosting Cloudgate](/docs/self-host#should-my-apps-run-on-the-machine-cloudgate-runs-on).
+
+### Can I try a new Cloudgate version before it is released?
+
+Yes, on a test box. A **release candidate**, such as `v0.3.14-rc.1`, is tested, built and signed
+like a version and published on GitHub as a pre-release. Only naming it installs it:
+`CLOUDGATE_VERSION=v0.3.14-rc.1` on the install command. The install and the console's update notice
+never offer one, and it never reaches the Hosted instance. See
+[Try a release candidate](/docs/self-host/install#try-a-release-candidate-on-a-test-box).
+
 ## Deploying
 
 ### Can I deploy from my terminal or CI?
@@ -122,6 +139,31 @@ new Service in the new place.
 
 No. A Service gets only its own variables and reads a Project or Environment value by naming it,
 such as `${{project.KEY}}`. See [Environment variables](/docs/guide/environment-variables).
+
+## Backups
+
+### Can I back up a whole Compose stack at once?
+
+Yes, for a stack on a Server. On its **Volume backups** tab, press **Add a backup** and keep **The
+whole stack** chosen. That is a **Stack backup**: one schedule and one run that copies every named
+volume from the same moment, and stops the stack while it runs when **Stop the stack while it runs**
+is on (it starts on when a service runs a `postgres`, `mysql`, `mariadb` or `mongo` image). A
+restore puts every volume of one moment back together. A stack in a Cloud account has no Volume
+backups tab. See [Back up a whole Compose stack](/docs/guide/backups#back-up-a-whole-compose-stack).
+
+### I upgraded to 0.3.13. Why can I not back up my stack yet?
+
+Its volumes are recorded when it deploys, and a stack last deployed on an older version has none
+recorded. Redeploy the stack once; from then on its **Volume backups** tab lists its services and
+their named volumes. See [Compose stacks](/docs/guide/compose-stacks#back-up-a-stacks-volumes).
+
+### Can I back up a bought Server's whole disk?
+
+Yes, on the Hosted instance, with backups turned on for the Server. Its **Server backups** are copies
+of the whole disk, one a day, at most 7, the oldest dropped when a new one arrives. **Back up now**
+takes one more at once in the same 7 slots, and **Restore** puts the disk back as it was at one,
+taking a safety copy first. A Restore is never charged. Extra storage is not part of a Server backup.
+See [Bought Servers](/docs/guide/bought-servers).
 
 ## Security and access
 

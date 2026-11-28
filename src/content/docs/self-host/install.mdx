@@ -1,10 +1,10 @@
 ---
 title: Install Cloudgate on your own server
-seoTitle: Install self-hosted Cloudgate on Ubuntu 24.04 or 26.04
+seoTitle: Install Cloudgate on Ubuntu 24.04 or 26.04
 description: Install a published Cloudgate version on an Ubuntu 24.04 or 26.04 server with one command, claim it with the first sign-up, upgrade, back up and uninstall.
 lede: One command turns a fresh Ubuntu 24.04 or 26.04 server into a Cloudgate instance. This page covers what the server needs, what the script sets up, the first sign-up, and what to do after.
 section: self-host
-updated: '2026-11-21'
+updated: '2026-11-28'
 order: 2
 navTitle: Install
 badges: ['Self-hosted only', 'Root on the server']
@@ -21,6 +21,7 @@ faq:
   - { q: Can I install it on ARM or another Linux?, a: 'No. A self-hosted install runs on Ubuntu 24.04 or 26.04 on x86-64. It stops, before downloading anything, on any other release (22.04 and Debian included) or processor. Cloudgate versions are also built for arm64, but only for the Hosted instance.' }
   - { q: How does the installer know the download is genuine?, a: 'Each published version carries a signature on its checksum file. The installer holds Cloudgate''s public key, checks the signature with <code>ssh-keygen -Y verify</code>, then checks the download against that checksum. If either check fails, it stops with nothing changed.' }
   - { q: Why are my apps down after the server rebooted?, a: 'On versions before 0.3.9, Docker could try Traefik and Compose containers before the Swarm network was up, and never try again. From 0.3.9 the <code>cloudgate-boot-recover</code> unit starts them after every start of Docker. Upgrade, and on each Server press <strong>Run setup again</strong> once.' }
+  - { q: Can I try a Cloudgate version before it is released?, a: 'Yes, on a test box. A release candidate such as <code>v0.3.14-rc.1</code> is tested, built and signed like a version and published on GitHub as a pre-release. Only <code>CLOUDGATE_VERSION=v0.3.14-rc.1</code> installs it: the install command and the console''s update notice never offer one, and it never reaches the Hosted instance.' }
   - { q: How do I remove Cloudgate from the server?, a: 'Run <code>bash /opt/cloudgate/deploy/uninstall.sh</code> as root. It removes Cloudgate''s services, its Traefik container and its files, and keeps the database, settings and backups, so a later install is the same instance. Add <code>--purge</code> to remove those too.' }
   - { q: I lost my password and no mail is set up. What now?, a: 'There is no console path to reset it. Whoever has root on the server sets <code>MAIL_PROVIDER</code> and its settings in <code>/etc/default/cloudgate-backend</code>, restarts <code>cloudgate-backend</code>, and asks for the reset link again.' }
 ---
@@ -81,11 +82,11 @@ curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_PUBLIC_HOST
 ```
 
 To install a particular version rather than the latest, name it with `CLOUDGATE_VERSION`
-(`v0.3.12` and `0.3.12` both work). A version older than the one installed is refused, because
+(`v0.3.14` and `0.3.14` both work). A version older than the one installed is refused, because
 database migrations only go forward.
 
 ```bash
-curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.12 sh
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.14 sh
 ```
 
 <Callout type="note" title="Every version is signed">
@@ -110,7 +111,7 @@ download host that does not answer. No warning stops the run; `CLOUDGATE_SKIP_PR
 the checks. Downloads are tried again up to 3 times when the connection drops, and a second run
 started while one is under way stops without changing anything.
 
-The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.12`,
+The installer takes no subcommands. It prints each stage as `==> Downloading Cloudgate 0.3.14`,
 `==> Docker` and so on, then a verification block. Every run is logged to
 `/var/log/cloudgate/install-<date>-<time>.log` (root only, the newest 10 kept), and a failed run
 ends by naming its log.
@@ -133,7 +134,7 @@ traefik: true traefik:v3.6.7
 
 A `404` from Traefik on port 80 is the success case: it is listening and has no app to serve yet.
 After a note about backing up the secrets, the run ends with the Cloudgate mark and, beside it,
-`Cloudgate 0.3.12 is installed.` and `Open http://<host>:3000/sign-up`. On a re-run of an
+`Cloudgate 0.3.14 is installed.` and `Open http://<host>:3000/sign-up`. On a re-run of an
 instance that already has an owner it says `is running.` and gives the sign-in address instead.
 
 </Step>
@@ -151,6 +152,12 @@ Cloudgate can deploy onto the machine it runs on from the start. To also see its
 setup on screen, open **Servers**, press **Add a Server** and point it at the machine's own address
 with a key Cloudgate generates. Running setup on the already-installed machine is safe; every step
 checks before it acts. See [Servers](/docs/guide/servers).
+
+A Server at the machine's own address, or at loopback, is Cloudgate's own machine, so it shows the
+**Same-machine warning**, as **This Cloudgate host** does: a Service there is lost with Cloudgate's
+records if the machine is lost. The warning never refuses. For anything that matters, add a second
+Server; see
+[Should my apps run on the machine Cloudgate runs on?](/docs/self-host#should-my-apps-run-on-the-machine-cloudgate-runs-on).
 
 </Step>
 </Steps>
@@ -243,13 +250,33 @@ longer taken; name a version with `CLOUDGATE_VERSION` instead.
 Read the **What to do on upgrade** lines in the repository's
 [changelog](https://github.com/octabyte-io/cloudgate/blob/main/CHANGELOG.md) before you upgrade: most
 releases need nothing, and the ones that do say exactly what. **Settings** > **Instance** >
-**This instance** shows the version an instance runs, and when a newer one is out. The latest is
-0.3.12. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
+**This instance** shows the version an instance runs, and when a newer one is out (never a release
+candidate). The latest is 0.3.14. The [CLI](/docs/cli) needs 0.1.0 or newer, and uploads only the changed files to 0.2.0 or
 newer.
 
 The console's **Update and restart** button does not work on a native install, and **Restart
 Cloudgate** is refused there: use `systemctl restart cloudgate-backend cloudgate-console`. A queued
 Deployment survives a restart; one that was building is cut off and ends as an error.
+
+## Try a release candidate on a test box
+
+A **release candidate** is a version before it ships, named `vX.Y.Z-rc.N`, such as `v0.3.14-rc.1`.
+It is tested, built and signed like a version and published on GitHub as a pre-release, so it can
+be checked on a test box first. Nothing installs one unless `CLOUDGATE_VERSION` names it: the
+install command's latest version and the console's update notice never count a release candidate,
+and it never reaches the Hosted instance. When it passes, the same commit is published as the
+version itself.
+
+```bash
+curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.14-rc.1 sh
+```
+
+A release candidate is ordered after the version before it and before the version it becomes:
+0.3.13, then 0.3.14-rc.1, then 0.3.14-rc.2, then 0.3.14. So a box on `v0.3.14-rc.1` can move to
+`v0.3.14-rc.2` or to `v0.3.14`, but not back to 0.3.13, and a box on 0.3.14 refuses any 0.3.14
+release candidate. Once the version itself is published, running the command again with no
+`CLOUDGATE_VERSION` moves the box onto it. Use a box you can throw away: a release candidate runs
+its database migrations, and like any version's they only go forward.
 
 ## After a reboot
 

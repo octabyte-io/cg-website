@@ -4,6 +4,7 @@ seoTitle: Cloudgate limits, roles and what it does not do
 description: Every role and Agent permission, plan and licence gate, hosted-only and self-hosted-only feature, Server and cloud difference and hard limit, on one page.
 lede: One page for the questions that decide whether Cloudgate fits. Who can do what, what a plan or licence unlocks, what differs between a Server, AWS and Google Cloud, the numbers that are fixed, and what Cloudgate does not do at all.
 section: help
+updated: '2026-11-28'
 order: 1
 navTitle: Can and cannot do
 badges: ['Hosted and self-hosted']
@@ -37,11 +38,13 @@ and [Agents](/docs/guide/agents).
 | Change a Service: settings, variables, Domains, shell | Yes | Yes | Granted ones | No |
 | Deploy, cancel, start and stop | Yes | Yes | Granted ones | Operator role |
 | Backups, volume backups, schedules, restores | Yes | Yes | Granted ones | No |
-| Read Services, Deployments, logs and Domains | Yes | Yes | Granted ones | Reader and Operator |
+| Read Services, Deployments, Deployment logs and Domains | Yes | Yes | Granted ones | Reader and Operator |
+| Read a Service's Runtime log | Yes | Yes | Granted ones | Reader and Operator with **Can read runtime logs** on |
 | Ask for a Plan | Yes | Yes | Granted ones | Reader and Operator |
 | Apply or dismiss a Plan | Yes | Yes | Only steps the role allows | No |
 | Configure Uptime checks, error-rate thresholds, traces | Yes | Yes | Granted ones | No |
 | Servers, Cloud accounts, registries, SSH keys, certificates | Yes | Yes | No | No |
+| Back up now and Restore a Bought Server's Server backup (Hosted) | Yes | Yes | No | No |
 | Destinations, notification channels, git providers | Yes | Yes | No | No |
 | Read the audit log | Yes | Yes | No | No |
 | Call an AI model through the Gateway | Through a Caller Agent | Through a Caller Agent | No | Caller role |
@@ -54,7 +57,8 @@ Enterprise license, and an Organization can have up to ten.
 <Callout type="limit" title="Agents are bounded on purpose">
   An Agent is never an owner or admin and has no authority over the machine Cloudgate runs on. It
   never applies or dismisses a Plan, changes variables, settings or access, configures health checks,
-  creates or deletes an AI model, or sets up a Template. It reads no access logs or traces. Every call
+  creates or deletes an AI model, or sets up a Template. It reads no access logs or traces, and a
+  Runtime log only when its **Can read runtime logs** switch is on (never on a Caller). Every call
   it makes, allowed or refused, is a row in the [audit log](/docs/guide/audit-log).
 </Callout>
 
@@ -81,7 +85,7 @@ and [Self-hosting](/docs/self-host).
 | Only on the Hosted instance | Only on a self-hosted instance |
 |---|---|
 | Hosted plans, the 30-day free trial, Billing | Enterprise license key |
-| Bought Servers | Deploying onto the machine Cloudgate runs on |
+| Bought Servers and their Server backups | Deploying onto the machine Cloudgate runs on, with the Same-machine warning |
 | Paying for other Organizations | Traefik, Instance and Maintenance settings |
 | Cloud Services built in CodeBuild or Cloud Build in your account | Cloud Services built on the Cloudgate server |
 | Nothing else | Branding |
@@ -102,6 +106,7 @@ and [Self-hosting](/docs/self-host).
 | Runtime logs | Docker | CloudWatch | Google's log store |
 | Access logs (Requests) | Yes | No | No |
 | Database dumps to a Destination | Yes | No, the cloud's own backups | No, the cloud's own backups |
+| Compose stack volume backups (whole stack or one volume) | Yes | No | No |
 | Container `HEALTHCHECK` | Yes | Yes | Never run |
 | Uses a container registry | Optional | No | No |
 | Drift detection | No | Yes | Yes |
@@ -120,7 +125,8 @@ site takes one Domain. See [Servers](/docs/guide/servers) and [Cloud accounts](/
 | Agent reads (MCP) | 120 a minute, bursts of 60 |
 | Agent writes (MCP) | 10 a minute, bursts of 5 |
 | Agent tool call | 30 seconds, then abandoned |
-| Agent log read | 500 lines, and 1 MiB, per call |
+| Agent log read (Deployment log or Runtime log) | 100 lines by default; at most 500 lines, and 1 MiB, per call |
+| Agent metrics read | 1 hour back by default, at most 24 hours; at most 60 trend points |
 | Agent key lifetime | 30, 90 or 365 days; never unlimited |
 | Personal key from `cloudgate login` | 90 days |
 | REST API with a Personal key | No rate limit |
@@ -142,6 +148,7 @@ site takes one Domain. See [Servers](/docs/guide/servers) and [Cloud accounts](/
 | Size | `xsmall` (0.25 CPU, 512 MB) to `2xlarge` (8 CPU, 16 GB), or custom |
 | Config name | 63 characters |
 | Bought Server extra storage | 10 GB to 10 TB, grow only |
+| Server backups of a Bought Server | One a day, at most 7 kept; **Back up now** uses the same 7 slots |
 | Branding custom CSS | 50,000 characters |
 | Unused Pending setups | Dropped after 30 days |
 | Lapsed Hosted Organization | Deleted after 30 days |
@@ -160,7 +167,11 @@ site takes one Domain. See [Servers](/docs/guide/servers) and [Cloud accounts](/
   - **Retry a cron run** or make up a run missed while Cloudgate was down.
   - **Detect flapping or hold maintenance windows** for Incidents. Probes come from one place, the platform host.
   - **Update a Template** after you set it up. It is a copy.
-  - **Roll back a database or Compose stack.** Rollbacks are for Applications.
+  - **Roll back a database or Compose stack.** Rollbacks are for Applications. A stack's volumes
+    can be put back from a [volume backup](/docs/guide/backups#restore-a-moment-of-a-whole-stack-backup).
+  - **Back up a Compose stack in a Cloud account.** Volume backups need a Server to copy the volumes on.
+  - **Restore a Bought Server in maintenance**, or put back its extra storage. A Server backup holds
+    the disk only.
   - **Preview** a Docker-image or uploaded Application, a worker, a private web service or an AI
     model. Pull-request previews are for GitHub only.
   - **Give an Agent git access.** You arrange that outside Cloudgate.

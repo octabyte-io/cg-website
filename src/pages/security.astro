@@ -29,7 +29,7 @@ const faq = [
   },
   {
     q: 'Can an AI agent read my secrets through Cloudgate?',
-    a: 'Not the ones Cloudgate stores. Every result an Agent gets, logs included, passes through a mask that replaces stored secrets with ••••••. A value a build prints that Cloudgate never stored, or one shorter than six characters, is not masked, so keep both in mind.',
+    a: 'Not the ones Cloudgate stores. Every result an Agent gets, logs included, passes through a mask that replaces stored secrets with ••••••. A value a build or a running app prints that Cloudgate never stored, or one shorter than six characters, is not masked, so keep both in mind. An Agent reads a Runtime log at all only when its Can read runtime logs switch is on.',
   },
   {
     q: 'Can Cloudgate staff see inside my Projects?',
@@ -208,7 +208,9 @@ const description =
           <dt>Secrets masked out of every result</dt>
           <dd>
             Logs included, every result passes through a mask that replaces stored secrets with
-            <code>••••••</code>.
+            <code>••••••</code>. An Agent reads a Service's Runtime log only when its
+            {' '}<strong>Can read runtime logs</strong> switch is on, off by default, and the mask cannot
+            hide a value the app prints that Cloudgate never stored.
           </dd>
         </div>
         <div>
@@ -243,6 +245,11 @@ const description =
           <strong>A database's external port is public.</strong> Docker's own rules come before the
           host firewall, so a published port is reachable from the internet. Leave it empty unless
           you mean that.
+        </li>
+        <li>
+          <strong>Cloudgate's own machine is one place to lose.</strong> A Service on the machine
+          Cloudgate runs on goes with Cloudgate's records if that machine is lost, and the console
+          says so with the Same-machine warning. Put what matters on another Server.
         </li>
         <li>
           <strong>Keep it upgraded.</strong> Security fixes go into the latest release; re-running the
