@@ -109,8 +109,8 @@ or a ready-made Docker image.
     Template setup waits; pickers leave it out.
   - 0.3.14: a **Bought Servers** rail row (only where buying is offered; `/bought-servers`) lists
     every Bought Server with stage, size and price under one sentence with count and monthly
-    total; a Deleting one is left out of both and shows no price; with Buy a Server off the page
-    says why (`GET /bought-servers`). Each Bought Server has a **Bought Server** tab (Location,
+    total; a Deleting one is left out of both and shows no price; when Buy a Server is held (e.g. a
+    role that cannot add Servers) the page says why; where buying is not offered it is not found (`GET /bought-servers`). Each Bought Server has a **Bought Server** tab (Location,
     Server image, size, price, backups, extra storage); Settings points to it; change and Restore
     emails link to it.
   - **Server backups** (0.3.14, ADR-0093): the provider's whole-disk copies while backups are on,

@@ -80,10 +80,11 @@ const running: Topic[] = [
   {
     id: 'backups',
     h: 'How are backups taken?',
-    lede: 'Databases and volumes are backed up to S3-compatible destinations that you choose.',
+    lede: 'Databases, volumes and whole Compose stacks are backed up to S3-compatible destinations that you choose.',
     items: [
       { t: 'Your destination', d: 'Any S3-compatible storage. Its keys are stored encrypted, like every secret.' },
-      { t: 'Server backups', d: 'A Bought Server can add optional server backups and extra storage, from 10 GB to 10 TB.' },
+      { t: 'Whole Compose stacks', d: 'A Compose stack on a Server can back up every named volume in one run, stopping the stack while it runs if you choose, and restore one moment whole.' },
+      { t: 'Server backups', d: 'A Bought Server can turn on server backups, a copy of its disk every day with the last 7 kept. Its Bought Server tab lists them, takes one now and restores one. It can also add extra storage, from 10 GB to 10 TB.' },
     ],
   },
   {
@@ -105,7 +106,7 @@ const running: Topic[] = [
       { t: 'Uptime checks', d: 'Regular checks against your app, with an incident when it stops answering.' },
       { t: 'Error rate', d: 'Counted from Traefik\'s 5xx responses per Domain, with a threshold of your own.' },
       { t: 'Traces', d: 'Each Service gets its own trace store.' },
-      { t: 'Logs', d: 'Build logs, runtime logs and access logs, in the console and from the CLI.' },
+      { t: 'Logs', d: 'Build logs, runtime logs and access logs, in the console and from the CLI. An Agent reads a Service\'s runtime log only when its Can read runtime logs switch is on.' },
       { t: 'Incidents', d: 'Opened and closed by checks and thresholds, and readable by an Agent, which can never silence one.' },
     ],
   },
@@ -135,7 +136,7 @@ const running: Topic[] = [
     lede: 'An Organization has members with roles, and grants decide which Projects, Environments and Services each one reaches.',
     items: [
       { t: 'Roles and grants', d: 'A role says what a member may do. A grant says where, down to a single Service.' },
-      { t: 'Agents', d: 'AI agents are members too, with a Reader, Operator or Caller role, a grant and their own keys.' },
+      { t: 'Agents', d: 'AI agents are members too, with a Reader, Operator or Caller role, a grant and their own keys. A Reader or Operator can read a granted Service\'s container metrics.' },
       { t: 'Audit log', d: 'What people and agents did, including every agent call allowed or refused.' },
       { t: 'Personal keys', d: 'For scripts, CI and the CLI, acting as you.' },
     ],
@@ -186,11 +187,11 @@ const faq = [
   },
   {
     q: 'Does Cloudgate back up my databases?',
-    a: 'Yes. Backups of databases and volumes go to an S3-compatible destination you choose.',
+    a: 'Yes. Backups of databases, volumes and whole Compose stacks go to an S3-compatible destination you choose. A Bought Server can also keep daily backups of its own disk. See <a href="/docs/guide/backups">backups in the user guide</a>.',
   },
   {
     q: 'Can an AI agent use Cloudgate?',
-    a: 'Yes. An Agent connects over MCP with its own key, role and grant. It can deploy, open previews and read logs and health, and every call is in the audit log. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
+    a: 'Yes. An Agent connects over MCP with its own key, role and grant. It can deploy, open previews, read build logs, health and container metrics, and read runtime logs once you switch that on. Every call is in the audit log. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
   },
   {
     q: 'Which features need a paid plan?',
@@ -292,7 +293,7 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
           <dt class="lane-dt"><span class="slice slice--2" aria-hidden="true"></span>Your AI agent</dt>
           <dd>
             Claude Code, Cursor or any MCP client, as an Agent with its own role, grant and keys.
-            It deploys, opens previews and reads logs and health. <a href="/ai-agents">How agents deploy over MCP</a>.
+            It deploys, opens previews and reads logs, health and container metrics. <a href="/ai-agents">How agents deploy over MCP</a>.
           </dd>
         </div>
         <div data-spotlight class="tile s2">
@@ -386,14 +387,15 @@ const flipped = new Set(['databases', 'domains', 'previews', 'variables']);
           <h3><span class="slice" aria-hidden="true"></span>Your Server</h3>
           <ul class="chips" aria-hidden="true"><li>Ubuntu over SSH</li><li>Docker Swarm</li><li>Traefik</li><li>Let's Encrypt</li></ul>
           <p>
-            Any Ubuntu machine Cloudgate reaches over SSH, or the machine Cloudgate itself runs on.
-            A Setup run installs Docker Swarm and Traefik, and Domains get Let's Encrypt
-            certificates.
+            Any Ubuntu machine Cloudgate reaches over SSH, or, when you self-host, the machine
+            Cloudgate itself runs on, with a warning wherever you pick it: if that machine is lost,
+            a Service there goes with Cloudgate's own records. A Setup
+            run installs Docker Swarm and Traefik, and Domains get Let's Encrypt certificates.
           </p>
           <p>
             <strong>Bought Server.</strong> On the Hosted instance, buy one in the console: pick a
-            location on a world map and a size, add backups or extra storage from 10 GB to 10 TB.
-            It is billed monthly in advance on the same invoice, at the price shown before you buy.
+            location on a world map and a size, add daily server backups or extra storage from 10 GB
+            to 10 TB. It is billed monthly in advance on the same invoice, at the price shown before you buy.
           </p>
         </article>
         <article data-spotlight="ring" class="panel place p2">

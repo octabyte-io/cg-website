@@ -80,7 +80,7 @@ const faq = [
   },
   {
     q: 'Can my AI tool deploy for me?',
-    a: 'Yes. Give it its own Agent in Cloudgate and connect it over MCP. It can deploy, read the logs and check your app is up, and it never sees your stored secrets. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
+    a: 'Yes. Give it its own Agent in Cloudgate and connect it over MCP. It can deploy, read the build logs and check your app is up, and read your app’s own log once you switch that on. The secrets you store in Cloudgate are masked in everything it reads. See <a href="/ai-agents">Cloudgate for AI agents</a>.',
   },
 ];
 ---
@@ -312,7 +312,8 @@ const faq = [
             and checks that your app is up before it tells you it is done.
           </p>
           <p>
-            It only reaches the apps you allow, it never sees your passwords, and everything it does
+            It only reaches the apps you allow, the passwords you store in Cloudgate are masked from
+            it, and everything it does
             is written down for you to read later.
           </p>
           <p><a class="text-link" href="/ai-agents">Let your AI tool deploy with Cloudgate</a></p>

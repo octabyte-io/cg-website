@@ -24,7 +24,7 @@ export const cloudgateRow: Record<RowKey, string> = {
   owns: 'You do. Apps and data stay on your machines and in your cloud accounts',
   what: 'Long-running containers: web apps, workers, private services, cron jobs, static sites, Compose stacks and AI models',
   pricing: `Hosted: $${starter.price} or $${business.price} a month, counting Servers and Cloud Environments, never members. Servers and cloud usage are billed by their provider`,
-  mcp: 'Built in. Each Agent is a member with its own role, grant and keys; every call is audited, secrets are masked, and it gets 120 reads and 10 writes a minute',
+  mcp: 'Built in. Each Agent is a member with its own role, grant and keys; it reads build logs, health and container metrics, and runtime logs once allowed; every call is audited, stored secrets are masked, and it gets 120 reads and 10 writes a minute',
   selfHost: 'Yes, free under the Elastic License 2.0 (source-available)',
   databases: 'PostgreSQL, MySQL, MariaDB, MongoDB, Redis and libSQL on your Servers; RDS, Cloud SQL, ElastiCache and Memorystore in your cloud',
   previews: 'One per GitHub pull request, or a requested preview that expires on its own',
@@ -536,7 +536,7 @@ export const competitors: Competitor[] = [
       },
       {
         q: 'Can Cloudgate run Docker Compose stacks?',
-        a: 'Yes. A Compose stack is a kind of Service: on a Server it runs on the Swarm, and in a cloud account it gets a Stack VM of its own.',
+        a: 'Yes. A Compose stack is a kind of Service: on a Server it runs on the Swarm, with a Volume backups tab that can back up all of its named volumes in one run, and in a cloud account it gets a Stack VM of its own.',
       },
       {
         q: 'Is there a hosted version of Cloudgate?',

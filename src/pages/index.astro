@@ -257,7 +257,7 @@ const latestRelease = changelogHeadings().find((h) => h.depth === 2);
         <dl class="guard">
           <div><dt>Its own identity</dt><dd>A Reader or Operator role, access to named Projects and Services, and keys that work only at the MCP endpoint.</dd></div>
           <div><dt>Every call recorded</dt><dd>Each tool call is a row in the audit log, whether Cloudgate allowed it or refused it.</dd></div>
-          <div><dt>Secrets stay secret</dt><dd>Passwords and keys are masked out of every result the agent reads, deployment logs included.</dd></div>
+          <div><dt>Secrets stay secret</dt><dd>Passwords and keys stored in Cloudgate are masked out of every result the agent reads, logs included.</dd></div>
           <div><dt>Previews that clean up</dt><dd>It can build a branch into a preview that expires on its own, and ask for a Plan without applying it.</dd></div>
         </dl>
         <p><a class="btn btn--ghost" href="/ai-agents">How Cloudgate works with AI agents</a></p>

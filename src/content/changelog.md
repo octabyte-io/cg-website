@@ -4,7 +4,7 @@ A release about getting a Bought Server back and letting an Agent see what a run
 
 ### Bought Servers get their own page, and each one its own tab
 
-On the Hosted instance, an Organization where buying a Server is offered has a **Bought Servers** row in its rail. The page lists every Bought Server with its stage, size and price, under one sentence that gives the count and the monthly total. A Bought Server that is being deleted is left out of the count and the total, and shows no price. When **Buy a Server** is turned off, the page says why. Each Bought Server also has its own **Bought Server** tab, with its Location, Server image, size, price and backups. The Server's **Settings** tab points to it, and the emails about a change or a Restore link straight to it. Three Bought Server messages that said the wrong thing are corrected. More in [Bought Servers](/docs/guide/bought-servers).
+On the Hosted instance, an Organization where buying a Server is offered has a **Bought Servers** row in its rail. The page lists every Bought Server with its stage, size and price, under one sentence that gives the count and the monthly total. A Bought Server that is being deleted is left out of the count and the total, and shows no price. When **Buy a Server** is not available to you, the page says why on screen. Each Bought Server also has its own **Bought Server** tab, with its Location, Server image, size, price and backups. The Server's **Settings** tab points to it, and the emails about a change or a Restore link straight to it. Three Bought Server messages that said the wrong thing are corrected. More in [Bought Servers](/docs/guide/bought-servers).
 
 ### List, take and restore a Bought Server's backups
 
