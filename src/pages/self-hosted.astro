@@ -56,7 +56,7 @@ const faq = [
   },
   {
     q: 'Can I deploy to the same server Cloudgate runs on?',
-    a: 'Yes. Cloudgate can deploy onto the machine it runs on, and you can add more Ubuntu servers over SSH, or connect AWS and Google Cloud accounts.',
+    a: 'Yes. Cloudgate can deploy onto the machine it runs on, and the console marks such a Service with the Same-machine warning: if that machine is lost, the Service goes with Cloudgate’s own records. It warns and never refuses. For what matters, add more Ubuntu servers over SSH, or connect AWS and Google Cloud accounts.',
   },
   {
     q: 'How do I upgrade a self-hosted instance?',
@@ -325,7 +325,9 @@ const description =
             <p>
               Using a hostname, or a different address? Name it with
               {" "}<code>CLOUDGATE_PUBLIC_HOST</code>, the host alone. To pin a version, add
-              {" "}<code>CLOUDGATE_VERSION=v0.3.12</code> the same way.
+              {" "}<code>CLOUDGATE_VERSION=v0.3.14</code> the same way. A release candidate such as
+              {" "}<code>v0.3.14-rc.1</code> installs only when named like this, for a test box; the
+              plain command never picks one.
             </p>
             <pre class="code"><code><span class="k">curl</span> -fsSL {installUrl} <span class="d">|</span> <span class="k">sudo</span> <span class="s">CLOUDGATE_PUBLIC_HOST</span>=<span class="d">cloud.example.com</span> <span class="k">sh</span></code></pre>
           </li>

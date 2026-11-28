@@ -1,9 +1,10 @@
 ---
 title: Agent workflows that work well with Cloudgate
-seoTitle: 'Cloudgate agent workflows: fix, preview and deploy safely'
-description: Step-by-step tool sequences for AI agents on Cloudgate. Diagnose a failed Deployment, fix and preview a branch, deploy and watch health, and explain a Plan.
-lede: Four sequences an agent can follow with Cloudgate's tools, each with the calls in order, what to poll and when to stop. Give them to your agent as instructions, or use them to judge what it did.
+seoTitle: 'Cloudgate agent workflows: fix, preview, deploy'
+description: Tool sequences for AI agents on Cloudgate. Diagnose a failed Deployment or a crashing Service, preview a fix, deploy and watch health, and explain a Plan.
+lede: Five sequences an agent can follow with Cloudgate's tools, each with the calls in order, what to poll and when to stop. Give them to your agent as instructions, or use them to judge what it did.
 section: mcp
+updated: '2026-11-28'
 order: 5
 navTitle: Workflows
 badges: ['Hosted and self-hosted']
@@ -18,6 +19,7 @@ howto:
 faq:
   - { q: 'Can an agent merge its own fix to production?', a: 'Not through Cloudgate. It can push a branch with git access you give it and preview it. Merging is up to your git provider''s rules; an Operator Agent can then call <code>deploy_service</code> on the production Service if you granted it.' }
   - { q: 'How often should an agent poll?', a: 'Every few seconds is plenty. Polling spends the read budget, 120 calls a minute with a burst of 60, and a build usually takes minutes.' }
+  - { q: 'How does an agent find why a running Service keeps crashing?', a: 'It reads the Service''s container metrics with <code>get_service_metrics</code> to see whether memory or CPU ran out, and, if its <strong>Can read runtime logs</strong> switch is on, the last lines the app printed with <code>read_runtime_log</code>.' }
   - { q: 'What should an agent do with "Not found or not permitted."?', a: 'Stop and tell you what it needed. It is an access decision: retrying or trying another id will not change it. You widen its grant with <strong>Manage access</strong>.' }
 ---
 
@@ -46,6 +48,26 @@ An agent that already has the ids can skip this.
    with `lines`, or fewer if the answer is over 1 MiB.
 3. Explain the cause. If the log is full of `••••••`, a short, common word is probably stored as a
    secret; see [what the mask hides](/docs/mcp/guard-rails#what-does-the-secret-mask-hide).
+
+## Find why a running Service keeps crashing
+
+**Role:** Reader. **Also needs:** the Agent's **Can read runtime logs** switch on for step 3. See
+[Agents](/docs/guide/agents#let-an-agent-read-runtime-logs).
+
+1. `get_service_health` for `web`. An open Incident names the failing Uptime check or the breached
+   Error-rate threshold.
+2. `get_service_metrics` for `web`, with `hours` up to 24 to look further back than the default hour.
+   A `memory.peakPercent` near 100, or a `peakMiB` at `limitMiB`, points to the container running out
+   of memory; a `cpu.peakPercent` held high points to CPU. `available: false` says why there are no
+   figures, such as a Service in a Cloud account.
+3. `read_runtime_log` with `serviceType: "application"` and the `serviceId` of `web`. It answers the
+   last 100 lines from every copy, merged by time; ask for up to 500 with `lines`, or only recent ones
+   with `since`. With the switch off, the call is refused naming the switch: stop and ask a person to
+   turn it on.
+4. Explain the cause. A fix in code goes on to the next workflow; a memory limit or a setting is
+   changed by a person in the console.
+
+Treat what the log shows with care: Cloudgate masks the secrets it stores, not what the app prints.
 
 ## Fix a branch and preview it
 
@@ -119,6 +141,8 @@ An agent should stop and tell you, rather than retry, when it gets:
 
 - `Not found or not permitted.` or `This Agent's role does not include …`: an access decision. Widen
   the grant or change the role in **Settings**, **Agents**;
+- `This Agent's Can read runtime logs switch is off …`: an Owner or Admin turns it on from the
+  Agent's row;
 - `This Service has no source to deploy from.`: a person sets the source in the console;
 - a preview refusal naming the Instance's maximum or the Application's limit: ask with fewer minutes,
   or delete a preview first.

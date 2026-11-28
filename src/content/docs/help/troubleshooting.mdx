@@ -1,10 +1,10 @@
 ---
 title: Troubleshooting Cloudgate
-seoTitle: Troubleshoot Cloudgate builds, Servers and domains
-description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup, apps down after a reboot, certificates, MongoDB 8, CLI exit codes, 429s.'
+seoTitle: 'Troubleshoot Cloudgate builds, Servers, domains'
+description: 'Fixes for common Cloudgate problems: failed builds, queued Deployments, Server setup, reboots, certificates, backups and restores, CLI exit codes and 429s.'
 lede: Each problem below is a question you might type into search, with what causes it and how to fix it. Start with the Deployment log or the error text; most answers are in one of them.
 section: help
-updated: '2026-11-21'
+updated: '2026-11-28'
 order: 2
 navTitle: Troubleshooting
 badges: ['Hosted and self-hosted']
@@ -142,7 +142,7 @@ An operator of the Hosted instance powered the Server off. Its notice says **Pow
 operator**, with the reason and a link to support. Until it is powered on, a deploy, rollback,
 Start or restart, Run now, upload or preview is refused with `409` naming the Server, and a
 Template setup waits instead of applying. See
-[Buy a Server](/docs/guide/bought-servers#if-an-operator-powers-it-off).
+[Bought Servers](/docs/guide/bought-servers#notices-on-a-bought-server).
 
 ## Why does an app built from a folder not deploy?
 
@@ -197,10 +197,58 @@ Environment or Service. If the answer is "This Agent's role does not include" a 
 
 ## Why can I not restore a volume?
 
-A restore refuses while any container still uses the volume. Press **Stop** on an Application first.
-For a Docker Compose stack, Stop leaves its containers in place, so press **Remove containers**,
-restore, then **Start**. Only one backup, restore or delete may work on a volume at a time; a second
-one is refused until the first ends. See [Backups](/docs/guide/backups).
+A restore of one volume refuses while any container still uses it. Press **Stop** on an Application
+first. For a Docker Compose stack, Stop leaves its containers in place, so press **Remove
+containers**, restore, then **Start**. Restoring a moment of a whole-stack backup does those steps
+itself: Remove containers (Stop on a swarm stack), each volume, then Start.
+
+Only one backup, restore, Remove containers or delete may work on a volume at a time. A second one
+is refused with `409`: "Volume '…' is busy: a volume backup, a restore or Remove containers holds
+its lock — try again once that finishes". That is also why **Remove containers** on a stack is
+refused while a Stack backup is copying its volumes. Wait for the run to end and press it again.
+See [Backups](/docs/guide/backups).
+
+## Why can my stack's Volume backups tab not list its volumes?
+
+Cloudgate reads a stack's named volumes from its last successful deploy, so it knows them only once
+the stack has deployed on 0.3.13 or newer.
+
+- "This stack last deployed before Cloudgate recorded a stack’s volumes, so they are recorded at its
+  next deploy. Redeploy it to pick its volumes here" means it last deployed on an older version.
+  Press **Deploy** on the stack once, then add the backup.
+- "This stack hasn’t deployed successfully yet, and its volumes are read from its first deploy"
+  means no deploy of it has finished. Fix the deploy first; the stack's Deployment log says why it
+  failed.
+
+A stack in a Cloud account has no Volume backups tab at all. See
+[Compose stacks](/docs/guide/compose-stacks#back-up-a-stacks-volumes).
+
+## Why is Back up now or Restore refused on my bought Server?
+
+Each refusal says why in its own words:
+
+| Message | What to do |
+|---|---|
+| This Server can't be backed up until it is Ready | Wait until the Server's stage is **Ready**. |
+| Turn backups on to back up this Server, or Turn backups on to restore this Server | Turn on the **Backups** switch on the Server's **Bought Server** tab (it is charged). Turning backups off deletes every Server backup, so there is nothing to restore until new ones are made. |
+| That backup is still being made. Restore it once it is made | Wait until the row no longer says **Being made**. |
+| This is the oldest of 7 backups, so a safety copy would remove it. Confirm restoring without one, or pick a newer backup | Confirm restoring with no safety copy, or pick a newer backup. |
+| *Server name* is in maintenance | A Restore runs Server setup and redeploys, so it waits until maintenance ends. |
+| A change is already running on this Server. Wait for it to finish | One change at a time: wait for the running one. |
+| This Server was powered off by an operator, so it can't be changed | Contact support from the Server's notice; see [Bought Servers](/docs/guide/bought-servers). |
+
+**Back up now** is also refused while the Organization is frozen. "This Server can't be backed up
+right now. Try again later" or "This Server's backups can't be read right now" means the provider
+did not answer; try again later. See [Bought Servers](/docs/guide/bought-servers).
+
+## Why does the console warn that Cloudgate itself runs on this machine?
+
+That is the **Same-machine warning**, on a self-hosted instance. The Service, Server or Deploy
+target is Cloudgate's own machine: **This Cloudgate host**, or a Server whose address is loopback or
+one of that machine's own addresses. If the machine is lost, the Service goes with Cloudgate's
+records. Nothing is wrong and nothing is refused, and the warning cannot be hidden. To be rid of it,
+put the Service on another Server. See
+[Self-hosting Cloudgate](/docs/self-host#should-my-apps-run-on-the-machine-cloudgate-runs-on).
 
 ## Why is the Requests screen or Error rate empty?
 
@@ -216,6 +264,16 @@ refused with `INVALID_ORIGIN`. Add the origin under **Settings** > **Single sign
 **Trusted origins** (licensed), or to `TRUSTED_ORIGINS` in `/etc/default/cloudgate-backend` and restart
 `cloudgate-backend`. If sign-in then works but logs and shells stay blank, the API is on a different
 hostname from the console; see [Instance settings](/docs/self-host/instance-settings#serve-the-console-on-a-domain).
+
+## Self-hosted: why does the install refuse my CLOUDGATE_VERSION?
+
+- "CLOUDGATE_VERSION names a Cloudgate version such as v0.3.0, or a release candidate such as
+  v0.3.0-rc.1, not …" means the value is not `vX.Y.Z`, `X.Y.Z` or `vX.Y.Z-rc.N`. Fix the spelling.
+- "Cloudgate … is installed, and … is older" means the version named is older than the one
+  installed. Migrations only go forward, so nothing was changed. A release candidate counts as older
+  than the version it becomes: a box on 0.3.14 refuses `v0.3.14-rc.2`.
+
+See [Install Cloudgate](/docs/self-host/install#try-a-release-candidate-on-a-test-box).
 
 ## Self-hosted: I forgot my password and no email arrives
 

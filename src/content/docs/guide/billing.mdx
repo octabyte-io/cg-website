@@ -1,13 +1,13 @@
 ---
 title: Billing and plans
 seoTitle: Plans, free trial and billing on Hosted
-description: Start the 30-day free trial, choose Starter or Business, buy Add-ons, change or cancel a plan, pay for other Organizations and get invoices on Hosted.
+description: Start the 30-day free trial, choose Starter or Business, buy Add-ons, change or cancel a plan, see what Bought Servers cost and get invoices on Hosted.
 lede: On the Hosted instance, an Organization pays for a plan that sets how many Servers and Cloud Environments it can have. Open billing to start a trial, change plan, buy Add-ons or download invoices.
 section: guide
 group: Account
 order: 2
 badges: ['Hosted only', 'Owner or Admin']
-updated: '2026-11-27'
+updated: '2026-11-28'
 howto:
   name: Start the free trial
   steps:
@@ -20,6 +20,7 @@ faq:
   - { q: 'Are members or Projects counted?', a: 'No. Members, Projects and Environments on Servers are not counted. Only Servers and Cloud Environments are.' }
   - { q: 'Can I cancel the free trial?', a: 'Yes. Press Cancel trial under Current plan. The plan stays until the trial''s last day, then the Organization has no plan and nothing is charged. Keep the plan takes it back until then.' }
   - { q: 'Is a Bought Server free during the trial?', a: 'No. A Bought Server is charged at once, even during the free trial, on top of the plan.' }
+  - { q: 'Where do I see what my Bought Servers cost each month?', a: 'Open Bought Servers in the rail. It lists each Bought Server with its Monthly price and sums up how many there are and what they cost a month on your plan''s invoice. One waiting for payment or being deleted is left out of the total.' }
   - { q: 'Do I pay to self-host Cloudgate?', a: 'No. A self-hosted instance has no plans, and its Billing page says billing is not used there. An Enterprise license is agreed separately.' }
 ---
 
@@ -39,6 +40,7 @@ this instance": it is free to use under the Elastic License 2.0. See
 - Buy or remove Add-ons for more Servers and Cloud Environments.
 - Cancel a trial, change the card, and download invoices.
 - On Business, pay for other Organizations from the same plan.
+- See every Bought Server and what it costs a month on the **Bought Servers** page.
 
 ## Plans
 
@@ -169,7 +171,15 @@ Organization is suspended, it is deleted 7 days later; if the Organization's pla
 deleted at once, with its data and backups.
 </Callout>
 
-More in [Bought Servers](/docs/guide/bought-servers).
+### Where do I see what my Bought Servers cost?
+
+On the **Bought Servers** page, in the rail under **Servers**. It lists every Bought Server with its
+stage, size, backups and **Monthly** price, and a line above the list sums them up: how many Bought
+Servers there are and what they cost a month on your plan's invoice. One still waiting for payment
+is counted apart and left out of the total; one being deleted is already off the subscription, so
+it is left out of both and its price reads **Not charged**. The row appears in the rail wherever buying a Server is
+offered, even before you buy one. See [Bought Servers](/docs/guide/bought-servers) to buy, resize,
+back up and delete one.
 
 ## Pay for other Organizations (Business)
 

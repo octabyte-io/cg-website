@@ -1,19 +1,20 @@
 ---
 title: A tour of the Cloudgate console
 navTitle: Console tour
-seoTitle: 'Cloudgate console tour: rail, search and settings'
+seoTitle: 'Cloudgate console tour: rail, search, settings'
 description: How the Cloudgate console is laid out, from the rail, masthead and Organization switcher to quick search, the Dock, theme, Help and the Settings index.
 lede: The console is one frame around every screen. The rail on the left takes you anywhere in the Organization, the masthead says where you are, and quick search with Ctrl+K or ⌘K jumps straight to a Project, Environment, Server or page.
 section: guide
 group: Deploy
 order: 1
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Every member', 'Hosted and self-hosted']
 faq:
   - { q: 'How do I search the Cloudgate console?', a: 'Press Ctrl+K (⌘K on a Mac), or press Quick search at the top of the rail. Type to search Projects, Environments, Servers and pages, or start with proj:, env:, srv: or go: to search one kind. A Service is found inside its Environment.' }
   - { q: 'Where do Recents and Starred come from?', a: 'From this browser. Recents keeps the last five Servers, Projects and Environments you opened in this Organization, and Starred keeps what you marked with the star beside a name in the masthead. Neither is shared with other people or other browsers.' }
   - { q: 'How do I switch between light and dark mode?', a: 'Open your avatar menu at the top right and choose Light, Dark or System under Appearance. The console opens light on a first visit and remembers your choice in this browser.' }
   - { q: 'What does the page "That page is not here" mean?', a: 'The address names nothing this Organization has: it is mistyped, or the Project, Server or tab it points at is gone or was never there. Press Go to Organization home, or pick a screen from the rail.' }
+  - { q: 'Why does a long line in the Compose file editor not wrap?', a: 'Editable files scroll sideways in their own box by default, so YAML indentation and line numbers stay exact. Turn on Wrap lines under the editor; this browser remembers it for every editor. Read-only views always wrap.' }
   - { q: 'Why do I not see the Platform settings?', a: 'Traefik, Instance, Maintenance and Branding are about the machine Cloudgate runs on. A self-hosted instance lists them; on the Hosted instance only its operators see them.' }
 ---
 
@@ -57,6 +58,7 @@ The rail is the console's navigation. At the Organization level it lists, in ord
 | **Recents** | A fold-out list of the last five Servers, Projects and Environments you opened |
 | **Starred** | A fold-out list of what you starred |
 | **Servers** | `/servers`, the machines Cloudgate deploys onto. See [Servers](/docs/guide/servers) |
+| **Bought Servers** | `/bought-servers`, every Server bought from Cloudgate with its stage, size, backups and monthly price. Hosted only, and only where buying a Server is offered. See [Bought Servers](/docs/guide/bought-servers) |
 | **Projects** (under **Build**) | `/projects`; its arrow folds out a list of your Projects |
 | **Templates** (under **Build**) | `/templates`, the app catalogue. See [Templates](/docs/guide/templates) |
 | **Deployments** (under **Observe**) | `/deployments`, every Deployment in the Organization |
@@ -64,6 +66,10 @@ The rail is the console's navigation. At the Organization level it lists, in ord
 | **Requests** (under **Observe**) | `/requests`, the access log read from your Servers. See [Requests](/docs/guide/requests) |
 | **Settings** | `/settings`, the index of every setting |
 | **Help & support** | `/help`, docs and support |
+
+**Bought Servers** is left out of the rail, and of quick search's `go:` pages, wherever buying a
+Server is not offered, which includes every self-hosted instance. Where it is offered, the row is
+there even before anything is bought, so the page with **Buy a Server** is easy to find.
 
 A fold-out list that has nothing to show says so: **No Projects yet.**, **Nothing visited yet.** or
 **Nothing starred yet.**
@@ -177,6 +183,24 @@ in the Dock. When the Dock is full, controls that would add a shell are off with
 four shells. Close one to open another."
 </Callout>
 
+## How do tables and file editors fit a narrow screen?
+
+Nothing in the console scrolls sideways except a file you are editing. A table that is wider than
+its space, on a phone or in a half-width card, stacks instead: each row becomes a block with its
+name and its actions on the first line and the other columns under it as labelled values. Sorting
+is a table control, so a stacked list keeps the order it last had. The table comes back once there
+is room for it.
+
+An editable file, such as a [Compose file](/docs/guide/compose-stacks), the
+[Project config](/docs/guide/project-config) or a [Traefik file](/docs/guide/traefik), does not wrap long lines by default: it scrolls
+sideways inside its own box, so YAML indentation stays easy to read and a parser's line and column
+match what is on screen. Turn on the **Wrap lines** switch under the editor to wrap them; a
+wrapped line keeps its indentation and its one line number. The choice is remembered by this
+browser for every editor. Read-only views, such as diffs, converted files and the copies a Plan shows,
+always wrap.
+
+<Screenshot name="editor-wrap-lines" alt="A Compose file editor with the Wrap lines switch under it" caption="Wrap lines applies to every editor in this browser." />
+
 ## Banners above the page
 
 Some account states show a banner across the top of every page until they are resolved.
@@ -262,6 +286,8 @@ here.** with a link back to the console; signing in takes you to your Organizati
   sessions.
 - [Deploy your first app with the get-started wizard](/docs/guide/get-started).
 - [Organizations](/docs/guide/organizations): create, switch and set a default.
+- [Bought Servers](/docs/guide/bought-servers): the Hosted rail's page for Servers bought from
+  Cloudgate.
 - [Members and roles](/docs/guide/members-and-roles): what your role lets you do on each screen.
 - [How Cloudgate fits together](/docs/concepts) for the Organization, Project, Environment and
   Service model.

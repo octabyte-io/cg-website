@@ -37,7 +37,7 @@ Cloudgate shows which one and checks it.
 - Get a free `sslip.io` hostname that needs no DNS at all.
 - Serve over HTTPS with Let's Encrypt, a stored certificate, or a certificate resolver you set up.
 - Route only a path, such as `/api`, and strip it before the request reaches the container.
-- Require sign-in in front of a host with forward auth.
+- Require sign-in in front of a host with [forward auth](/docs/guide/forward-auth).
 - See whether the certificate has been issued, and whether Traefik is serving the route.
 
 ## What is on the Domains tab?
@@ -51,7 +51,7 @@ answers on.
 |---|---|
 | **Host** | The host as a link, then its path (with **stripped** when the path is stripped), the container port, and **HTTPS** or **HTTP**. "Not being routed" marks a host whose router Traefik refused. |
 | **Certificate** | **Let's Encrypt**, **Stored certificate** (with its name), **Custom** (with the resolver), or **Not managed here** for HTTP. With Let's Encrypt it says whether the certificate is issued. |
-| **Sign-in** | A switch that puts this host behind the [forward-auth](/docs/guide/sso-and-scim) sign-in proxy. |
+| **Sign-in** | A switch that puts this host behind the [forward-auth](/docs/guide/forward-auth) sign-in proxy. |
 | | **Edit** and **Remove**. |
 
 A strip above the table says changes reach Traefik within a second, with no Deployment. The side
@@ -227,7 +227,7 @@ Domain lists the records to delete at your DNS provider.
 - [Applications](/docs/guide/applications): the Services that take Domains.
 - [Application settings](/docs/guide/application-settings): container port, redirects and basic auth.
 - [Monitoring](/docs/guide/monitoring): add an Uptime check and an Error-rate threshold on a Domain.
-- [SSO and forward auth](/docs/guide/sso-and-scim): require sign-in on a host.
+- [Forward auth](/docs/guide/forward-auth): require sign-in on a host, through your OIDC provider.
 - [Certificates](/docs/guide/certificates): stored certificates for hosts Let's Encrypt cannot issue for.
 - [Traefik](/docs/guide/traefik): the router a Domain runs on.
 - [Servers](/docs/guide/servers): the machines Traefik runs on.

@@ -5,7 +5,7 @@ seoTitle: Describe a Project in cloudgate.yaml with Plans
 description: Describe a Project's Services in one cloudgate.yaml, kept in Cloudgate or your repository, and review each Plan of creates, changes and destroys before Apply.
 lede: The Project config is one YAML file that says what a Project runs. You change the file; Cloudgate shows a Plan for each Environment, and nothing happens until you Apply it.
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Deploy
 order: 8
 badges: ['Members can read and plan', 'Applying needs permission on each Service']
@@ -131,7 +131,9 @@ What the fields mean:
 - `build.type` is `nixpacks`, `railpack`, `dockerfile`, `heroku_buildpacks` or
   `paketo_buildpacks`.
 - `kind: compose` names a compose file in a repository (`source`, `file`, `type`). The file's
-  contents stay in the repository.
+  contents stay in the repository. `file` is optional: left out, each deploy finds the first of
+  `compose.yaml`, `compose.yml`, `docker-compose.yaml` and `docker-compose.yml`. See
+  [Compose stacks](/docs/guide/compose-stacks#describe-a-stack-in-the-project-config).
 
 Kinds the config cannot describe yet, such as MongoDB, MariaDB and libSQL, appear as
 `kind: mongo` with `managed: console`. A Plan never changes or destroys a console-managed entry.
@@ -172,6 +174,7 @@ The card's other buttons:
 | Button | What it does |
 |---|---|
 | **Copy** | Copies the text, for example to commit it beside your code |
+| **Wrap lines** | The switch under the editor. Long lines scroll sideways by default, so indentation reads as written; on, they wrap. Your browser remembers it for every editor |
 | **Expand** | Opens the editor filling the window, with **Discard edits** and **Save and plan** in its top bar and a status line saying whether the YAML is valid. **Back to page** or Esc returns with your edit kept |
 | **Move to a repository** | Keeps the config in a repository instead (see below). Off while you have unsaved edits: save or discard them first |
 | **Discard edits** | Throws your unsaved change away. Shown only while you have one |
@@ -201,7 +204,17 @@ A Plan is made of these sections, each shown only when it has something in it:
 | Drift | In a cloud, settings "Changed by hand in the AWS console" that Apply puts back |
 | **Held builds** | Builds of Applications whose code and own config entry the same push changed: Apply builds them with the Plan's settings, Dismiss with the saved ones |
 | **Results** | After an Apply, what each step did; the Plan as it was reviewed stays under **Show the Plan as it was reviewed** |
-| **Notes** | What Cloudgate wants you to know about the Plan, such as a Template's parts held back in an Environment where that Template was never set up ([Templates](/docs/guide/templates#what-happens-in-the-projects-other-environments)) |
+| **Notes** | What Cloudgate wants you to know about the Plan, such as a Template's parts held back in an Environment where that Template was never set up ([Templates](/docs/guide/templates#what-happens-in-the-projects-other-environments)), or the Same-machine warning (below) |
+
+### Why does a Plan warn that a Service runs on Cloudgate's own machine?
+
+On a self-hosted instance, each create in an Environment whose Deploy target is the machine
+Cloudgate itself runs on (**This Cloudgate host**, or a Server whose address is that machine) gets
+the Same-machine warning in the Plan's **Notes**: if that machine is lost, the Service and all of
+Cloudgate's records go with it. It is a warning, not a refusal, and it cannot be hidden. A Service
+the Environment already runs is not noted again. The Hosted instance never deploys to its own
+machine, so its Plans never carry the note. See
+[Projects and Environments](/docs/guide/projects-and-environments) for the Deploy target.
 
 When the config already matches what runs, the card says so and there is nothing to apply. In a
 cloud, each line can show the real resources it makes, with CPU, memory and a monthly total. A
@@ -308,7 +321,7 @@ On the **Config** tab, press **Move to a repository**.
 | **Provider** | GitHub, GitLab, Gitea or Bitbucket | A custom git URL cannot keep the config |
 | **GitHub connection** (or GitLab, ...) | The [git provider](/docs/guide/git-providers) connection to read through | Connections are set up under Settings, Git providers |
 | **Repository** | The repository, from that connection's list | |
-| **Path** | Where the file is | Empty means `cloudgate.yaml` or `cloudgate.yml` at the root |
+| **Path** | Where the file is | Empty means `cloudgate.yaml` or `cloudgate.yml` at the root (see below) |
 
 <Screenshot name="project-config-move" alt="The Move the config into a repository dialog with GitHub and the northwind-labs connection chosen, and the Repository and Path fields below" caption="Choose where the file lives, then Preview each Environment's Plan before anything moves." />
 </Step>
@@ -318,6 +331,15 @@ its Config branch at a commit, with **Open the file**. Press **Move config**. No
 review each Plan, then apply it.
 </Step>
 </Steps>
+
+### cloudgate.yaml or cloudgate.yml?
+
+Either name works. With **Path** left empty, the move looks for `cloudgate.yaml`, then
+`cloudgate.yml`, on each Environment's Config branch, and stores the name it found as the Project's
+one path: later reads never switch to the other name. A branch that holds both uses
+`cloudgate.yaml`, and the preview says the branch also has `cloudgate.yml`, which is not read. The
+move is refused when different branches would need different names (set **Path** to the one to
+use), or when a branch has neither.
 
 Each Environment reads the file from its **Config branch** (Environment > **Settings**; empty means
 the default branch), so `staging` can read `develop` while `production` reads `main`.

@@ -1,10 +1,10 @@
 ---
 title: Cloudgate glossary
-seoTitle: 'Cloudgate glossary: every product term and what it means'
-description: Every term Cloudgate uses, from Access log to Wired variable, with a one-line definition each, plus the words Cloudgate avoids and what it says instead.
+seoTitle: 'Cloudgate glossary: every product term defined'
+description: Every term Cloudgate uses, from Access log to Worker, with a one-line definition each, plus the words Cloudgate avoids and what it says instead.
 lede: Cloudgate uses one word for each thing, the same in the console, the CLI, the API and these docs. Each term here has its own link, so you can point someone straight at it.
 section: start
-updated: '2026-11-13'
+updated: '2026-11-28'
 order: 3
 navTitle: Glossary
 badges: ['Hosted and self-hosted']
@@ -30,7 +30,7 @@ One more Server and one more Cloud Environment on a Hosted plan, for 5 USD a mon
 
 ### Agent
 
-A member of an Organization that is not a person: an AI tool acting through the MCP endpoint or the Gateway, with its own role, grant and keys.
+A member of an Organization that is not a person: an AI tool acting through the MCP endpoint or the Gateway, with its own role, grant and keys. It reads a Service's Runtime log only when its **Can read runtime logs** switch is on.
 
 ### Agent key
 
@@ -91,6 +91,10 @@ An Environment that deploys into a Cloud account. The Hosted plan counts these.
 ### Cloud run
 
 The OpenTofu plan and apply that creates or changes cloud resources for one Deployment.
+
+### Cloudgate version
+
+One tested version of Cloudgate itself, `vX.Y.Z`, published prebuilt on GitHub. It is what the install command installs and upgrades to.
 
 ### Config branch
 
@@ -306,6 +310,10 @@ A credential that acts as you, with everything you may do, for scripts, the CLI 
 
 One Environment's list of what applying its Project config would create, change and destroy.
 
+### Platform host
+
+The machine a Cloudgate instance itself runs on. On a self-hosted instance it can be a Deploy target, shown as **This Cloudgate host**.
+
 ### Preview deployment
 
 A copy of a git-sourced Application built from another branch, on its own address.
@@ -336,6 +344,10 @@ A Preview deployment opened for a GitHub pull request and removed when the pull 
 
 ## R
 
+### Release candidate
+
+A Cloudgate version before it ships, `vX.Y.Z-rc.N`, published as a GitHub pre-release to check on a test box. Only `CLOUDGATE_VERSION` naming it installs it; it comes before the version it becomes.
+
 ### Remove containers
 
 Removes a Compose stack's containers and keeps everything else: its network, files, volumes and record.
@@ -358,6 +370,10 @@ What a running Service writes.
 
 ## S
 
+### Same-machine warning
+
+The note a self-hosted instance shows wherever a Service, Server or Deploy target is on Cloudgate's own machine: if that machine is lost, the Service goes with Cloudgate's records. It warns and never refuses.
+
 ### Self-hosted instance
 
 A Cloudgate you install and run yourself.
@@ -365,6 +381,10 @@ A Cloudgate you install and run yourself.
 ### Server
 
 A machine Cloudgate reaches over SSH and deploys Services onto.
+
+### Server backup
+
+A copy of a Bought Server's whole disk, one a day while its backups are on, the last 7 kept. A Restore puts the disk back as it was at one, after taking a safety copy.
 
 ### Server markup
 
@@ -393,6 +413,10 @@ The tab that opens a shell in one of a Service's own containers.
 ### Size
 
 How much CPU and memory a Service may use, from `xsmall` (0.25 CPU, 512 MB) to `2xlarge` (8 CPU, 16 GB), or a custom pair.
+
+### Stack backup
+
+A volume backup of a whole Compose stack on a Server: one schedule and one run that copies every named volume from the same moment, and restores them together.
 
 ### Stack VM
 
@@ -438,7 +462,7 @@ A request Cloudgate makes to a Service on an interval, recording up or down.
 
 ### Volume lock
 
-The rule that only one backup, restore or delete works on a Docker volume at a time.
+The rule that only one backup, restore, Remove containers or delete works on a Docker volume at a time.
 
 ## W
 
@@ -486,6 +510,10 @@ search for one of them, this is the word to look for instead.
 | One-click app, marketplace, recipe | Template |
 | Monorepo link, workspace | Project folder |
 | VPS, managed server | Bought Server |
+| Server snapshot, VPS backup | Server backup |
+| Full backup, stack dump | Stack backup |
+| Beta, staging build | Release candidate |
+| Same-server warning, local warning | Same-machine warning |
 | SaaS, cloud version | Hosted instance |
 | On-prem, community edition | Self-hosted instance |
 | Pro, subscription | Hosted plan (Starter, Business) |

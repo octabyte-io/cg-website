@@ -169,7 +169,7 @@ password**. **Password changed** confirms it; press **Sign in**.
 |---|---|---|
 | **Link is no longer valid** | The link was used, or more than an hour passed | **Request a new link**, and use the newest email |
 | **Link is incomplete** | Part of the address is missing | Copy the whole link, or request a new one |
-| **Reset is not set up**: "This instance cannot send email yet" | The instance has no email sender | Ask whoever runs the instance to configure one; see [I forgot my password and no email arrives](/docs/help/troubleshooting#self-hosted-i-forgot-my-password-and-no-email-arrives) |
+| **Reset is not set up**: "This instance cannot send email yet" | The instance has no email sender | Ask whoever manages the platform host, the machine Cloudgate runs on, to configure an email sender in `/etc/default/cloudgate-backend` and restart the backend, then request the link again; see [I forgot my password and no email arrives](/docs/help/troubleshooting#self-hosted-i-forgot-my-password-and-no-email-arrives) |
 
 ## Accept an invitation
 

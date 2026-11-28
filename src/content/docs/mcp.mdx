@@ -1,9 +1,10 @@
 ---
 title: Let an AI agent work in Cloudgate over MCP
-seoTitle: 'Cloudgate MCP endpoint: connect AI coding agents safely'
+seoTitle: 'Cloudgate MCP endpoint for AI coding agents'
 description: How AI agents use Cloudgate's MCP endpoint as members of your Organization, with their own role, grant and agent key, and how to connect one in a few minutes.
 lede: Cloudgate serves an MCP endpoint at your console's address plus /mcp. A coding agent connects with an agent key and acts as an Agent, a member of your Organization with its own role, its own grant and an audit trail.
 section: mcp
+updated: '2026-11-28'
 order: 1
 navTitle: Overview
 badges: ['Hosted and self-hosted', 'Owner or Admin to create Agents']
@@ -12,6 +13,7 @@ faq:
   - { q: 'Can an agent use my Personal key?', a: 'No. The endpoint refuses a Personal key with 401 and asks for an agent key. An agent acts as its own Agent, never as you, so its calls are audited and limited on their own.' }
   - { q: 'Can an agent change environment variables or apply a Plan?', a: 'No. No tool changes settings, variables or access, applies or dismisses a Plan, or changes an Uptime check or Error-rate threshold, whatever the Agent''s role.' }
   - { q: 'Which AI clients work?', a: 'Any MCP client that can send an <code>Authorization</code> header over HTTP. The console''s Connect panel has ready configuration for Claude Code, VS Code, Cursor and Codex CLI, and a generic block for any other client.' }
+  - { q: 'Can an agent read my Services'' logs?', a: 'Every Agent can read the Deployment logs of what it is granted. It reads a Runtime log, what a running Service prints, only when an Owner or Admin turns on its <strong>Can read runtime logs</strong> switch, which is off by default.' }
   - { q: 'Does an Agent count as a member on my plan?', a: 'Members are not counted on the Hosted plans. See <a href="/pricing">pricing</a>.' }
 ---
 
@@ -37,15 +39,17 @@ Owners and Admins create Agents in the console under **Settings**, **Agents**. T
 ## What can an agent do here?
 
 With a Reader role it can find a Service and explain it: list Projects and Environments, read a
-Service, its Deployments, Deployment logs, Domains and health, and read the
-[Project config](/docs/guide/project-config) and its Plan. With an Operator role it can also:
+Service, its Deployments, Deployment logs, Domains, health and container metrics, and read the
+[Project config](/docs/guide/project-config) and its Plan. If you turn on its **Can read runtime
+logs** switch, it can also read what an Application or Compose stack prints while it runs. With an
+Operator role it can also:
 
 - deploy an Application or Compose stack and follow the build to its end;
 - start and stop a Service, and cancel a Deployment;
 - ask for a [requested preview](/docs/guide/previews) of a branch it pushed, which expires on its
   own.
 
-All 21 tools, with their parameters and answers, are in the [tool reference](/docs/mcp/tools).
+All 23 tools, with their parameters and answers, are in the [tool reference](/docs/mcp/tools).
 
 ## How does the endpoint work?
 
@@ -113,7 +117,7 @@ write access to your git repository, which you arrange with your git provider.
 ## Where to go next
 
 - [Connect a client](/docs/mcp/connect): create the Agent and configure each client.
-- [Tool reference](/docs/mcp/tools): all 21 tools.
+- [Tool reference](/docs/mcp/tools): all 23 tools.
 - [Guard rails](/docs/mcp/guard-rails): roles, limits, masking and the audit log.
 - [Workflows](/docs/mcp/workflows): fix and preview a branch, deploy and watch health.
 - [API reference](/docs/api): the REST API, for scripts using a Personal key.

@@ -299,9 +299,9 @@
     "name": "settings-agents",
     "title": "Settings, Agents",
     "route": "/settings/agents",
-    "description": "The Agents settings with each Agent, its role, access and keys",
+    "description": "The Agents settings with deploy-assistant (Operator, Can read runtime logs on) and incident-triage (Reader, off), their keys and access",
     "width": 1802,
-    "height": 1540
+    "height": 1624
   },
   {
     "name": "agent-connect",
@@ -387,9 +387,9 @@
     "name": "agent-create",
     "title": "Create an Agent",
     "route": "/settings/agents",
-    "description": "The Create an Agent dialog filled in",
+    "description": "The Create an Agent dialog filled in for deploy-bot as an Operator on storefront staging, with Can read runtime logs switched on.",
     "width": 1784,
-    "height": 2248
+    "height": 2584
   },
   {
     "name": "agent-key-reveal",
@@ -555,9 +555,9 @@
     "name": "compose-source-change",
     "title": "Change a stack's source",
     "route": "/compose/[composeId]",
-    "description": "The Source card in edit mode",
+    "description": "The Source card of the plausible stack in edit mode with GitHub chosen, the empty Compose file box and its hint",
     "width": 1574,
-    "height": 1876
+    "height": 1907
   },
   {
     "name": "console-avatar-menu",
@@ -827,9 +827,9 @@
     "name": "server-setup-confirm",
     "title": "Run setup confirmation",
     "route": "/servers/[serverId]/infrastructure",
-    "description": "The confirmation before setup runs on a Server",
+    "description": "The Run setup on fra-1? confirmation, naming the eight steps",
     "width": 1264,
-    "height": 754
+    "height": 798
   },
   {
     "name": "settings-ai",
@@ -851,9 +851,9 @@
     "name": "settings-instance",
     "title": "Instance",
     "route": "/settings/instance",
-    "description": "This instance on Settings, Instance: version, Self-hosted mode, version tag and the and Newest published reading Not checked yet.",
+    "description": "This instance on Settings, Instance: version 0.3.14, Self-hosted mode, version tag latest and Newest published reading Not checked yet.",
     "width": 1802,
-    "height": 658
+    "height": 659
   },
   {
     "name": "sign-in",
@@ -899,9 +899,9 @@
     "name": "volume-backups",
     "title": "Volume backups",
     "route": "/applications/[applicationId]/volume-backups",
-    "description": "The Volume backups tab of the web Application.",
-    "width": 2000,
-    "height": 1679
+    "description": "The Volume backups tab of the web Application with the uploads nightly backup, its Run now button and row menu.",
+    "width": 2362,
+    "height": 1688
   },
   {
     "name": "billing",
@@ -936,11 +936,59 @@
     "height": 1204
   },
   {
-    "name": "bought-server-card",
-    "title": "Bought Server card",
-    "route": "/servers/[serverId]/settings",
-    "description": "A ready Bought Server on its Settings tab: monthly price, backups switch, extra storage and size.",
-    "width": 2000,
-    "height": 597
+    "name": "agent-runtime-logs",
+    "title": "Can read runtime logs on an Agent",
+    "route": "/settings/agents",
+    "description": "The deploy-assistant Agent’s row with its Can read runtime logs switch on.",
+    "width": 1742,
+    "height": 714
+  },
+  {
+    "name": "editor-wrap-lines",
+    "title": "Wrap lines in a file editor",
+    "route": "/compose/[composeId]",
+    "description": "The Compose file card of the plausible stack with the Wrap lines switch under the editor.",
+    "width": 1574,
+    "height": 1236
+  },
+  {
+    "name": "bought-servers-list",
+    "title": "Bought Servers",
+    "route": "/bought-servers",
+    "description": "The Bought Servers page with web-1, db-1 and web-2, their stage, size, backups and monthly price, and the summary sentence.",
+    "width": 2362,
+    "height": 838
+  },
+  {
+    "name": "bought-server-tab",
+    "title": "A Bought Server’s tab",
+    "route": "/servers/[serverId]/bought-server",
+    "description": "The Bought Server tab of web-1: Back up now, Server backups with one Being made, Size and storage, What you pay and About this Server.",
+    "width": 2362,
+    "height": 1625
+  },
+  {
+    "name": "server-backup-restore",
+    "title": "Restore a Server backup",
+    "route": "/servers/[serverId]/bought-server",
+    "description": "The Restore dialog for web-1’s Server backup of Nov 27.",
+    "width": 1264,
+    "height": 750
+  },
+  {
+    "name": "compose-volume-backups",
+    "title": "Volume backups of a Compose stack",
+    "route": "/compose/[composeId]/volume-backups",
+    "description": "The Volume backups tab of the plausible stack with the plausible nightly Stack backup of the whole stack.",
+    "width": 2362,
+    "height": 1461
+  },
+  {
+    "name": "compose-volume-backup-add",
+    "title": "Add a backup on a Compose stack",
+    "route": "/compose/[composeId]/volume-backups",
+    "description": "Add a backup on the plausible stack with The whole stack chosen.",
+    "width": 1264,
+    "height": 1782
   }
 ]

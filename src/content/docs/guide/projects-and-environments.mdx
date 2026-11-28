@@ -6,7 +6,7 @@ lede: A Project holds everything one product runs. Each Environment inside it, s
 section: guide
 group: Deploy
 order: 3
-updated: '2026-11-27'
+updated: '2026-11-28'
 navTitle: Projects and Environments
 badges: ['Owner or Admin to create Projects', 'Members can rename Environments']
 howto:
@@ -198,9 +198,8 @@ a Compose stack to it."
 - **A Server** of yours, by name and address. One whose setup has not finished is listed with the
   reason and cannot be picked. Build Servers are never listed: they run no Service.
 - **This Cloudgate host**, the machine Cloudgate itself runs on: self-hosted only. A self-hosted
-  dialog opens on your first ready Server. Picking the Cloudgate host shows a warning: if that
-  machine is lost, the Service and all of Cloudgate's records go with it, so add a Server or use the
-  Hosted instance to keep them apart.
+  dialog opens on your first ready Server, so nobody lands on Cloudgate's own machine without
+  choosing it.
 - **A Cloud account** (AWS or Google Cloud), shown on the Hosted instance to members who may read
   Cloud accounts. Pick it, then its region. Saving checks the account in that region and creates
   nothing. The region hint says what Cloudgate can create there: on AWS, web Services, PostgreSQL,
@@ -210,6 +209,18 @@ a Compose stack to it."
 
 A self-hosted Organization with no Server of its own is not asked at all: the Environment deploys to
 the Cloudgate host.
+
+### Why does the dialog warn that Cloudgate runs on this machine?
+
+On a self-hosted instance, the **Same-machine warning** appears under the Deploy target whenever the
+new Environment would deploy to Cloudgate's own machine: **This Cloudgate host** is picked, the
+Organization has no Server so the host is used, or the picked Server's address is that same
+machine. It reads "Cloudgate itself runs on this machine. If the machine is lost, this Service and
+all of Cloudgate's records go with it: Projects, Servers, settings and Deployment history," with
+**Add a Server** and **Cloudgate Hosted** as ways to keep them apart. It only warns: you can still
+create the Environment, and the warning cannot be hidden. The Deploy target card on the
+Environment's **Settings** tab shows the same warning while such a target is saved or picked. See
+[Servers](/docs/guide/servers) to add a machine of your own.
 
 <Callout type="limit" title="Hosted: a Server or a Cloud account first">
 On the Hosted instance the Cloudgate host is never a Deploy target. With no Server and no Cloud
@@ -326,7 +337,8 @@ On the Environment's **Settings** tab:
 
 On **Settings** > **Deploy target**, pick a Server, the Cloudgate host (self-hosted) or a Cloud
 account and region, then press **Save Deploy target**. The toast says where new Services will be
-created and that nothing already running moved. A region check can come back with a warning, such
+created and that nothing already running moved. On a self-hosted instance, choosing the Cloudgate
+host, or a Server on that same machine, shows the Same-machine warning under the picker. A region check can come back with a warning, such
 as a quota nearly reached, shown under the card.
 
 <Screenshot name="environment-deploy-target" alt="The Deploy target card on storefront staging's Settings tab with nyc-edge chosen and Save Deploy target" caption="Changing it moves nothing that already runs." />

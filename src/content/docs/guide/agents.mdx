@@ -1,10 +1,10 @@
 ---
 title: Agents
 seoTitle: Create an Agent for Claude Code, Cursor or Codex
-description: Create an Agent so an AI coding tool can read and deploy your Services over MCP. Pick a role, grant access, issue expiring keys and connect a client.
+description: Create an Agent so an AI coding tool can read and deploy your Services over MCP. Pick a role, grant access, allow runtime logs, issue keys, connect a client.
 lede: An Agent is a member of your Organization that is not a person. Create one when you want an AI coding tool such as Claude Code, Cursor, VS Code or Codex to read your Services or deploy them through Cloudgate's MCP endpoint, with its own key and only the access you give it.
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Team and access
 order: 3
 badges: ['Owner or Admin to manage', 'Every plan', 'Hosted and self-hosted']
@@ -13,16 +13,16 @@ howto:
   steps:
     - { name: Open Agents, text: 'Open Settings, then Agents, and press Create an Agent.' }
     - { name: Name it and pick a role, text: 'Give it a Name such as deploy-bot and pick Reader, Operator or Caller.' }
-    - { name: Grant access, text: 'Under Access, tick the Projects, Environments and Services it may reach.' }
+    - { name: Grant access, text: 'Under Access, tick the Projects, Environments and Services it may reach. Turn on Can read runtime logs only if it should read what those Services print.' }
     - { name: Choose the key expiry, text: 'Under First key expires, choose In 30 days, In 90 days or In a year, then press Create Agent.' }
     - { name: Copy the key, text: 'Copy the key, which is shown only once, into your client''s secret storage, then press I have copied it.' }
     - { name: Connect the client, text: 'Press Connect on the Agent''s row, pick your client''s tab and paste its configuration.' }
 faq:
   - { q: Can an Agent apply a Plan or change settings?, a: 'No. An Agent can ask for a Plan but never applies one, and never changes settings, variables, access, Uptime checks or thresholds.' }
-  - { q: Does an Agent see my secrets?, a: 'Not the ones Cloudgate stores. Every tool result, logs included, passes through a mask that replaces stored secret values with dots. A secret a build prints that Cloudgate does not store is not masked.' }
+  - { q: Does an Agent see my secrets?, a: 'Not the ones Cloudgate stores. Every tool result, logs included, passes through a mask that replaces stored secret values with dots. A secret a build or a running app prints that Cloudgate does not store is not masked.' }
+  - { q: Can an Agent read my Services' runtime logs?, a: 'Only if you turn on its Can read runtime logs switch, which is off by default. An Owner or Admin turns it on in the Create an Agent dialog or on the Agent''s row, every change is in the audit log, and a Caller never has it.' }
   - { q: What happens when the person who made an Agent leaves?, a: 'Nothing. An Agent belongs to the Organization and outlives whoever created it. Its row still says who made it.' }
   - { q: I lost an agent key. Can I see it again?, a: 'No. Cloudgate keeps only a hash of each key. Press Add key on the Agent''s row to make a new one, switch the client to it, then revoke the old one.' }
-  - { q: Can I use a personal key for an agent instead?, a: 'No. The MCP endpoint refuses personal keys. Create an Agent and use its agent key.' }
   - { q: Does an Agent need my approval for each action?, a: 'No. There is no approval step: an Agent acts at once within its role and grant. Keep it to Reader, or grant it only a staging Environment, until you trust what it does.' }
 ---
 
@@ -35,6 +35,8 @@ plus `/mcp`, and every call it makes, allowed or refused, is a row in the
 
 - Create Agents with the **Reader**, **Operator** or **Caller** role.
 - Grant each one only the Projects, Environments and Services it needs.
+- Let a Reader or Operator read the Runtime logs of what it is granted, with **Can read runtime
+  logs**.
 - Issue, rotate, revoke and remove its agent keys, each with an expiry.
 - Copy ready-made configuration for Claude Code, VS Code, Cursor, Codex CLI and other MCP clients.
 - See when each Agent was last used, which client last connected, and how often it hit a rate limit.
@@ -43,7 +45,8 @@ plus `/mcp`, and every call it makes, allowed or refused, is a row in the
 ## Who can manage Agents?
 
 Any member of the Organization can open **Settings** > **Agents** and read its Agents. Only an
-Owner or an Admin can create, change, suspend or delete one, or add and revoke its keys. Everyone
+Owner or an Admin can create, change, suspend or delete one, add and revoke its keys, or turn its
+**Can read runtime logs** switch on or off. Everyone
 else sees those buttons off, with the reason. The link to an Agent's calls in the audit log shows
 only to a role that can read the audit log; others see "Its calls are in the audit log, which your
 role cannot read."
@@ -59,7 +62,9 @@ call AI models.
 | **Operator** | Everything a Reader can, and deploys, starts, stops and cancels Deployments of what it is granted, including Compose stacks. Cannot change settings, variables or access. |
 | **Caller** | Calls the AI models it is granted through their endpoint, and nothing else. Gets no tools over MCP. |
 
-An Agent can never hold the Owner, Admin or Member role. The tools each role may call are listed in
+A Reader and an Operator also read the container metrics of the Services they are granted, and the
+Runtime logs of those Services when their **Can read runtime logs** switch is on. An Agent can never
+hold the Owner, Admin or Member role. The tools each role may call are listed in
 [MCP tools](/docs/mcp/tools) and [Guard rails](/docs/mcp/guard-rails).
 
 ## Create an Agent
@@ -82,9 +87,16 @@ Environment. Access starts empty. An Agent reaches a Service through its Project
 Environment, so granting a Service grants the two above it. You can save it with nothing granted and
 grant it later; until then its status reads **reaches nothing yet**.
 
-The dialog warns that the Agent can read the build and run logs of what you grant: Cloudgate masks
-the secrets it stores, not what a build prints.
-<Screenshot name="agent-create" alt="The Create an Agent dialog with the name deploy-bot, the Operator role selected, the storefront Project and its staging Environment ticked, and the Services of staging listed below" caption="Grant the smallest scope that does the job; you can widen it later with Manage access." />
+The dialog warns: "This Agent can always read the Deployment logs of what you grant, and their
+Runtime logs only with Can read runtime logs on. Cloudgate masks the secrets it stores, not what a
+build or a running Service prints."
+</Step>
+<Step title="Decide on runtime logs">
+Under the access tree, **Can read runtime logs** is off: "What its Services print as they run, which
+can hold anything their users sent them. Off unless you turn it on." Turn it on only if the Agent
+should read what the Services you granted print while they run, for example to find why one keeps
+crashing. The switch is not offered for a Caller.
+<Screenshot name="agent-create" alt="The Create an Agent dialog with the name deploy-bot, the Operator role selected, the storefront Project and its staging Environment ticked, and the Can read runtime logs switch turned on below the access tree" caption="Grant the smallest scope that does the job; Can read runtime logs is off until you turn it on." />
 </Step>
 <Step title="Choose when its first key expires">
 Under **First key expires**, choose **In 30 days**, **In 90 days** (the default) or **In a year**.
@@ -140,7 +152,7 @@ Step-by-step client setup and how to check the connection are in
 
 ## Read an Agent's row
 
-<Screenshot name="settings-agents" alt="Settings, Agents for Northwind Labs, with deploy-assistant (Operator) and incident-triage (Reader), each with its access, keys and when a client last connected" caption="Each Agent shows its role, what it can reach, its keys and when a client last connected." />
+<Screenshot name="settings-agents" alt="Settings, Agents for Northwind Labs, with deploy-assistant (Operator, Can read runtime logs on) and incident-triage (Reader, Can read runtime logs off), each with its access, one key and no client connected yet" caption="Each Agent shows its role, what it can reach, its runtime-log switch, its keys and when a client last connected." />
 
 Each Agent's row shows:
 
@@ -151,9 +163,35 @@ Each Agent's row shows:
 | **Keys** | How many, and when the next expires. Each key shows its first characters, **Created**, **Last used** or **Never used**, and **Expires** or **Expired**. A key due within 14 days is marked. |
 | **Last used** | The newest use of any of its keys. |
 | **Last connected** | The client that last connected, with its version and MCP revision, or "No client has connected yet". |
+| **Can read runtime logs** | **On** or **Off**, with its switch and "Cloudgate masks the secrets it stores, not what an app prints." Not shown for a Caller. |
 | **Created** | When, and by whom. |
 | Rate limits | "Rate-limited n times in the last hour", linking to its refused calls, when it happened. |
 | Audit log | **Every call it made, in the audit log**, filtered to this Agent. |
+
+## Let an Agent read runtime logs
+
+**Can read runtime logs** lets a Reader or Operator Agent read the Runtime log of each Application
+and Compose stack it is granted: the last lines the Service printed while running, from every copy,
+through the MCP tool `read_runtime_log`. It is off unless you turn it on, and it never widens the
+grant: an Agent reads only the Runtime logs of Services it can already reach.
+
+- Turn it on when you create the Agent, or later with the switch on its row. Only an Owner or an
+  Admin can change it; for anyone else the switch is disabled and says why.
+- A change applies to the Agent's next call. The console confirms it, for example "deploy-bot can
+  read runtime logs.", and every change, including one at creation, is in the
+  [audit log](/docs/guide/audit-log).
+- With it off, the tool is refused with a message naming the switch, so the agent can tell you what
+  to turn on.
+- A Caller never holds it. Changing an Agent to **Caller** turns it off, and **Change role** says so
+  before you confirm: "A Caller cannot read runtime logs, so this turns that off."
+<Screenshot name="agent-runtime-logs" alt="An Agent's row in Settings, Agents with the Can read runtime logs switch on, and the note that Cloudgate masks the secrets it stores, not what an app prints" caption="The switch shows what Cloudgate holds; a refused change leaves it where it was." />
+
+<Callout type="warn" title="The mask cannot hide what an app prints">
+A Runtime log is whatever your Services print, which can include your users' emails, request bodies
+and session tokens that Cloudgate never stored. The mask replaces only the secrets Cloudgate stores.
+Turn the switch on only for an Agent whose model host you would trust with that output. See
+[what the mask cannot hide](/docs/mcp/guard-rails#what-does-the-secret-mask-hide).
+</Callout>
 
 ## Rotate an Agent's keys
 
@@ -176,7 +214,7 @@ and removing cannot be undone.
 |---|---|
 | **Suspend** | Asks **Suspend deploy-bot?** Press **Suspend Agent**: its next call through the MCP endpoint is refused, and every one after. Keys, role and access stay; anything it already started keeps running. **Keep it running** cancels. |
 | **Resume** | Lets it call again at once, with no new key and no change in its client. |
-| **Change role** | Pick another role and press **Change role**. It takes effect on its next call; keys and access stay. |
+| **Change role** | Pick another role and press **Change role**. It takes effect on its next call; keys and access stay. A move to Caller turns **Can read runtime logs** off. |
 | **Manage access** | Tick or untick Projects, Environments and Services and press **Save access**. It takes effect on its next call. |
 | **Delete** | Asks **Delete deploy-bot?** Press **Delete Agent**: the Agent, its access and all its keys go, and its keys stop on the next call. Anything it deployed stays, and its audit trail stays. **Keep it** cancels. |
 
@@ -192,6 +230,8 @@ To stop it for now, use **Suspend** instead.
 - An Agent can never be an Owner, an Admin or a Member.
 - An Agent asks for a Plan but never applies or dismisses one, and reads health but never
   configures checks or thresholds.
+- An Agent reads a granted Service's container metrics, never a Server's own metrics.
+- An Agent reads a Runtime log only with **Can read runtime logs** on, and a Caller never can.
 - Rate limits: 120 reads and 10 writes a minute per Agent, shared across its keys.
 - An agent key works only at the MCP endpoint and the Gateway, never on the REST API or for
   sign-in. The MCP endpoint refuses personal keys.
@@ -202,7 +242,8 @@ To stop it for now, use **Suspend** instead.
 ## Related pages
 
 - [Connect an MCP client](/docs/mcp/connect): set up Claude Code, Cursor, VS Code or Codex.
-- [MCP tools](/docs/mcp/tools): every tool an Agent can call.
+- [MCP tools](/docs/mcp/tools): every tool an Agent can call, including `read_runtime_log` and `get_service_metrics`.
+- [Agent workflows](/docs/mcp/workflows): find why a running Service keeps crashing.
 - [Guard rails](/docs/mcp/guard-rails): masking, rate limits and refusals.
 - [Audit log](/docs/guide/audit-log): every call an Agent made.
 - [Members and roles](/docs/guide/members-and-roles): how grants work for people.

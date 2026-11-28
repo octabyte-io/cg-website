@@ -7,7 +7,7 @@ lede: "Cloudgate monitors two layers: each Server's CPU, memory, disk and networ
 section: guide
 group: Operate
 order: 2
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Members read health', 'Server sampling: Owner or Admin']
 howto:
   name: Add an Uptime check to a Service
@@ -209,6 +209,17 @@ lists what was left on the machine; turning traces on and off again retries.
 - **Runtime log**: a Service's **Logs** tab shows what it writes. Dock it to keep it open as you move around.
 - **Access log**: **Requests** in the rail, or a Service's **Requests** tab, lists each request Traefik answered. It needs the **Access log** switch on that Server's Settings tab.
 
+## What can an Agent read from monitoring?
+
+An Agent reads a granted Service's health and, over MCP, its container metrics, but never changes a
+check, a threshold or traces. `get_service_metrics` answers a summary over the last hour, or up to
+24 hours: CPU and memory now, on average and at peak, memory against its limit, network and disk
+totals, and a short trend, summed across the Service's containers. It never reads a Server's own
+metrics, and a Service in a Cloud account, or on a Server where monitoring is not set up, answers
+why there is nothing. `read_runtime_log` reads the last lines an Application or Compose stack wrote, only for an Agent
+whose **Can read runtime logs** switch is on. See [MCP tools](/docs/mcp/tools#get_service_metrics)
+and [Agents](/docs/guide/agents).
+
 ## What you cannot do
 
 <Callout type="limit" title="Limits">
@@ -227,5 +238,5 @@ on the Service, which members have. Server sampling is for owners and admins.
 - [Notifications](/docs/guide/notifications): choose where Incidents and threshold breaches go.
 - [Servers](/docs/guide/servers): request metrics, request logging and a Server's Telemetry tab.
 - [Domains](/docs/guide/domains): the hosts Uptime checks and Error rate work on.
-- [Agents](/docs/guide/agents): what an Agent can read from health.
+- [Agents](/docs/guide/agents): what an Agent can read from health and metrics.
 - [Troubleshooting](/docs/help/troubleshooting) and [all Cloudgate features](/features).

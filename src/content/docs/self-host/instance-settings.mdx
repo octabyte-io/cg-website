@@ -1,10 +1,10 @@
 ---
 title: Instance settings for self-hosted owners
-seoTitle: Self-hosted Cloudgate instance settings and templates
+seoTitle: Self-hosted Cloudgate instance settings
 description: 'Run a self-hosted Cloudgate instance from its console: the Enterprise license, branding, Traefik, disk upkeep, build limits and the Template catalogue mirror.'
 lede: A self-hosted instance has settings the Hosted one keeps to itself, for the machine Cloudgate runs on. This page walks through each one, who may change it, and which ones to leave alone.
 section: self-host
-updated: '2026-11-17'
+updated: '2026-11-28'
 order: 3
 navTitle: Instance settings
 badges: ['Self-hosted only', 'Owner or Admin of the Instance organization']
@@ -179,6 +179,12 @@ The **platform host** is the machine Cloudgate itself runs on. It has no Server 
 an Environment can choose **This Cloudgate host** as its Deploy target. On **Servers**, the **This
 host** card opens a shell on it; only owners and admins of the Instance organization see it. Its
 GPU setup, metrics and Traefik are the Instance organization's too.
+
+Wherever **This Cloudgate host**, or a Server at the machine's own address, is shown or picked, the
+console shows the **Same-machine warning**: a Service there is lost together with Cloudgate's own
+records if the machine is lost. It never refuses and cannot be hidden, and create forms and a new
+Environment open on the first Ready Server instead. See
+[Self-hosting Cloudgate](/docs/self-host#should-my-apps-run-on-the-machine-cloudgate-runs-on).
 
 ## Mirror or turn off the Template catalogue
 

@@ -73,9 +73,11 @@ const toolGroups = [
   },
   {
     name: 'Read health, logs and state',
-    text: 'Follow a Deployment, read its log, and read the same health a person sees on the Health tab.',
+    text: 'Follow a Deployment, read its log, read the health a person sees on the Health tab and a Service\'s container metrics. Runtime logs only if you switch that on.',
     tools: [
       'get_service_health',
+      'get_service_metrics',
+      'read_runtime_log',
       'list_deployments',
       'read_deployment_log',
       'get_service',
@@ -94,11 +96,11 @@ const faq = [
   },
   {
     q: 'Can an agent see my secrets?',
-    a: 'No stored secret reaches it as written. Every tool result, deployment logs included, passes through a mask that replaces stored secrets with <code>••••••</code>. A value the build prints that Cloudgate never stored is not masked, so do not let builds print secrets.',
+    a: 'No stored secret reaches it as written. Every tool result, deployment and runtime logs included, passes through a mask that replaces stored secrets with <code>••••••</code>. A value a build or a running app prints that Cloudgate never stored is not masked, so an Agent reads runtime logs only when you turn on its <strong>Can read runtime logs</strong> switch.',
   },
   {
     q: 'What is the difference between the Reader and Operator roles?',
-    a: 'A Reader reads: Services, Deployments, logs, health and plans, and it can ask for a Plan. An Operator can also deploy, start and stop Services, cancel Deployments and manage previews. Both are limited to the Projects, Environments and Services in their grant.',
+    a: 'A Reader reads: Services, Deployments, Deployment logs, health, container metrics and plans, and it can ask for a Plan. An Operator can also deploy, start and stop Services, cancel Deployments and manage previews. Both are limited to the Projects, Environments and Services in their grant.',
   },
   {
     q: 'Can an agent apply infrastructure changes or turn off alerts?',
@@ -340,7 +342,7 @@ const faq = [
         </div>
         <div>
           <dt>Secrets are masked in every result</dt>
-          <dd>Stored secrets, from environment variables to database passwords, are replaced with <code>••••••</code> in every answer, deployment logs included.</dd>
+          <dd>Stored secrets, from environment variables to database passwords, are replaced with <code>••••••</code> in every answer, deployment and runtime logs included. Runtime logs are read only by an Agent you switch them on for.</dd>
         </div>
         <div>
           <dt>Rate limits per Agent</dt>

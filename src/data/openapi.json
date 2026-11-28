@@ -1337,6 +1337,47 @@
       ]
      }
     ]
+   },
+   "patch": {
+    "operationId": "AgentsController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Agent's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateAgentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Agents"
+    ],
+    "summary": "Update an Agent",
+    "x-cloudgate-permission": [
+     {
+      "resource": "member",
+      "actions": [
+       "update"
+      ]
+     }
+    ]
    }
   },
   "/agents/{id}/suspend": {
@@ -4074,7 +4115,7 @@
      "RuntimeLog"
     ],
     "summary": "Read the runtime log",
-    "description": "Every task's lines from `since` on, merged by time, each naming its task, and the `since` of the next read."
+    "description": "Every copy's lines from `since` on, merged by time, each naming its copy, and the `since` of the next read: an Application's or a Compose's, wherever it runs."
    }
   },
   "/applications/{id}/cloud-resources": {
@@ -7880,7 +7921,7 @@
      "VolumeBackups"
     ],
     "summary": "Restore a volume backup",
-    "description": "`204`, and both of this controller's `204`s are void by design. `restore` answers nothing because its whole diagnosis is the rclone script's stdout, which reaches the caller as a 400/409 message — success has nothing left to say.",
+    "description": "`restore` answers nothing because its whole diagnosis is the rclone script's stdout, which reaches the caller as a 400/409 message — success has nothing left to say.",
     "x-cloudgate-permission": [
      {
       "resource": "volumeBackup",
@@ -8024,6 +8065,84 @@
       "resource": "volumeBackup",
       "actions": [
        "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/volume-backups/{id}/moments": {
+   "get": {
+    "operationId": "VolumeBackupsController_listMoments",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The volume backup's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "VolumeBackups"
+    ],
+    "summary": "List moments",
+    "description": "A Stack backup's moments, as its destination holds them, newest first.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "volumeBackup",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/volume-backups/{id}/restore-moment": {
+   "post": {
+    "operationId": "VolumeBackupsController_restoreMoment",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The volume backup's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RestoreMomentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "VolumeBackups"
+    ],
+    "summary": "Restore moment",
+    "description": "Restores every volume of one moment of a Stack backup, as one run. `204` as `restore`'s: what happened step by step is the run's log, and a failure answers 400 or 409.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "volumeBackup",
+      "actions": [
+       "restore"
       ]
      }
     ]
@@ -12168,6 +12287,32 @@
     "summary": "Load the services of a Compose stack"
    }
   },
+  "/compose/{id}/volumes": {
+   "get": {
+    "operationId": "ComposeController_loadVolumes",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Compose stack's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Compose"
+    ],
+    "summary": "Load volumes",
+    "description": "Each service with its image and the named volumes it mounts, from the last successful deploy's record. Read-scoped like `:id/services`."
+   }
+  },
   "/compose/{id}/converted": {
    "get": {
     "operationId": "ComposeController_getConverted",
@@ -12466,6 +12611,39 @@
     ]
    }
   },
+  "/domains/{id}/served-certificate": {
+   "get": {
+    "operationId": "DomainsController_servedCertificate",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Domain's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Domains"
+    ],
+    "summary": "Served certificate",
+    "x-cloudgate-permission": [
+     {
+      "resource": "domain",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
   "/domains/{id}/ask-again": {
    "post": {
     "operationId": "DomainsController_askAgain",
@@ -12682,6 +12860,951 @@
       "resource": "volume",
       "actions": [
        "delete"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers": {
+   "post": {
+    "operationId": "ServersController_create",
+    "parameters": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateServerDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Create a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   },
+   "get": {
+    "operationId": "ServersController_list",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "List Servers",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}": {
+   "get": {
+    "operationId": "ServersController_findOne",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Get a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   },
+   "patch": {
+    "operationId": "ServersController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateServerDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Update a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   },
+   "delete": {
+    "operationId": "ServersController_remove",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Delete a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "delete"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/validate": {
+   "get": {
+    "operationId": "ServersController_validate",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Validate a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/audit": {
+   "get": {
+    "operationId": "ServersController_audit",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Audit a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/setup": {
+   "post": {
+    "operationId": "ServersController_setup",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Set up a Server",
+    "description": "Provision the host and answer when the script ends.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/forget-host-key": {
+   "post": {
+    "operationId": "ServersController_forgetHostKey",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Forget the host key",
+    "description": "Forget the Server's recorded host key, after a deliberate reinstall, so the next connect records the new one. A change to the Server row, so `server:create` as `PATCH` is.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/start-maintenance": {
+   "post": {
+    "operationId": "ServersController_startMaintenance",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "Start maintenance on a Server",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/servers/{id}/end-maintenance": {
+   "post": {
+    "operationId": "ServersController_endMaintenance",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Servers"
+    ],
+    "summary": "End maintenance on a Server",
+    "description": "End the Server's Maintenance; 409 when it is not in maintenance.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/offer": {
+   "get": {
+    "operationId": "BoughtServersController_offer",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Check whether buying a Server is offered",
+    "description": "Whether *Buy a Server* is offered here.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/catalogue": {
+   "get": {
+    "operationId": "BoughtServersController_catalogue",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "List locations, sizes and prices",
+    "description": "Every Location and every size with its tidy monthly price and availability.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/today": {
+   "get": {
+    "operationId": "BoughtServersController_today",
+    "parameters": [
+     {
+      "name": "serverType",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "minLength": 1,
+       "type": "string"
+      }
+     },
+     {
+      "name": "location",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "minLength": 1,
+       "type": "string"
+      }
+     },
+     {
+      "name": "backups",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "true",
+        "false"
+       ]
+      }
+     },
+     {
+      "name": "storageGb",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Price a purchase today",
+    "description": "The Today box: what Buy would charge now for this size there, and the dates it covers.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/purchases": {
+   "get": {
+    "operationId": "BoughtServersController_purchases",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Purchases a Bought Server",
+    "description": "The Organization's Bought Servers not yet made: waiting for payment, or being created.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers": {
+   "get": {
+    "operationId": "BoughtServersController_list",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "List Bought Servers",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   },
+   "post": {
+    "operationId": "BoughtServersController_create",
+    "parameters": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BuyDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Buy a Server",
+    "description": "Buy: charged at once; the machine is asked for only once the payment succeeds.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/finish-paying": {
+   "post": {
+    "operationId": "BoughtServersController_finishPaying",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FinishPayingDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Finish paying for a purchase",
+    "description": "Finish paying*: where the payment stands, and where to finish it (3D Secure).",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/cancel": {
+   "post": {
+    "operationId": "BoughtServersController_cancel",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Cancel an unpaid purchase",
+    "description": "*Cancel* a purchase still waiting for payment: nothing is charged. A removal, so a frozen Organization may still do it.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}": {
+   "get": {
+    "operationId": "BoughtServersController_findOne",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Get a Bought Server",
+    "description": "The Bought Server behind a Server: its stage, what it holds and its prices.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/backups": {
+   "put": {
+    "operationId": "BoughtServersController_setBackups",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BackupsDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Set backups",
+    "description": "Backups on (charged at once, for the rest of the plan's month) or off (every backup deleted at once, credited on the next invoice). Off only lowers what is owed, so a frozen Organization may still do it; on is refused while frozen, by the service.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   },
+   "get": {
+    "operationId": "BoughtServersController_listBackups",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "List backups",
+    "description": "Its Server backups, newest first; none while backups are off. A read, so a frozen Organization still sees them.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   },
+   "post": {
+    "operationId": "BoughtServersController_createBackup",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Create backup",
+    "description": "*Back up now*: one more Server backup at once, in the same 7 slots, so the oldest is pushed out once all 7 are full. It costs nothing, so a deletion date does not refuse it; a frozen Organization is refused, as for any write. Answered with the backup, still being made.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/backups/{backupId}/restore": {
+   "post": {
+    "operationId": "BoughtServersController_restoreBackup",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     },
+     {
+      "name": "backupId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "number"
+      },
+      "description": "The backup's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RestoreDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Restore backup",
+    "description": "*Restore*: the disk put back as it was at one of its Server backups, a safety copy taken first unless that would push the chosen one out (then only with `withoutSafetyCopy`). Answered at once, Changing; the steps go on in the background. It costs nothing; a frozen Organization is refused, as for any write.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/storage": {
+   "put": {
+    "operationId": "BoughtServersController_growStorage",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StorageDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Grow storage",
+    "description": "Extra storage grown: charged at once for the rest of the plan's month, then the Volume and the filesystem are grown. It never shrinks.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/sizes": {
+   "get": {
+    "operationId": "BoughtServersController_sizes",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "List sizes a Server can move to",
+    "description": "The sizes the Server can move to in its Location, with their prices.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "read"
+      ]
+     }
+    ]
+   }
+  },
+  "/bought-servers/{id}/size": {
+   "put": {
+    "operationId": "BoughtServersController_setSize",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The Bought Server's id."
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SizeDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "BoughtServers"
+    ],
+    "summary": "Set size",
+    "description": "A new size, up (charged at once, for the rest of the plan's month) or down (credited on the next invoice); the machine is powered off while it changes. Down only lowers what is owed, so a frozen Organization may still do it; up is refused while frozen, by the service.",
+    "x-cloudgate-permission": [
+     {
+      "resource": "server",
+      "actions": [
+       "create"
       ]
      }
     ]
@@ -13262,813 +14385,6 @@
      "Tags"
     ],
     "summary": "Remove from project"
-   }
-  },
-  "/servers": {
-   "post": {
-    "operationId": "ServersController_create",
-    "parameters": [],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/CreateServerDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "201": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Create a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   },
-   "get": {
-    "operationId": "ServersController_list",
-    "parameters": [],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "List Servers",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}": {
-   "get": {
-    "operationId": "ServersController_findOne",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Get a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   },
-   "patch": {
-    "operationId": "ServersController_update",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/UpdateServerDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Update a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   },
-   "delete": {
-    "operationId": "ServersController_remove",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Delete a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "delete"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/validate": {
-   "get": {
-    "operationId": "ServersController_validate",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Validate a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/audit": {
-   "get": {
-    "operationId": "ServersController_audit",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Audit a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/setup": {
-   "post": {
-    "operationId": "ServersController_setup",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Set up a Server",
-    "description": "Provision the host and answer when the script ends.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/forget-host-key": {
-   "post": {
-    "operationId": "ServersController_forgetHostKey",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Forget the host key",
-    "description": "Forget the Server's recorded host key, after a deliberate reinstall, so the next connect records the new one. A change to the Server row, so `server:create` as `PATCH` is.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/start-maintenance": {
-   "post": {
-    "operationId": "ServersController_startMaintenance",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "Start maintenance on a Server",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/servers/{id}/end-maintenance": {
-   "post": {
-    "operationId": "ServersController_endMaintenance",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "Servers"
-    ],
-    "summary": "End maintenance on a Server",
-    "description": "End the Server's Maintenance; 409 when it is not in maintenance.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/offer": {
-   "get": {
-    "operationId": "BoughtServersController_offer",
-    "parameters": [],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Check whether buying a Server is offered",
-    "description": "Whether *Buy a Server* is offered here.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/catalogue": {
-   "get": {
-    "operationId": "BoughtServersController_catalogue",
-    "parameters": [],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "List locations, sizes and prices",
-    "description": "Every Location and every size with its tidy monthly price and availability.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/today": {
-   "get": {
-    "operationId": "BoughtServersController_today",
-    "parameters": [
-     {
-      "name": "serverType",
-      "required": true,
-      "in": "query",
-      "schema": {
-       "minLength": 1,
-       "type": "string"
-      }
-     },
-     {
-      "name": "location",
-      "required": true,
-      "in": "query",
-      "schema": {
-       "minLength": 1,
-       "type": "string"
-      }
-     },
-     {
-      "name": "backups",
-      "required": false,
-      "in": "query",
-      "schema": {
-       "type": "string",
-       "enum": [
-        "true",
-        "false"
-       ]
-      }
-     },
-     {
-      "name": "storageGb",
-      "required": false,
-      "in": "query",
-      "schema": {
-       "type": "number"
-      }
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Price a purchase today",
-    "description": "The Today box: what Buy would charge now for this size there, and the dates it covers.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/purchases": {
-   "get": {
-    "operationId": "BoughtServersController_list",
-    "parameters": [],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "List Bought Servers",
-    "description": "The Organization's Bought Servers not yet made: waiting for payment, or being created.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers": {
-   "post": {
-    "operationId": "BoughtServersController_create",
-    "parameters": [],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/BuyDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "201": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Buy a Server",
-    "description": "Buy: charged at once; the machine is asked for only once the payment succeeds.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/finish-paying": {
-   "post": {
-    "operationId": "BoughtServersController_finishPaying",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/FinishPayingDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Finish paying for a purchase",
-    "description": "Finish paying*: where the payment stands, and where to finish it (3D Secure).",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/cancel": {
-   "post": {
-    "operationId": "BoughtServersController_cancel",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Cancel an unpaid purchase",
-    "description": "*Cancel* a purchase still waiting for payment: nothing is charged. A removal, so a frozen Organization may still do it.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}": {
-   "get": {
-    "operationId": "BoughtServersController_findOne",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Get a Bought Server",
-    "description": "The Bought Server behind a Server: its stage, what it holds and its prices.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/backups": {
-   "put": {
-    "operationId": "BoughtServersController_setBackups",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/BackupsDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Set backups",
-    "description": "Backups on (charged at once, for the rest of the plan's month) or off (every backup deleted at once, credited on the next invoice). Off only lowers what is owed, so a frozen Organization may still do it; on is refused while frozen, by the service.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/storage": {
-   "put": {
-    "operationId": "BoughtServersController_growStorage",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/StorageDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Grow storage",
-    "description": "Extra storage grown: charged at once for the rest of the plan's month, then the Volume and the filesystem are grown. It never shrinks.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/sizes": {
-   "get": {
-    "operationId": "BoughtServersController_sizes",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "List sizes a Server can move to",
-    "description": "The sizes the Server can move to in its Location, with their prices.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "read"
-      ]
-     }
-    ]
-   }
-  },
-  "/bought-servers/{id}/size": {
-   "put": {
-    "operationId": "BoughtServersController_setSize",
-    "parameters": [
-     {
-      "name": "id",
-      "required": true,
-      "in": "path",
-      "schema": {
-       "type": "string"
-      },
-      "description": "The Bought Server's id."
-     }
-    ],
-    "requestBody": {
-     "required": true,
-     "content": {
-      "application/json": {
-       "schema": {
-        "$ref": "#/components/schemas/SizeDto"
-       }
-      }
-     }
-    },
-    "responses": {
-     "200": {
-      "description": ""
-     }
-    },
-    "tags": [
-     "BoughtServers"
-    ],
-    "summary": "Set size",
-    "description": "A new size, up (charged at once, for the rest of the plan's month) or down (credited on the next invoice); the machine is powered off while it changes. Down only lowers what is owed, so a frozen Organization may still do it; up is refused while frozen, by the service.",
-    "x-cloudgate-permission": [
-     {
-      "resource": "server",
-      "actions": [
-       "create"
-      ]
-     }
-    ]
    }
   },
   "/patches": {
@@ -18879,7 +19195,7 @@
      "Settings"
     ],
     "summary": "Check for a newer version",
-    "description": "Compares the running version with the newest `cloudgate/cloudgate` tag on Docker Hub (any authenticated user). A POST, though it writes nothing."
+    "description": "Compares the running version with the latest Cloudgate version on GitHub Releases (any authenticated user). A POST, though it writes nothing."
    }
   },
   "/settings/update-server": {
@@ -19757,6 +20073,31 @@
      "Templates"
     ],
     "summary": "List Template tags"
+   }
+  },
+  "/templates/{templateId}/logo": {
+   "get": {
+    "operationId": "TemplatesController_logo",
+    "parameters": [
+     {
+      "name": "templateId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      },
+      "description": "The template's id."
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Templates"
+    ],
+    "summary": "Logo a Template"
    }
   },
   "/templates/{templateId}/setup": {
@@ -21396,6 +21737,11 @@
       "type": "string",
       "maxLength": 100
      },
+     "image": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+     },
      "backups": {
       "type": "boolean"
      },
@@ -21865,6 +22211,10 @@
         ]
        }
       ]
+     },
+     "canReadRuntimeLogs": {
+      "default": false,
+      "type": "boolean"
      }
     },
     "required": [
@@ -24699,6 +25049,13 @@
       "type": "string",
       "minLength": 1
      },
+     "scope": {
+      "type": "string",
+      "enum": [
+       "volume",
+       "stack"
+      ]
+     },
      "volumeName": {
       "type": "string",
       "minLength": 1,
@@ -24757,7 +25114,6 @@
     },
     "required": [
      "name",
-     "volumeName",
      "prefix",
      "schedule",
      "serviceId",
@@ -25779,6 +26135,27 @@
      "databaseName",
      "backupFile",
      "destinationId"
+    ]
+   },
+   "RestoreDto": {
+    "type": "object",
+    "properties": {
+     "withoutSafetyCopy": {
+      "type": "boolean"
+     }
+    },
+    "default": {}
+   },
+   "RestoreMomentDto": {
+    "type": "object",
+    "properties": {
+     "moment": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}-\\d{3}Z$"
+     }
+    },
+    "required": [
+     "moment"
     ]
    },
    "RestoreVolumeBackupDto": {
@@ -27150,6 +27527,18 @@
      "password"
     ]
    },
+   "UpdateAgentDto": {
+    "type": "object",
+    "properties": {
+     "canReadRuntimeLogs": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "canReadRuntimeLogs"
+    ],
+    "additionalProperties": false
+   },
    "UpdateAiDto": {
     "type": "object",
     "properties": {
@@ -28125,7 +28514,8 @@
      },
      "composePath": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "nullable": true
      },
      "composeType": {
       "type": "string",
@@ -31917,7 +32307,11 @@
     "type": "object",
     "properties": {
      "serverIp": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 255
+     },
+     "confirmUnverified": {
+      "type": "boolean"
      }
     },
     "required": [

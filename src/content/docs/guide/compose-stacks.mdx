@@ -4,7 +4,7 @@ seoTitle: 'Deploy a Docker Compose stack with Cloudgate'
 description: Deploy a Docker Compose file as a Compose stack from the console or a repository, route Domains to its services, set variables, back up volumes and run it.
 lede: A Compose stack runs a Docker Compose file as one Service, on a Server or on its own Stack VM in AWS or Google Cloud. Use it for software that already ships a compose file, or for several containers that belong together.
 section: guide
-updated: '2026-11-27'
+updated: '2026-11-28'
 group: Services
 order: 2
 badges: ['Owner or Admin to create and delete', 'Server, AWS and Google Cloud']
@@ -80,8 +80,12 @@ Cloudgate shows; the Docker stack name is generated from it once and never chang
 <Step title="Choose how and where it runs">
 In an Environment that deploys to Servers, pick **Applied as**: **Docker Compose** (brings the file
 up on one machine) or **Swarm stack** (schedules it across the Swarm). Then pick the **Server**, such
-as `fra-1`. On a self-hosted instance the list can also offer **This Cloudgate host**, with a warning
-that a Service on Cloudgate's own machine is lost with Cloudgate if that machine is.
+as `fra-1`. The picker opens on your first Ready Server.
+
+On a self-hosted instance the list also offers **This Cloudgate host**, the machine Cloudgate itself
+runs on. Choosing it, or a Server whose address is that machine, shows the Same-machine warning: if
+the machine is lost, the stack and all of Cloudgate's records go with it. It warns and never
+refuses. The Hosted instance does not offer that machine at all.
 
 In an Environment that deploys to a Cloud account, the dialog shows **Runs on its own Stack VM**
 instead: the stack starts at size `medium` (1 CPU, 2 GB) with a 20 GB data disk, and nothing is made
@@ -159,7 +163,7 @@ Most tabs show a **Stack** card beside them:
 | **Source**, **Repository**, **File** | Where the file comes from. A repository stack with no path shows "Found at each deploy". |
 | **Network** | Whether routed services join `cloudgate-network` or the stack's own network. |
 | **Environment**, **Project** | Links to both. |
-| **Server** or **Runs on** | The Server, **This Cloudgate host**, or its Stack VM with machine type and region. |
+| **Server** or **Runs on** | The Server, **This Cloudgate host**, or its Stack VM with machine type and region. On a self-hosted instance, a stack on Cloudgate's own machine shows the Same-machine warning under the card. |
 | **Stack VM** | On a Cloud account: Running, Starting, Stopping, Stopped, Not made yet, Not found in the cloud or Unknown. |
 | **Created** | When it was made. |
 
@@ -193,8 +197,11 @@ The **Source** card shows the **Type**, **Repository**, **Branch** and **Compose
 | **Any git URL** | Cloned from a URL you give, with an SSH key if it is private. |
 
 For a repository, set the repository, branch and **Compose file** path from the repository's root,
-such as `./deploy/compose.yaml`. Leave the path empty and each deploy uses the first of
-`compose.yaml`, `compose.yml`, `docker-compose.yaml` and `docker-compose.yml` it finds. A git
+such as `./deploy/compose.yaml`. The **Compose file** box may be left empty (its placeholder is
+only an example): each deploy then uses the first of `compose.yaml`, `compose.yml`,
+`docker-compose.yaml` and `docker-compose.yml` in the repository's root. The build log says which,
+for example "No compose file named: using compose.yaml", and names any others it found but did not
+use. With none of them there, the deploy fails with "No compose file named, and none found". A git
 provider must be connected first in **Settings**.
 
 <Screenshot name="compose-source-change" alt="The Source card in edit mode with six choices: A file written here, GitHub, GitLab, Bitbucket, Gitea and Any git URL, with GitHub picked and its connection, repository, branch and compose file fields below" caption="Change source switches between a stored file and a repository at any time." />
@@ -209,7 +216,14 @@ For a stored file, the **Compose file** card is an editor. It checks as you type
   Set the name on the **Variables** tab, or give it a default such as `${POSTGRES_USER:-ghost}`.
 
 **Save the file** stores it; **Discard changes** drops the edit. Saving changes nothing that runs:
-deploy to apply it. **Expand** opens the editor filling the window, with **Discard** and **Save** in
+deploy to apply it.
+
+Long lines do not wrap: the editor scrolls sideways inside its own box, so indentation and the line
+and column in an error read as written. Turn on the **Wrap lines** switch under the editor to wrap
+them; your browser remembers the choice for every editor in the console. Read-only views, such as
+the converted file and its diff, always wrap.
+
+<Screenshot name="editor-wrap-lines" alt="The Compose file editor of a stack with a long command line running past the edge and the Wrap lines switch under the editor" caption="Wrap lines is off by default; the switch is remembered for every editor." /> **Expand** opens the editor filling the window, with **Discard** and **Save** in
 its top bar and a status line saying whether the YAML is valid; **Back to page** or Esc returns with
 the edit kept.
 
@@ -362,28 +376,51 @@ See [Environment variables](/docs/guide/environment-variables).
 
 ## Back up a stack's volumes
 
-**Volume backups** copies named volumes off the stack's Server to a [Destination](/docs/guide/backups)
-on a cron. A Deployment never copies a volume, so nothing else does. Press **Add a backup**:
+**Volume backups** copies a stack's named volumes off its Server to a
+[Destination](/docs/guide/backups) on a cron. A Deployment never copies a volume, so nothing else
+does. Press **Add a backup** and choose under **Back up**:
+
+- **The whole stack** (the default): a Stack backup, with one schedule and one run. Each run stops
+  the stack (when **Stop the stack while it runs** is on), tars every named volume into one folder
+  for that moment, and starts the stack again, even when a tar failed.
+- **One volume**: pick the **Service**, then one of the named volumes it mounts, or **Other volume**
+  and type its full name.
+
+<Screenshot name="compose-volume-backup-add" alt="The Add a backup dialog on a Compose stack with Back up set to The whole stack, a Destination, a Cron expression and Stop the stack while it runs switched on" caption="The whole stack is the default: one schedule backs up every named volume." />
+
+The other fields:
 
 | Field | What it does |
 |---|---|
 | **Name** | Such as `Nightly uploads`. |
-| **Back up** | **The whole stack** (every named volume in one run, called a moment) or **One volume**. |
-| **Service**, **Volume** | For one volume: the service that mounts it and the volume, or **Other volume** and its full name. |
 | **Destination**, **Prefix** | The bucket and the path the tarballs go under. |
 | **Cron expression** | When it runs, such as `0 2 * * *` (every day at two in the morning). |
 | **Keep the newest** | How many to keep; older ones are deleted after each successful run. Empty keeps all. |
-| **Stop the stack while it runs** | Whole stack: stops every service once for the copy. On by default for a stack that runs a database. |
+| **Stop the stack while it runs** | Whole stack: stops every service once for the copy and starts them again afterwards. On by default when a service runs a `postgres`, `mysql`, `mariadb` or `mongo` image. |
 | **Stop the service while the backup runs** | One volume: stops that service for the copy. |
 | **Enabled** | Off keeps the backup and stops it firing. |
 
-**Run now** runs it at once; the run history shows how each run went.
+**Run now** runs it at once; the run history shows how each run went. While a backup that stopped
+the stack is copying its volumes, **Remove containers** is refused (409) until it finishes.
 
-To restore, use the row menu's **Restore**. For a whole-stack backup, **Restore a moment** picks a
-moment, then removes the containers (a Swarm stack is stopped), restores every volume and starts the
-stack; type the stack's name to confirm. If a volume fails, the restore stops there and the stack
-stays stopped. **Restore a volume** unpacks one tarball over one volume: press **Remove containers**
-first and **Start** afterwards.
+<Screenshot name="compose-volume-backups" alt="The Volume backups tab of a Compose stack listing a whole-stack backup, with its schedule, Destination and how many it keeps, and the run history below" caption="A whole-stack backup shows The whole stack in its Volume column." />
+
+<Callout type="note" title="Upgraded from before 0.3.13? Deploy the stack once first">
+The volume pickers list what the stack's last successful Deployment recorded, and Deployments
+record each service's named volumes from Cloudgate 0.3.13. Until a stack has deployed on 0.3.13 or
+later, the tab says it has not deployed successfully yet (or that its volumes are recorded at its
+next deploy) and **One volume** offers only **Other volume**. Redeploy it once to pick its volumes.
+</Callout>
+
+### How do I restore a stack's volumes?
+
+Use **Restore** in the backup row's menu. For a whole-stack backup, the dialog lists the moments its
+Destination holds: pick one, type the stack's name and press **Restore this moment**. It runs as one
+restore, with each step shown: remove the containers (stop, on a Swarm stack), restore each volume,
+then start the stack. If a volume fails, the restore stops there and the stack stays stopped.
+
+For a one-volume backup, **Restore a volume** unpacks one tarball over that volume: press **Remove
+containers** first and **Start** afterwards.
 
 <Callout type="warn" title="A restore replaces the volume">
 Restoring replaces the volume's contents, with no copy of what was there.
@@ -510,6 +547,11 @@ services:
     file: deploy/docker-compose.yml
     type: docker-compose
 ```
+
+`file` is optional. An entry without it names no file, and each deploy finds the first of
+`compose.yaml`, `compose.yml`, `docker-compose.yaml` and `docker-compose.yml` in the repository's
+root. A stack made before Cloudgate 0.3.13 that saved `./docker-compose.yml` keeps that file, and
+its Plan shows no change.
 
 The config names the file; it never holds a copy. A change to the file's contents reaches the stack
 at its next Deployment, not as a Plan line. A stack whose file is written in Cloudgate stays

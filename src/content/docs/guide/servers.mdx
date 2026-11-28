@@ -6,7 +6,7 @@ lede: A Server is a machine Cloudgate reaches over SSH and deploys Services onto
 section: guide
 group: Where it runs
 order: 1
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Owner or Admin', 'Hosted and self-hosted']
 howto:
   name: Add a Server over SSH
@@ -19,7 +19,8 @@ faq:
   - { q: 'Which operating system does a Server need?', a: 'Ubuntu or Debian work best: the setup installs its packages with apt-get. On other systems that step is skipped, and you install unzip, curl, wget, git, jq and openssl yourself.' }
   - { q: 'Does Cloudgate need root on my Server?', a: 'It needs root, or a user with passwordless sudo, over SSH. The setup''s first check stops the run otherwise.' }
   - { q: 'Does Cloudgate install an agent on the machine?', a: 'No. Every command, reading, deployment and shell goes over one SSH connection as the SSH user you gave it.' }
-  - { q: 'What happens to my machine if I remove the Server?', a: 'Nothing. Cloudgate forgets the machine and leaves everything on it running. Removal is refused while Services are still recorded on the Server.' }
+  - { q: 'What happens to my machine if I remove the Server?', a: 'Nothing, for a Server you added over SSH: Cloudgate forgets the machine and leaves everything on it running. A Bought Server is the exception: deleting it destroys the machine. Removal is refused while Services are still recorded on the Server.' }
+  - { q: 'Can a Server be the machine Cloudgate itself runs on?', a: 'On a self-hosted instance, yes, with the Same-machine warning wherever that Server is shown or picked: if the machine is lost, its Services and Cloudgate''s own records go together. The Hosted instance refuses such an address.' }
   - { q: 'Is it safe to run the setup again?', a: 'Yes. Every step checks before it acts, so Run setup again changes only what is missing.' }
 ---
 
@@ -49,9 +50,11 @@ plus one per Add-on.
 
 ## The Servers list
 
-Open **Servers** in the rail. The table lists every Server in the Organization with its
-`user@address:port`, its **Status**, its **Role** and when it was added. Search by name, address with
-port, or SSH user.
+Open **Servers** in the rail. The table lists every Server in the Organization: the **Server** column
+holds its name with how Cloudgate reaches it, `user@address:port`, and its description under it, then
+its **Status**, its **Role** and when it was **Added**. Search by name, description, address with port,
+or SSH user. When the window is too narrow for the table, each row stacks into its name and **Open**,
+with the other columns as labelled values under it.
 
 | Status | What it means |
 |---|---|
@@ -64,6 +67,9 @@ The **This fleet** card counts Servers by role and by reach. **What setup instal
 and Traefik versions the setup pins, the `cloudgate-network` overlay and the `/etc/cloudgate`
 directory. On the Hosted instance a **Servers being bought** card lists purchases still waiting for
 payment or being created; see [Buy a Server](/docs/guide/bought-servers#finish-or-cancel-an-unpaid-purchase).
+Every Bought Server, with its stage and price, is also on the
+[Bought Servers page](/docs/guide/bought-servers#where-do-i-see-all-my-bought-servers), the rail row
+under **Servers**.
 
 <Screenshot name="servers-list" alt="The Servers list of Northwind Labs with build-1, fra-1 and nyc-edge, their status, role and when each was added, beside the This fleet card" caption="Every Server in the Organization, with its reach from the last attempt." />
 
@@ -94,7 +100,7 @@ Press **Add a Server** and fill in the dialog:
 |---|---|---|
 | **Name** | What the Server is called in Cloudgate, such as `fra-1`. | Required. |
 | **Description** | What the machine is for; shown under the name in the list. | Optional. |
-| **Address** | An IP address or a hostname Cloudgate dials. | Required. |
+| **Address** | An IP address or a hostname Cloudgate dials. | Required. On the Hosted instance it must be public: loopback, link-local, private and the instance's own addresses are refused. |
 | **SSH port** | The port sshd listens on. | `22` |
 | **SSH user** | Root, or a user with passwordless sudo. | `root` |
 | **SSH key** | The Organization key whose public half is already on the machine. | Required. |
@@ -164,9 +170,22 @@ this for boot recovery. The release notes in the [changelog](/changelog) say whe
 
 <Screenshot name="server-overview" alt="The Overview tab of fra-1 with the Readiness, Running here and Utilisation cards" caption="Readiness first: it decides what you do next." />
 
-On a self-hosted instance, a Server that is the machine Cloudgate itself runs on carries a warning: if
-that machine is lost, Cloudgate's own records go with it. Add another Server, or use the Hosted
-instance, to keep them apart.
+### What is the Same-machine warning?
+
+On a self-hosted instance, a Server whose address is the machine Cloudgate itself runs on carries the
+**Same-machine warning** on its **Server** card: "Cloudgate itself runs on this machine." If that
+machine is lost, its Services and all of Cloudgate's records go with it: Projects, Servers, settings
+and Deployment history. The note links to **Add a Server** and to Cloudgate Hosted, to keep them
+apart.
+
+- A Server counts as that machine when its address is loopback (`127.0.0.1`, `::1`) or one of the
+  machine's own addresses, or a hostname that resolves to one. It is checked when the address is
+  saved. A Server on the same LAN is another machine and gets no warning.
+- The warning also shows wherever a Service or a Deploy target on that machine is shown or picked,
+  and in a Plan's Notes for a create there. It never refuses, and it cannot be hidden.
+- Create forms and a new Environment open on the Organization's first Ready Server rather than on
+  **This Cloudgate host**, when there is one.
+- The Hosted instance shows no warning: it refuses such an address outright.
 
 ## The Infrastructure tab
 
@@ -252,8 +271,9 @@ Each card saves on its own.
 | **Request logging** | The **Access log** switch. | Restarts Traefik. Feeds the Requests page. |
 | **Remove this Server** | **Delete**. | See [Remove a Server](#remove-a-server). |
 
-A [bought Server](/docs/guide/bought-servers#change-size-backups-or-storage) also has a **Bought Server**
-card for its size, backups and extra storage.
+On a [Bought Server](/docs/guide/bought-servers#the-bought-server-tab), Settings also has a **Bought
+Server** line with **Open Bought Server**: its Server backups, size, extra storage and price are on
+its own **Bought Server** tab, between Shell and Settings.
 
 ### Put a Server in maintenance
 

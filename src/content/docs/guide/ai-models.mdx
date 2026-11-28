@@ -7,7 +7,7 @@ section: guide
 group: Services
 order: 5
 navTitle: AI models
-updated: '2026-11-27'
+updated: '2026-11-28'
 badges: ['Owner or Admin to create', 'Runs on a Server']
 howto:
   name: Serve a model and call it
@@ -64,7 +64,7 @@ until the AI model reads as ready before calling it.
 |---|---|---|
 | **Name** | What it is called in Cloudgate, such as `support-assistant`. | |
 | **Description** | Optional: what it is for. | |
-| **Server** | Where it runs. Each entry reads, for example, `fra-1 · 2 GPUs, 1 free`, or "no GPUs set up". | Servers not ready are turned off. |
+| **Server** | Where it runs. Each entry reads, for example, `fra-1 · 2 GPUs, 1 free`, or "no GPUs set up". | Servers not ready are turned off. On a self-hosted install it opens on the first Ready Server; choosing this Cloudgate host, or a Server on Cloudgate's own machine, warns that Cloudgate itself runs there. |
 | **Inference runtime** | **Ollama**, **vLLM** or **llama.cpp**. | Fixed once created. |
 | **Model** | The one model it serves, in that runtime's naming (below). | |
 | **Hugging Face token** | For gated weights. Given to the model as `HF_TOKEN`, never shown again. | vLLM and llama.cpp only. |

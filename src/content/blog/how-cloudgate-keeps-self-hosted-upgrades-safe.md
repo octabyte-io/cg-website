@@ -29,6 +29,8 @@ Now each version is one prebuilt download attached to its GitHub release, and th
 - **The end-to-end suite must have passed on the release's exact commit.** A red run publishes nothing, so no server can install an untested version.
 - **Only a tag on `main` is published.** A tag cut from a side branch, even a green one, never becomes the version every self-hosted server installs.
 
+Since 0.3.14 a version can also ship first as a release candidate, such as `v0.3.14-rc.1`: tested, built and signed like any version, but published as a GitHub pre-release that no install or update notice offers. `CLOUDGATE_VERSION=v0.3.14-rc.1` installs it on a test box, and once it holds up, the version itself is published from the same commit.
+
 **The cost:** a fix reaches your server only once it is tagged and published. Building from a branch is now a by-hand developer path, not something the install does.
 
 ## Only a version Octabyte signed is installed

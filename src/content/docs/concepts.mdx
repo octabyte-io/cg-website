@@ -1,9 +1,10 @@
 ---
 title: How Cloudgate fits together
-seoTitle: 'How Cloudgate works: Projects, Environments and Services'
+seoTitle: 'How Cloudgate works: Projects and Environments'
 description: How Cloudgate is organized, from Organization to Project, Environment and Service, where Services run, and how Deployments, Plans and Agents fit in.
 lede: Eight words carry the whole model. Learn them once and every screen in the console, every CLI command and every page of this guide reads the same way.
 section: start
+updated: '2026-11-28'
 order: 2
 navTitle: How it fits together
 badges: ['Hosted and self-hosted']
@@ -108,7 +109,9 @@ Every Service runs in one place, fixed when it is made:
   [Cloud accounts](/docs/guide/cloud-accounts).
 
 On a self-hosted instance, the machine Cloudgate itself runs on, the **platform host**, can also be
-a deploy target.
+a deploy target. The console then shows the **Same-machine warning**: a Service there is lost with
+Cloudgate's own records if that machine is lost. See
+[Self-hosting Cloudgate](/docs/self-host#should-my-apps-run-on-the-machine-cloudgate-runs-on).
 
 ## Deployment
 
@@ -127,7 +130,9 @@ someone presses **Apply**. See [Project config and Plans](/docs/guide/project-co
 
 An Agent is a member of the Organization that is not a person: an AI tool connected over MCP. It
 has its own role (Reader, Operator or Caller), its own grant to the Projects, Environments and
-Services it may reach, and its own keys. It can deploy and read logs, but it never applies a Plan.
+Services it may reach, and its own keys. An Operator Agent can deploy, any Agent but a Caller reads
+Deployment logs, and one reads Runtime logs only with its **Can read runtime logs** switch on. No
+Agent ever applies a Plan.
 See [Agents](/docs/guide/agents) and the [AI agents overview](/ai-agents).
 
 ## What the model does not do
