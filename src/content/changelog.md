@@ -1,3 +1,61 @@
+## 0.3.14: backups you can restore on a Bought Server, and Agents that read runtime logs (28 November 2026)
+
+A release about getting a Bought Server back and letting an Agent see what a running app says. Nothing to do on upgrade.
+
+### Bought Servers get their own page, and each one its own tab
+
+On the Hosted instance, an Organization where buying a Server is offered has a **Bought Servers** row in its rail. The page lists every Bought Server with its stage, size and price, under one sentence that gives the count and the monthly total. A Bought Server that is being deleted is left out of the count and the total, and shows no price. When **Buy a Server** is turned off, the page says why. Each Bought Server also has its own **Bought Server** tab, with its Location, Server image, size, price and backups. The Server's **Settings** tab points to it, and the emails about a change or a Restore link straight to it. Three Bought Server messages that said the wrong thing are corrected. More in [Bought Servers](/docs/guide/bought-servers).
+
+### List, take and restore a Bought Server's backups
+
+While a Bought Server's backups are on, its **Server backups** list shows the copies its provider keeps, newest first, with **Being made** on one that is still being made. Up to 7 are kept, one a day.
+
+- **Back up now** takes one more at once, in the same 7 slots. Its confirmation names the backup it will push out once 7 are kept. It is refused while the Organization is frozen, the Server is not Ready, or its backups are off.
+- **Restore** on a backup row asks you to type the Server's name and says the backup's date, the downtime and what is lost. Cloudgate takes a safety copy first, puts the disk back as it was at that backup, runs Server setup again, and redeploys every Service on the Server whose current Deployment finished after the backup, so the data is the backup's and the code is your current version. The email names the Services it redeployed. A Restore is never charged, leaves the Server's extra storage as it is, and is refused while the Server is in maintenance.
+
+### Agents can read a Service's runtime log and its container metrics
+
+An Agent has a **Can read runtime logs** switch, off by default. Set it in the **Create an Agent** dialog or on the Agent's row; every change is in the audit log, and a caller Agent never has it. With it on, the MCP tool `read_runtime_log` reads the last lines a granted Application or Compose stack wrote while running (100 by default, 500 at most). The new `get_service_metrics` tool needs no switch: it gives a summary of a granted Service's CPU, memory, network and disk, summed over every container it runs, over an hour by default and 24 hours at most. No tool reads a Server's own metrics. Stored secrets are masked in a runtime log as everywhere else, but whatever the app itself prints, such as a customer's email, is not, so switch it on only for an Agent whose model host you would trust with that output. More in [MCP tools](/docs/mcp/tools) and [Agents](/docs/guide/agents).
+
+### Release candidates, to check a version on a test box first
+
+A version can now be published as a release candidate first, such as `v0.3.14-rc.1`. It is tested, built and signed like a version and published as a GitHub pre-release, but neither the install nor the console's update notice offers it, and it never reaches the Hosted instance. To try one on a test box, name it: `curl -fsSL https://cloudgate.octabyte.io/install.sh | sudo CLOUDGATE_VERSION=v0.3.14-rc.1 sh`. The final version is then published from the same commit, and a box on the candidate upgrades to it by running the install again or from the update notice. A release candidate counts as older than the version it becomes. More in [Install Cloudgate](/docs/self-host/install).
+
+### File editors scroll sideways again, with a Wrap lines switch
+
+An editable file, such as a Compose file, the Project config or a Traefik file, no longer wraps long lines by default. It scrolls sideways inside its own box, so YAML indentation and a parser's column numbers read as written. A **Wrap lines** switch under the editor turns wrapping on, and your browser remembers the choice for every editor. Read-only views, such as diffs, converted files and plan copies, still wrap.
+
+### Nothing else in the console scrolls sideways
+
+A table wider than its card now stacks each row: the name and actions on one line, the other columns as labelled values under it, and the table comes back once there is room. The Servers, Backup destinations, Registries, Services, Domains and Audit log tables were reshaped so they stay tables at laptop width: a Server's SSH address sits under its name, a destination's region under its endpoint, a registry's username under it, and Created under the type. Code views wrap long lines at their indentation, and the **Create an Agent** dialog, picker details, the resource switcher on a phone and a long search in the command palette stay inside their box.
+
+### Smaller fixes
+
+- Six console messages now say what the console does. Server setup names its eight steps, not six. The **Docker cleanup ran** notification says the nightly prune removes stopped containers, unused images and build cache, never volumes. A Compose stack's Source form calls it a Compose stack. Under a running forward-auth proxy on a lapsed plan, the note says removing the proxy makes its gated Domains fail every request, rather than open them to anyone. The Console domain warning and the password-reset screen no longer point at a file in the source.
+- A volume backup's restore dialog shows each tarball's file name whole under its folder, with the full path on hover.
+
+## 0.3.13: back up a whole Compose stack, the Same-machine warning and cloudgate.yml (26 November 2026)
+
+A release about backing up an app that runs as a Compose stack. One thing to do on upgrade: redeploy each Compose stack once before backing it up, so Cloudgate records its named volumes.
+
+### A Compose stack on a Server has a Volume backups tab
+
+A Compose stack on a Server gets a **Volume backups** tab. **Add a backup** offers **The whole stack**, the default, or **One volume**. The whole stack is one schedule and one run: it stops the stack (when **Stop the stack while it runs** is on), copies every named volume into one moment folder on your Destination, and starts the stack again, even if one copy failed, so the app's database and its files come from the same moment. **Stop the stack while it runs** is on by default when a service runs a `postgres`, `mysql`, `mariadb` or `mongo` image. One volume is picked by its service and then one of the named volumes it mounts, or typed as **Other volume**.
+
+**Restore** on a whole-stack backup lists the moments its Destination holds and restores one whole, as one run: it removes the stack's containers (stops a swarm stack), restores each volume, then starts the stack, showing each step. While a whole-stack backup holds a stack's volumes, **Remove containers** is refused. On a swarm stack, only the copy on the stack's Server is backed up; a stack in a Cloud account has no tab. A stack last deployed on an older version says it hasn't deployed successfully yet until you redeploy it once. More in [Backups](/docs/guide/backups) and [Compose stacks](/docs/guide/compose-stacks).
+
+### The Same-machine warning on a self-hosted instance
+
+On a self-hosted instance, a Server, a Service or a Deploy target on Cloudgate's own machine now says so wherever it is shown or picked, and a plan that creates a Service there carries the warning in its Notes. Losing that machine would lose the Service and Cloudgate's own records together, so the warning points to adding another Server. It warns and never refuses. Create forms and a new Environment now open on the first Ready Server instead of Cloudgate's own machine. The Hosted instance never deploys to its own machine, so it never shows the warning.
+
+### `cloudgate.yml` works as well as `cloudgate.yaml`
+
+A repository's Project config may be named `cloudgate.yml`. A branch holding both names uses `cloudgate.yaml`, and moving the config there says the other file is not read. A Template folder may spell its YAML files `.yaml` or `.yml`, but not both.
+
+### A Compose stack can leave its file unnamed
+
+A Compose stack with no file named finds `compose.yaml`, `compose.yml`, `docker-compose.yaml` or `docker-compose.yml` in its source at each deploy. The **Compose file** box can be left empty, and a Project config entry for a Compose stack may leave out `file`.
+
 ## 0.3.12: a Help & support page in the console (21 November 2026)
 
 A small release about finding help without leaving the console. Nothing to do on upgrade.

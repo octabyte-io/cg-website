@@ -107,6 +107,21 @@ or a ready-made Docker image.
     minutes for SSH. A Server **Powered off by an operator** (reason, support link) is refused as a
     deploy target: deploy, rollback, Start/restart, Run now, upload, preview get a 409 naming it; a
     Template setup waits; pickers leave it out.
+  - 0.3.14: a **Bought Servers** rail row (only where buying is offered; `/bought-servers`) lists
+    every Bought Server with stage, size and price under one sentence with count and monthly
+    total; a Deleting one is left out of both and shows no price; with Buy a Server off the page
+    says why (`GET /bought-servers`). Each Bought Server has a **Bought Server** tab (Location,
+    Server image, size, price, backups, extra storage); Settings points to it; change and Restore
+    emails link to it.
+  - **Server backups** (0.3.14, ADR-0093): the provider's whole-disk copies while backups are on,
+    one a day, at most 7, newest first, **Being made** while one is made. **Back up now** takes one
+    more in the same 7 slots (its confirm names the one it pushes out); refused while the
+    Organization is frozen, the Server is not Ready, or backups are off. **Restore** per row: type
+    the Server's name; says the date, downtime and what is lost; takes a safety copy first (unless
+    that would push out the chosen backup, then asks again), puts the disk back, runs Server setup
+    again, redeploys every Service there whose current Deployment finished after the backup (named
+    in the email); never charged; extra storage untouched; refused while the Server is in
+    maintenance. Not a Volume backup or a database Backup.
 - **AWS**: ECS (Fargate) for web, workers, private web services and cron; RDS for Postgres and
   MySQL; ElastiCache for Redis; S3 and CloudFront for buckets and static sites.
 - **Google Cloud**: Cloud Run for web; Cloud SQL; Memorystore for Redis.
@@ -120,6 +135,34 @@ or a ready-made Docker image.
 
 - Domains and TLS certificates; CDN providers Cloudflare, Bunny, Fastly, ArvanCloud.
 - Backups of databases and volumes to S3-compatible destinations.
+  - **Stack backup** (0.3.13, ADR-0092): a Compose stack on a Server has a **Volume backups** tab.
+    **Add a backup**: **The whole stack** (default) or **One volume** (by service, then a named
+    volume it mounts, or **Other volume**). The whole stack is one schedule and one run: stops the
+    stack when **Stop the stack while it runs** is on (default on for a `postgres`, `mysql`,
+    `mariadb` or `mongo` image), tars every named volume under one moment folder, starts it again
+    even if a tar failed. **Restore** lists the moments on the Destination and restores one whole,
+    as one run: Remove containers (Stop on a swarm stack), each volume, Start, each step shown.
+    **Remove containers** answers 409 while a Stack backup holds the volumes. Swarm stack: only
+    the copy on the stack's Server. Cloud account stack: no tab. Upgrade note: redeploy a stack
+    once (a deploy records its named volumes; until then the tab says it hasn't deployed
+    successfully yet).
+- **Same-machine warning** (0.3.13, Self-hosted only, ADR-0053): a Server, Service or Deploy
+  target on Cloudgate's own machine (the platform host, or a Server at loopback or one of the
+  platform host's addresses) says so wherever shown or picked, and a plan's create there carries
+  it in Notes. Warns, never refuses, can't be hidden. Create forms and a new Environment open on
+  the first Ready Server instead. MCP `get_plan`/`request_plan` answer without those notes.
+- **`cloudgate.yml`** (0.3.13): a repository's Project config may be `cloudgate.yml`; a branch with
+  both uses `cloudgate.yaml` and the move preview says `cloudgate.yml` is not read. A Template
+  folder may spell its YAML files `.yaml` or `.yml`, not both (server-side check; the CLI's own
+  support is not released yet as of CLI 0.1.1).
+- **Compose file found at each deploy** (0.3.13): a Compose stack with no file named finds
+  `compose.yaml`, `compose.yml`, `docker-compose.yaml` or `docker-compose.yml`; the box may be left
+  empty; a config entry may leave out `file`.
+- **Wrap lines** (0.3.14): editable files (Compose file, Project config, Traefik files) no longer
+  wrap by default and scroll sideways in their box; a **Wrap lines** switch under the editor turns
+  wrapping on, remembered by the browser for every editor. Read-only views (diffs, converted
+  files, plan copies) always wrap. Tables that don't fit stack their rows instead of scrolling
+  sideways (0.3.14).
 - Preview deployments: one per pull request (GitHub), or a requested preview that expires.
 - Rollbacks to an earlier Deployment.
 - Monitoring: server CPU and memory thresholds, uptime checks, error rate from Traefik's 5xx
@@ -174,7 +217,7 @@ or a ready-made Docker image.
   supported MCP client.
 - Tools include `deploy_service`, `start_service`, `stop_service`, `cancel_deployment`,
   `create_preview`, `extend_preview`, `redeploy_preview`, `delete_preview`, `request_plan`,
-  `get_plan`, `get_project_config`, `get_service`, `get_environment`, `get_service_health`,
+  `get_plan`, `get_project_config`, `get_service`, `get_environment`, `get_service_health`, `get_service_metrics`, `read_runtime_log` (0.3.14),
   `list_deployments`, `read_deployment_log`, `list_projects`, `list_environments`, `list_domains`,
   `list_previews`, `get_preview`.
 - Guard rails: every call is a row in the audit log, allowed or refused. Every tool result,
@@ -182,6 +225,15 @@ or a ready-made Docker image.
   120 reads a minute, 10 writes a minute. `deploy_service` is safe to call twice (a second call
   joins the queued Deployment). An agent asks for a Plan but never applies one, and reads health
   but never changes alerts. An agent key works only at the MCP endpoint and the Gateway.
+- **Runtime logs and metrics** (0.3.14, ADR-0095/0096): an Agent's **Can read runtime logs**
+  switch, off by default, set in the create dialog or on its row, audit-logged, never on a caller
+  Agent. With it on, `read_runtime_log` reads a granted Application's or Compose's Runtime log
+  (last 100 lines, at most 500, optional `since`; a database has none); the mask hides stored
+  secrets but not what the app prints. `get_service_metrics` (no switch; Reader and Operator hold
+  monitoring read): a summary over 1 hour by default, 24 hours at most: CPU and memory now, average
+  and peak, network and disk totals, at most 60 trend points, summed over every container; never
+  a Server's or the platform host's; a cloud Service or one without monitoring gets an answer
+  saying which.
 - An agent can push a fix to a branch (with git access you give it) and ask for a requested
   preview of that branch, which expires on its own.
 
@@ -260,7 +312,11 @@ or a ready-made Docker image.
   files, and keeps the instance (database, env files, `/etc/cloudgate`, backups, logs) so a later
   install is the same instance. `--purge` removes those too, after you type the public host.
   Docker, Postgres and the firewall are left in place.
-- The latest Instance (server) version is **0.3.12**. 0.3.1 was the first version with a published
+- **Release candidates** (0.3.14, ADR-0094): `vX.Y.Z-rc.N`, published as a GitHub pre-release,
+  never offered by the install or the update notice, never on the Hosted instance;
+  `CLOUDGATE_VERSION=v0.3.14-rc.1` installs one on a test box; ordered before the version it
+  becomes; promoted to `vX.Y.Z` on the same commit.
+- The latest Instance (server) version is **0.3.14** (0.3.13 on 26 November 2026, 0.3.14 on 28 November 2026). 0.3.1 was the first version with a published
   tarball (0.3.0 has none); 0.3.3, 0.3.4 and 0.3.7 were tagged but never published.
 
 ## Source, contributing and security reports
