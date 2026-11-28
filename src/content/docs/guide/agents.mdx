@@ -96,7 +96,7 @@ Under the access tree, **Can read runtime logs** is off: "What its Services prin
 can hold anything their users sent them. Off unless you turn it on." Turn it on only if the Agent
 should read what the Services you granted print while they run, for example to find why one keeps
 crashing. The switch is not offered for a Caller.
-<Screenshot name="agent-create" alt="The Create an Agent dialog with the name deploy-bot, the Operator role selected, the storefront Project and its staging Environment ticked, and the Can read runtime logs switch off below the access tree" caption="Grant the smallest scope that does the job; Can read runtime logs stays off unless you turn it on." />
+<Screenshot name="agent-create" alt="The Create an Agent dialog with the name deploy-bot, the Operator role selected, the storefront Project and its staging Environment ticked, and the Can read runtime logs switch turned on below the access tree" caption="Grant the smallest scope that does the job; Can read runtime logs is off until you turn it on." />
 </Step>
 <Step title="Choose when its first key expires">
 Under **First key expires**, choose **In 30 days**, **In 90 days** (the default) or **In a year**.
@@ -152,7 +152,7 @@ Step-by-step client setup and how to check the connection are in
 
 ## Read an Agent's row
 
-<Screenshot name="settings-agents" alt="Settings, Agents for Northwind Labs, with deploy-assistant (Operator) and incident-triage (Reader), each with its access, keys and when a client last connected" caption="Each Agent shows its role, what it can reach, its keys and when a client last connected." />
+<Screenshot name="settings-agents" alt="Settings, Agents for Northwind Labs, with deploy-assistant (Operator, Can read runtime logs on) and incident-triage (Reader, Can read runtime logs off), each with its access, one key and no client connected yet" caption="Each Agent shows its role, what it can reach, its runtime-log switch, its keys and when a client last connected." />
 
 Each Agent's row shows:
 
