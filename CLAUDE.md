@@ -11,6 +11,7 @@ Several design skills overlap. Pick by the job, not by habit:
 | Job | Skill |
 |---|---|
 | Any page, title, description, schema, internal links, llms.txt | SearchFit (`searchfit-seo` plugin): always, on every page change |
+| A Cloudgate release shipped: bring every page, the guide, screenshots and the changelog up to date | `release-website-sync` (`.claude/skills/`), which uses SearchFit throughout |
 | New page or section: layout, type, colour decisions | `frontend-design`, inside the rules of `docs/design.md` |
 | Critique, audit or polish an existing page (spacing, hierarchy, contrast, responsive) | `impeccable` |
 | Build a new animation or entrance | `animate`; several elements moving together: `choreograph` |
