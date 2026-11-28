@@ -2,6 +2,8 @@
 // search. Each only adds behaviour on top of complete HTML: without this script every panel shows,
 // every screenshot is visible and every page is reachable from the sidebar.
 
+import { centreIn } from './reveal';
+
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Close a <dialog> after its exit animation (or at once with reduced motion). */
@@ -188,6 +190,13 @@ menu?.addEventListener('click', (e) => {
 });
 narrow.addEventListener('change', () => {
   if (menu && !narrow.matches) menu.open = true;
+});
+// Opening the menu shows the current page in the middle of the list, not the top of a long list.
+const menuBody = menu?.querySelector<HTMLElement>('.docs-menu-body');
+const here = menu?.querySelector<HTMLElement>('.docs-nav a[aria-current="page"]') ?? null;
+menu?.addEventListener('toggle', () => {
+  if (!menu.open || !menuBody) return;
+  centreIn(narrow.matches ? menuBody : menu.parentElement!, here);
 });
 
 // ---- Contents marker: slides to the link motion.ts marks as the one being read ----
