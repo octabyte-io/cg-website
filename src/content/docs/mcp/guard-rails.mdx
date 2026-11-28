@@ -4,13 +4,15 @@ seoTitle: MCP guard rails, roles, rate limits and audit
 description: 'The limits every Cloudgate Agent works inside: roles, grants, rate limits, secret masking, the audit log, protocol revisions and the errors a call returns.'
 lede: An Agent passes the same permission check a person does, inside its grant, under its own rate limits, with every call written to the audit log. This page lists each limit and what the endpoint answers when one is reached.
 section: mcp
+updated: '2026-11-28'
 order: 4
 navTitle: Guard rails
 badges: ['Hosted and self-hosted']
 faq:
   - { q: 'Can an agent apply a Plan or change environment variables?', a: 'No. No tool applies or dismisses a Plan, changes settings, variables or access, or changes an Uptime check or Error-rate threshold, whatever the Agent''s role. An agent can ask for a Plan with <code>request_plan</code> and tell you what would change; a person applies it in the console.' }
   - { q: 'What happens when an agent hits the rate limit?', a: 'It gets HTTP 429 with a <code>Retry-After</code> header in whole seconds, and the call spends nothing. The first 429 after an hour without one raises the <strong>Agent rate limited</strong> notification.' }
-  - { q: 'Does the secret mask catch everything?', a: 'No. It replaces every stored secret of 6 characters or more, wherever it appears. It cannot hide a secret Cloudgate never stored (a token a build fetches and prints), an encoded copy of a stored value, or a value shorter than 6 characters.' }
+  - { q: 'Does the secret mask catch everything?', a: 'No. It replaces every stored secret of 6 characters or more, wherever it appears. It cannot hide a secret Cloudgate never stored (a token a build fetches and prints, or a customer''s email a running app logs), an encoded copy of a stored value, or a value shorter than 6 characters.' }
+  - { q: 'Can an agent read my Services'' runtime logs?', a: 'Only when its <strong>Can read runtime logs</strong> switch is on. The switch is off unless an Owner or Admin turns it on, every change is in the audit log, and a Caller never has it. With it off, <code>read_runtime_log</code> is refused with a message naming the switch.' }
   - { q: 'Is the Operator role the same as the operator in error messages?', a: 'No. Operator is an Agent role. When a tool''s message says "an operator", it means a person with access to your Organization in the console, usually an Owner or Admin.' }
   - { q: 'Where do I see what an agent did?', a: 'In the <a href="/docs/guide/audit-log">audit log</a>: one row per call, allowed, refused or failed. The Agent''s row in Settings, Agents links to its entries and to its refused ones.' }
 ---
@@ -33,13 +35,19 @@ An Agent has one of three roles. `tools/list` shows only the tools its role may 
 
 | Role | May | Tools |
 |---|---|---|
-| **Reader** (default) | Read Services, Environments, Deployments, Deployment logs and Domains | The 12 read tools, plus `request_plan` |
-| **Operator** | Everything a Reader can, and deploy, start, stop and cancel | All 21 |
+| **Reader** (default) | Read Services, Environments, Deployments, Deployment logs, Domains, health and container metrics | The 14 read tools, plus `request_plan` |
+| **Operator** | Everything a Reader can, and deploy, start, stop and cancel | All 23 |
 | **Caller** | Call the AI models it is granted through the Gateway | None: the tool list is empty and every call is refused |
 
 A Reader can call `request_plan` because asking for a Plan needs only read access to the
 Environment. It still spends the **write** budget, because it stores a Plan that replaces the
-Environment's open one. Change an Agent's role with **Change role** on its row; see
+Environment's open one.
+
+`read_runtime_log` is a read tool, but a call is served only when the Agent's **Can read runtime
+logs** switch is on as well. The switch is off unless an Owner or Admin turns it on, when creating
+the Agent or later on its row; it is read at each call, so a change applies to the next one. A
+Caller never holds it, and moving an Agent to Caller turns it off. See
+[Agents](/docs/guide/agents#let-an-agent-read-runtime-logs). Change an Agent's role with **Change role** on its row; see
 [members and roles](/docs/guide/members-and-roles) for how agent roles relate to people's.
 
 ## What is a grant?
@@ -65,6 +73,9 @@ Whatever its role and grant:
 - add, edit, turn off or remove an Uptime check or an Error-rate threshold, so it cannot silence an
   Incident;
 - create, delete or call an AI model through a tool, or read its token spend;
+- read a Server's own metrics or the platform host's: `get_service_metrics` reads only a granted
+  Service's containers;
+- read a Runtime log while its **Can read runtime logs** switch is off;
 - turn on requested previews for an Application;
 - use its key anywhere but `/mcp` and the Gateway: the REST API and console sign-in refuse it.
 
@@ -105,7 +116,7 @@ memory, so a backend restart refills them.
 
 ## What does the secret mask hide?
 
-Every tool answer, Deployment logs included, passes through one mask before the agent sees it. It
+Every tool answer, Deployment logs and Runtime logs included, passes through one mask before the agent sees it. It
 replaces every **stored secret** reachable from what the tool is about with `••••••`: environment
 variables, build arguments, registry and git credentials, database passwords and backup destination
 keys. Secrets are never returned as fields; `hasEnv`, `hasBuildArgs`, `hasBuildSecrets`,
@@ -115,13 +126,16 @@ is set. An AI model's upstream secret is never present, not even as a flag.
 The mask cannot hide:
 
 - what a build prints that Cloudgate never stored, such as a token the build fetches and echoes;
+- what a running Service prints that Cloudgate never stored, for an Agent that can read runtime
+  logs: a customer's email, a request body, a session token;
 - an encoded or escaped copy of a stored value;
 - a value shorter than 6 characters.
 
 A stored value of 6 characters or more is masked **wherever it appears**. A build argument
 `NODE_ENV=production` masks every "production" in the log, so a log full of `••••••` usually means a
 common word is stored as a secret. Treat anything an Agent can read as readable by whoever runs the
-agent.
+agent, and turn on **Can read runtime logs** only for an Agent whose model host you would trust with
+what your Services print.
 
 ## What does the audit log record?
 
@@ -165,6 +179,7 @@ A tool that cannot answer returns an MCP result with `isError: true`, its messag
 |---|---|---|
 | Outside the grant, unknown, or another Organization's | `Not found or not permitted.` plus the access sentence | No |
 | The role lacks a permission | `This Agent's role does not include deployment:create.` plus the access sentence | No |
+| `read_runtime_log` with the switch off | `This Agent's Can read runtime logs switch is off, so it reads no Runtime log. An operator can turn it on from the Agent's row in the console.` plus the access sentence | No |
 | A Caller calls a tool | `This Agent's role only calls AI models through the Gateway and holds no tool here.` plus the access sentence | No |
 | A failure the tool explains | Its own words, such as `This Deployment cannot be cancelled now: …` | Depends on the message |
 | Anything else | `The call failed. The detail is in audit entry <id>.` | A person reads the audit entry |

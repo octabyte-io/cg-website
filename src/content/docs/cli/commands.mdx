@@ -542,6 +542,11 @@ config file under a template's `files/` may end in `.js`, for an app that reads 
 JavaScript module; other scripts (`.sh`, `.py`, `.mjs`, `.cjs`, `.ts`) are refused. An old
 `catalogue.json` is refused with a message naming `catalogue.zip`.
 
+CLI 0.1.1 finds a template folder by its `template.yaml` and checks the fixed names
+`template.yaml`, `cloudgate.yaml` and `docker-compose.yml`. Cloudgate 0.3.13 and newer also take a
+template's YAML files spelled `.yml` or `.yaml`; keep the names above for a template you check with
+this CLI.
+
 #### How a template says to sign in: `signIn`
 
 A template's `template.yaml` may say how a person signs in to the app once it runs, in an optional

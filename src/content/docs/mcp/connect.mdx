@@ -4,6 +4,7 @@ seoTitle: Connect Claude Code, Cursor or Codex over MCP
 description: Create an Agent, choose its role and grant, copy its agent key, and add Cloudgate's MCP endpoint to Claude Code, VS Code, Cursor, Codex CLI or another client.
 lede: Connecting takes an Agent in the console and a few lines of client configuration. The configuration names the key's environment variable rather than holding the key, so it is safe to commit.
 section: mcp
+updated: '2026-11-28'
 order: 2
 navTitle: Connect a client
 badges: ['Owner or Admin', 'Hosted and self-hosted']
@@ -52,6 +53,10 @@ fictional Northwind Labs organization, its `storefront` Project and the `web` Se
     and granting a Service grants its Environment and Project too. For an agent that fixes the
     storefront, tick `web` in `production` of `storefront`, nothing more. You can save with nothing
     ticked and grant later with **Manage access**.
+
+    Below the access tree, **Can read runtime logs** is off. Turn it on only if the agent should read
+    what the granted Services print while they run; the mask hides stored secrets, not what an app
+    prints. See [Agents](/docs/guide/agents#let-an-agent-read-runtime-logs).
   </Step>
   <Step title="Choose when the key expires, and copy it">
     Under **First key expires**, pick 30 days, 90 days (the default) or a year. There is no
@@ -184,6 +189,7 @@ Projects you granted, and the Agent's row in the console changes **Last connecte
 | 403 before any tool runs | Something in front of Cloudgate adds an `Origin` header | Stop adding it for `/mcp` |
 | The tool list is empty | The Agent's role is Caller | Change its role to Reader or Operator |
 | Empty lists, or "Not found or not permitted." | Nothing is granted | **Manage access** on its row |
+| `read_runtime_log` refused, naming **Can read runtime logs** | The Agent's switch is off | Turn it on from the Agent's row, if it should read Runtime logs |
 
 More refusals, with what each means, are in [guard rails](/docs/mcp/guard-rails#what-errors-can-a-call-return).
 

@@ -1,9 +1,10 @@
 ---
 title: MCP tool reference
-seoTitle: 'Cloudgate MCP tools reference: all 21 tools and parameters'
-description: All 21 tools Cloudgate's MCP endpoint serves to AI agents, with parameters, what each answers, the role it needs, the budget it spends and its edge cases.
-lede: Every tool an Agent can call at /mcp, in the order tools/list shows them. Twelve read, nine write; a role filters the list, so an Agent never sees a tool it may not call.
+seoTitle: 'Cloudgate MCP tools: all 23 and their parameters'
+description: All 23 tools Cloudgate's MCP endpoint serves to AI agents, including runtime logs and container metrics, with parameters, answers, roles and edge cases.
+lede: Every tool an Agent can call at /mcp, in the order tools/list shows them. Fourteen read, nine write; a role filters the list, so an Agent never sees a tool its role may not call.
 section: mcp
+updated: '2026-11-28'
 order: 3
 navTitle: Tool reference
 badges: ['Hosted and self-hosted']
@@ -11,6 +12,8 @@ faq:
   - { q: 'Is it safe for an agent to call deploy_service twice?', a: 'Yes. If a Deployment of the same Service is still waiting in the queue, the second call answers that Deployment''s id with <code>coalesced: true</code> and queues nothing. A build already running is not joined: a new one queues behind it.' }
   - { q: 'Why can a Reader call request_plan?', a: 'It needs only read access to the Environment, and changes no Service. It does store a fresh Plan that replaces the open one, so it spends the write budget like a write tool.' }
   - { q: 'Can an agent follow a build log live?', a: 'No. There is no streaming. It polls <code>list_deployments</code> or <code>get_preview</code> for the status, and reads the last lines with <code>read_deployment_log</code>.' }
+  - { q: 'Can an agent read what my app prints while it runs?', a: 'Only an Agent whose <strong>Can read runtime logs</strong> switch is on, which is off unless an Owner or Admin turns it on. It then calls <code>read_runtime_log</code> for the last lines an Application or Compose stack wrote. Stored secrets are masked; anything else the app prints is not.' }
+  - { q: 'Can an agent see whether a Service ran out of memory?', a: 'Yes. <code>get_service_metrics</code> answers a granted Service''s CPU and memory now, on average and at peak, memory against its limit, network and disk totals and a trend, over 1 hour by default and 24 hours at most. It never reads a Server''s own metrics.' }
   - { q: 'What does a tool answer when it fails?', a: 'An MCP result with <code>isError: true</code>, a text message and <code>structuredContent</code> holding <code>code</code> (<code>refused</code> or <code>failed</code>), an optional <code>reason</code>, and <code>message</code>. See <a href="/docs/mcp/guard-rails#what-errors-can-a-call-return">errors</a>.' }
 ---
 
@@ -33,6 +36,7 @@ explained in [guard rails](/docs/mcp/guard-rails); the same data is available to
 | [`read_deployment_log`](#read_deployment_log) | read | yes | yes |
 | [`list_domains`](#list_domains) | read | yes | yes |
 | [`get_service_health`](#get_service_health) | read | yes | yes |
+| [`get_service_metrics`](#get_service_metrics) | read | yes | yes |
 | [`deploy_service`](#deploy_service) | write | no | yes |
 | [`start_service`](#start_service) | write | no | yes |
 | [`stop_service`](#stop_service) | write | no | yes |
@@ -46,8 +50,11 @@ explained in [guard rails](/docs/mcp/guard-rails); the same data is available to
 | [`get_project_config`](#get_project_config) | read | yes | yes |
 | [`get_plan`](#get_plan) | read | yes | yes |
 | [`request_plan`](#request_plan) | write | yes | yes |
+| [`read_runtime_log`](#read_runtime_log) | read | with the switch on | with the switch on |
 
-A Caller sees none of them. Read tools spend the read budget (120 a minute, burst 60) and are
+A Caller sees none of them. `read_runtime_log` is listed to a Reader and an Operator, but a call is
+served only when the Agent's **Can read runtime logs** switch is on; see
+[Agents](/docs/guide/agents#let-an-agent-read-runtime-logs). Read tools spend the read budget (120 a minute, burst 60) and are
 annotated `readOnlyHint: true`; write tools spend the write budget (10 a minute, burst 5).
 
 ### Common parameters
@@ -215,6 +222,37 @@ changes a check or a threshold.
 
 **Needs:** read on the Service.
 
+### get_service_metrics
+
+Reads one Service's own container metrics over a window, summed across its containers: an
+Application's replicas, a Compose stack's services. Use it to tell whether a crashing Service ran
+out of memory or CPU.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | Any kind except `bucket`, which runs no container |
+| `serviceId` | string | yes | A `serviceId` from `get_environment` |
+| `hours` | number above 0 | no | The window, in hours back from now: default 1, at most 24. A longer window is refused, not cut |
+
+**Returns:** `serviceType`, `serviceId`, `available`, `unavailableReason`, `windowHours`, `since`,
+`until`, `samples`, `lastSampledAt`, and:
+
+- `cpu`: `nowPercent`, `averagePercent`, `peakPercent`;
+- `memory`: `nowMiB`, `averageMiB`, `peakMiB`, `limitMiB`, `nowPercent`, `peakPercent`;
+- `network`: `receivedMB`, `sentMB`; `disk`: `readMB`, `writtenMB`, each a total since its
+  containers started;
+- `trend`: at most 60 points of `{ at, cpuPercent, memoryMiB }`.
+
+A Service with no figures answers `available: false` with its `unavailableReason`, never zeros: it
+runs in a Cloud account, where Cloudgate collects no container metrics; monitoring is not set up on
+its Server or the platform host; no samples are stored for its containers yet; or the window holds
+none. A container's name is never in the answer.
+
+**Needs:** read on the Service. Reader and Operator both hold the monitoring read this takes. No
+tool reads a Server's own metrics or the platform host's, because a Server is shared by Services the
+Agent was not granted. The console's view of the same figures is
+[Monitoring](/docs/guide/monitoring).
+
 ### list_previews
 
 Lists an Application's [requested previews](/docs/guide/previews), newest first. Previews a pull
@@ -287,6 +325,42 @@ such as a variable with no value, and `heldBuilds`.
 
 **Needs:** read on the Environment. An agent cannot apply or dismiss a Plan; a person does that in
 the console.
+
+On a self-hosted Instance, the Same-machine notes a person sees on a Plan that would create
+something on Cloudgate's own machine are left out of what `get_plan` and `request_plan` answer. Every
+other note goes through.
+
+### read_runtime_log
+
+Reads the last lines an Application or a Compose stack itself wrote while running, from every copy it
+runs, merged by time. Use it to find why a running Service keeps crashing. It is the last tool in
+`tools/list`.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `serviceType` | string | yes | `application` or `compose`; a database has no Runtime log |
+| `serviceId` | string | yes | The `serviceId` of an Application or Compose stack, from `get_environment` |
+| `lines` | integer, at least 1 | no | How many lines from the end: default 100, at most 500 |
+| `since` | string | no | Only lines written at or after this ISO 8601 date-time, with its offset |
+
+**Returns:** `{ serviceType, serviceId, lines, since, log }`. `log` holds a line each, oldest first,
+as `<time> [<copy>] <line>`; `lines` is the window applied and `since` is as given, or `null`.
+
+**Needs:** read on the Service, and the Agent's **Can read runtime logs** switch on. With it off, the
+call is refused: "This Agent's Can read runtime logs switch is off, so it reads no Runtime log. An
+operator can turn it on from the Agent's row in the console." A Caller never has the switch.
+
+**Notes:**
+
+- Stored secrets in the log are masked as `••••••`; anything else the app prints is not. See
+  [what the mask cannot hide](/docs/mcp/guard-rails#what-does-the-secret-mask-hide).
+- A request for more than 500 lines is answered at 500. A window larger than 1 MiB fails, asking for
+  fewer lines.
+- When more was written in the time asked for than one call reads, the call fails and asks for a
+  later `since` rather than answering older lines. A Cloud account's Runtime log reaches back only as
+  far as the console's **Logs** tab reads it.
+- When the Server, platform host or Stack VM the Service runs on cannot be reached, the call fails and
+  says so; try again later.
 
 ## Write tools
 
